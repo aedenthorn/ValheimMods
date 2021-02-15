@@ -1,0 +1,1 @@
+copy C:\Users\poiqwe\source\repos\ValheimMods\%1\bin\Debug\%1.dll H:\tmp\ga\Valheim\Mods\%1\

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Param xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Hotkey>
+    <keyCode>None</keyCode>
+    <modifiers>0</modifiers>
+  </Hotkey>
+  <CheckUpdates>1</CheckUpdates>
+  <ShowOnStart>1</ShowOnStart>
+  <WindowWidth>0</WindowWidth>
+  <WindowHeight>0</WindowHeight>
+  <UIScale>1</UIScale>
+  <ModParams />
+</Param>

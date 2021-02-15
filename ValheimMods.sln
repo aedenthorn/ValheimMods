@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31005.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuperJump", "SuperJump\SuperJump.csproj", "{CAB0260E-1649-451E-A5FA-E2F0249915E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TorchMod", "TorchMod\TorchMod.csproj", "{4679AA01-DD8C-473E-A88F-2B1D7A7306DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickLoad", "QuickLoad\QuickLoad.csproj", "{9A75D46F-077B-4719-ABEE-EA0934C070BC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CAB0260E-1649-451E-A5FA-E2F0249915E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAB0260E-1649-451E-A5FA-E2F0249915E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAB0260E-1649-451E-A5FA-E2F0249915E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAB0260E-1649-451E-A5FA-E2F0249915E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4679AA01-DD8C-473E-A88F-2B1D7A7306DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4679AA01-DD8C-473E-A88F-2B1D7A7306DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4679AA01-DD8C-473E-A88F-2B1D7A7306DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4679AA01-DD8C-473E-A88F-2B1D7A7306DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A75D46F-077B-4719-ABEE-EA0934C070BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A75D46F-077B-4719-ABEE-EA0934C070BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A75D46F-077B-4719-ABEE-EA0934C070BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A75D46F-077B-4719-ABEE-EA0934C070BC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DF66F82B-6C56-446F-8CED-94C372090A33}
+	EndGlobalSection
+EndGlobal
