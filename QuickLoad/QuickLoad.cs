@@ -1,49 +1,35 @@
-﻿using HarmonyLib;
+﻿using BepInEx;
+using BepInEx.Configuration;
+using HarmonyLib;
 using System.Reflection;
 using UnityEngine;
-using UnityModManagerNet;
 
 namespace QuickLoad
 {
-    public class Main
+    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.2.0")]
+    public class QuickLoad: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
-                Debug.Log((pref ? typeof(Main).Namespace + " " : "") + str);
+                Debug.Log((pref ? typeof(QuickLoad).Namespace + " " : "") + str);
         }
 
-        public static Settings settings { get; private set; }
-        public static bool enabled;
-        private static void Load(UnityModManager.ModEntry modEntry)
+        public static ConfigEntry<string> hotKey;
+        public static ConfigEntry<bool> modEnabled;
+
+
+        private void Awake()
         {
-            settings = Settings.Load<Settings>(modEntry);
+            hotKey = Config.Bind<string>("General", "HotKey", "f7", "Hot key code to perform quick load.");
+            modEnabled = Config.Bind<bool>("General", "enabled", true, "Enable this mod");
 
-            modEntry.OnGUI = OnGUI;
-            modEntry.OnSaveGUI = OnSaveGUI;
-            modEntry.OnToggle = OnToggle;            
+            if (!modEnabled.Value)
+                return;
 
-            var harmony = new Harmony(modEntry.Info.Id);
-            harmony.PatchAll(Assembly.GetExecutingAssembly());
-
-            return;
-        }
-
-        // Called when the mod is turned to on/off.
-        static bool OnToggle(UnityModManager.ModEntry modEntry, bool value /* active or inactive */)
-        {
-            enabled = value;
-            return true; // Permit or not.
-        }
-        private static void OnSaveGUI(UnityModManager.ModEntry modEntry)
-        {
-            settings.Save(modEntry);
-        }
-
-        private static void OnGUI(UnityModManager.ModEntry modEntry)
-        {
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Update")]
@@ -51,7 +37,7 @@ namespace QuickLoad
         {
             static void Postfix(FejdStartup __instance)
             {
-                if (!Input.GetKeyDown(settings.HotKey))
+                if (!Input.GetKeyDown(hotKey.Value))
                     return;
 
                 Dbgl("pressed hot key");
