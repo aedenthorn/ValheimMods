@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Durability
 {
-    [BepInPlugin("aedenthorn.Durability", "Durability", "0.2.0")]
+    [BepInPlugin("aedenthorn.Durability", "Durability", "0.3.0")]
     public class Durability : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -15,8 +15,14 @@ namespace Durability
         public static ConfigEntry<float> torchDurabilityDrain;
         public static ConfigEntry<float> weaponDurabilityLoss;
         public static ConfigEntry<float> bowDurabilityLoss;
-        public static ConfigEntry<float> shieldDurabilityLossMult;
+
         public static ConfigEntry<float> toolDurabilityLoss;
+        public static ConfigEntry<float> hammerDurabilityLoss;
+        public static ConfigEntry<float> hoeDurabilityLoss;
+        public static ConfigEntry<float> pickaxeDurabilityLoss;
+        public static ConfigEntry<float> axeDurabilityLoss;
+
+        public static ConfigEntry<float> shieldDurabilityLossMult;
         public static ConfigEntry<float> armorDurabilityLossMult;
         public static ConfigEntry<bool> modEnabled;
 
@@ -30,7 +36,13 @@ namespace Durability
             torchDurabilityDrain = Config.Bind<float>("Durability", "TorchDurabilityDrain", 0.033f, "Torch durability drain over time.");
             weaponDurabilityLoss = Config.Bind<float>("Durability", "WeaponDurabilityLoss", 1f, "Weapon durability loss per use.");
             bowDurabilityLoss = Config.Bind<float>("Durability", "BowDurabilityLoss", 1f, "Bow durability loss per use.");
-            toolDurabilityLoss = Config.Bind<float>("Durability", "ToolDurabilityLoss", 1f, "Tool durability loss per use.");
+
+            hammerDurabilityLoss = Config.Bind<float>("Durability", "HammerDurabilityLoss", 1f, "Hammer durability loss per use.");
+            hoeDurabilityLoss = Config.Bind<float>("Durability", "HoeDurabilityLoss", 1f, "Hoe durability loss per use.");
+            pickaxeDurabilityLoss = Config.Bind<float>("Durability", "PickaxeDurabilityLoss", 1f, "Pickaxe durability loss per use.");
+            axeDurabilityLoss = Config.Bind<float>("Durability", "AxeDurabilityLoss", 1f, "Axe durability loss per use.");
+            toolDurabilityLoss = Config.Bind<float>("Durability", "ToolDurabilityLoss", 1f, "Other tool durability loss per use.");
+
             shieldDurabilityLossMult = Config.Bind<float>("Durability", "ShieldDurabilityLossMult", 1f, "Shield durability loss multiplier.");
             armorDurabilityLossMult = Config.Bind<float>("Durability", "ArmorDurabilityLossMult", 1f, "Armor durability loss multiplier.");
             modEnabled = Config.Bind<bool>("General", "enabled", true, "Enable this mod");
@@ -66,7 +78,16 @@ namespace Durability
                             __instance.m_itemData.m_shared.m_useDurabilityDrain = bowDurabilityLoss.Value;
                             break;
                         case ItemDrop.ItemData.ItemType.Tool:
-                            __instance.m_itemData.m_shared.m_useDurabilityDrain = toolDurabilityLoss.Value;
+                            if (__instance.name.StartsWith("Hammer"))
+                                __instance.m_itemData.m_shared.m_useDurabilityDrain = hammerDurabilityLoss.Value;
+                            else if (__instance.name.StartsWith("Hoe"))
+                                __instance.m_itemData.m_shared.m_useDurabilityDrain = hoeDurabilityLoss.Value;
+                            else if (__instance.name.StartsWith("Pickaxe"))
+                                __instance.m_itemData.m_shared.m_useDurabilityDrain = pickaxeDurabilityLoss.Value;
+                            else if (__instance.name.StartsWith("Axe"))
+                                __instance.m_itemData.m_shared.m_useDurabilityDrain = axeDurabilityLoss.Value;
+                            else
+                                __instance.m_itemData.m_shared.m_useDurabilityDrain = toolDurabilityLoss.Value;
                             break;
                     }
                 }
@@ -115,7 +136,8 @@ namespace Durability
                 }
             }
         }
-                [HarmonyPatch(typeof(Humanoid), "BlockAttack")]
+        
+        [HarmonyPatch(typeof(Humanoid), "BlockAttack")]
         static class BlockAttack_Patch
         {
             static void Prefix(Humanoid __instance, ref float __state, ItemDrop.ItemData ___m_leftItem)
