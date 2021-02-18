@@ -4,7 +4,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
 
-namespace SuperJump
+namespace Durability
 {
     [BepInPlugin("aedenthorn.SuperJump", "Super Jump", "0.2.0")]
     public class SuperJump: BaseUnityPlugin

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TorchMod", "TorchMod\TorchM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickLoad", "QuickLoad\QuickLoad.csproj", "{9A75D46F-077B-4719-ABEE-EA0934C070BC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Durability", "Durability\Durability.csproj", "{9C18D21E-6292-498C-95C8-F441224135B5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{9A75D46F-077B-4719-ABEE-EA0934C070BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A75D46F-077B-4719-ABEE-EA0934C070BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A75D46F-077B-4719-ABEE-EA0934C070BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C18D21E-6292-498C-95C8-F441224135B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C18D21E-6292-498C-95C8-F441224135B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C18D21E-6292-498C-95C8-F441224135B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C18D21E-6292-498C-95C8-F441224135B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
