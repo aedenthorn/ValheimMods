@@ -1,14 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
 namespace TorchMod
 {
-    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.4.0")]
+    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.4.1")]
 
     public class TorchMod: BaseUnityPlugin
     {
@@ -74,7 +72,7 @@ namespace TorchMod
             torchColorTemperature = Config.Bind("Torches", "TorchColorTemperature", 6570f, "The color temperature of the light. (float)");
 
             standingTorchColor = Config.Bind("Standing Torches", "StandingTorchColor", new Color(1f, 0.621f, 0.482f, 1f), "The color of the light.");
-            standingTorchRange = Config.Bind("Standing Torches", "StandingTorchRange", 0.183822f, "The range of the light. (float)");
+            standingTorchRange = Config.Bind("Standing Torches", "StandingTorchRange", 10f, "The range of the light. (float)");
             standingTorchIntensity = Config.Bind("Standing Torches", "StandingTorchIntensity", 1f, "The Intensity of a light is multiplied with the Light color. (float 0-8)");
             standingTorchBounceIntensity = Config.Bind("Standing Torches", "StandingTorchBounceIntensity", 1f, "The multiplier that defines the strength of the bounce lighting. (float 0+)");
             standingTorchShadowStrength = Config.Bind("Standing Torches", "StandingTorchShadowStrength", 1f, "Strength of light's shadows. (float)");
@@ -157,7 +155,7 @@ namespace TorchMod
 
                 string name = __instance.name;
 
-                Dbgl(name);
+                Dbgl($"starting fireplace {name}");
 
                 FieldInfo lfi = typeof(LightFlicker).GetField("m_baseIntensity", BindingFlags.NonPublic | BindingFlags.Instance);
                 if (name.Contains("groundtorch"))
@@ -165,13 +163,13 @@ namespace TorchMod
                     LightFlicker lf = __instance.m_enabledObject.GetComponentInChildren<LightFlicker>();
                     Light light = lf.GetComponent<Light>();
                     
-                    //Dbgl($"color: {light.color}");
-                    //Dbgl($"range: {light.range}");
-                    //Dbgl($"bounceIntensity: {light.bounceIntensity}");
-                    //Dbgl($"useColorTemperature: {light.useColorTemperature}");
-                    //Dbgl($"colorTemperature: {light.colorTemperature}");
-                    //Dbgl($"shadowStrength: {light.shadowStrength}");
-                    //Dbgl($"intensity: {lfi.GetValue(lf)}");
+                    Dbgl($"color: {light.color}");
+                    Dbgl($"range: {light.range}");
+                    Dbgl($"bounceIntensity: {light.bounceIntensity}");
+                    Dbgl($"useColorTemperature: {light.useColorTemperature}");
+                    Dbgl($"colorTemperature: {light.colorTemperature}");
+                    Dbgl($"shadowStrength: {light.shadowStrength}");
+                    Dbgl($"intensity: {lfi.GetValue(lf)}");
 
                     light.color = standingTorchColor.Value;
                     light.range = standingTorchRange.Value;
@@ -187,6 +185,13 @@ namespace TorchMod
                     LightFlicker lf = __instance.m_enabledObject.GetComponentInChildren<LightFlicker>();
                     Light light = lf.GetComponent<Light>();
 
+                    Dbgl($"color: {light.color}");
+                    Dbgl($"range: {light.range}");
+                    Dbgl($"bounceIntensity: {light.bounceIntensity}");
+                    Dbgl($"useColorTemperature: {light.useColorTemperature}");
+                    Dbgl($"colorTemperature: {light.colorTemperature}");
+                    Dbgl($"shadowStrength: {light.shadowStrength}");
+                    Dbgl($"intensity: {lfi.GetValue(lf)}");
 
                     light.color = sconceColor.Value;
                     light.range = sconceRange.Value;
@@ -202,6 +207,15 @@ namespace TorchMod
                     Light light = lf.GetComponent<Light>();
 
 
+                    Dbgl($"color: {light.color}");
+                    Dbgl($"range: {light.range}");
+                    Dbgl($"bounceIntensity: {light.bounceIntensity}");
+                    Dbgl($"useColorTemperature: {light.useColorTemperature}");
+                    Dbgl($"colorTemperature: {light.colorTemperature}");
+                    Dbgl($"shadowStrength: {light.shadowStrength}");
+                    Dbgl($"intensity: {lfi.GetValue(lf)}");
+
+
                     light.color = firePitColorLow.Value;
                     light.range = firePitRangeLow.Value;
                     light.bounceIntensity = firePitBounceIntensityLow.Value;
@@ -213,6 +227,13 @@ namespace TorchMod
                     LightFlicker lf2 = __instance.m_enabledObjectHigh.GetComponentInChildren<LightFlicker>();
                     Light light2 = lf2.GetComponent<Light>();
 
+                    Dbgl($"color: {light2.color}");
+                    Dbgl($"range: {light2.range}");
+                    Dbgl($"bounceIntensity: {light2.bounceIntensity}");
+                    Dbgl($"useColorTemperature: {light2.useColorTemperature}");
+                    Dbgl($"colorTemperature: {light2.colorTemperature}");
+                    Dbgl($"shadowStrength: {light2.shadowStrength}");
+                    Dbgl($"intensity: {lfi.GetValue(lf)}");
 
 
                     light2.color = firePitColorHigh.Value;

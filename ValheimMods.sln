@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Regeneration", "Regeneratio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeRespawn", "TreeRespawn\TreeRespawn.csproj", "{D19F8AE0-7192-42B5-94E9-30C8496F7394}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CraftFromContainers", "CraftFromContainers\CraftFromContainers.csproj", "{571E7C29-571A-41F0-9D93-2161DD20C36A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{D19F8AE0-7192-42B5-94E9-30C8496F7394}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D19F8AE0-7192-42B5-94E9-30C8496F7394}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D19F8AE0-7192-42B5-94E9-30C8496F7394}.Release|Any CPU.Build.0 = Release|Any CPU
+		{571E7C29-571A-41F0-9D93-2161DD20C36A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{571E7C29-571A-41F0-9D93-2161DD20C36A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{571E7C29-571A-41F0-9D93-2161DD20C36A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{571E7C29-571A-41F0-9D93-2161DD20C36A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
