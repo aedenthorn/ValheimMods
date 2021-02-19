@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Config xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Valheim">
-  <Folder>Valheim</Folder>
-  <ModsDirectory>Mods</ModsDirectory>
-  <ModInfo>Info.json</ModInfo>
-  <GameExe>Valheim.exe</GameExe>
-  <EntryPoint>[UnityEngine.UIModule.dll]UnityEngine.Canvas.cctor:Before</EntryPoint>
-  <MinimalManagerVersion>0.22.15</MinimalManagerVersion>
-</Config>

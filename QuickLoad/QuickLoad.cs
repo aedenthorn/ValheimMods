@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace QuickLoad
 {
-    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.2.0")]
+    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.3.1")]
     public class QuickLoad: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -63,10 +63,20 @@ namespace QuickLoad
 
                 Dbgl($"got world");
 
+
                 ZNet.SetServer(true, isOn2, isOn, worldName, text, world);
                 ZNet.SetServerHost("", 0);
-                string eventLabel = "open:" + isOn2.ToString() + ",public:" + isOn.ToString();
-                GoogleAnalyticsV4.instance.LogEvent("Menu", "WorldStart", eventLabel, 0L);
+
+                Dbgl($"Set server");
+                try
+                {
+                    string eventLabel = "open:" + isOn2.ToString() + ",public:" + isOn.ToString();
+                    Gogan.LogEvent("Menu", "WorldStart", eventLabel, 0L);
+                }
+                catch
+                {
+                    Dbgl($"Error calling Gogan... oh well");
+                }
 
                 Dbgl($"transitioning...");
 

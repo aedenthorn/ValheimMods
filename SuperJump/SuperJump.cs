@@ -37,9 +37,9 @@ namespace Durability
         static class Jump_Patch
         {
 
-            static void Prefix(Character __instance)
+            static void Prefix(Character __instance, ref float ___m_lastGroundTouch)
             {
-                if (modEnabled.Value)
+                if (modEnabled.Value && __instance.IsPlayer())
                 {
                     if (JumpNumber > 0 && __instance.IsOnGround())
                     {
@@ -48,7 +48,7 @@ namespace Durability
 
                     if (maxJumps.Value < 0 || JumpNumber < maxJumps.Value)
                     {
-                        typeof(Character).GetField("m_lastGroundTouch", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(__instance, 0.1f);
+                        ___m_lastGroundTouch = 0.1f;
                         JumpNumber++;
                     }
                 }
