@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "0.1.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "0.3.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -37,8 +37,16 @@ namespace CraftFromContainers
         {
             List<Container> containers = new List<Container>();
             foreach (Container container in containerList)
-                if (container != null && container.transform != null && container.IsOwner()  && Vector3.Distance(center, container.transform.position) < m_range.Value)
+            {
+                ZNetView znv = (ZNetView)typeof(Container).GetField("m_nview", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(container);
+                if (znv == null)
+                    continue;
+                ZDO zdo = (ZDO)typeof(ZNetView).GetField("m_zdo", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(znv);
+                if (zdo == null)
+                    continue;
+                if (container != null && container.transform != null && zdo.IsOwner() && Vector3.Distance(center, container.transform.position) < m_range.Value)
                     containers.Add(container);
+            }
             return containers;
         }
 
@@ -66,27 +74,97 @@ namespace CraftFromContainers
             {
                 if (__result || discover)
                     return;
+                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
 
                 foreach (Piece.Requirement requirement in resources)
                 {
                     if (requirement.m_resItem)
                     {
-                        if (discover)
+                        int amount = requirement.GetAmount(qualityLevel);
+                        int invAmount = __instance.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
+                        if(invAmount < amount)
                         {
-                            if (requirement.m_amount > 0 && !___m_knownMaterial.Contains(requirement.m_resItem.m_itemData.m_shared.m_name))
+                            foreach(Container c in nearbyContainers)
+                                invAmount += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
+                            if (invAmount < amount)
                                 return;
                         }
-                        else
+                    }
+                }
+                __result = true;
+            }
+        }
+
+        [HarmonyPatch(typeof(Player), "HaveRequirements", new Type[] { typeof(Piece), typeof(Player.RequirementMode) })]
+        static class HaveRequirements_Patch2
+        {
+            static void Postfix(Player __instance, ref bool __result, Piece piece, Player.RequirementMode mode, HashSet<string> ___m_knownMaterial, Dictionary<string, int> ___m_knownStations)
+            {
+                if (__result)
+                    return;
+
+                if (piece.m_craftingStation)
+                {
+                    if (mode == Player.RequirementMode.IsKnown || mode == Player.RequirementMode.CanAlmostBuild)
+                    {
+                        if (!___m_knownStations.ContainsKey(piece.m_craftingStation.m_name))
                         {
-                            int amount = requirement.GetAmount(qualityLevel);
-                            int invAmount = __instance.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
-                            if(invAmount < amount)
+                            return;
+                        }
+                    }
+                    else if (!CraftingStation.HaveBuildStationInRange(piece.m_craftingStation.m_name, __instance.transform.position))
+                    {
+                        return;
+                    }
+                }
+                if (piece.m_dlc.Length > 0 && !DLCMan.instance.IsDLCInstalled(piece.m_dlc))
+                {
+                    return;
+                }
+
+                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
+
+                foreach (Piece.Requirement requirement in piece.m_resources)
+                {
+                    if (requirement.m_resItem && requirement.m_amount > 0)
+                    {
+                        if (mode == Player.RequirementMode.IsKnown)
+                        {
+                            if (!___m_knownMaterial.Contains(requirement.m_resItem.m_itemData.m_shared.m_name))
                             {
-                                foreach(Container c in GetNearbyContainers(__instance.transform.position))
-                                    invAmount += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
-                                if (invAmount < amount)
+                                return;
+                            }
+                        }
+                        else if (mode == Player.RequirementMode.CanAlmostBuild)
+                        {
+                            if (!__instance.GetInventory().HaveItem(requirement.m_resItem.m_itemData.m_shared.m_name))
+                            {
+                                bool hasItem = false;
+                                foreach(Container c in nearbyContainers)
+                                {
+                                    if (c.GetInventory().HaveItem(requirement.m_resItem.m_itemData.m_shared.m_name))
+                                    {
+                                        hasItem = true;
+                                        break;
+                                    }
+                                }
+                                if (!hasItem)
                                     return;
                             }
+                        }
+                        else if (mode == Player.RequirementMode.CanBuild && __instance.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) < requirement.m_amount)
+                        {
+                            int hasItems = __instance.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
+                            foreach (Container c in nearbyContainers)
+                            {
+                                hasItems += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
+                                if (hasItems >= requirement.m_amount)
+                                {
+                                    break;
+                                }
+                            }
+                            if (hasItems < requirement.m_amount)
+                                return;
                         }
                     }
                 }
@@ -100,7 +178,7 @@ namespace CraftFromContainers
             static bool Prefix(Player __instance, Piece.Requirement[] requirements, int qualityLevel)
             {
                 Inventory pInventory = __instance.GetInventory();
-
+                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
                 foreach (Piece.Requirement requirement in requirements)
                 {
                     if (requirement.m_resItem)
@@ -112,11 +190,11 @@ namespace CraftFromContainers
                         string reqName = requirement.m_resItem.m_itemData.m_shared.m_name;
                         int totalAmount = pInventory.CountItems(reqName);
                         Dbgl($"have {totalAmount}/{totalRequirement} {reqName} in player inventory");
-                        pInventory.RemoveItem(reqName, totalAmount);
+                        pInventory.RemoveItem(reqName, Math.Min(totalAmount, totalRequirement));
 
                         if (totalAmount < totalRequirement)
                         {
-                            foreach (Container c in GetNearbyContainers(__instance.transform.position))
+                            foreach (Container c in nearbyContainers)
                             {
                                 Inventory cInventory = c.GetInventory();
                                 int thisAmount = Mathf.Min(cInventory.CountItems(reqName), totalRequirement - totalAmount);

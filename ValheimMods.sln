@@ -17,6 +17,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeRespawn", "TreeRespawn\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CraftFromContainers", "CraftFromContainers\CraftFromContainers.csproj", "{571E7C29-571A-41F0-9D93-2161DD20C36A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomTextures", "CustomTextures\CustomTextures.csproj", "{341D9492-226D-4381-9FDA-95DE6057033F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscardInventoryItem", "DiscardInventoryItem\DiscardInventoryItem.csproj", "{B827CA6A-3604-4617-A2B5-86D49F049F60}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,14 @@ Global
 		{571E7C29-571A-41F0-9D93-2161DD20C36A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{571E7C29-571A-41F0-9D93-2161DD20C36A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{571E7C29-571A-41F0-9D93-2161DD20C36A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{341D9492-226D-4381-9FDA-95DE6057033F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{341D9492-226D-4381-9FDA-95DE6057033F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{341D9492-226D-4381-9FDA-95DE6057033F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{341D9492-226D-4381-9FDA-95DE6057033F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B827CA6A-3604-4617-A2B5-86D49F049F60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B827CA6A-3604-4617-A2B5-86D49F049F60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B827CA6A-3604-4617-A2B5-86D49F049F60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B827CA6A-3604-4617-A2B5-86D49F049F60}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
