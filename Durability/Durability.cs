@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -8,7 +10,7 @@ using UnityEngine;
 
 namespace Durability
 {
-    [BepInPlugin("aedenthorn.Durability", "Durability", "0.3.0")]
+    [BepInPlugin("aedenthorn.Durability", "Durability", "0.5.1")]
     public class Durability : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -18,6 +20,7 @@ namespace Durability
         public static ConfigEntry<float> bowDurabilityLoss;
 
         public static ConfigEntry<float> toolDurabilityLoss;
+        public static ConfigEntry<float> torchDurabilityLoss;
         public static ConfigEntry<float> hammerDurabilityLoss;
         public static ConfigEntry<float> hoeDurabilityLoss;
         public static ConfigEntry<float> pickaxeDurabilityLoss;
@@ -39,8 +42,9 @@ namespace Durability
         {
             torchDurabilityDrain = Config.Bind<float>("Durability", "TorchDurabilityDrain", 0.033f, "Torch durability drain over time.");
             weaponDurabilityLoss = Config.Bind<float>("Durability", "WeaponDurabilityLoss", 1f, "Weapon durability loss per use.");
-            bowDurabilityLoss = Config.Bind<float>("Durability", "BowDurabilityLoss", 1f, "Bow durability loss per use.");
 
+            torchDurabilityLoss = Config.Bind<float>("Durability", "TorchDurabilityLoss", 1f, "Torch durability loss when used to attack.");
+            bowDurabilityLoss = Config.Bind<float>("Durability", "BowDurabilityLoss", 1f, "Bow durability loss per use.");
             hammerDurabilityLoss = Config.Bind<float>("Durability", "HammerDurabilityLoss", 1f, "Hammer durability loss per use.");
             hoeDurabilityLoss = Config.Bind<float>("Durability", "HoeDurabilityLoss", 1f, "Hoe durability loss per use.");
             pickaxeDurabilityLoss = Config.Bind<float>("Durability", "PickaxeDurabilityLoss", 1f, "Pickaxe durability loss per use.");
@@ -71,31 +75,36 @@ namespace Durability
             {
                 if (modEnabled.Value)
                 {
-                    //Dbgl($"{__instance.name} drain: {__instance.m_itemData.m_shared.m_durabilityDrain}, use: {__instance.m_itemData.m_shared.m_useDurabilityDrain}");
-                    switch (__instance.m_itemData.m_shared.m_itemType)
+                    //Dbgl($"{__instance.name}, type: {Enum.GetName(typeof(ItemDrop.ItemData.ItemType), __instance.m_itemData.m_shared.m_itemType)} drain: {__instance.m_itemData.m_shared.m_durabilityDrain}, use: {__instance.m_itemData.m_shared.m_useDurabilityDrain}");
+
+                    if (__instance.name.StartsWith("Pickaxe"))
+                        __instance.m_itemData.m_shared.m_useDurabilityDrain = pickaxeDurabilityLoss.Value;
+                    else if (__instance.name.StartsWith("Axe"))
+                        __instance.m_itemData.m_shared.m_useDurabilityDrain = axeDurabilityLoss.Value;
+                    else
                     {
-                        case ItemDrop.ItemData.ItemType.Torch:
-                            __instance.m_itemData.m_shared.m_durabilityDrain = torchDurabilityDrain.Value;
-                            break;
-                        case ItemDrop.ItemData.ItemType.OneHandedWeapon:
-                        case ItemDrop.ItemData.ItemType.TwoHandedWeapon:
-                            __instance.m_itemData.m_shared.m_useDurabilityDrain = weaponDurabilityLoss.Value;
-                            break;
-                        case ItemDrop.ItemData.ItemType.Bow:
-                            __instance.m_itemData.m_shared.m_useDurabilityDrain = bowDurabilityLoss.Value;
-                            break;
-                        case ItemDrop.ItemData.ItemType.Tool:
-                            if (__instance.name.StartsWith("Hammer"))
-                                __instance.m_itemData.m_shared.m_useDurabilityDrain = hammerDurabilityLoss.Value;
-                            else if (__instance.name.StartsWith("Hoe"))
-                                __instance.m_itemData.m_shared.m_useDurabilityDrain = hoeDurabilityLoss.Value;
-                            else if (__instance.name.StartsWith("Pickaxe"))
-                                __instance.m_itemData.m_shared.m_useDurabilityDrain = pickaxeDurabilityLoss.Value;
-                            else if (__instance.name.StartsWith("Axe"))
-                                __instance.m_itemData.m_shared.m_useDurabilityDrain = axeDurabilityLoss.Value;
-                            else
-                                __instance.m_itemData.m_shared.m_useDurabilityDrain = toolDurabilityLoss.Value;
-                            break;
+                        switch (__instance.m_itemData.m_shared.m_itemType)
+                        {
+                            case ItemDrop.ItemData.ItemType.Torch:
+                                __instance.m_itemData.m_shared.m_durabilityDrain = torchDurabilityDrain.Value;
+                                __instance.m_itemData.m_shared.m_useDurabilityDrain = torchDurabilityLoss.Value;
+                                break;
+                            case ItemDrop.ItemData.ItemType.OneHandedWeapon:
+                            case ItemDrop.ItemData.ItemType.TwoHandedWeapon:
+                                __instance.m_itemData.m_shared.m_useDurabilityDrain = weaponDurabilityLoss.Value;
+                                break;
+                            case ItemDrop.ItemData.ItemType.Bow:
+                                __instance.m_itemData.m_shared.m_useDurabilityDrain = bowDurabilityLoss.Value;
+                                break;
+                            case ItemDrop.ItemData.ItemType.Tool:
+                                if (__instance.name.StartsWith("Hammer"))
+                                    __instance.m_itemData.m_shared.m_useDurabilityDrain = hammerDurabilityLoss.Value;
+                                else if (__instance.name.StartsWith("Hoe"))
+                                    __instance.m_itemData.m_shared.m_useDurabilityDrain = hoeDurabilityLoss.Value;
+                                else
+                                    __instance.m_itemData.m_shared.m_useDurabilityDrain = toolDurabilityLoss.Value;
+                                break;
+                        }
                     }
                 }
             }
@@ -167,6 +176,29 @@ namespace Durability
                 }
             }
         }
+
+
+        [HarmonyPatch(typeof(Attack), "DoAreaAttack")]
+        static class DoAreaAttack_Patch
+        {
+            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                Dbgl($"Transpiling DoAreaAttack");
+
+                var codes = new List<CodeInstruction>(instructions);
+                for (int i = 0; i < codes.Count; i++)
+                {
+                    if (codes[i].opcode == OpCodes.Dup && codes[i + 2].opcode == OpCodes.Ldc_R4 && (float)(codes[i + 2].operand) == 1 && codes[i+3].opcode == OpCodes.Sub)
+                    {
+                        Dbgl($"got -1, replacing with {weaponDurabilityLoss.Value}");
+                        codes[i + 2].operand = weaponDurabilityLoss.Value;
+                    }
+                }
+
+                return codes.AsEnumerable();
+            }
+        }
+
 
         //[HarmonyPatch(typeof(InventoryGui), "CanRepair")]
         static class InventoryGui_CanRepair_Patch

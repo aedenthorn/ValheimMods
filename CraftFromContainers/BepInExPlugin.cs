@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "0.3.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "0.5.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -38,14 +38,10 @@ namespace CraftFromContainers
             List<Container> containers = new List<Container>();
             foreach (Container container in containerList)
             {
-                ZNetView znv = (ZNetView)typeof(Container).GetField("m_nview", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(container);
-                if (znv == null)
-                    continue;
-                ZDO zdo = (ZDO)typeof(ZNetView).GetField("m_zdo", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(znv);
-                if (zdo == null)
-                    continue;
-                if (container != null && container.transform != null && zdo.IsOwner() && Vector3.Distance(center, container.transform.position) < m_range.Value)
+                if (container != null && container.transform != null && container.GetInventory() != null && Vector3.Distance(center, container.transform.position) < m_range.Value)
+                {
                     containers.Add(container);
+                }
             }
             return containers;
         }
@@ -53,9 +49,10 @@ namespace CraftFromContainers
         [HarmonyPatch(typeof(Container), "Awake")]
         static class Container_Awake_Patch
         {
-            static void Prefix(Container __instance)
+            static void Postfix(Container __instance, ZNetView ___m_nview)
             {
                 containerList.Add(__instance);
+
             }
         }
         [HarmonyPatch(typeof(Container), "OnDestroyed")]
@@ -64,6 +61,7 @@ namespace CraftFromContainers
             static void Prefix(Container __instance)
             {
                 containerList.Remove(__instance);
+
             }
         }
 
@@ -100,7 +98,7 @@ namespace CraftFromContainers
         {
             static void Postfix(Player __instance, ref bool __result, Piece piece, Player.RequirementMode mode, HashSet<string> ___m_knownMaterial, Dictionary<string, int> ___m_knownStations)
             {
-                if (__result)
+                if (__result || __instance?.transform?.position == null)
                     return;
 
                 if (piece.m_craftingStation)
@@ -157,11 +155,15 @@ namespace CraftFromContainers
                             int hasItems = __instance.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
                             foreach (Container c in nearbyContainers)
                             {
-                                hasItems += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
-                                if (hasItems >= requirement.m_amount)
+                                try
                                 {
-                                    break;
+                                    hasItems += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
+                                    if (hasItems >= requirement.m_amount)
+                                    {
+                                        break;
+                                    }
                                 }
+                                catch { }
                             }
                             if (hasItems < requirement.m_amount)
                                 return;
@@ -216,10 +218,11 @@ namespace CraftFromContainers
                                             cInventory.RemoveItem(item);
                                         else
                                             item.m_stack -= stackAmount;
-
+                                        c.GetType().GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
 
                                         totalAmount += stackAmount;
                                         Dbgl($"total amount is now {totalAmount}/{totalRequirement} {reqName}");
+
                                         if (totalAmount >= totalRequirement)
                                             break;
                                     }
