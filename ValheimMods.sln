@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClockMod", "ClockMod\ClockM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomAudio", "CustomAudio\CustomAudio.csproj", "{332F7475-7977-44C3-A511-CB13C56A8BD8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiggerContainers", "BiggerContainers\BiggerContainers.csproj", "{8415E4C1-A03F-4DC3-A282-3FED22CCB2C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{332F7475-7977-44C3-A511-CB13C56A8BD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{332F7475-7977-44C3-A511-CB13C56A8BD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{332F7475-7977-44C3-A511-CB13C56A8BD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8415E4C1-A03F-4DC3-A282-3FED22CCB2C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8415E4C1-A03F-4DC3-A282-3FED22CCB2C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8415E4C1-A03F-4DC3-A282-3FED22CCB2C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8415E4C1-A03F-4DC3-A282-3FED22CCB2C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
