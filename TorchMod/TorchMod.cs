@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace TorchMod
 {
-    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.4.2")]
+    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.5.0")]
 
     public class TorchMod: BaseUnityPlugin
     {
@@ -38,6 +38,14 @@ namespace TorchMod
         public static ConfigEntry<float> sconceShadowStrength;
         public static ConfigEntry<bool> sconceUseColorTemperature;
         public static ConfigEntry<float> sconceColorTemperature;
+
+        public static ConfigEntry<Color> helmetColor;
+        public static ConfigEntry<float> helmetRange;
+        public static ConfigEntry<float> helmetIntensity;
+        public static ConfigEntry<float> helmetBounceIntensity;
+        public static ConfigEntry<float> helmetShadowStrength;
+        public static ConfigEntry<bool> helmetUseColorTemperature;
+        public static ConfigEntry<float> helmetColorTemperature;
 
         public static ConfigEntry<Color> firePitColorLow;
         public static ConfigEntry<float> firePitRangeLow;
@@ -90,6 +98,14 @@ namespace TorchMod
             sconceUseColorTemperature = Config.Bind("Sconces", "SconceUseColorTemperature", false, "Set to true to use the color temperature.");
             sconceColorTemperature = Config.Bind("Sconces", "SconceColorTemperature", 6570f, "The color temperature of the light. (float)");
 
+            helmetColor = Config.Bind("Helmets", "HelmetColor", new Color(0.629f, 0.973f, 0.934f, 1f), "The color of the light.");
+            helmetRange = Config.Bind("Helmets", "HelmetRange", 10f, "The range of the light. (float)");
+            helmetIntensity = Config.Bind("Helmets", "HelmetIntensity", 2f, "The Intensity of a light is multiplied with the Light color. (float 0-8)");
+            helmetBounceIntensity = Config.Bind("Helmets", "HelmetBounceIntensity", 1f, "The multiplier that defines the strength of the bounce lighting. (float 0+)");
+            helmetShadowStrength = Config.Bind("Helmets", "HelmetshadowStrength", 1f, "Strength of light's shadows. (float)");
+            helmetUseColorTemperature = Config.Bind("Helmets", "HelmetUseColorTemperature", false, "Set to true to use the color temperature.");
+            helmetColorTemperature = Config.Bind("Helmets", "HelmetColorTemperature", 6570f, "The color temperature of the light. (float)");
+
             firePitColorLow = Config.Bind("Fire Pits", "FirePitColorLow", new Color(0.838f, 0.527f, 0.413f, 1f), "The color of the light.");
             firePitRangeLow = Config.Bind("Fire Pits", "FirePitRangeLow", 2.5f, "The range of the light. (float)");
             firePitIntensityLow = Config.Bind("Fire Pits", "FirePitIntensityLow", 1f, "The Intensity of a light is multiplied with the Light color. (float 0-8)");
@@ -128,6 +144,7 @@ namespace TorchMod
                 }
                 ItemDrop component = itemPrefab.GetComponent<ItemDrop>();
                 ItemDrop.ItemData.ItemType itemType = (component.m_itemData.m_shared.m_attachOverride != ItemDrop.ItemData.ItemType.None) ? component.m_itemData.m_shared.m_attachOverride : component.m_itemData.m_shared.m_itemType;
+
                 if (itemType != ItemDrop.ItemData.ItemType.Torch)
                     return;
 
@@ -146,7 +163,41 @@ namespace TorchMod
                 }
             }
         }
-        
+
+
+        [HarmonyPatch(typeof(VisEquipment), "SetHelmetEquiped")]
+        static class VisEquipment_SetHelmetEquiped_Patch
+        {
+            static void Postfix(bool __result, string ___m_helmetItem, GameObject ___m_helmetItemInstance)
+            {
+                if (!__result)
+                    return;
+                Dbgl($"checking {___m_helmetItem}");
+
+                Light light = ___m_helmetItemInstance.GetComponentInChildren<Light>();
+                if (light != null)
+                {
+
+                    Dbgl($"color: {light.color}");
+                    Dbgl($"range: {light.range}");
+                    Dbgl($"bounceIntensity: {light.bounceIntensity}");
+                    Dbgl($"useColorTemperature: {light.useColorTemperature}");
+                    Dbgl($"colorTemperature: {light.colorTemperature}");
+                    Dbgl($"shadowStrength: {light.shadowStrength}");
+                    Dbgl($"intensity: {light.intensity}");
+
+                    Dbgl("Setting light for helmet");
+                    light.color = helmetColor.Value;
+                    light.range = helmetRange.Value;
+                    light.intensity = helmetIntensity.Value;
+                    light.bounceIntensity = helmetBounceIntensity.Value;
+                    light.shadowStrength = helmetShadowStrength.Value;
+                    light.useColorTemperature = helmetUseColorTemperature.Value;
+                    light.colorTemperature = helmetColorTemperature.Value;
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(Fireplace), "Start")]
         static class Fireplace_Patch
         {

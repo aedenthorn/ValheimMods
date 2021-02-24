@@ -14,11 +14,11 @@ using Object = System.Object;
 
 namespace ClockMod
 {
-    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.3.1")]
+    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.4.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
-
+        private static BepInExPlugin context;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> showingClock;
         public static ConfigEntry<bool> toggleClockKeyOnPress;
@@ -49,6 +49,7 @@ namespace ClockMod
         }
         private void Awake()
         {
+            context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             showingClock = Config.Bind<bool>("General", "ShowClock", true, "Show the clock?");
             clockLocation = Config.Bind<Vector2>("General", "ClockLocation", new Vector2(Screen.width / 2, 40), "Location on the screen in pixels to show the clock");
@@ -69,46 +70,63 @@ namespace ClockMod
             if (!modEnabled.Value)
                 return;
 
-            style = new GUIStyle
-            {
-                richText = true,
-                fontSize = clockFontSize.Value,
-                alignment = TextAnchor.MiddleCenter,
-                font = clockFont
-            };
-            style.normal.textColor = clockFontColor.Value;
-            style2 = new GUIStyle
-            {
-                richText = true,
-                fontSize = clockFontSize.Value,
-                alignment = TextAnchor.MiddleCenter,
-                font = clockFont
-            };
-            style2.normal.textColor = clockShadowColor.Value;
+
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+        }
+        private void Update()
+        {
+            if (modEnabled.Value && !toggleClockKeyOnPress.Value && Input.GetKeyDown(toggleClockKey.Value))
+            {
+                bool show = showingClock.Value;
+                showingClock.Value = !show;
+                Dbgl($"show clock: {showingClock.Value}");
+            }
+        }
+
+        private void OnGUI()
+        {
+            if (modEnabled.Value && Player.m_localPlayer)
+            {
+                if ((!toggleClockKeyOnPress.Value && showingClock.Value) || (toggleClockKeyOnPress.Value && Input.GetKey(toggleClockKey.Value)))
+                {
+                    if (clockUseShadow.Value)
+                    {
+
+                        GUI.Label(new Rect(clockLocation.Value + new Vector2(-clockShadowOffset.Value, clockShadowOffset.Value), new Vector2(0, 0)), $"{string.Format(clockString.Value, GetCurrentTimeString())}", style2);
+                    }
+
+                    GUI.Label(new Rect(clockLocation.Value, new Vector2(0, 0)), $"{string.Format(clockString.Value, GetCurrentTimeString())}", style);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals("clockmod reset"))
+                {
+                    context.Config.Reload();
+                    SetStyles();
+                    return false;
+                }
+                return true;
+            }
         }
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
         static class Awake_Patch
         {
             static void Postfix()
             {
-                if (clockUseOSFont.Value)
-                    clockFont = Font.CreateDynamicFontFromOSFont(clockFontName.Value, clockFontSize.Value);
-                else
-                {
-                    Debug.Log($"getting fonts");
-                    Font[] fonts = Resources.FindObjectsOfTypeAll<Font>();
-                    foreach (Font font in fonts)
-                    {
-                        if(font.name == clockFontName.Value)
-                        {
-                            clockFont = font;
-                            Debug.Log($"got font {font.name}");
-                            break;
-                        }
-                    }
-                }
+                if (!modEnabled.Value)
+                    return;
+
+                SetStyles();
 
                 /*
                 // Load the Arial font from the Unity Resources folder.
@@ -147,36 +165,48 @@ namespace ClockMod
                 rectTransform.sizeDelta = new Vector2(600, 200);
                 */
             }
+
+
         }
-        private void Update()
+        private static void SetStyles()
         {
-            if (modEnabled.Value && !toggleClockKeyOnPress.Value && Input.GetKeyDown(toggleClockKey.Value))
+            if (clockUseOSFont.Value)
+                clockFont = Font.CreateDynamicFontFromOSFont(clockFontName.Value, clockFontSize.Value);
+            else
             {
-                bool show = showingClock.Value;
-                showingClock.Value = !show;
-                Dbgl($"show clock: {showingClock.Value}");
-            }
-        }
-        private void OnGUI()
-        {
-            if (modEnabled.Value && Player.m_localPlayer)
-            {
-                if ((!toggleClockKeyOnPress.Value && showingClock.Value) || (toggleClockKeyOnPress.Value && Input.GetKey(toggleClockKey.Value)))
+                Debug.Log($"getting fonts");
+                Font[] fonts = Resources.FindObjectsOfTypeAll<Font>();
+                foreach (Font font in fonts)
                 {
-                    if (clockUseShadow.Value)
+                    if (font.name == clockFontName.Value)
                     {
-
-                        GUI.Label(new Rect(clockLocation.Value + new Vector2(-clockShadowOffset.Value, clockShadowOffset.Value), new Vector2(0, 0)), $"{string.Format(clockString.Value, GetCurrentTimeString())}", style2);
+                        clockFont = font;
+                        Debug.Log($"got font {font.name}");
+                        break;
                     }
-
-                    GUI.Label(new Rect(clockLocation.Value, new Vector2(0,0)), $"{string.Format(clockString.Value, GetCurrentTimeString())}", style);
                 }
             }
+            style = new GUIStyle
+            {
+                richText = true,
+                fontSize = clockFontSize.Value,
+                alignment = TextAnchor.MiddleCenter,
+                font = clockFont
+            };
+            style.normal.textColor = clockFontColor.Value;
+            style2 = new GUIStyle
+            {
+                richText = true,
+                fontSize = clockFontSize.Value,
+                alignment = TextAnchor.MiddleCenter,
+                font = clockFont
+            };
+            style2.normal.textColor = clockShadowColor.Value;
         }
 
         private string GetCurrentTimeString()
         {
-            float fraction = AccessTools.FieldRefAccess<EnvMan, float>(EnvMan.instance, "m_smoothDayFraction");
+            float fraction = (float)typeof(EnvMan).GetField("m_smoothDayFraction", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(EnvMan.instance);
 
             if (clockFormat.Value != "fuzzy")
             {

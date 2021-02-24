@@ -7,10 +7,11 @@ using UnityEngine;
 
 namespace TimeMod
 {
-    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.3.3")]
+    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.3.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
+        private static BepInExPlugin context;
 
         public static ConfigEntry<string> m_pauseKey;
         public static ConfigEntry<string> m_speedUpKey;
@@ -34,6 +35,7 @@ namespace TimeMod
         } 
         private void Awake()
         {
+            context = this;
             m_pauseKey = Config.Bind<string>("General", "PauseKey", "pause", "The hotkey to pause the game");
             m_speedUpKey = Config.Bind<string>("General", "SpeedUpKey", "=", "The hotkey to speed up the game time");
             m_slowDownKey = Config.Bind<string>("General", "SlowDownKey", "-", "The hotkey to slow down the game time");
@@ -52,7 +54,7 @@ namespace TimeMod
         }
         private void Update()
         {
-            if (ZNetScene.instance == null)
+            if (ZNetScene.instance == null || Console.IsVisible())
                 return;
 
             string outString = null;
@@ -167,6 +169,23 @@ namespace TimeMod
             static void Prefix()
             {
                 Time.timeScale = 1;
+            }
+        }
+
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals("timemod reset"))
+                {
+                    context.Config.Reload();
+                    return false;
+                }
+                return true;
             }
         }
     }

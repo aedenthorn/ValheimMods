@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,25 +12,36 @@ using UnityEngine.Networking;
 
 namespace NexusUpdate
 {
-    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.1.0")]
+    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.3.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
+        private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> showAllManagedMods;
         public static ConfigEntry<Vector2> updatesPosition;
         public static ConfigEntry<int> updateTextWidth;
         public static ConfigEntry<int> fontSize;
-        public static ConfigEntry<Color> fontColor;
+        public static ConfigEntry<Color> updateFontColor;
+        public static ConfigEntry<Color> nonUpdateFontColor;
+        public static ConfigEntry<Color> backgroundColor;
         public static ConfigEntry<int> betweenSpace;
         public static ConfigEntry<int> buttonWidth;
         public static ConfigEntry<int> buttonHeight;
         public static ConfigEntry<string> updateText;
+        public static ConfigEntry<string> nonUpdateText;
+        public static ConfigEntry<string> checkingUpdatesText;
         public static ConfigEntry<string> buttonText;
         public static ConfigEntry<int> nexusID;
 
         private List<NexusUpdatable> nexusUpdatables = new List<NexusUpdatable>();
+        private List<NexusUpdatable> nexusNonupdatables = new List<NexusUpdatable>();
+        private Vector2 scrollPosition;
         private bool finishedChecking = false;
+        private GUIStyle style;
+        private GUIStyle style2;
+        private GUIStyle backStyle;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -41,46 +51,78 @@ namespace NexusUpdate
         private void Awake()
         {
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            showAllManagedMods = Config.Bind<bool>("General", "ShowAllManagedMods", false, "Show all mods that have a nexus ID in the list, even if they are up-to-date");
             updatesPosition = Config.Bind<Vector2>("General", "UpdatesPosition", new Vector2(40, 40), "Position of the updates list on the screen");
-            updateTextWidth = Config.Bind<int>("General", "UpdateTextWidth", 500, "Width of the update text (will wrap if it is too long)");
+            updateTextWidth = Config.Bind<int>("General", "UpdateTextWidth", 600, "Width of the update text (will wrap if it is too long)");
             buttonWidth = Config.Bind<int>("General", "ButtonWidth", 100, "Width of the update button");
             buttonHeight = Config.Bind<int>("General", "ButtonHeight", 30, "Height of the update button");
             betweenSpace = Config.Bind<int>("General", "BetweenSpace", 10, "Vertical space between each update in list");
-            fontSize = Config.Bind<int>("General", "FontSize", 18, "Size of the text in the updates list");
-            fontColor = Config.Bind<Color>("General", "FontColor", Color.white, "Color of the text in the updates list");
+            fontSize = Config.Bind<int>("General", "FontSize", 16, "Size of the text in the updates list");
+            updateFontColor = Config.Bind<Color>("General", "UpdateFontColor", Color.white, "Color of the text in the updateable list");
+            nonUpdateFontColor = Config.Bind<Color>("General", "NonUpdateFontColor", new Color(0.7f, 0.7f, 0.7f, 1f), "Color of the text in the non-updateable list");
             updateText = Config.Bind<string>("General", "UpdateText", "<b>{0}</b> (v. {1}) has an updated version: <b>{2}</b>", "Text to show for each update. {0} is replaced by the mod name, {1} is replaced by the current version, and {2} is replaced by the remote version");
+            nonUpdateText = Config.Bind<string>("General", "NonUpdateText", "<b>{0}</b> (v. {1}) is up-to-date!", "Text to show for each update. {0} is replaced by the mod name, {1} is replaced by the current version, and {2} is replaced by the remote version");
+            checkingUpdatesText = Config.Bind<string>("General", "CheckingUpdatesText", "<b>Checking for mod updates...</b>", "Text to show while checking for updates");
             buttonText = Config.Bind<string>("General", "ButtonText", "<b>Visit</b>", "Text to show for each update button");
             nexusID = Config.Bind<int>("General", "NexusID", 102, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
-            StartCoroutine(CheckPlugins());
 
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+            style = new GUIStyle
+            {
+                richText = true,
+                fontSize = fontSize.Value,
+                wordWrap = true,
+                alignment = TextAnchor.MiddleLeft
+            };
+            style.normal.textColor = updateFontColor.Value;
+            style2 = new GUIStyle
+            {
+                richText = true,
+                fontSize = fontSize.Value,
+                wordWrap = true,
+                alignment = TextAnchor.MiddleLeft
+            };
+            style2.normal.textColor = nonUpdateFontColor.Value;
+
+            backStyle = new GUIStyle();
+
+            /*
+
+                        int width = updateTextWidth.Value + buttonWidth.Value + 20;
+                        int height = buttonHeight.Value;
+                        Color col = Color.black;
+                        Color[] pix = new Color[width * height];
+
+                        for (int i = 0; i < pix.Length; i++)
+                            pix[i] = col;
+
+                        Texture2D result = new Texture2D(width, height);
+                        result.SetPixels(pix);
+                        result.Apply();
+
+                        backStyle.normal.background = result;
+            */
+
+            StartCoroutine(CheckPlugins());
         }
 
         private void OnGUI()
         {
-            if (modEnabled.Value && FejdStartup.instance?.enabled == true && nexusUpdatables.Any() && finishedChecking)
+            if (modEnabled.Value && FejdStartup.instance?.enabled == true)
             {
-                GUIStyle style = new GUIStyle
-                {
-                    richText = true,
-                    fontSize = fontSize.Value,
-                    wordWrap = true,
-                    alignment = TextAnchor.LowerLeft
-                };
-                style.normal.textColor = fontColor.Value;
 
-                GUILayout.BeginArea(new Rect(updatesPosition.Value.x, updatesPosition.Value.y, updateTextWidth.Value + buttonWidth.Value + 20, Screen.height - updatesPosition.Value.y));
+                GUILayout.BeginArea(new Rect(updatesPosition.Value.x, updatesPosition.Value.y, updateTextWidth.Value + buttonWidth.Value + 30, Screen.height - updatesPosition.Value.y));
+                scrollPosition = GUILayout.BeginScrollView(scrollPosition, new GUILayoutOption[] { GUILayout.Width(updateTextWidth.Value + buttonWidth.Value + 30), GUILayout.Height(Screen.height - updatesPosition.Value.y) });
                 for (int i = 0; i < nexusUpdatables.Count; i++)
                 {
-                    GUILayout.BeginHorizontal( new GUILayoutOption[] { GUILayout.Height(30) });
+                    GUILayout.BeginHorizontal(backStyle, new GUILayoutOption[] { GUILayout.Height(buttonHeight.Value), GUILayout.Width(updateTextWidth.Value + buttonWidth.Value + 20) });
                     GUILayout.Label(string.Format(updateText.Value, nexusUpdatables[i].name, nexusUpdatables[i].currentVersion, nexusUpdatables[i].version), style, new GUILayoutOption[]{
                         GUILayout.Width(updateTextWidth.Value),
                         GUILayout.Height(buttonHeight.Value)
                     });
-                    if(GUILayout.Button("<b>Visit</b>", new GUILayoutOption[]{
+                    if(GUILayout.Button(buttonText.Value, new GUILayoutOption[]{
                         GUILayout.Width(buttonWidth.Value),
                         GUILayout.Height(buttonHeight.Value)
                     }))
@@ -90,6 +132,36 @@ namespace NexusUpdate
                     GUILayout.EndHorizontal();
                     GUILayout.Space(betweenSpace.Value);
                 }
+                if (showAllManagedMods.Value)
+                {
+                    for (int i = 0; i < nexusNonupdatables.Count; i++)
+                    {
+                        GUILayout.BeginHorizontal(backStyle, new GUILayoutOption[] { GUILayout.Height(buttonHeight.Value), GUILayout.Width(updateTextWidth.Value + buttonWidth.Value + 20) });
+                        GUILayout.Label(string.Format(nonUpdateText.Value, nexusNonupdatables[i].name, nexusNonupdatables[i].currentVersion, nexusNonupdatables[i].version), style2, new GUILayoutOption[]{
+                            GUILayout.Width(updateTextWidth.Value),
+                            GUILayout.Height(buttonHeight.Value)
+                        });
+                        if (GUILayout.Button(buttonText.Value, new GUILayoutOption[]{
+                            GUILayout.Width(buttonWidth.Value),
+                            GUILayout.Height(buttonHeight.Value)
+                        }))
+                        {
+                            Application.OpenURL($"https://www.nexusmods.com/valheim/mods/{nexusNonupdatables[i].id}/?tab=files");
+                        }
+                        GUILayout.EndHorizontal();
+                        GUILayout.Space(betweenSpace.Value);
+                    }
+
+                }
+                if (!finishedChecking)
+                {
+                    GUILayout.Label(string.Format(checkingUpdatesText.Value), style, new GUILayoutOption[]{
+                        GUILayout.Width(updateTextWidth.Value),
+                        GUILayout.Height(buttonHeight.Value)
+                    });
+                }
+
+                GUILayout.EndScrollView();
                 GUILayout.EndArea();
 
             }
@@ -135,10 +207,11 @@ namespace NexusUpdate
                 }
 
 
-                string cfgFile = Path.Combine(new string[]{ Directory.GetParent(Path.GetDirectoryName(file)).FullName, "config",$"{guid}.cfg"});
+                string cfgFile = Path.Combine(new string[]{ Directory.GetParent(Path.GetDirectoryName(typeof(BepInEx.BepInProcess).Assembly.Location)).FullName, "config", $"{guid}.cfg"});
                 Dbgl($"{cfgFile}");
                 if (!File.Exists(cfgFile))
                 {
+                    File.Create(cfgFile);
                     continue;
                 }
 
@@ -189,6 +262,10 @@ namespace NexusUpdate
                             {
                                 Dbgl($"new remote version: {version}!");
                                 nexusUpdatables.Add(new NexusUpdatable(pluginName, id, currentVersion, version));
+                            }
+                            else if (showAllManagedMods.Value)
+                            {
+                                nexusNonupdatables.Add(new NexusUpdatable(pluginName, id, currentVersion, version));
                             }
                             break;
                         }

@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.5.1")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -50,7 +50,7 @@ namespace CustomTextures
                 LoadCustomTextures();
                 Dbgl($"Pressed reload key.");
 
-                GameObject root = AccessTools.FieldRefAccess<ZNetScene, GameObject>(ZNetScene.instance, "m_netSceneRoot");
+                GameObject root = (GameObject)typeof(ZNetScene).GetField("m_netSceneRoot", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ZNetScene.instance);
 
                 Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
 
@@ -62,22 +62,22 @@ namespace CustomTextures
                 }
 
                 LoadSceneTextures(gos.ToArray());
-                LoadSceneTextures(AccessTools.FieldRefAccess<ZNetScene, Dictionary<int, GameObject>>(ZNetScene.instance ,"m_namedPrefabs").Values.ToArray());
+                LoadSceneTextures(((Dictionary<int, GameObject>)typeof(ZNetScene).GetField("m_namedPrefabs", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ZNetScene.instance )).Values.ToArray());
 
                 foreach(Player player in Player.GetAllPlayers())
                 {
-                    VisEquipment ve = AccessTools.FieldRefAccess<Humanoid, VisEquipment>(player, "m_visEquipment");
+                    VisEquipment ve = (VisEquipment)typeof(Humanoid).GetField("m_visEquipment", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(player);
                     if(ve != null)
                     {
-                        SetEquipmentTexture(AccessTools.FieldRefAccess<VisEquipment, string>(ve, "m_leftItem"), AccessTools.FieldRefAccess<VisEquipment, GameObject>(ve, "m_leftItemInstance"));
-                        SetEquipmentTexture(AccessTools.FieldRefAccess<VisEquipment, string>(ve, "m_rightItem"), AccessTools.FieldRefAccess<VisEquipment, GameObject>(ve, "m_rightItemInstance"));
-                        SetEquipmentTexture(AccessTools.FieldRefAccess<VisEquipment, string>(ve, "m_helmetItem"), AccessTools.FieldRefAccess<VisEquipment, GameObject>(ve, "m_helmetItemInstance"));
-                        SetEquipmentTexture(AccessTools.FieldRefAccess<VisEquipment, string>(ve, "m_leftBackItem"), AccessTools.FieldRefAccess<VisEquipment, GameObject>(ve, "m_leftBackItemInstance"));
-                        SetEquipmentTexture(AccessTools.FieldRefAccess<VisEquipment, string>(ve, "m_rightBackItem"), AccessTools.FieldRefAccess<VisEquipment, GameObject>(ve, "m_rightBackItemInstance"));
-                        SetEquipmentListTexture(AccessTools.FieldRefAccess<VisEquipment, string>(ve, "m_shoulderItem"), AccessTools.FieldRefAccess<VisEquipment, List<GameObject>>(ve, "m_shoulderItemInstances"));
-                        SetEquipmentListTexture(AccessTools.FieldRefAccess<VisEquipment, string>(ve, "m_utilityItem"), AccessTools.FieldRefAccess<VisEquipment, List<GameObject>>(ve, "m_utilityItemInstances"));
-                        SetBodyEquipmentTexture(AccessTools.FieldRefAccess<VisEquipment, string>(ve, "m_legItem"), ve.m_bodyModel, AccessTools.FieldRefAccess<VisEquipment, List<GameObject>>(ve, "m_legItemInstances"), "_Legs");
-                        SetBodyEquipmentTexture(AccessTools.FieldRefAccess<VisEquipment, string>(ve, "m_chestItem"), ve.m_bodyModel, AccessTools.FieldRefAccess<VisEquipment, List<GameObject>>(ve, "m_chestItemInstances"), "_Chest");
+                        SetEquipmentTexture((string)typeof(VisEquipment).GetField("m_leftItem", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), (GameObject)typeof(VisEquipment).GetField("m_leftItemInstance", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve));
+                        SetEquipmentTexture((string)typeof(VisEquipment).GetField("m_rightItem", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), (GameObject)typeof(VisEquipment).GetField("m_rightItemInstance", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve));
+                        SetEquipmentTexture((string)typeof(VisEquipment).GetField("m_helmetItem", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), (GameObject)typeof(VisEquipment).GetField("m_helmetItemInstance", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve));
+                        SetEquipmentTexture((string)typeof(VisEquipment).GetField("m_leftBackItem", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), (GameObject)typeof(VisEquipment).GetField("m_leftBackItemInstance", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve));
+                        SetEquipmentTexture((string)typeof(VisEquipment).GetField("m_rightBackItem", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), (GameObject)typeof(VisEquipment).GetField("m_rightBackItemInstance", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve));
+                        SetEquipmentListTexture((string)typeof(VisEquipment).GetField("m_shoulderItem", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), (List<GameObject>)typeof(VisEquipment).GetField("m_shoulderItemInstances", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve));
+                        SetEquipmentListTexture((string)typeof(VisEquipment).GetField("m_utilityItem", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), (List<GameObject>)typeof(VisEquipment).GetField("m_utilityItemInstances", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve));
+                        SetBodyEquipmentTexture((string)typeof(VisEquipment).GetField("m_legItem", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), ve.m_bodyModel, (List<GameObject>)typeof(VisEquipment).GetField("m_legItemInstances", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), "_Legs");
+                        SetBodyEquipmentTexture((string)typeof(VisEquipment).GetField("m_chestItem", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), ve.m_bodyModel, (List<GameObject>)typeof(VisEquipment).GetField("m_chestItemInstances", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), "_Chest");
                     }
                 }
 
@@ -99,22 +99,16 @@ namespace CustomTextures
 
             customTextures.Clear();
 
-            Regex pattern = new Regex(@"\.png$");
-            Regex pattern2 = new Regex(@"\.png$");
-
-            foreach (string file in Directory.GetFiles(path))
+            foreach (string file in Directory.GetFiles(path, "*.png", SearchOption.AllDirectories))
             {
                 string fileName = Path.GetFileName(file);
-                if (pattern.IsMatch(fileName) || pattern2.IsMatch(fileName))
-                {
-                    Dbgl($"adding {fileName} custom texture.");
+                Dbgl($"adding {fileName} custom texture.");
 
-                    string id = fileName.Substring(0, fileName.Length - 4);
-                    Texture2D tex = new Texture2D(2, 2);
-                    byte[] imageData = File.ReadAllBytes(file);
-                    tex.LoadImage(imageData);
-                    customTextures[id] = tex;
-                }
+                string id = fileName.Substring(0, fileName.Length - 4);
+                Texture2D tex = new Texture2D(2, 2);
+                byte[] imageData = File.ReadAllBytes(file);
+                tex.LoadImage(imageData);
+                customTextures[id] = tex;
             }
         }
 
@@ -133,7 +127,7 @@ namespace CustomTextures
                 LoadOneTexture(gameObject, gameObject.name, "object");
 
             }
-            GameObject root = AccessTools.FieldRefAccess<ZNetScene, GameObject>(ZNetScene.instance, "m_netSceneRoot");
+            GameObject root = (GameObject)typeof(ZNetScene).GetField("m_netSceneRoot", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ZNetScene.instance);
             foreach (Terrain ter in root.GetComponentsInChildren<Terrain>(true))
             {
                 Dbgl($"terrain name: {ter.name}, layers  {ter.terrainData.terrainLayers.Length}");

@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.2.2")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -56,13 +56,12 @@ namespace CustomAudio
             }
             if (Directory.Exists(path))
             {
-                audioFiles = Directory.GetFiles(path, "*.wav");
+                audioFiles = Directory.GetFiles(path, "*.wav", SearchOption.AllDirectories);
                 customMusic.Clear();
                 customAmbient.Clear();
                 foreach (string file in audioFiles)
                 {
                     instance.StartCoroutine(PreloadClipCoroutine(file));
-
                 }
             }
         }

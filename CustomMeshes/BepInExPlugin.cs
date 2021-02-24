@@ -58,7 +58,7 @@ namespace CustomMeshes
             }
 
         }
-        [HarmonyPatch(typeof(VisEquipment), "Awake")]
+        //[HarmonyPatch(typeof(VisEquipment), "Awake")]
         static class Awake_Patch
         {
             static void Postfix(VisEquipment __instance)
@@ -67,25 +67,25 @@ namespace CustomMeshes
 
                 foreach (string file in Directory.GetFiles(path, "*.fbx"))
                 {
-                    GameObject obj = MeshImporter.Load(file);
-                    obj.name = "player_fbx";
                     string name = Path.GetFileNameWithoutExtension(file);
                     if(name == "player_model_1")
                     {
+                        GameObject obj = MeshImporter.Load(file);
+                        obj.name = "player_fbx";
                         Dbgl($"Adding mesh from {file}.");
-                        
-                        Transform oldArmature = __instance.gameObject.transform.Find("Visual").Find("Armature");
 
-                        GameObject newArmature = obj.transform.Find("Armature.003").gameObject;
-                        newArmature.name = "Armature";
-
-                        //Instantiate(newArmature, oldArmature.parent);
-                        //Destroy(oldArmature.gameObject);
-
-
-                        SkinnedMeshRenderer smr = __instance.m_models[0].GetComponentInChildren<SkinnedMeshRenderer>();
-                        MeshFilter mr = obj.GetComponentInChildren<MeshFilter>();
-                        smr.sharedMesh = mr.sharedMesh;
+                        MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
+                        MeshFilter mr = mrs[0];
+                        foreach(var model in __instance.m_models)
+                        {
+                            model.m_mesh = mr.sharedMesh;
+                            continue;
+                            model.m_mesh.vertices = mr.sharedMesh.vertices;
+                            model.m_mesh.uv = mr.sharedMesh.uv;
+                            model.m_mesh.triangles = mr.sharedMesh.triangles;
+                            model.m_mesh.RecalculateNormals();
+                            model.m_mesh.bindposes = mr.sharedMesh.bindposes;
+                        }
                     }
                 }
             }
