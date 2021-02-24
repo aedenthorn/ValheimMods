@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace TimeMod
 {
-    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.3.4")]
+    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.3.5")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -60,7 +60,7 @@ namespace TimeMod
             string outString = null;
             int mult = enableSpeedChangeStepMult.Value && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) ? 10 : 1;
 
-            if (m_pauseKey.Value.Length > 0 && Input.GetKeyDown(m_pauseKey.Value))
+            if (m_pauseKey.Value.Length > 0 && CheckKeyDown(m_pauseKey.Value))
             {
                 Dbgl($"Pressed pause key, timeScale was {Math.Round(Time.timeScale, 1)}.");
                 if (Time.timeScale != 0)
@@ -75,13 +75,13 @@ namespace TimeMod
                     outString = "You have allowed the flow of time to resume.";
                 }
             }
-            else if (m_resetKey.Value.Length > 0 && Input.GetKeyDown(m_resetKey.Value))
+            else if (m_resetKey.Value.Length > 0 && CheckKeyDown(m_resetKey.Value))
             {
                 Dbgl($"Pressed reset key, timeScale was {Math.Round(Time.timeScale, 1)}.");
                 Time.timeScale = 1;
                 outString = "You have reset the speed of time to 1.";
             }
-            else if (m_speedUpKey.Value.Length > 0 && Input.GetKeyDown(m_speedUpKey.Value))
+            else if (m_speedUpKey.Value.Length > 0 && CheckKeyDown(m_speedUpKey.Value))
             {
                 if (Time.timeScale > 0)
                 {
@@ -96,7 +96,7 @@ namespace TimeMod
                     //outString = $"Time is stopped, but you have increased the normal speed of time to {lastTime}.";
                 }
             }
-            else if (m_slowDownKey.Value.Length > 0 && Input.GetKeyDown(m_slowDownKey.Value)) 
+            else if (m_slowDownKey.Value.Length > 0 && CheckKeyDown(m_slowDownKey.Value)) 
             {
                 if (Time.timeScale > 0)
                 {
@@ -131,6 +131,18 @@ namespace TimeMod
             if(outString != null && showMessages.Value)
                 Player.m_localPlayer.Message(MessageHud.MessageType.TopLeft, outString, 0, null);
 
+        }
+
+        private bool CheckKeyDown(string value)
+        {
+            try
+            {
+                return Input.GetKeyDown(value.ToLower());
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         [HarmonyPatch(typeof(Menu), "Update")]
