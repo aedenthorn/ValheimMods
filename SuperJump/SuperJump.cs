@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace SuperJump
 {
-    [BepInPlugin("aedenthorn.SuperJump", "Super Jump", "0.3.0")]
+    [BepInPlugin("aedenthorn.SuperJump", "Super Jump", "0.3.1")]
     public class SuperJump: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -14,6 +14,7 @@ namespace SuperJump
         public static ConfigEntry<int> maxJumps;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<float> fallDamageMult;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -25,6 +26,7 @@ namespace SuperJump
             maxJumps = Config.Bind<int>("General", "MaxJumps", 2, "The maximum number of in-air jumps (-1 for infinite)");
             modEnabled = Config.Bind<bool>("General", "enabled", true, "Enable this mod");
             fallDamageMult = Config.Bind<float>("General", "FallDamageMult", 1f, "Fall damage multiplier (set to 0 to turn off fall damage)");
+            nexusID = Config.Bind<int>("General", "NexusID", 6, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;

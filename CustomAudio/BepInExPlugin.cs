@@ -4,20 +4,26 @@ using HarmonyLib;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.1.0")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.2.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
 
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> dumpSFX;
         public static Dictionary<string, AudioClip> customMusic = new Dictionary<string, AudioClip>();
         public static Dictionary<string, AudioClip> customAmbient = new Dictionary<string, AudioClip>();
+        public static Dictionary<string, AudioClip> customSFX = new Dictionary<string, AudioClip>();
+        public static Dictionary<string, List<AudioClip>> customSFXList = new Dictionary<string, List<AudioClip>>();
+        public static ConfigEntry<int> nexusID;
+
         private static string[] audioFiles;
         private static BepInExPlugin instance;
 
@@ -29,7 +35,9 @@ namespace CustomAudio
         private void Awake()
         {
             instance = this;
-            modEnabled = Config.Bind<bool>("General", "enabled", true, "Enable this mod");
+            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            dumpSFX = Config.Bind<bool>("General", "DumpSFX", false, "Dump sound effect names to the console");
+            nexusID = Config.Bind<int>("General", "NexusID", 90, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
@@ -85,6 +93,16 @@ namespace CustomAudio
                                 customMusic.Add(name.Substring(6), ac);
                             else if(name.StartsWith("ambient_"))
                                 customAmbient.Add(name.Substring(8), ac);
+                            else if(name.StartsWith("effect_"))
+                                customSFX.Add(name.Substring(7), ac);
+                            else if (name.StartsWith("list_"))
+                            {
+                                string[] vars = name.Split('_');
+                                string key = string.Join("_", vars.Skip(2));
+                                if (!customSFXList.ContainsKey(key))
+                                    customSFXList[key] = new List<AudioClip>();
+                                customSFXList[key].Add(ac);
+                            }
                         }
                         else
                         {
@@ -103,6 +121,31 @@ namespace CustomAudio
             }
         }
 
+        [HarmonyPatch(typeof(ZSFX), "Awake")]
+        static class ZSFX_Awake_Patch
+        {
+            static void Postfix(ZSFX __instance)
+            {
+                if(dumpSFX.Value)
+                    Dbgl($"Checking SFX: { __instance.name}");
+                if (customSFXList.ContainsKey(__instance.name.Replace("(Clone)", "")))
+                {
+                    Dbgl($"replacing SFX list by name: { __instance.name}");
+                    __instance.m_audioClips = customSFXList[__instance.name].ToArray();
+                    return;
+                }
+                for (int i = 0; i < __instance.m_audioClips.Length; i++)
+                {
+                    if (dumpSFX.Value)
+                        Dbgl($"checking SFX: { __instance.name}, clip: {__instance.m_audioClips[i].name}");
+                    if (customSFX.ContainsKey(__instance.m_audioClips[i].name))
+                    {
+                        Dbgl($"replacing SFX: { __instance.name}, clip: {__instance.m_audioClips[i].name}");
+                        __instance.m_audioClips[i] = customSFX[__instance.m_audioClips[i].name];
+                    }
+                }
+            }
+        }
         [HarmonyPatch(typeof(MusicMan), "Awake")]
         static class MusicMan_Awake_Patch
         {

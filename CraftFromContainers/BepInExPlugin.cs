@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "0.5.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "0.5.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -16,6 +16,7 @@ namespace CraftFromContainers
         public static ConfigEntry<float> m_range;
         public static ConfigEntry<bool> modEnabled;
         public static List<Container> containerList = new List<Container>();
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -25,7 +26,8 @@ namespace CraftFromContainers
         private void Awake()
         {
             m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from");
-            modEnabled = Config.Bind<bool>("General", "enabled", true, "Enable this mod");
+            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;

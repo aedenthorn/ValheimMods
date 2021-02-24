@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.5.0")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.5.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -19,6 +19,7 @@ namespace CustomTextures
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> dumpSceneTextures;
         public static ConfigEntry<string> hotKey;
+        public static ConfigEntry<int> nexusID;
         public static Dictionary<string, Texture2D> customTextures = new Dictionary<string, Texture2D>();
         public static List<string> outputDump = new List<string>();
 
@@ -29,9 +30,10 @@ namespace CustomTextures
         }
         private void Awake()
         {
-            modEnabled = Config.Bind<bool>("General", "enabled", true, "Enable this mod");
+            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             hotKey = Config.Bind<string>("General", "HotKey", "page down", "Key to reload textures");
             dumpSceneTextures = Config.Bind<bool>("General", "DumpSceneTextures", false, "Dump scene textures to BepInEx/plugins/CustomTextures/scene_dump.txt");
+            nexusID = Config.Bind<int>("General", "NexusID", 48, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
@@ -86,7 +88,7 @@ namespace CustomTextures
 
         private static void LoadCustomTextures()
         {
-            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\CustomTextures";
+            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"CustomTextures");
 
             if (!Directory.Exists(path))
             {

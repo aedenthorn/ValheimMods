@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Durability
 {
-    [BepInPlugin("aedenthorn.Durability", "Durability", "0.5.1")]
+    [BepInPlugin("aedenthorn.Durability", "Durability", "0.5.2")]
     public class Durability : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -32,6 +32,7 @@ namespace Durability
         public static ConfigEntry<bool> requireMatsForRepair;
 
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -56,7 +57,8 @@ namespace Durability
 
             requireMatsForRepair = Config.Bind<bool>("General", "RequireMatsForRepair", false, "Require a percentage of item's recipe materials based on missing durability.");
 
-            modEnabled = Config.Bind<bool>("General", "enabled", true, "Enable this mod");
+            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            nexusID = Config.Bind<int>("General", "NexusID", 17, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;

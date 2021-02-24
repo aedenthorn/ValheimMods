@@ -24,7 +24,7 @@ namespace BiggerContainers
         }
         private void Awake()
         {
-            modEnabled = Config.Bind<bool>("General", "enabled", true, "Enable this mod");
+            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             chestWidth = Config.Bind<int>("General", "ChestWidth", 8, "Number of slots wide for chests");
             chestHeight = Config.Bind<int>("General", "ChestHeight", 8, "Number of slots tall for chests");
 

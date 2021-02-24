@@ -2,19 +2,12 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Object = System.Object;
 
-namespace ClockMod
+namespace RealClockMod
 {
-    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.3.1")]
+    [BepInPlugin("aedenthorn.RealClockMod", "Real Clock Mod", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -34,13 +27,10 @@ namespace ClockMod
         public static ConfigEntry<string> clockFormat;
         public static ConfigEntry<string> clockString;
         public static ConfigEntry<string> clockFuzzyStrings;
-        public static ConfigEntry<int> nexusID;
-
         public static Text text;
         private static Font clockFont;
         private static GameObject canvasGO;
-        private static GUIStyle style;
-        private static GUIStyle style2;
+        private Harmony harmony;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -64,31 +54,22 @@ namespace ClockMod
             clockFormat = Config.Bind<string>("General", "ClockFormat", "HH:mm", "Time format; set to 'fuzzy' for fuzzy time");
             clockString = Config.Bind<string>("General", "ClockString", "<b>{0}</b>", "Formatted clock string - {0} is replaced by the actual time string");
             clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Night,Early Morning,Morning,Late Morning,Midday,Early Afternoon,Afternoon,Late Afternoon,Early Evening,Evening,Late Evening,Night", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
-            nexusID = Config.Bind<int>("General", "NexusID", 85, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
 
-            style = new GUIStyle
-            {
-                richText = true,
-                fontSize = clockFontSize.Value,
-                alignment = TextAnchor.MiddleCenter,
-                font = clockFont
-            };
-            style.normal.textColor = clockFontColor.Value;
-            style2 = new GUIStyle
-            {
-                richText = true,
-                fontSize = clockFontSize.Value,
-                alignment = TextAnchor.MiddleCenter,
-                font = clockFont
-            };
-            style2.normal.textColor = clockShadowColor.Value;
-
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+            harmony = new Harmony("aedenthorn.RealClockMod");
+            harmony.PatchAll();
         }
-        [HarmonyPatch(typeof(ZNetScene), "Awake")]
+
+        private void OnDestroy()
+        {
+            Dbgl("Destroying plugin");
+            harmony.UnpatchAll();
+        }
+
+
+        [HarmonyPatch(typeof(FejdStartup), "Awake")]
         static class Awake_Patch
         {
             static void Postfix()
@@ -101,7 +82,8 @@ namespace ClockMod
                     Font[] fonts = Resources.FindObjectsOfTypeAll<Font>();
                     foreach (Font font in fonts)
                     {
-                        if(font.name == clockFontName.Value)
+                        Debug.Log($"check font {font.name} {clockFontName.Value}");
+                        if (font.name == clockFontName.Value)
                         {
                             clockFont = font;
                             Debug.Log($"got font {font.name}");
@@ -150,7 +132,7 @@ namespace ClockMod
         }
         private void Update()
         {
-            if (modEnabled.Value && !toggleClockKeyOnPress.Value && Input.GetKeyDown(toggleClockKey.Value))
+            if (!toggleClockKeyOnPress.Value && Input.GetKeyDown(toggleClockKey.Value))
             {
                 bool show = showingClock.Value;
                 showingClock.Value = !show;
@@ -159,13 +141,28 @@ namespace ClockMod
         }
         private void OnGUI()
         {
-            if (modEnabled.Value && Player.m_localPlayer)
+            if (modEnabled.Value)
             {
                 if ((!toggleClockKeyOnPress.Value && showingClock.Value) || (toggleClockKeyOnPress.Value && Input.GetKey(toggleClockKey.Value)))
                 {
+                    GUIStyle style = new GUIStyle
+                    {
+                        richText = true,
+                        fontSize = clockFontSize.Value,
+                        alignment = TextAnchor.MiddleCenter,
+                        font = clockFont
+                    };
+                    style.normal.textColor = clockFontColor.Value;
                     if (clockUseShadow.Value)
                     {
-
+                        GUIStyle style2 = new GUIStyle
+                        {
+                            richText = true,
+                            fontSize = clockFontSize.Value,
+                            alignment = TextAnchor.MiddleCenter,
+                            font = clockFont
+                        };
+                        style2.normal.textColor = clockShadowColor.Value;
                         GUI.Label(new Rect(clockLocation.Value + new Vector2(-clockShadowOffset.Value, clockShadowOffset.Value), new Vector2(0, 0)), $"{string.Format(clockString.Value, GetCurrentTimeString())}", style2);
                     }
 
@@ -176,19 +173,12 @@ namespace ClockMod
 
         private string GetCurrentTimeString()
         {
-            float fraction = AccessTools.FieldRefAccess<EnvMan, float>(EnvMan.instance, "m_smoothDayFraction");
+            DateTime now = DateTime.Now;
 
             if (clockFormat.Value != "fuzzy")
-            {
-                int hour = (int)(fraction * 24);
-                int minute = (int)((fraction * 24 - hour) * 60);
-                int second = (int)((((fraction * 24 - hour) * 60) - minute) * 60);
+                return now.ToString(clockFormat.Value);
 
-                DateTime now = DateTime.Now;
-                DateTime theTime = new DateTime(now.Year, now.Month, now.Day, hour, minute, second);
-
-                return theTime.ToString(clockFormat.Value);
-            }
+            float fraction = (now.Hour * 60 * 60 + now.Minute * 60 + now.Second) / (float)(24 * 60 * 60);
             string[] fuzzyStringArray = clockFuzzyStrings.Value.Split(',');
             int idx = Math.Min((int)(fuzzyStringArray.Length * fraction), fuzzyStringArray.Length - 1);
             return fuzzyStringArray[idx];

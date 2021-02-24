@@ -6,13 +6,14 @@ using UnityEngine;
 
 namespace DiscardInventoryItem
 {
-    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.1.0")]
+    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.1.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
 
         public static ConfigEntry<string> m_hotkey;
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -22,7 +23,8 @@ namespace DiscardInventoryItem
         private void Awake()
         {
             m_hotkey = Config.Bind<string>("General", "DiscardHotkey", "delete", "The hotkey to discard an item");
-            modEnabled = Config.Bind<bool>("General", "enabled", true, "Enable this mod");
+            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            nexusID = Config.Bind<int>("General", "NexusID", 45, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;

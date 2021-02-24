@@ -6,13 +6,14 @@ using UnityEngine;
 
 namespace TorchMod
 {
-    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.4.1")]
+    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.4.2")]
 
     public class TorchMod: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
         private static TorchMod context;
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<int> nexusID;
 
         public static ConfigEntry<Color> torchColor;
         public static ConfigEntry<float> torchRange;
@@ -63,6 +64,8 @@ namespace TorchMod
             context = this;
 
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
+            nexusID = Config.Bind<int>("General", "NexusID", 11, "Nexus mod ID for updates");
+
             torchColor = Config.Bind("Torches", "TorchColor", new Color(1f, 0.621f, 0.482f, 1f), "The color of the light.");
             torchRange = Config.Bind("Torches", "TorchRange", 10f, "The range of the light. (float)");
             torchIntensity = Config.Bind("Torches", "TorchIntensity", 1f, "The Intensity of a light is multiplied with the Light color. (float 0-8)");

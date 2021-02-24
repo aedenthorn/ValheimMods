@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace TimeMod
 {
-    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.3.3")]
+    [BepInPlugin("aedenthorn.TimeScale", "Time Scale", "0.1.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -21,8 +21,6 @@ namespace TimeMod
         public static ConfigEntry<bool> showMessages;
         public static ConfigEntry<bool> enableSpeedChangeStepMult;
         public static ConfigEntry<double> speedChangeStep;
-        public static ConfigEntry<int> nexusID;
-
         public static double lastTime = 1;
         public static bool pausedMenu = false; 
         public static bool wasActive = false; 
@@ -43,7 +41,6 @@ namespace TimeMod
             showMessages = Config.Bind<bool>("General", "ShowMessages", false, "Show hud messages on hotkey press");
             speedChangeStep = Config.Bind<double>("General", "SpeedChangeStep", 0.1, "Amount to change the time scale on each increment");
             enableSpeedChangeStepMult = Config.Bind<bool>("General", "EnableSpeedChangeStepMult", true, "Hold down shift to increment x10");
-            nexusID = Config.Bind<int>("General", "NexusID", 68, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
