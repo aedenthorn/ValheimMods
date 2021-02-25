@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DayCycle", "DayCycle\DayCyc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomContainerSizes", "CustomContainerSizes\CustomContainerSizes.csproj", "{310FBC9C-4084-4D42-AF12-02DB7AAECD28}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShipSpeed", "ShipSpeed\ShipSpeed.csproj", "{B60664F7-A85E-4302-B5C5-C475C1ABF8D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,10 @@ Global
 		{310FBC9C-4084-4D42-AF12-02DB7AAECD28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{310FBC9C-4084-4D42-AF12-02DB7AAECD28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{310FBC9C-4084-4D42-AF12-02DB7AAECD28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B60664F7-A85E-4302-B5C5-C475C1ABF8D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B60664F7-A85E-4302-B5C5-C475C1ABF8D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B60664F7-A85E-4302-B5C5-C475C1ABF8D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B60664F7-A85E-4302-B5C5-C475C1ABF8D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

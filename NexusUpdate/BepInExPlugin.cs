@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace NexusUpdate
 {
-    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.3.1")]
+    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.5.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -168,10 +168,30 @@ namespace NexusUpdate
         }
         private IEnumerator CheckPlugins()
         {
-
-            foreach (string file in Directory.GetFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "*.dll"))
+            string[] pluginPaths = new string[0];
+            string[] scriptPaths = new string[0]; 
+            try
             {
+                pluginPaths = Directory.GetFiles(Path.Combine(Directory.GetParent(Path.GetDirectoryName(typeof(BepInProcess).Assembly.Location)).FullName, "plugins"), "*.dll", SearchOption.AllDirectories);
+            }
+            catch
+            {
+            }
+            try
+            {
+                scriptPaths = Directory.GetFiles(Path.Combine(Directory.GetParent(Path.GetDirectoryName(typeof(BepInProcess).Assembly.Location)).FullName, "scripts"), "*.dll", SearchOption.AllDirectories);
+            }
+            catch
+            {
+                
+            }
 
+            string[] files = new string[pluginPaths.Length + scriptPaths.Length];
+            pluginPaths.CopyTo(files, 0);
+            scriptPaths.CopyTo(files, pluginPaths.Length);
+
+            foreach (string file in files)
+            {
                 Version currentVersion = null;
                 string pluginName = null;
                 string guid = null;
@@ -207,7 +227,7 @@ namespace NexusUpdate
                 }
 
 
-                string cfgFile = Path.Combine(new string[]{ Directory.GetParent(Path.GetDirectoryName(typeof(BepInEx.BepInProcess).Assembly.Location)).FullName, "config", $"{guid}.cfg"});
+                string cfgFile = Path.Combine(new string[]{ Directory.GetParent(Path.GetDirectoryName(typeof(BepInProcess).Assembly.Location)).FullName, "config", $"{guid}.cfg"});
                 Dbgl($"{cfgFile}");
                 if (!File.Exists(cfgFile))
                 {
@@ -252,7 +272,7 @@ namespace NexusUpdate
                     {
                         if (check && line.Contains("<div class=\"stat\">"))
                         {
-                            Match match = Regex.Match(line, @"<[^>]+>([0-9.]+)<[^>]+>");
+                            Match match = Regex.Match(line, @"<[^>]+>[^0-9.]*([0-9.]+)[^0-9.]*<[^>]+>");
                             if (!match.Success)
                                 break;
 
