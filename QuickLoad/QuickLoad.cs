@@ -33,13 +33,24 @@ namespace QuickLoad
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
+        private static bool CheckKeyDown(string value)
+        {
+            try
+            {
+                return Input.GetKeyDown(value.ToLower());
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         [HarmonyPatch(typeof(FejdStartup), "Update")]
         static class Update_Patch
         {
             static void Postfix(FejdStartup __instance)
             {
-                if (!Input.GetKeyDown(hotKey.Value))
+                if (!CheckKeyDown(hotKey.Value))
                     return;
 
                 Dbgl("pressed hot key");

@@ -41,6 +41,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomContainerSizes", "Cus
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShipSpeed", "ShipSpeed\ShipSpeed.csproj", "{B60664F7-A85E-4302-B5C5-C475C1ABF8D3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovableChestInventory", "MovableChestInventory\MovableChestInventory.csproj", "{0473B5A9-FABE-441F-A1CE-E3E77F61F098}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeadlightSwitch", "HeadlightSwitch\HeadlightSwitch.csproj", "{54BFA90F-D3C0-4904-8EA5-686FB22CABFE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -123,6 +127,14 @@ Global
 		{B60664F7-A85E-4302-B5C5-C475C1ABF8D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B60664F7-A85E-4302-B5C5-C475C1ABF8D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B60664F7-A85E-4302-B5C5-C475C1ABF8D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0473B5A9-FABE-441F-A1CE-E3E77F61F098}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0473B5A9-FABE-441F-A1CE-E3E77F61F098}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0473B5A9-FABE-441F-A1CE-E3E77F61F098}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0473B5A9-FABE-441F-A1CE-E3E77F61F098}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54BFA90F-D3C0-4904-8EA5-686FB22CABFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54BFA90F-D3C0-4904-8EA5-686FB22CABFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54BFA90F-D3C0-4904-8EA5-686FB22CABFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54BFA90F-D3C0-4904-8EA5-686FB22CABFE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

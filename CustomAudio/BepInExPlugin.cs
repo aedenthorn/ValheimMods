@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.3.0")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -56,23 +56,28 @@ namespace CustomAudio
             }
             if (Directory.Exists(path))
             {
-                audioFiles = Directory.GetFiles(path, "*.wav", SearchOption.AllDirectories);
                 customMusic.Clear();
                 customAmbient.Clear();
+                audioFiles = Directory.GetFiles(path, "*.wav", SearchOption.AllDirectories);
                 foreach (string file in audioFiles)
                 {
-                    instance.StartCoroutine(PreloadClipCoroutine(file));
+                    instance.StartCoroutine(PreloadClipCoroutine(file, AudioType.WAV));
+                }
+                audioFiles = Directory.GetFiles(path, "*.ogg", SearchOption.AllDirectories);
+                foreach (string file in audioFiles)
+                {
+                    instance.StartCoroutine(PreloadClipCoroutine(file, AudioType.OGGVORBIS));
                 }
             }
         }
 
-        public static IEnumerator PreloadClipCoroutine(string filename)
+        public static IEnumerator PreloadClipCoroutine(string filename, AudioType audioType)
         {
             filename = "file:///" + filename.Replace("\\", "/");
 
             //Dbgl($"filename: {filename}");
 
-            using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(filename, AudioType.WAV))
+            using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(filename, audioType))
             {
                 www.SendWebRequest();
                 yield return null;

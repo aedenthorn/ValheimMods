@@ -7,13 +7,14 @@ using UnityEngine;
 
 namespace AutoSplitStack
 {
-    [BepInPlugin("aedenthorn.AutoSplitStack", "AutoSplitStack", "0.1.1")]
+    [BepInPlugin("aedenthorn.AutoSplitStack", "AutoSplitStack", "0.1.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<string> modKey;
 
         public static bool autoSplitting = false;
         public static void Dbgl(string str = "", bool pref = true)
@@ -25,11 +26,23 @@ namespace AutoSplitStack
         {
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 76, "Nexus mod ID for updates");
+            modKey = Config.Bind<string>("General", "ModKey", "left shift", "Modifier key to split stack");
 
             if (!modEnabled.Value)
                 return;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+        }
+        private static bool CheckModKey(string value)
+        {
+            try
+            {
+                return Input.GetKey(value.ToLower());
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         [HarmonyPatch(typeof(InventoryGui), "OnRightClickItem")]
@@ -37,7 +50,7 @@ namespace AutoSplitStack
         {
             static bool Prefix(InventoryGui __instance, InventoryGrid grid, ItemDrop.ItemData item, int ___m_dragAmount)
             {
-                if (ZInput.GetButton("JoyLTrigger") || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                if (ZInput.GetButton("JoyLTrigger") || CheckModKey(modKey.Value))
                 {
                     if(item != null && item.m_stack > 1 && Player.m_localPlayer)
                     {

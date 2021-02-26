@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -12,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace NexusUpdate
 {
-    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.5.0")]
+    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.6.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -20,6 +19,7 @@ namespace NexusUpdate
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> showAllManagedMods;
+        public static ConfigEntry<bool> createEmptyConfigFiles;
         public static ConfigEntry<Vector2> updatesPosition;
         public static ConfigEntry<int> updateTextWidth;
         public static ConfigEntry<int> fontSize;
@@ -52,6 +52,7 @@ namespace NexusUpdate
         {
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             showAllManagedMods = Config.Bind<bool>("General", "ShowAllManagedMods", false, "Show all mods that have a nexus ID in the list, even if they are up-to-date");
+            createEmptyConfigFiles = Config.Bind<bool>("General", "CreateEmptyConfigFiles", true, "Create empty GUID-based config files for mods that don't have them (may cause there to be duplicate config files)");
             updatesPosition = Config.Bind<Vector2>("General", "UpdatesPosition", new Vector2(40, 40), "Position of the updates list on the screen");
             updateTextWidth = Config.Bind<int>("General", "UpdateTextWidth", 600, "Width of the update text (will wrap if it is too long)");
             buttonWidth = Config.Bind<int>("General", "ButtonWidth", 100, "Width of the update button");
@@ -231,7 +232,8 @@ namespace NexusUpdate
                 Dbgl($"{cfgFile}");
                 if (!File.Exists(cfgFile))
                 {
-                    File.Create(cfgFile);
+                    if(createEmptyConfigFiles.Value)
+                        File.Create(cfgFile);
                     continue;
                 }
 

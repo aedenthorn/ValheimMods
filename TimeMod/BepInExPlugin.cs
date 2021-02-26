@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace TimeMod
 {
-    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.3.5")]
+    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -151,7 +151,7 @@ namespace TimeMod
 
             static void Prefix(Menu __instance, int ___m_hiddenFrames)
             {
-                if (pauseOnMenu.Value && Time.timeScale > 0 && !(Game.instance.IsLoggingOut()) && __instance.m_root.gameObject.activeSelf && !wasActive)
+                if (pauseOnMenu.Value && Time.timeScale > 0 && !(bool)typeof(Game).GetField("m_shuttingDown", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Game.instance) && __instance.m_root.gameObject.activeSelf && !wasActive)
                 {
                     Dbgl($"Pausing time on menu open.");
                     pausedMenu = true;

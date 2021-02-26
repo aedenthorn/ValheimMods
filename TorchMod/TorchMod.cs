@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace TorchMod
 {
-    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.5.0")]
+    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.5.1")]
 
     public class TorchMod: BaseUnityPlugin
     {

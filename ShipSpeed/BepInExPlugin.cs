@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace ShipSpeed
 {
-    [BepInPlugin("aedenthorn.ShipSpeed", "Ship Speed Mod", "0.1.0")]
+    [BepInPlugin("aedenthorn.ShipSpeed", "Ship Speed Mod", "0.2.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -34,7 +34,13 @@ namespace ShipSpeed
         private static ConfigEntry<float> waterImpactDamageMult;
         private static ConfigEntry<float> upsideDownDmgIntervalMult;
         private static ConfigEntry<float> upsideDownDmgMult;
-        
+        private static ConfigEntry<float> windAngleFactorMin;
+        private static ConfigEntry<float> windAngleFactorMult;
+        private static ConfigEntry<float> headWindDegrees;
+        private static ConfigEntry<float> tailWindMult;
+        private static ConfigEntry<float> headWindMult;
+        public static ConfigEntry<int> nexusID;
+
         private Harmony harmony;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -67,6 +73,12 @@ namespace ShipSpeed
             waterImpactDamageMult = Config.Bind<float>("Ships", "WaterImpactDamageMult", 1f, "Water Impact Damage Multiplier");
             upsideDownDmgIntervalMult = Config.Bind<float>("Ships", "UpsideDownDmgIntervalMult", 1f, "Upside Down Dmg Interval Multiplier");
             upsideDownDmgMult = Config.Bind<float>("Ships", "UpsideDownDmgMult", 1f, "Upside Down Dmg Multiplier");
+            headWindDegrees = Config.Bind<float>("Custom", "HeadWindDegrees", 135f, "Degree difference between heading and wind to call headwind");
+            windAngleFactorMin = Config.Bind<float>("Custom", "WindAngleFactorMin", 0.1f, "Wind Angle Factor Minimum");
+            windAngleFactorMult = Config.Bind<float>("Custom", "WindAngleFactorMult", 1f, "Wind Angle Factor Multiplier");
+            tailWindMult = Config.Bind<float>("Custom", "TailWindMult", 1f, "Tail Wind Multiplier");
+            headWindMult = Config.Bind<float>("Custom", "HeadWindMult", 1f, "Head Wind Multiplier");
+            nexusID = Config.Bind<int>("General", "NexusID", 119, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
@@ -109,6 +121,35 @@ namespace ShipSpeed
                 ___m_upsideDownDmg *= upsideDownDmgMult.Value;
             }
         }
+
+        [HarmonyPatch(typeof(Ship), "GetSailForce")]
+        static class FixedUpdate_Patch
+        {
+            static void Postfix(Ship __instance, ref Vector3 __result)
+            {
+                
+                float degrees = Vector3.Angle(EnvMan.instance.GetWindDir(), __instance.transform.forward);
+                if(degrees > headWindDegrees.Value)
+                {
+                    //Dbgl($"Headwind {(int)degrees}");
+                    __result *= headWindMult.Value;
+                }
+                else
+                {
+                    //Dbgl($"Tailwind {(int)degrees}");
+                    __result *= tailWindMult.Value;
+                }
+            }
+        }
+        [HarmonyPatch(typeof(Ship), "GetWindAngleFactor")]
+        static class GetWindAngleFactor_Patch
+        {
+            static void Postfix(Ship __instance, ref float __result)
+            {
+                __result = Math.Max(windAngleFactorMin.Value, __result * windAngleFactorMult.Value);
+                __result = Math.Min(1, __result);
+            }
+        }
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch
         {
@@ -119,6 +160,8 @@ namespace ShipSpeed
                 string text = __instance.m_input.text;
                 if (text.ToLower().Equals("shipspeed reset"))
                 {
+                    Dbgl($"reloading ship speed mod config values");
+
                     context.Config.Reload();
                     return false;
                 }

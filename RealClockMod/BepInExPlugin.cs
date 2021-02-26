@@ -55,10 +55,11 @@ namespace RealClockMod
             clockString = Config.Bind<string>("General", "ClockString", "<b>{0}</b>", "Formatted clock string - {0} is replaced by the actual time string");
             clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Night,Early Morning,Morning,Late Morning,Midday,Early Afternoon,Afternoon,Late Afternoon,Early Evening,Evening,Late Evening,Night", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
 
+            harmony = new Harmony("aedenthorn.RealClockMod");
+
             if (!modEnabled.Value)
                 return;
 
-            harmony = new Harmony("aedenthorn.RealClockMod");
             harmony.PatchAll();
         }
 

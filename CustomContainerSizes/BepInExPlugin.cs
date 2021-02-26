@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace CustomContainerSizes
 {
-    [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.3.2")]
+    [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.3.3")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -62,8 +62,8 @@ namespace CustomContainerSizes
                 if (___m_inventory == null)
                     return;
 
-                Dbgl($"spawning container {__instance.name}, parent {__instance.gameObject.transform.parent.name}");
-                Ship ship = __instance.gameObject.transform.parent.GetComponent<Ship>();
+                Dbgl($"spawning container {__instance.name}");
+                Ship ship = __instance.gameObject.transform.parent?.GetComponent<Ship>();
                 if (ship != null)
                 {
                     Dbgl($"container is on a ship: {ship.name}");
