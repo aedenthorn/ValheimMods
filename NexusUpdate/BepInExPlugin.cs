@@ -229,7 +229,7 @@ namespace NexusUpdate
 
 
                 string cfgFile = Path.Combine(new string[]{ Directory.GetParent(Path.GetDirectoryName(typeof(BepInProcess).Assembly.Location)).FullName, "config", $"{guid}.cfg"});
-                Dbgl($"{cfgFile}");
+                //Dbgl($"{cfgFile}");
                 if (!File.Exists(cfgFile))
                 {
                     if(createEmptyConfigFiles.Value)
@@ -265,6 +265,8 @@ namespace NexusUpdate
                 }
                 else
                 {
+                    //Dbgl($"entire text: {uwr.downloadHandler.text}.");
+
                     string[] lines = uwr.downloadHandler.text.Split(
                         new[] { "\r\n", "\r", "\n" },
                         StringSplitOptions.None

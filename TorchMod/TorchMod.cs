@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace TorchMod
 {
-    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.5.1")]
+    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.5.3")]
 
     public class TorchMod: BaseUnityPlugin
     {
@@ -170,11 +170,11 @@ namespace TorchMod
         {
             static void Postfix(bool __result, string ___m_helmetItem, GameObject ___m_helmetItemInstance)
             {
-                if (!__result)
+                if (!__result || ___m_helmetItem == null)
                     return;
                 Dbgl($"checking {___m_helmetItem}");
 
-                Light light = ___m_helmetItemInstance.GetComponentInChildren<Light>();
+                Light light = ___m_helmetItemInstance?.GetComponentInChildren<Light>();
                 if (light != null)
                 {
 

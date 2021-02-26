@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using BepInEx;
@@ -10,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "0.11.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.1.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -29,6 +30,7 @@ namespace CraftFromContainers
         public static ConfigEntry<string> pullItemsKey;
         public static ConfigEntry<string> pulledMessage;
         public static ConfigEntry<string> preventModKey;
+        public static ConfigEntry<string> fuelDisallowTypes;
         public static ConfigEntry<bool> switchAddAll;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -58,6 +60,7 @@ namespace CraftFromContainers
             pullItemsKey = Config.Bind<string>("General", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building");
             pulledMessage = Config.Bind<string>("General", "PulledMessage", "Pulled items to inventory", "Message to show after pulling items to player inventory");
             preventModKey = Config.Bind<string>("General", "PreventModKey", "left shift", "Modifier key to toggle fuel and ore filling behaviour when down");
+            fuelDisallowTypes = Config.Bind<string>("General", "FuelDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as fuel.");
             switchAddAll = Config.Bind<bool>("General", "SwitchAddAll", true, "if true, holding down the modifier key will prevent this mod's behaviour; if false, holding down the key will allow it");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
@@ -98,7 +101,7 @@ namespace CraftFromContainers
             List<Container> containers = new List<Container>();
             foreach (Container container in containerList)
             {
-                if (container != null && container.transform != null && container.GetInventory() != null && (m_range.Value <= 0 ||  Vector3.Distance(center, container.transform.position) < m_range.Value))
+                if (container != null && container.transform != null && container.GetInventory() != null && (m_range.Value <= 0 ||  Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
                 {
                     containers.Add(container);
                 }
@@ -157,7 +160,12 @@ namespace CraftFromContainers
                         ItemDrop.ItemData item = c.GetInventory().GetItem(__instance.m_fuelItem.m_itemData.m_shared.m_name);
                         if (item != null)
                         {
-                            Dbgl($"container at {c.transform.position} has {item.m_stack} {__instance.m_fuelItem.m_itemData.m_shared.m_name}, taking one");
+                            if (fuelDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
+                            {
+                                Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
+                                continue;
+                            }
+                            Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
                             c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, 1);
                             typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                             typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
@@ -199,7 +207,7 @@ namespace CraftFromContainers
                         ItemDrop.ItemData item = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
                         if (item != null)
                         {
-                            Dbgl($"container at {c.transform.position} has {item.m_stack} {itemConversion.m_from.m_itemData.m_shared.m_name}, taking one");
+                            Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
                             __result = item;
                             c.GetInventory().RemoveItem(itemConversion.m_from.m_itemData.m_shared.m_name, 1);
                             typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
@@ -233,7 +241,13 @@ namespace CraftFromContainers
                         ItemDrop.ItemData item = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
                         if (item != null)
                         {
-                            Dbgl($"container at {c.transform.position} has {item.m_stack} {itemConversion.m_from.m_itemData.m_shared.m_name}, taking one");
+                            if (fuelDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
+                            {
+                                Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
+                                continue;
+                            }
+
+                            Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
                             __result = item;
                             c.GetInventory().RemoveItem(itemConversion.m_from.m_itemData.m_shared.m_name, 1);
                             typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
@@ -270,7 +284,13 @@ namespace CraftFromContainers
                     ItemDrop.ItemData newItem = c.GetInventory().GetItem(__instance.m_fuelItem.m_itemData.m_shared.m_name);
                     if (newItem != null)
                     {
-                        Dbgl($"container at {c.transform.position} has {newItem.m_stack} {__instance.m_fuelItem.m_itemData.m_shared.m_name}, taking one");
+                        if (fuelDisallowTypes.Value.Split(',').Contains(newItem.m_dropPrefab.name))
+                        {
+                            Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name} but it's forbidden by config");
+                            continue;
+                        }
+
+                        Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name}, taking one");
 
                         user.Message(MessageHud.MessageType.Center, "$msg_added " + __instance.m_fuelItem.m_itemData.m_shared.m_name, 0, null);
                         ___m_nview.InvokeRPC("AddFuel", new object[] { });
@@ -626,7 +646,7 @@ namespace CraftFromContainers
         {
             static bool Prefix(InventoryGui __instance, KeyValuePair<Recipe, ItemDrop.ItemData> ___m_selectedRecipe, ItemDrop.ItemData ___m_craftUpgradeItem)
             {
-                if ((!AllowByKey() && !CheckKeyHeld(pullItemsKey.Value)) || ___m_selectedRecipe.Key == null)
+                if (!AllowByKey() || !CheckKeyHeld(pullItemsKey.Value) || ___m_selectedRecipe.Key == null)
                     return true;
 
                 int qualityLevel = (___m_craftUpgradeItem != null) ? (___m_craftUpgradeItem.m_quality + 1) : 1;

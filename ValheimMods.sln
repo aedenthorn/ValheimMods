@@ -47,6 +47,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeadlightSwitch", "Headligh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContainersAnywhere", "ContainersAnywhere\ContainersAnywhere.csproj", "{46E92BC8-73B2-4C97-A55E-9B0385F496A9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoFuel", "AutoFuel\AutoFuel.csproj", "{87660053-76CB-449E-9AB1-E750F55A0B4D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,6 +143,10 @@ Global
 		{46E92BC8-73B2-4C97-A55E-9B0385F496A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46E92BC8-73B2-4C97-A55E-9B0385F496A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46E92BC8-73B2-4C97-A55E-9B0385F496A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87660053-76CB-449E-9AB1-E750F55A0B4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87660053-76CB-449E-9AB1-E750F55A0B4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87660053-76CB-449E-9AB1-E750F55A0B4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87660053-76CB-449E-9AB1-E750F55A0B4D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -106,7 +106,7 @@ namespace CustomMeshes
                     }
                     
                     // Texture
-                    if (m.HasTextureDiffuse)
+                    if (false && m.HasTextureDiffuse)
                     {
                         Texture2D uTexture = new Texture2D(2,2);
                         string texturePath = Path.Combine(parentDir, m.TextureDiffuse.FilePath);

@@ -33,7 +33,7 @@ namespace CustomMeshes
             if (!modEnabled.Value)
                 return;
             
-            PreloadMeshes();
+            //PreloadMeshes();
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
@@ -58,16 +58,29 @@ namespace CustomMeshes
             }
 
         }
-        //[HarmonyPatch(typeof(VisEquipment), "Awake")]
+        [HarmonyPatch(typeof(VisEquipment), "Awake")]
         static class Awake_Patch
         {
             static void Postfix(VisEquipment __instance)
             {
-                string path = Path.Combine($"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}","CustomMeshes");
+                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"CustomMeshes");
 
                 foreach (string file in Directory.GetFiles(path, "*.fbx"))
                 {
                     string name = Path.GetFileNameWithoutExtension(file);
+                    if(name == "player_model_0")
+                    {
+                        GameObject obj = MeshImporter.Load(file);
+                        obj.name = "player_fbx";
+                        Dbgl($"Adding mesh from {file}.");
+
+                        MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
+                        MeshFilter mr = mrs[0];
+
+                        __instance.m_models[0].m_mesh.vertices = mr.mesh.vertices;
+                        __instance.m_models[0].m_mesh.RecalculateNormals();
+                        continue;
+                    }
                     if(name == "player_model_1")
                     {
                         GameObject obj = MeshImporter.Load(file);
@@ -76,16 +89,10 @@ namespace CustomMeshes
 
                         MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
                         MeshFilter mr = mrs[0];
-                        foreach(var model in __instance.m_models)
-                        {
-                            model.m_mesh = mr.sharedMesh;
-                            continue;
-                            model.m_mesh.vertices = mr.sharedMesh.vertices;
-                            model.m_mesh.uv = mr.sharedMesh.uv;
-                            model.m_mesh.triangles = mr.sharedMesh.triangles;
-                            model.m_mesh.RecalculateNormals();
-                            model.m_mesh.bindposes = mr.sharedMesh.bindposes;
-                        }
+
+                        __instance.m_models[1].m_mesh.vertices = mr.mesh.vertices;
+                        __instance.m_models[1].m_mesh.RecalculateNormals();
+                        continue;
                     }
                 }
             }
