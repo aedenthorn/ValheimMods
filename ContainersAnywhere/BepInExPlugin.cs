@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace ContainersAnywhere
 {
-    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.1.0")]
+    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -23,7 +23,6 @@ namespace ContainersAnywhere
 
         public static List<Container> containerList = new List<Container>();
         private static BepInExPlugin context;
-        private static bool openingContainers = false;
         private static int currentContainer = 0;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -38,7 +37,7 @@ namespace ContainersAnywhere
             previousKey = Config.Bind<string>("General", "PreviousKey", "left", "Key press to switch to the previous container. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             nextKey = Config.Bind<string>("General", "NextKey", "right", "Key press to switch to the next container. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 146, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
@@ -49,17 +48,32 @@ namespace ContainersAnywhere
         {
             if (CheckKeyDown(hotKey.Value))
                 OpenContainers(0);
-            else if (InventoryGui.instance?.IsContainerOpen() != true)
-                openingContainers = false;
-            else if(openingContainers && CheckKeyDown(previousKey.Value))
-                OpenContainers(1);
-            else if(openingContainers && CheckKeyDown(nextKey.Value))
-                OpenContainers(-1);
+            else if (InventoryGui.instance?.IsContainerOpen() == true)
+            {
+                if (CheckKeyDown(previousKey.Value))
+                    OpenContainers(1);
+                else if (CheckKeyDown(nextKey.Value))
+                    OpenContainers(-1);
+            }
         }
 
         private void OpenContainers(int which)
         {
-            openingContainers = true;
+            bool changed = false;
+            List<Container> newContainers = new List<Container>();
+            foreach(Container c in containerList)
+            {
+                if (Traverse.Create(c).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
+                    newContainers.Add(c);
+                else
+                {
+                    currentContainer = 0;
+                    changed = true;
+                }
+            }
+            if (changed)
+                containerList = new List<Container>(newContainers);
+
             int container = currentContainer + which < 0 ? containerList.Count - 1 : (currentContainer + which) % containerList.Count;
             currentContainer = container;
             Dbgl($"Opening container {container+1}/{containerList.Count}");
@@ -101,10 +115,18 @@ namespace ContainersAnywhere
         [HarmonyPatch(typeof(InventoryGui), "Awake")]
         static class InventoryGui_Awake_Patch
         {
-            static void Prefix(InventoryGui __instance)
+            static void Postfix(InventoryGui __instance)
             {
                 __instance.m_autoCloseDistance = float.MaxValue;
-
+            }
+        }
+        [HarmonyPatch(typeof(InventoryGui), "Show")]
+        static class InventoryGui_Show_Patch
+        {
+            static void Postfix(Container ___m_currentContainer)
+            {
+                if (___m_currentContainer && containerList.Contains(___m_currentContainer))
+                    currentContainer = containerList.IndexOf(___m_currentContainer);
             }
         }
         

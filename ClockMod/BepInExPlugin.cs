@@ -2,19 +2,13 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Object = System.Object;
 
 namespace ClockMod
 {
-    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.4.1")]
+    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.5.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -29,6 +23,7 @@ namespace ClockMod
         public static ConfigEntry<int> clockShadowOffset;
         public static ConfigEntry<Vector2> clockLocation;
         public static ConfigEntry<int> clockFontSize;
+        public static ConfigEntry<string> toggleClockKeyMod;
         public static ConfigEntry<string> toggleClockKey;
         public static ConfigEntry<string> clockFontName;
         public static ConfigEntry<string> clockFormat;
@@ -60,13 +55,17 @@ namespace ClockMod
             clockFontSize = Config.Bind<int>("General", "ClockFontSize", 24, "Location on the screen in pixels to show the clock");
             clockFontColor = Config.Bind<Color>("General", "ClockFontColor", Color.white, "Font color for the clock");
             clockShadowColor = Config.Bind<Color>("General", "ClockShadowColor", Color.black, "Color for the shadow");
-            toggleClockKey = Config.Bind<string>("General", "ShowClockKey", "home", "Key used to toggle the clock display");
+            toggleClockKeyMod = Config.Bind<string>("General", "ShowClockKeyMod", "", "Extra modifier key used to toggle the clock display. Leave blank to not require one. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
+            toggleClockKey = Config.Bind<string>("General", "ShowClockKey", "home", "Key used to toggle the clock display. use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             toggleClockKeyOnPress = Config.Bind<bool>("General", "ShowClockKeyOnPress", false, "If true, limit clock display to when the hotkey is down");
             clockFormat = Config.Bind<string>("General", "ClockFormat", "HH:mm", "Time format; set to 'fuzzy' for fuzzy time");
             clockString = Config.Bind<string>("General", "ClockString", "<b>{0}</b>", "Formatted clock string - {0} is replaced by the actual time string");
-            clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Night,Early Morning,Morning,Late Morning,Midday,Early Afternoon,Afternoon,Late Afternoon,Early Evening,Evening,Late Evening,Night", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
+            clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Night,Dawn,Early Morning,Morning,Late Morning,Midday,Early Afternoon,Afternoon,Late Afternoon,Evening,Night", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
             nexusID = Config.Bind<int>("General", "NexusID", 85, "Nexus mod ID for updates");
 
+            if (clockFuzzyStrings.Value == "Night,Early Morning,Morning,Late Morning,Midday,Early Afternoon,Afternoon,Late Afternoon,Early Evening,Evening,Late Evening,Night")
+                clockFuzzyStrings.Value = "Night,Dawn,Early Morning,Morning,Late Morning,Midday,Early Afternoon,Afternoon,Late Afternoon,Evening,Night";
+            Config.Save();
             if (!modEnabled.Value)
                 return;
 
@@ -76,10 +75,11 @@ namespace ClockMod
         }
         private void Update()
         {
-            if (modEnabled.Value && !toggleClockKeyOnPress.Value && Input.GetKeyDown(toggleClockKey.Value))
+            if (modEnabled.Value && !toggleClockKeyOnPress.Value && PressingToggleKey())
             {
                 bool show = showingClock.Value;
                 showingClock.Value = !show;
+                Config.Save();
                 Dbgl($"show clock: {showingClock.Value}");
             }
         }
@@ -88,7 +88,7 @@ namespace ClockMod
         {
             if (modEnabled.Value && Player.m_localPlayer)
             {
-                if ((!toggleClockKeyOnPress.Value && showingClock.Value) || (toggleClockKeyOnPress.Value && Input.GetKey(toggleClockKey.Value)))
+                if ((!toggleClockKeyOnPress.Value && showingClock.Value) || (toggleClockKeyOnPress.Value && PressingToggleKey()))
                 {
                     if (clockUseShadow.Value)
                     {
@@ -98,6 +98,28 @@ namespace ClockMod
 
                     GUI.Label(new Rect(clockLocation.Value, new Vector2(0, 0)), $"{string.Format(clockString.Value, GetCurrentTimeString())}", style);
                 }
+            }
+        }
+        private static bool CheckKeyHeld(string value)
+        {
+            try
+            {
+                return Input.GetKey(value.ToLower());
+            }
+            catch
+            {
+                return true;
+            }
+        }
+        private bool PressingToggleKey()
+        {
+            try
+            {
+                return Input.GetKeyDown(toggleClockKey.Value.ToLower()) && CheckKeyHeld(toggleClockKeyMod.Value);
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -208,6 +230,7 @@ namespace ClockMod
         {
             float fraction = (float)typeof(EnvMan).GetField("m_smoothDayFraction", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(EnvMan.instance);
 
+            var timeString = "";
             if (clockFormat.Value != "fuzzy")
             {
                 int hour = (int)(fraction * 24);
