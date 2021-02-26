@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace TreeRespawn
 {
-    [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.1.0")]
+    [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.1.1")]
     public class TreeRespawn : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -21,6 +21,8 @@ namespace TreeRespawn
 
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<int> nexusID;
+
         public static Dictionary<string, string> seedsDic = new Dictionary<string, string>
         {
             {"Beech_Stub", "Beech_Sapling" },
@@ -31,6 +33,7 @@ namespace TreeRespawn
         private void Awake()
         {
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            nexusID = Config.Bind<int>("General", "NexusID", 37, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace QuickLoad
 {
-    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.3.1")]
+    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.3.2")]
     public class QuickLoad: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -19,17 +19,30 @@ namespace QuickLoad
 
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<int> nexusID;
 
 
         private void Awake()
         {
             hotKey = Config.Bind<string>("General", "HotKey", "f7", "Hot key code to perform quick load.");
             modEnabled = Config.Bind<bool>("General", "enabled", true, "Enable this mod");
+            nexusID = Config.Bind<int>("General", "NexusID", 7, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+        }
+        private static bool CheckKeyDown(string value)
+        {
+            try
+            {
+                return Input.GetKeyDown(value.ToLower());
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Update")]
@@ -37,7 +50,7 @@ namespace QuickLoad
         {
             static void Postfix(FejdStartup __instance)
             {
-                if (!Input.GetKeyDown(hotKey.Value))
+                if (!CheckKeyDown(hotKey.Value))
                     return;
 
                 Dbgl("pressed hot key");

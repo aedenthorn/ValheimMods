@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Regeneration
 {
-    [BepInPlugin("aedenthorn.Regeneration", "Regeneration", "0.2.0")]
+    [BepInPlugin("aedenthorn.Regeneration", "Regeneration", "0.2.1")]
     public class Regeneration : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -32,7 +32,8 @@ namespace Regeneration
         public static ConfigEntry<float> healthRegenMult;
         public static ConfigEntry<float> healthRegenTimeMult;
 
-        public static ConfigEntry<bool> modEnabled; 
+        public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -65,6 +66,7 @@ namespace Regeneration
             healthRegenTimeMult = Config.Bind<float>("Stamina", "HealthRegenTimeMult", 1f, "Health gain delay multiplier.");
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            nexusID = Config.Bind<int>("General", "NexusID", 25, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
