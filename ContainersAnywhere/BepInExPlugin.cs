@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace ContainersAnywhere
 {
-    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.2.0")]
+    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.2.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -46,14 +46,23 @@ namespace ContainersAnywhere
         }
         private void Update()
         {
+            if (Console.instance.enabled)
+                return;
             if (CheckKeyDown(hotKey.Value))
                 OpenContainers(0);
             else if (InventoryGui.instance?.IsContainerOpen() == true)
             {
                 if (CheckKeyDown(previousKey.Value))
+                {
+                    ((Container)typeof(InventoryGui).GetField("m_currentContainer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(InventoryGui.instance)).SetInUse(false);
                     OpenContainers(1);
+
+                }
                 else if (CheckKeyDown(nextKey.Value))
+                {
+                    ((Container)typeof(InventoryGui).GetField("m_currentContainer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(InventoryGui.instance)).SetInUse(false);
                     OpenContainers(-1);
+                }
             }
         }
 

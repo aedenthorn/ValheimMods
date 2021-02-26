@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.1.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.1.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -260,7 +260,7 @@ namespace CraftFromContainers
                     ItemDrop.ItemData newItem = c.GetInventory().GetItem(__instance.m_fuelItem.m_itemData.m_shared.m_name);
                     if (newItem != null)
                     {
-                        if (fuelDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
+                        if (fuelDisallowTypes.Value.Split(',').Contains(newItem.m_dropPrefab.name))
                         {
                             Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name} but it's forbidden by config");
                             continue;
