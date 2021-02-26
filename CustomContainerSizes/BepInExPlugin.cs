@@ -62,7 +62,7 @@ namespace CustomContainerSizes
                 if (___m_inventory == null)
                     return;
 
-                Dbgl($"spawning container {__instance.name}");
+                //Dbgl($"spawning container {__instance.name}");
                 Ship ship = __instance.gameObject.transform.parent?.GetComponent<Ship>();
                 if (ship != null)
                 {
@@ -81,6 +81,13 @@ namespace CustomContainerSizes
                         typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, vikingShipChestWidth.Value);
                         typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, vikingShipChestHeight.Value);
                     }
+                }
+                else if (__instance.m_wagon)
+                {
+                    Dbgl($"setting wagon size to {wagonWidth.Value},{wagonHeight.Value}");
+
+                    typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, wagonWidth.Value);
+                    typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, wagonHeight.Value);
                 }
                 else if (__instance.name.StartsWith("piece_chest_wood"))
                 {
@@ -102,13 +109,6 @@ namespace CustomContainerSizes
 
                     typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, reinforcedChestWidth.Value);
                     typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, reinforcedChestHeight.Value);
-                }
-                else if (__instance.m_wagon)
-                {
-                    Dbgl($"setting wagon size to {wagonWidth.Value},{wagonHeight.Value}");
-
-                    typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, wagonWidth.Value);
-                    typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, wagonHeight.Value);
                 }
             }
         }

@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "0.10.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "0.11.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -19,6 +19,7 @@ namespace CraftFromContainers
         public static ConfigEntry<Color> unFlashColor;
         public static ConfigEntry<string> resourceString;
         public static ConfigEntry<string> pullItemsKey;
+        public static ConfigEntry<string> pulledMessage;
         public static ConfigEntry<string> preventModKey;
         public static ConfigEntry<bool> switchAddAll;
         public static ConfigEntry<bool> modEnabled;
@@ -39,6 +40,7 @@ namespace CraftFromContainers
             flashColor = Config.Bind<Color>("General", "FlashColor", Color.yellow, "Resource amounts will flash to this colour when coming from containers");
             unFlashColor = Config.Bind<Color>("General", "UnFlashColor", Color.white, "Resource amounts will flash from this colour when coming from containers (set both colors to the same color for no flashing)");
             pullItemsKey = Config.Bind<string>("General", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building");
+            pulledMessage = Config.Bind<string>("General", "PulledMessage", "Pulled items to inventory", "Message to show after pulling items to player inventory");
             preventModKey = Config.Bind<string>("General", "PreventModKey", "left shift", "Modifier key to toggle fuel and ore filling behaviour when down");
             switchAddAll = Config.Bind<bool>("General", "SwitchAddAll", true, "if true, holding down the modifier key will prevent this mod's behaviour; if false, holding down the key will allow it");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -85,7 +87,8 @@ namespace CraftFromContainers
         {
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
-                containerList.Add(__instance);
+                if (__instance.name.StartsWith("piece_chest") && __instance.GetInventory() != null)
+                    containerList.Add(__instance);
 
             }
         }
@@ -473,93 +476,131 @@ namespace CraftFromContainers
                 return false;
             }
         }
-        [HarmonyPatch(typeof(InventoryGui), "DoCrafting")]
+        [HarmonyPatch(typeof(InventoryGui), "OnCraftPressed")]
         static class DoCrafting_Patch
         {
-            static bool Prefix(InventoryGui __instance, Player player, Recipe ___m_craftRecipe, ItemDrop.ItemData ___m_craftUpgradeItem)
+            static bool Prefix(InventoryGui __instance, KeyValuePair<Recipe, ItemDrop.ItemData> ___m_selectedRecipe, ItemDrop.ItemData ___m_craftUpgradeItem)
             {
-                if ((!AllowByKey() && !CheckKeyHeld(pullItemsKey.Value)) || ___m_craftRecipe == null)
+                if ((!AllowByKey() && !CheckKeyHeld(pullItemsKey.Value)) || ___m_selectedRecipe.Key == null)
                     return true;
 
                 int qualityLevel = (___m_craftUpgradeItem != null) ? (___m_craftUpgradeItem.m_quality + 1) : 1;
-                if (qualityLevel > ___m_craftRecipe.m_item.m_itemData.m_shared.m_maxQuality)
+                if (qualityLevel > ___m_selectedRecipe.Key.m_item.m_itemData.m_shared.m_maxQuality)
                 {
                     return true;
                 }
-                if (player.HaveRequirements(___m_craftRecipe, false, qualityLevel))
+                Dbgl($"pulling resources to player inventory for crafting item {___m_selectedRecipe.Key.m_item.m_itemData.m_shared.m_name}");
+
+                PullResources(Player.m_localPlayer, ___m_selectedRecipe.Key.m_resources, qualityLevel);
+                return false;
+            }
+
+        }
+
+        [HarmonyPatch(typeof(Player), "UpdatePlacement")]
+        static class UpdatePlacement_Patch
+        {
+            static bool Prefix(Player __instance, bool takeInput, float dt, PieceTable ___m_buildPieces, GameObject ___m_placementGhost)
+            {
+
+                if (!AllowByKey() || !CheckKeyHeld(pullItemsKey.Value) || !__instance.InPlaceMode() || !takeInput || Hud.IsPieceSelectionVisible())
                 {
-                    return false;
+                    return true;
                 }
-
-                Dbgl($"pulling resources to player inventory for {___m_craftRecipe.m_item.m_itemData.m_shared.m_name} in player inventory");
-
-                Inventory pInventory = player.GetInventory();
-                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
-                foreach (Piece.Requirement requirement in ___m_craftRecipe.m_resources)
+                if (ZInput.GetButtonDown("Attack") || ZInput.GetButtonDown("JoyPlace"))
                 {
-                    if (requirement.m_resItem)
+                    Piece selectedPiece = ___m_buildPieces.GetSelectedPiece();
+                    if (selectedPiece != null)
                     {
-                        int totalRequirement = requirement.GetAmount(qualityLevel);
-                        if (totalRequirement <= 0)
-                            continue;
-
-                        string reqName = requirement.m_resItem.m_itemData.m_shared.m_name;
-                        int totalAmount = pInventory.CountItems(reqName);
-                        Dbgl($"have {totalAmount}/{totalRequirement} {reqName} in player inventory");
-                        pInventory.RemoveItem(reqName, Math.Min(totalAmount, totalRequirement));
-
-                        if (totalAmount < totalRequirement)
+                        if (selectedPiece.m_repairPiece)
+                            return true;
+                        if (___m_placementGhost != null)
                         {
-                            foreach (Container c in nearbyContainers)
+                            int placementStatus = (int)typeof(Player).GetField("m_placementStatus", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(__instance);
+                            if (placementStatus == 0)
                             {
-                                Inventory cInventory = c.GetInventory();
-                                int thisAmount = Mathf.Min(cInventory.CountItems(reqName), totalRequirement - totalAmount);
-
-                                Dbgl($"Container at {c.transform.position} has {cInventory.CountItems(reqName)}");
-
-                                if (thisAmount == 0)
-                                    continue;
-
-
-                                for (int i = 0; i < cInventory.GetAllItems().Count; i++)
-                                {
-                                    ItemDrop.ItemData item = cInventory.GetItem(i);
-                                    if(item.m_shared.m_name == reqName)
-                                    {
-                                        Dbgl($"Got stack of {item.m_stack} {reqName}");
-                                        int stackAmount = Mathf.Min(item.m_stack, totalRequirement - totalAmount);
-                                        stackAmount = Math.Min(Traverse.Create(pInventory).Method("FindFreeStackSpace").GetValue<int>(new object[] { item.m_shared.m_name }), stackAmount);
-
-                                        Dbgl($"Sending {stackAmount} {reqName} to player");
-
-                                        ItemDrop.ItemData sendItem = item.Clone();
-                                        sendItem.m_stack = stackAmount;
-
-                                        if (stackAmount == item.m_stack)
-                                            cInventory.RemoveItem(item);
-                                        else
-                                            item.m_stack -= stackAmount;
-
-                                        totalAmount += stackAmount;
-                                        Dbgl($"total amount is now {totalAmount}/{totalRequirement} {reqName}");
-
-                                        if (totalAmount >= totalRequirement)
-                                            break;
-                                    }
-                                }
-                                c.GetType().GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                                cInventory.GetType().GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(cInventory, new object[] { });
-
-                                if (totalAmount >= totalRequirement)
-                                {
-                                    Dbgl($"pulled enough {reqName}");
-                                    break;
-                                }
+                                Dbgl($"pulling resources to player inventory for piece {selectedPiece.name}");
+                                PullResources(__instance, selectedPiece.m_resources, 0);
                             }
                         }
                     }
                 }
                 return false;
+            }
+        }
+
+        private static void PullResources(Player player, Piece.Requirement[] resources, int qualityLevel)
+        {
+            Inventory pInventory = Player.m_localPlayer.GetInventory();
+            List<Container> nearbyContainers = GetNearbyContainers(Player.m_localPlayer.transform.position);
+            foreach (Piece.Requirement requirement in resources)
+            {
+                if (requirement.m_resItem)
+                {
+                    int totalRequirement = requirement.GetAmount(qualityLevel);
+                    if (totalRequirement <= 0)
+                        continue;
+
+                    string reqName = requirement.m_resItem.m_itemData.m_shared.m_name;
+                    int totalAmount = pInventory.CountItems(reqName);
+                    Dbgl($"have {totalAmount}/{totalRequirement} {reqName} in player inventory");
+
+                    if (totalAmount < totalRequirement)
+                    {
+                        foreach (Container c in nearbyContainers)
+                        {
+                            Inventory cInventory = c.GetInventory();
+                            int thisAmount = Mathf.Min(cInventory.CountItems(reqName), totalRequirement - totalAmount);
+
+                            Dbgl($"Container at {c.transform.position} has {cInventory.CountItems(reqName)}");
+
+                            if (thisAmount == 0)
+                                continue;
+
+
+                            for (int i = 0; i < cInventory.GetAllItems().Count; i++)
+                            {
+                                ItemDrop.ItemData item = cInventory.GetItem(i);
+                                if (item.m_shared.m_name == reqName)
+                                {
+                                    Dbgl($"Got stack of {item.m_stack} {reqName}");
+                                    int stackAmount = Mathf.Min(item.m_stack, totalRequirement - totalAmount);
+
+                                    if (!pInventory.HaveEmptySlot())
+                                        stackAmount = Math.Min(Traverse.Create(pInventory).Method("FindFreeStackSpace", new object[] { item.m_shared.m_name }).GetValue<int>(), stackAmount);
+
+                                    Dbgl($"Sending {stackAmount} {reqName} to player");
+
+                                    ItemDrop.ItemData sendItem = item.Clone();
+                                    sendItem.m_stack = stackAmount;
+
+                                    pInventory.AddItem(sendItem);
+
+                                    if (stackAmount == item.m_stack)
+                                        cInventory.RemoveItem(item);
+                                    else
+                                        item.m_stack -= stackAmount;
+
+                                    totalAmount += stackAmount;
+                                    Dbgl($"total amount is now {totalAmount}/{totalRequirement} {reqName}");
+
+                                    if (totalAmount >= totalRequirement)
+                                        break;
+                                }
+                            }
+                            c.GetType().GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
+                            cInventory.GetType().GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(cInventory, new object[] { });
+
+                            if (totalAmount >= totalRequirement)
+                            {
+                                Dbgl($"pulled enough {reqName}");
+                                break;
+                            }
+                        }
+                    }
+                }
+                if(pulledMessage.Value?.Length > 0)
+                    player.Message(MessageHud.MessageType.Center, pulledMessage.Value, 0, null);
             }
         }
     }
