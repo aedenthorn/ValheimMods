@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.1.2")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -90,8 +90,14 @@ namespace CraftFromContainers
         {
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
-                if (__instance.name.StartsWith("piece_chest") && __instance.GetInventory() != null)
+
+                if ((__instance.name.StartsWith("piece_chest") || __instance.name.StartsWith("Container")) && __instance.GetInventory() != null)
+                {
                     containerList.Add(__instance);
+                    Dbgl($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} added");
+                }
+                else
+                    Dbgl($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} skipped");
 
             }
         }
