@@ -1,12 +1,10 @@
-﻿using System;
+﻿using BepInEx;
+using BepInEx.Configuration;
+using HarmonyLib;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using BepInEx;
-using BepInEx.Configuration;
-using HarmonyLib;
 using UnityEngine;
-using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace CustomMeshes
@@ -17,7 +15,8 @@ namespace CustomMeshes
         private static readonly bool isDebug = true;
 
         private static Dictionary<string, Mesh> customMeshes = new Dictionary<string, Mesh>();
-        private static List<GameObject> customGameObjects = new List<GameObject>();
+        private static Dictionary<string, GameObject> customGameObjects = new Dictionary<string, GameObject>();
+        private static Dictionary<string, AssetBundle> customAssetBundles = new Dictionary<string, AssetBundle>();
         public static ConfigEntry<int> nexusID;
 
         public static ConfigEntry<bool> modEnabled;
@@ -35,15 +34,38 @@ namespace CustomMeshes
 
             if (!modEnabled.Value)
                 return;
-            return;
-            PreloadMeshes();
-            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes", "player_model_0.obj");
-            GameObject obj = OBJLoader.LoadOBJFile(path);
+
+            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes");
+
+            foreach (string file in Directory.GetFiles(path))
+            {
+                string name = Path.GetFileNameWithoutExtension(file);
+                try
+                {
+                    AssetBundle ab = AssetBundle.LoadFromFile(file);
+                    Mesh mesh = ab.LoadAsset<Mesh>("body");
+                    customMeshes.Add(name, mesh);
+
+                    customAssetBundles.Add(name, ab);
+
+                    //customGameObjects.Add(name, obj);
+                    Dbgl($"Imported {name}");
+                    //Dbgl($"GameObject 1 {obj?.name} 2 {obj2?.name}");
+                }
+                catch
+                {
+                    Dbgl($"Error importing bundle {name}");
+                }
+            }
+
+            //string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes", "testbundle_2");
+            //GameObject obj = OBJLoader.LoadOBJFile(path);
+            //PreloadMeshes();
 
             //GameObject obj = MeshImporter.Load(path);
-            MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
-            MeshFilter mr = mrs[0];
-            customMesh = mr.mesh;
+            //MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
+            //MeshFilter mr = mrs[0];
+            //customMesh = mr.mesh;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             return;
@@ -57,7 +79,30 @@ namespace CustomMeshes
             {
                 Dbgl($"changing.");
 
+                Player player = Player.m_localPlayer;
 
+                Dbgl($"{player.gameObject.name} player_model_{player.GetPlayerModel()}");
+
+                if (customAssetBundles.ContainsKey($"player_model_{player.GetPlayerModel()}"))
+                {
+                    Transform visual = player.gameObject.transform.Find("Visual");
+                    Transform armature = visual.Find("Armature");
+                    Destroy(armature.gameObject);
+
+                    AssetBundle ab = customAssetBundles[$"player_model_{player.GetPlayerModel()}"];
+                    GameObject newPlayer = ab.LoadAsset<GameObject>("Player");
+                    GameObject newVisual = newPlayer.transform.Find("Visual").gameObject;
+                    GameObject newArmature = newVisual.transform.Find("Armature").gameObject;
+
+                    newArmature.name = "Armature";
+                    Instantiate(newArmature, visual);
+
+                    Dbgl("Replaced armature");
+                }
+
+                return;
+
+                /*
                 Transform visual = Player.m_localPlayer.gameObject.transform.Find("Visual");
                 Dbgl($"1.");
                 Transform body = visual.Find("body");
@@ -77,6 +122,7 @@ namespace CustomMeshes
                 string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes");
 
                 File.WriteAllLines(Path.Combine(path, "dump.txt"), output);
+                */
             }
         }
 
@@ -101,85 +147,100 @@ namespace CustomMeshes
             }
 
         }
-        //[HarmonyPatch(typeof(Player), "Awake")]
+        [HarmonyPatch(typeof(Player), "Awake")]
         static class Player_FixedUpdate_Patch
         {
             public static bool done = false;
             static void Postfix(Player __instance) 
             {
+                return;
 
-                //smr.sharedMesh = customMesh;
             }
         }
 
         [HarmonyPatch(typeof(VisEquipment), "Awake")]
         static class Awake_Patch
         {
-            public static bool done = false;
             static void Postfix(VisEquipment __instance)
             {
                 Dbgl($"Vis Awake .");
-                List<string> output = new List<string>();
-                foreach (Vector3 v in __instance.m_models[0].m_mesh.vertices)
-                    output.Add($"{__instance.m_models[0].m_mesh.name}: ({v.x},{v.y},{v.z})");
-                Dbgl($"4.");
 
-                foreach (Vector3 v in customMesh.vertices)
-                    output.Add($"custom mesh: {v}");
-                Dbgl($"5.");
-                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes");
+                if (!__instance.m_isPlayer || __instance.m_models.Length == 0)
+                    return;
 
-                File.WriteAllLines(Path.Combine(path, "dump.txt"), output);
-/*
-                __instance.m_models[0].m_mesh.vertices = customMesh.vertices;
-                __instance.m_models[0].m_mesh.RecalculateNormals();
-                return;
-
-                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"CustomMeshes");
-
-                foreach (string file in Directory.GetFiles(path, "*.fbx"))
+                if (customMeshes.ContainsKey("player_model_0"))
                 {
-                    string name = Path.GetFileNameWithoutExtension(file);
-                    if(name == "player_model_0")
-                    {
-                        GameObject obj = MeshImporter.Load(file);
-                        obj.name = "player_fbx";
-                        Dbgl($"Adding mesh from {file}.");
+                    Dbgl($"Replacing player model 0 with imported mesh. {__instance.m_models.Length}");
+                    __instance.m_models[0].m_mesh = customMeshes["player_model_0"];
 
-                        MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
-                        MeshFilter mr = mrs[0];
-
-                        List<string> output = new List<string>();
-
-                        foreach (Vector3 v in __instance.m_models[0].m_mesh.vertices)
-                            output.Add($"vanilla: {v}");
-
-                        foreach (Vector3 v in mr.mesh.vertices)
-                            output.Add($"imported: {v}");
-
-                        //File.WriteAllLines(Path.Combine(path, "dump.txt"), output);
-
-                        __instance.m_models[0].m_mesh = mr.mesh;
-                        __instance.m_models[0].m_mesh.vertices = mr.mesh.vertices;
-                        //__instance.m_models[0].m_mesh.RecalculateNormals();
-                        continue;
-                    }
-                    if(name == "player_model_1")
-                    {
-                        GameObject obj = MeshImporter.Load(file);
-                        obj.name = "player_fbx";
-                        Dbgl($"Adding mesh from {file}.");
-
-                        MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
-                        MeshFilter mr = mrs[0];
-                        __instance.m_models[1].m_mesh = mr.mesh;
-
-                        //as__instance.m_models[1].m_mesh.vertices = mr.mesh.vertices;
-                        //__instance.m_models[1].m_mesh.RecalculateNormals();
-                        continue;
-                    }
                 }
-*/
+                if (customMeshes.ContainsKey("player_model_1"))
+                {
+                    Dbgl($"Replacing player model 1 with imported mesh. {__instance.m_models.Length}");
+                    __instance.m_models[1].m_mesh = customMeshes["player_model_1"];
+
+                }
+
+                //__instance.m_models[0].m_mesh.RecalculateNormals();
+                /*
+                                return;
+                                List<string> output = new List<string>();
+                                foreach (Vector3 v in __instance.m_models[0].m_mesh.vertices)
+                                    output.Add($"{__instance.m_models[0].m_mesh.name}: ({v.x},{v.y},{v.z})");
+                                Dbgl($"4.");
+
+                                foreach (Vector3 v in customMesh.vertices)
+                                    output.Add($"custom mesh: {v}");
+                                Dbgl($"5.");
+                                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes");
+
+                                File.WriteAllLines(Path.Combine(path, "dump.txt"), output);
+
+                                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"CustomMeshes");
+
+                                foreach (string file in Directory.GetFiles(path, "*.fbx"))
+                                {
+                                    string name = Path.GetFileNameWithoutExtension(file);
+                                    if(name == "player_model_0")
+                                    {
+                                        GameObject obj = MeshImporter.Load(file);
+                                        obj.name = "player_fbx";
+                                        Dbgl($"Adding mesh from {file}.");
+
+                                        MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
+                                        MeshFilter mr = mrs[0];
+
+                                        List<string> output = new List<string>();
+
+                                        foreach (Vector3 v in __instance.m_models[0].m_mesh.vertices)
+                                            output.Add($"vanilla: {v}");
+
+                                        foreach (Vector3 v in mr.mesh.vertices)
+                                            output.Add($"imported: {v}");
+
+                                        //File.WriteAllLines(Path.Combine(path, "dump.txt"), output);
+
+                                        __instance.m_models[0].m_mesh = mr.mesh;
+                                        __instance.m_models[0].m_mesh.vertices = mr.mesh.vertices;
+                                        //__instance.m_models[0].m_mesh.RecalculateNormals();
+                                        continue;
+                                    }
+                                    if(name == "player_model_1")
+                                    {
+                                        GameObject obj = MeshImporter.Load(file);
+                                        obj.name = "player_fbx";
+                                        Dbgl($"Adding mesh from {file}.");
+
+                                        MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
+                                        MeshFilter mr = mrs[0];
+                                        __instance.m_models[1].m_mesh = mr.mesh;
+
+                                        //as__instance.m_models[1].m_mesh.vertices = mr.mesh.vertices;
+                                        //__instance.m_models[1].m_mesh.RecalculateNormals();
+                                        continue;
+                                    }
+                                }
+                */
             }
         }
         //[HarmonyPatch(typeof(VisEquipment), "UpdateBaseModel")]

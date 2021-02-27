@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace CustomContainerSizes
 {
-    [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.3.3")]
+    [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -37,17 +37,27 @@ namespace CustomContainerSizes
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             chestWidth = Config.Bind<int>("Sizes", "ChestWidth", 8, "Number of items wide for chest containers");
             chestHeight = Config.Bind<int>("Sizes", "ChestHeight", 4, "Number of items tall for chest containers");
-            karveChestWidth = Config.Bind<int>("Sizes", "KarveChestWidth", 6, "Number of items wide for Karve chest containers");
+            karveChestWidth = Config.Bind<int>("Sizes", "KarveChestWidth", 6, "Number of items wide for Karve chest containers (max. 8)");
             karveChestHeight = Config.Bind<int>("Sizes", "KarveChestHeight", 3, "Number of items tall for karve chest containers");
-            vikingShipChestWidth = Config.Bind<int>("Sizes", "VikingShipChestWidth", 8, "Number of items wide for longship chest containers");
+            vikingShipChestWidth = Config.Bind<int>("Sizes", "VikingShipChestWidth", 8, "Number of items wide for longship chest containers (max. 8)");
             vikingShipChestHeight = Config.Bind<int>("Sizes", "VikingShipChestHeight", 4, "Number of items tall for longship chest containers");
-            privateChestWidth = Config.Bind<int>("Sizes", "PrivateChestWidth", 6, "Number of items wide for private chest containers");
+            privateChestWidth = Config.Bind<int>("Sizes", "PrivateChestWidth", 6, "Number of items wide for private chest containers (max. 8)");
             privateChestHeight = Config.Bind<int>("Sizes", "PrivateChestHeight", 3, "Number of items tall for private chest containers");
-            reinforcedChestWidth = Config.Bind<int>("Sizes", "ReinforcedChestWidth", 8, "Number of items wide for reinforced chest containers");
+            reinforcedChestWidth = Config.Bind<int>("Sizes", "ReinforcedChestWidth", 8, "Number of items wide for reinforced chest containers (max. 8)");
             reinforcedChestHeight = Config.Bind<int>("Sizes", "ReinforcedChestHeight", 8, "Number of items tall for reinforced chest containers");
-            wagonWidth = Config.Bind<int>("Sizes", "WagonWidth", 8, "Number of items wide for chest containers");
+            wagonWidth = Config.Bind<int>("Sizes", "WagonWidth", 8, "Number of items wide for chest containers (max. 8)");
             wagonHeight = Config.Bind<int>("Sizes", "WagonHeight", 4, "Number of items tall for chest containers");
             nexusID = Config.Bind<int>("General", "NexusID", 111, "Mod ID on the Nexus for update checks");
+            
+            nexusID.Value = 111;
+            chestWidth.Value = Math.Min(chestWidth.Value, 8);
+            karveChestWidth.Value = Math.Min(karveChestWidth.Value, 8);
+            vikingShipChestWidth.Value = Math.Min(vikingShipChestWidth.Value, 8);
+            privateChestWidth.Value = Math.Min(privateChestWidth.Value, 8);
+            reinforcedChestWidth.Value = Math.Min(reinforcedChestWidth.Value, 8);
+            wagonWidth.Value = Math.Min(wagonWidth.Value, 8);
+            Config.Save();
+
             if (!modEnabled.Value)
                 return;
 

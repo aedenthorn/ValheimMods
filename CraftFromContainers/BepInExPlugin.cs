@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.2.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.3.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -23,6 +23,7 @@ namespace CraftFromContainers
         public static ConfigEntry<string> pulledMessage;
         public static ConfigEntry<string> preventModKey;
         public static ConfigEntry<string> fuelDisallowTypes;
+        public static ConfigEntry<string> oreDisallowTypes;
         public static ConfigEntry<bool> switchAddAll;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -44,7 +45,8 @@ namespace CraftFromContainers
             pullItemsKey = Config.Bind<string>("General", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building");
             pulledMessage = Config.Bind<string>("General", "PulledMessage", "Pulled items to inventory", "Message to show after pulling items to player inventory");
             preventModKey = Config.Bind<string>("General", "PreventModKey", "left alt", "Modifier key to toggle fuel and ore filling behaviour when down");
-            fuelDisallowTypes = Config.Bind<string>("General", "FuelDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as fuel.");
+            fuelDisallowTypes = Config.Bind<string>("General", "FuelDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as fuel (i.e. anything that is consumed), comma-separated.");
+            oreDisallowTypes = Config.Bind<string>("General", "OreDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as ore (i.e. anything that is transformed), comma-separated).");
             switchAddAll = Config.Bind<bool>("General", "SwitchAddAll", true, "if true, holding down the modifier key will prevent this mod's behaviour; if false, holding down the key will allow it");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
@@ -189,6 +191,12 @@ namespace CraftFromContainers
                         ItemDrop.ItemData item = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
                         if (item != null)
                         {
+                            if (oreDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
+                            {
+                                Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
+                                continue;
+                            }
+
                             Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
                             __result = item;
                             c.GetInventory().RemoveItem(itemConversion.m_from.m_itemData.m_shared.m_name, 1);
@@ -223,11 +231,12 @@ namespace CraftFromContainers
                         ItemDrop.ItemData item = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
                         if (item != null)
                         {
-                            if (fuelDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
+                            if (oreDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
                             {
                                 Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
                                 continue;
                             }
+
 
                             Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
                             __result = item;
