@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace ClockMod
 {
-    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.5.0")]
+    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.5.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -59,12 +59,12 @@ namespace ClockMod
             toggleClockKey = Config.Bind<string>("General", "ShowClockKey", "home", "Key used to toggle the clock display. use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             toggleClockKeyOnPress = Config.Bind<bool>("General", "ShowClockKeyOnPress", false, "If true, limit clock display to when the hotkey is down");
             clockFormat = Config.Bind<string>("General", "ClockFormat", "HH:mm", "Time format; set to 'fuzzy' for fuzzy time");
-            clockString = Config.Bind<string>("General", "ClockString", "<b>{0}</b>", "Formatted clock string - {0} is replaced by the actual time string");
-            clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Night,Dawn,Early Morning,Morning,Late Morning,Midday,Early Afternoon,Afternoon,Late Afternoon,Evening,Night", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
+            clockString = Config.Bind<string>("General", "ClockString", "<b>{0}</b>", "Formatted clock string - {0} is replaced by the actual time string, and {1} is replaced by the fuzzy string (if you want both)");
+            clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Midnight,Before Dawn,Before Dawn,Dawn,Dawn,Morning,Morning,Late Morning,Late Morning,Midday,Midday,Afternoon,Afternoon,Evening,Evening,Night,Night,Late Night,Late Night,Midnight", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
             nexusID = Config.Bind<int>("General", "NexusID", 85, "Nexus mod ID for updates");
 
             if (clockFuzzyStrings.Value == "Night,Early Morning,Morning,Late Morning,Midday,Early Afternoon,Afternoon,Late Afternoon,Early Evening,Evening,Late Evening,Night")
-                clockFuzzyStrings.Value = "Night,Dawn,Early Morning,Morning,Late Morning,Midday,Early Afternoon,Afternoon,Late Afternoon,Evening,Night";
+                clockFuzzyStrings.Value = "Midnight,Before Dawn,Before Dawn,Dawn,Dawn,Morning,Morning,Late Morning,Late Morning,Midday,Midday,Afternoon,Afternoon,Evening,Evening,Night,Night,Late Night,Late Night,Midnight";
             Config.Save();
             if (!modEnabled.Value)
                 return;
@@ -93,10 +93,10 @@ namespace ClockMod
                     if (clockUseShadow.Value)
                     {
 
-                        GUI.Label(new Rect(clockLocation.Value + new Vector2(-clockShadowOffset.Value, clockShadowOffset.Value), new Vector2(0, 0)), $"{string.Format(clockString.Value, GetCurrentTimeString())}", style2);
+                        GUI.Label(new Rect(clockLocation.Value + new Vector2(-clockShadowOffset.Value, clockShadowOffset.Value), new Vector2(0, 0)), GetCurrentTimeString(), style2);
                     }
 
-                    GUI.Label(new Rect(clockLocation.Value, new Vector2(0, 0)), $"{string.Format(clockString.Value, GetCurrentTimeString())}", style);
+                    GUI.Label(new Rect(clockLocation.Value, new Vector2(0, 0)), GetCurrentTimeString(), style);
                 }
             }
         }
@@ -231,20 +231,25 @@ namespace ClockMod
             float fraction = (float)typeof(EnvMan).GetField("m_smoothDayFraction", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(EnvMan.instance);
 
             var timeString = "";
-            if (clockFormat.Value != "fuzzy")
+
+            int hour = (int)(fraction * 24);
+            int minute = (int)((fraction * 24 - hour) * 60);
+            int second = (int)((((fraction * 24 - hour) * 60) - minute) * 60);
+
+            DateTime now = DateTime.Now;
+            DateTime theTime = new DateTime(now.Year, now.Month, now.Day, hour, minute, second);
+
+            if (!clockString.Value.Contains("{1}") && clockFormat.Value != "fuzzy")
             {
-                int hour = (int)(fraction * 24);
-                int minute = (int)((fraction * 24 - hour) * 60);
-                int second = (int)((((fraction * 24 - hour) * 60) - minute) * 60);
-
-                DateTime now = DateTime.Now;
-                DateTime theTime = new DateTime(now.Year, now.Month, now.Day, hour, minute, second);
-
-                return theTime.ToString(clockFormat.Value);
+                return string.Format(clockString.Value, theTime.ToString(clockFormat.Value));
             }
             string[] fuzzyStringArray = clockFuzzyStrings.Value.Split(',');
             int idx = Math.Min((int)(fuzzyStringArray.Length * fraction), fuzzyStringArray.Length - 1);
-            return fuzzyStringArray[idx];
+
+            if(clockFormat.Value == "fuzzy")
+                return string.Format(clockString.Value, fuzzyStringArray[idx]);
+
+            return string.Format(clockString.Value, theTime.ToString(clockFormat.Value), fuzzyStringArray[idx]);
         }
 
     }

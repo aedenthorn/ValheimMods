@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.1.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -59,7 +59,7 @@ namespace CraftFromContainers
             unFlashColor = Config.Bind<Color>("General", "UnFlashColor", Color.white, "Resource amounts will flash from this colour when coming from containers (set both colors to the same color for no flashing)");
             pullItemsKey = Config.Bind<string>("General", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building");
             pulledMessage = Config.Bind<string>("General", "PulledMessage", "Pulled items to inventory", "Message to show after pulling items to player inventory");
-            preventModKey = Config.Bind<string>("General", "PreventModKey", "left shift", "Modifier key to toggle fuel and ore filling behaviour when down");
+            preventModKey = Config.Bind<string>("General", "PreventModKey", "left alt", "Modifier key to toggle fuel and ore filling behaviour when down");
             fuelDisallowTypes = Config.Bind<string>("General", "FuelDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as fuel.");
             switchAddAll = Config.Bind<bool>("General", "SwitchAddAll", true, "if true, holding down the modifier key will prevent this mod's behaviour; if false, holding down the key will allow it");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -114,8 +114,14 @@ namespace CraftFromContainers
         {
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
-                if (__instance.name.StartsWith("piece_chest") && __instance.GetInventory() != null)
+
+                if ((__instance.name.StartsWith("piece_chest") || __instance.name.StartsWith("Container")) && __instance.GetInventory() != null)
+                {
                     containerList.Add(__instance);
+                    Dbgl($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} added");
+                }
+                else
+                    Dbgl($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} skipped");
 
             }
         }

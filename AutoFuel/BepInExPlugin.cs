@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.1.0")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.2.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -18,6 +18,9 @@ namespace AutoFuel
         public static ConfigEntry<float> dropRange;
         public static ConfigEntry<float> containerRange;
         public static ConfigEntry<string> fuelDisallowTypes;
+        public static ConfigEntry<string> toggleKey;
+        public static ConfigEntry<string> toggleString;
+        public static ConfigEntry<bool> isOn;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
@@ -34,20 +37,50 @@ namespace AutoFuel
             dropRange = Config.Bind<float>("General", "DropRange", 10f, "The maximum range to pull dropped fuel");
             containerRange = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range to pull fuel from containers");
             fuelDisallowTypes = Config.Bind<string>("General", "FuelDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as fuel.");
+            toggleString = Config.Bind<string>("General", "ToggleString", "Auto Fuel: {0}", "Text to show on toggle. {0} is replaced with true/false");
+            toggleKey = Config.Bind<string>("General", "ToggleKey", "", "Key to toggle behaviour. Leave blank to disable the toggle key.");
+            isOn = Config.Bind<bool>("General", "IsOn", true, "Behaviour is currently on or not");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            nexusID = Config.Bind<int>("General", "NexusID", 146, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 159, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
+
+        private void Update()
+        {
+            if (Console.IsVisible())
+                return;
+            if (CheckKeyDown(toggleKey.Value))
+            {
+                isOn.Value = !isOn.Value;
+                Config.Save();
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(toggleString.Value, toggleKey.Value), 0, null);
+            }
+
+        }
+        private static bool CheckKeyDown(string value)
+        {
+            try
+            {
+                return Input.GetKeyDown(value.ToLower());
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static List<Container> GetNearbyContainers(Vector3 center)
         {
+            if (Player.m_localPlayer == null)
+                return new List<Container>();
             List<Container> containers = new List<Container>();
             foreach (Container container in containerList)
             {
-                if (container != null && container.transform != null && container.GetInventory() != null && (containerRange.Value <= 0 || Vector3.Distance(center, container.transform.position) < containerRange.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
+                if (container?.transform != null && container.GetInventory() != null && (containerRange.Value <= 0 || Vector3.Distance(center, container.transform.position) < containerRange.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
                 {
                     containers.Add(container);
                 }
@@ -74,7 +107,7 @@ namespace AutoFuel
 
             }
         }
-
+        
 
 
         [HarmonyPatch(typeof(Smelter), "FixedUpdate")]
@@ -82,65 +115,72 @@ namespace AutoFuel
         {
             static void Postfix(Smelter __instance, ZNetView ___m_nview)
             {
-                if (((int)typeof(Smelter).GetMethod("GetQueueSize", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) >= __instance.m_maxOre)
+                if (!Player.m_localPlayer || !isOn.Value)
                     return;
 
-                Vector3 vector = base.transform.position + Vector3.up;
-                foreach (Collider collider in Physics.OverlapSphere(vector, this.m_autoPickupRange, this.m_autoPickupMask))
+                if (Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) >= __instance.m_maxFuel)
+                    return;
+
+                Vector3 position = __instance.transform.position + Vector3.up;
+                foreach (Collider collider in Physics.OverlapSphere(position, containerRange.Value, LayerMask.GetMask(new string[] { "item" })))
                 {
                     if (collider.attachedRigidbody)
                     {
-                        ItemDrop component = collider.attachedRigidbody.GetComponent<ItemDrop>();
-                        if (!(component == null) && component.m_autoPickup && !this.HaveUniqueKey(component.m_itemData.m_shared.m_name) && component.GetComponent<ZNetView>().IsValid())
+                        ItemDrop item = collider.attachedRigidbody.GetComponent<ItemDrop>();
+                        //Dbgl($"nearby item name: {item.m_itemData.m_dropPrefab.name}");
+                        if (item?.GetComponent<ZNetView>()?.IsValid() == true && item.m_itemData.m_shared.m_name == __instance.m_fuelItem.m_itemData.m_shared.m_name && Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) < __instance.m_maxFuel)
                         {
-                            if (!component.CanPickup())
+                            if (fuelDisallowTypes.Value.Split(',').Contains(item.m_itemData.m_dropPrefab.name))
                             {
-                                component.RequestOwn();
+                                //Dbgl($"ground has {item.m_itemData.m_dropPrefab.name} but it's forbidden by config");
+                                continue; 
                             }
-                            else if (this.m_inventory.CanAddItem(component.m_itemData, -1) && component.m_itemData.GetWeight() + this.m_inventory.GetTotalWeight() <= this.GetMaxCarryWeight())
+
+                            Dbgl($"auto adding fuel from ground");
+                            
+                            while(item.m_itemData.m_stack > 1 && Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) < __instance.m_maxFuel)
                             {
-                                float num = Vector3.Distance(component.transform.position, vector);
-                                if (num <= this.m_autoPickupRange)
-                                {
-                                    if (num < 0.3f)
-                                    {
-                                        base.Pickup(component.gameObject);
-                                    }
-                                    else
-                                    {
-                                        Vector3 a = Vector3.Normalize(vector - component.transform.position);
-                                        float d = 15f;
-                                        component.transform.position = component.transform.position + a * d * dt;
-                                    }
-                                }
+                                item.m_itemData.m_stack--;
+                                ___m_nview.InvokeRPC("AddFuel", new object[] { });
+                                Traverse.Create(item).Method("Save").GetValue();
                             }
+
+                            if(item.m_itemData.m_stack == 1 && Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) < __instance.m_maxFuel)
+                            {
+                                if (___m_nview.GetZDO() == null)
+                                    Destroy(item.gameObject);
+                                else
+                                    ZNetScene.instance.Destroy(item.gameObject);
+                                ___m_nview.InvokeRPC("AddFuel", new object[] { });
+                            }
+
+                            if (Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) >= __instance.m_maxFuel)
+                                return;
                         }
                     }
                 }
 
                 List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
 
-                foreach (Smelter.ItemConversion itemConversion in __instance.m_conversion)
+                foreach (Container c in nearbyContainers)
                 {
-                    foreach (Container c in nearbyContainers)
+                    ItemDrop.ItemData item = c.GetInventory().GetItem(__instance.m_fuelItem.m_itemData.m_shared.m_name);
+                    if (item != null)
                     {
-                        ItemDrop.ItemData item = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
-                        if (item != null)
+                        if (fuelDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
                         {
-                            if (fuelDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
-                            {
-                                Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
-                                continue;
-                            }
-
-                            Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
-                            ___m_nview.InvokeRPC("AddFuel", new object[] { });
-
-                            c.GetInventory().RemoveItem(itemConversion.m_from.m_itemData.m_shared.m_name, 1);
-                            typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                            typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
-                            return;
+                            //Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
+                            continue;
                         }
+
+                        Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
+                        ___m_nview.InvokeRPC("AddFuel", new object[] { });
+
+                        c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, 1);
+                        typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
+                        typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
+                        if (Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) >= __instance.m_maxFuel)
+                            return;
                     }
                 }
             }
