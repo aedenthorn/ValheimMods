@@ -282,7 +282,26 @@ namespace CustomTextures
                         Dbgl($"body equipment {which} texture: {t.name}");
                     }
                     outputDump.Clear();*/
+
+                    foreach (SkinnedMeshRenderer s in go.GetComponentsInChildren<SkinnedMeshRenderer>())
+                    {
+                        Dbgl($"body equipment {go.name} smr: {s.name}");
+                    }
+
                     LoadOneTexture(go, itemName, "item");
+
+                    int childCount = go.transform.childCount;
+                    for (int i = 0; i < childCount; i++)
+                    {
+
+                        Transform child = go.transform.GetChild(i);
+                        foreach (SkinnedMeshRenderer s in child.GetComponentsInChildren<SkinnedMeshRenderer>())
+                        {
+                            Dbgl($"body equipment child {child.name} smr: {s.name}");
+                        }
+
+                        LoadOneTexture(child.gameObject, itemName, "item");
+                    }
                     //Dbgl(string.Join("\n", outputDump));
                 }
 

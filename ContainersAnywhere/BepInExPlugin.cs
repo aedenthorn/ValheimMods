@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace ContainersAnywhere
 {
-    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.2.1")]
+    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.2.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -46,7 +46,7 @@ namespace ContainersAnywhere
         }
         private void Update()
         {
-            if (Console.instance.enabled)
+            if (Console.IsVisible())
                 return;
             if (CheckKeyDown(hotKey.Value))
                 OpenContainers(0);

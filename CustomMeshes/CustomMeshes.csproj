@@ -122,12 +122,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BepInExPlugin.cs" />
+    <Compile Include="TextureLoader.cs" />
+    <Compile Include="OBJLoader.cs" />
     <Compile Include="MeshImporter.cs" />
     <Compile Include="ObjImporter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LICENCE.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
