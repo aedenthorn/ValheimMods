@@ -144,7 +144,7 @@ namespace CustomGraphicsSettings
         }
 
 
-        [HarmonyPatch(typeof(InstanceRenderer), "Update")]
+        //[HarmonyPatch(typeof(InstanceRenderer), "Update")]
         static class InstanceRenderer_Patch
         {
             static void Prefix(InstanceRenderer __instance)
@@ -153,7 +153,15 @@ namespace CustomGraphicsSettings
             }
         }
 
-        [HarmonyPatch(typeof(TerrainLod), "Awake")]
+        //[HarmonyPatch(typeof(ClutterSystem), "Awake")]
+        static class ClutterSystem_Patch
+        {
+            static void Prefix(ClutterSystem __instance)
+            {
+                __instance.m_distance = 1000;
+            }
+        }
+        //[HarmonyPatch(typeof(TerrainLod), "Awake")]
         static class TerrainLod_Patch
         {
             static void Prefix(TerrainLod __instance)
@@ -162,7 +170,7 @@ namespace CustomGraphicsSettings
             }
         }
 
-        [HarmonyPatch(typeof(LodFadeInOut), "Awake")]
+        //[HarmonyPatch(typeof(LodFadeInOut), "Awake")]
         static class Ragdoll_Awake_Patch
         {
             public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

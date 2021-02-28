@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace AutoStore
 {
-    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.1.2")]
+    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -36,6 +36,7 @@ namespace AutoStore
         public static ConfigEntry<string> toggleKey;
         public static ConfigEntry<string> toggleString;
 
+        public static ConfigEntry<bool> mustHaveItemToPull;
         public static ConfigEntry<bool> isOn;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -70,6 +71,7 @@ namespace AutoStore
             itemAllowTypesShips = Config.Bind<string>("General", "ItemAllowTypesShips", "", "Types of item to only allow pulling for, comma-separated. Overrides ItemDisallowTypesShips");
             toggleString = Config.Bind<string>("General", "ToggleString", "Auto Pull: {0}", "Text to show on toggle. {0} is replaced with true/false");
             toggleKey = Config.Bind<string>("General", "ToggleKey", "", "Key to toggle behaviour. Leave blank to disable the toggle key.");
+            mustHaveItemToPull = Config.Bind<bool>("General", "MustHaveItemToPull", false, "If true, a container must already have at least one of the item to pull.");
             isOn = Config.Bind<bool>("General", "IsOn", true, "Behaviour is currently on or not");
             
             
@@ -106,21 +108,6 @@ namespace AutoStore
             }
         }
 
-        public static List<Container> GetNearbyContainers(Vector3 center)
-        {
-            if (Player.m_localPlayer == null)
-                return new List<Container>();
-            List<Container> containers = new List<Container>();
-            foreach (Container container in containerList)
-            {
-                if (container?.transform != null && container.GetInventory() != null && IsInRange(container) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
-                {
-                    containers.Add(container);
-                }
-            }
-            return containers;
-        }
-
         private static bool IsInRange(Container container)
         {
             throw new NotImplementedException();
@@ -152,12 +139,17 @@ namespace AutoStore
             }
         }
 
-        private static bool DisallowItem(Container container, string name)
+        private static bool DisallowItem(Container container, ItemDrop.ItemData item)
         {
+            string name = item.m_dropPrefab.name;
             if (itemAllowTypes.Value != null && itemAllowTypes.Value.Length > 0 && !itemAllowTypes.Value.Split(',').Contains(name))
                 return true;
             if (itemDisallowTypes.Value.Split(',').Contains(name))
                 return true;
+
+            if (mustHaveItemToPull.Value && !container.GetInventory().HaveItem(item.m_shared.m_name))
+                return true;
+
             Ship ship = container.gameObject.transform.parent?.GetComponent<Ship>();
             if (ship != null)
             {
@@ -253,11 +245,10 @@ namespace AutoStore
                         if (item?.GetComponent<ZNetView>()?.IsValid() != true)
                             continue;
 
-                        Dbgl($"auto storing {item.m_itemData.m_dropPrefab.name} from ground");
-
-
-                        if (DisallowItem(__instance, item.m_itemData.m_dropPrefab.name))
+                        if (DisallowItem(__instance, item.m_itemData))
                             continue;
+
+                        Dbgl($"auto storing {item.m_itemData.m_dropPrefab.name} from ground");
 
 
                         while (item.m_itemData.m_stack > 1 && __instance.GetInventory().CanAddItem(item.m_itemData, 1))

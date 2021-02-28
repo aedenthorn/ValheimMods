@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.3.2")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -38,7 +38,7 @@ namespace CraftFromContainers
         }
         private void Awake()
         {
-            m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from. Set to -1 to allow pulling from all active containers in the world");
+            m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from");
             resourceString = Config.Bind<string>("General", "ResourceCostString", "{0}/{1}", "String used to show required and available resources. {0} is replaced by how much is available, and {1} is replaced by how much is required");
             flashColor = Config.Bind<Color>("General", "FlashColor", Color.yellow, "Resource amounts will flash to this colour when coming from containers");
             unFlashColor = Config.Bind<Color>("General", "UnFlashColor", Color.white, "Resource amounts will flash from this colour when coming from containers (set both colors to the same color for no flashing)");
@@ -76,42 +76,31 @@ namespace CraftFromContainers
         }
         public static List<Container> GetNearbyContainers(Vector3 center)
         {
-            List<Container> containers = new List<Container>();
-            foreach (Container container in containerList)
+            try
             {
-                if (container != null && container.transform != null && container.GetInventory() != null && (m_range.Value <= 0 ||  Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
+                List<Container> containers = new List<Container>();
+
+                foreach (Collider collider in Physics.OverlapSphere(center, m_range.Value, LayerMask.GetMask(new string[] { "piece" })))
                 {
-                    containers.Add(container);
+                    Container c = collider.transform.parent?.parent?.gameObject?.GetComponent<Container>();
+                    if (c?.GetComponent<ZNetView>()?.IsValid() != true)
+                        continue;
+                    if (c?.transform?.position != null && c.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, c.transform.position) < m_range.Value) && (c.name.StartsWith("piece_chest") || c.name.StartsWith("Container")) && c.GetInventory() != null && Traverse.Create(c).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
+                    {
+                        Dbgl($"container {c.name}  {c.m_name} {c.transform?.position} inv {c.GetInventory() != null} added");
+                        containers.Add(c);
+                    }
+                    else
+                        Dbgl($"container {c.name}  {c.m_name} {c.transform?.position} inv {c.GetInventory() != null} skipped");
                 }
+                return containers;
             }
-            return containers;
-        }
-
-        [HarmonyPatch(typeof(Container), "Awake")]
-        static class Container_Awake_Patch
-        {
-            static void Postfix(Container __instance, ZNetView ___m_nview)
+            catch
             {
-
-                if ((__instance.name.StartsWith("piece_chest") || __instance.name.StartsWith("Container")) && __instance.GetInventory() != null)
-                {
-                    containerList.Add(__instance);
-                    Dbgl($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} added");
-                }
-                else
-                    Dbgl($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} skipped");
-
+                return new List<Container>();
             }
         }
-        [HarmonyPatch(typeof(Container), "OnDestroyed")]
-        static class Container_OnDestroyed_Patch
-        {
-            static void Prefix(Container __instance)
-            {
-                containerList.Remove(__instance);
 
-            }
-        }
         
         [HarmonyPatch(typeof(Fireplace), "Interact")]
         static class Fireplace_Interact_Patch

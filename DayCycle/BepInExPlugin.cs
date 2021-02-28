@@ -77,6 +77,58 @@ namespace DayCycle
                     __result = 0;
             }
         }
+        
+        //[HarmonyPatch(typeof(WaterVolume), "GetWaterSurface")]
+        static class WaterVolume_GetWaterSurface_Patch
+        {
+            static bool Prefix(WaterVolume __instance, ref float __result, Vector3 point, float waveFactor)
+            {
+                return true;
+                float wrappedDayTimeSeconds = Time.time * (60 * 60 * 24 / 1200f);
+                float depth = Traverse.Create(__instance).Method("Depth", new object[] { point }).GetValue<float>();
+                float num = Traverse.Create(__instance).Method("CalcWave", new object[] { point, depth, wrappedDayTimeSeconds, waveFactor }).GetValue<float>();
+                float num2 = __instance.transform.position.y + num;
+                if (Utils.LengthXZ(point) > 10500f && __instance.m_forceDepth < 0f)
+                {
+                    num2 -= 100f;
+                }
+                __result = num2;
+                return false;
+            }
+            static void Postfix(float __result)
+            {
+                Dbgl($"water surface {__result}");
+            }
+        }
+
+        [HarmonyPatch(typeof(ZNet), "GetWrappedDayTimeSeconds")]
+        static class ZNet_GetWrappedDayTimeSeconds_Patch
+        {
+            static bool Prefix(double ___m_netTime, ref float __result)
+            {
+                if (!modEnabled.Value)
+                    return true;
+
+                int secondsPerDay = 60 * 60 * 24;
+
+                double thisTimeOfDayFraction = (___m_netTime % secondsPerDay) / secondsPerDay;
+
+                double newTotalSeconds = 0;
+
+                if (thisTimeOfDayFraction > nightStart.Value)
+                    newTotalSeconds += secondsPerDay * (thisTimeOfDayFraction - nightStart.Value) / nightRate.Value + secondsPerDay * (nightStart.Value - dayStart.Value) / dayRate.Value + secondsPerDay * (dayStart.Value) / nightRate.Value;
+                else if (thisTimeOfDayFraction > dayStart.Value)
+                    newTotalSeconds += secondsPerDay * (thisTimeOfDayFraction - dayStart.Value) / dayRate.Value + secondsPerDay * (dayStart.Value) / nightRate.Value;
+                else
+                    newTotalSeconds += secondsPerDay * thisTimeOfDayFraction / nightRate.Value;
+
+
+
+                __result = (float)newTotalSeconds;
+                //Dbgl($"net time: {___m_netTime % secondsPerDay} new time {__result}");
+                return false;
+            }
+        }
 
         [HarmonyPatch(typeof(Smelter), "GetDeltaTime")]
         static class Smelter_GetDeltaTime_Patch

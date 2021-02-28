@@ -39,6 +39,7 @@ namespace InstantMonsterDrop
         {
             static void Prefix(Ragdoll __instance)
             {
+                Dbgl($"Changing death time from {__instance.m_ttl} to {dropDelay.Value}");
                 __instance.m_ttl = dropDelay.Value;
             }
         }

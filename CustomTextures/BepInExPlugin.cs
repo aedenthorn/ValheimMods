@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.6.0")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.6.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -127,16 +127,7 @@ namespace CustomTextures
                 LoadOneTexture(gameObject, gameObject.name, "object");
 
             }
-            GameObject root = (GameObject)typeof(ZNetScene).GetField("m_netSceneRoot", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ZNetScene.instance);
-            foreach (Terrain ter in root.GetComponentsInChildren<Terrain>(true))
-            {
-                Dbgl($"terrain name: {ter.name}, layers  {ter.terrainData.terrainLayers.Length}");
-                foreach (TerrainLayer tl in ter.terrainData.terrainLayers)
-                {
-                    Dbgl($"layer name: {tl.name}, d {tl.diffuseTexture},  {tl.maskMapTexture}, n {tl.normalMapTexture}");
-                }
 
-            }
             if (dumpSceneTextures.Value)
             {
                 string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\CustomTextures\\scene_dump.txt";
