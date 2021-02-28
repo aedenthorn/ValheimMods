@@ -20,6 +20,7 @@ namespace CustomMeshes
 
         private static Dictionary<string, Dictionary<string, Dictionary<string, CustomItemMesh>>> customMeshes = new Dictionary<string, Dictionary<string, Dictionary<string, CustomItemMesh>>>();
         private static Dictionary<string, AssetBundle> customAssetBundles = new Dictionary<string, AssetBundle>();
+        private static Dictionary<string, Dictionary<string, Dictionary<string, GameObject>>> customGameObjects = new Dictionary<string, Dictionary<string, Dictionary<string, GameObject>>>(); 
         public static ConfigEntry<int> nexusID;
         private static BepInExPlugin context;
 
@@ -66,11 +67,14 @@ namespace CustomMeshes
 
         private static void PreloadMeshes()
         {
+            customMeshes.Clear();
+            customGameObjects.Clear();
+
             Dbgl($"Importing meshes");
 
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes");
 
-            if (!Directory.Exists(path)) 
+            if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
                 return;
@@ -94,6 +98,7 @@ namespace CustomMeshes
                     {
                         try
                         {
+                            GameObject armature = null;
                             Mesh mesh = null;
                             Dbgl($"Importing {file} {Path.GetFileNameWithoutExtension(file)} {Path.GetFileName(file)} {Path.GetExtension(file).ToLower()}");
                             string name = Path.GetFileNameWithoutExtension(file);
@@ -108,21 +113,36 @@ namespace CustomMeshes
                             }
                             else if (Path.GetExtension(file).ToLower() == ".fbx")
                             {
-                                GameObject obj = MeshImporter.Load(file);
+                                GameObject obj = MeshImporter.Load(file)?.transform.Find("Player")?.Find("Visual")?.gameObject;
+                                /*
+                                int children = obj.transform.childCount;
+                                for(int i = 0; i < children; i++)
+                                {
+                                    Dbgl($"fbx child: {obj.transform.GetChild(i).name}");
+                                }
+                                */
+                                armature = obj.transform.Find("Armature")?.gameObject;
                                 mesh = obj.GetComponentInChildren<MeshFilter>().mesh;
                                 if (mesh != null)
-                                    Dbgl($"Imported {file} fbx as game object");
+                                    Dbgl($"Imported {file} fbx as mesh");
+                                if(armature != null)
+                                    Dbgl($"Imported {file} fbx as armature");
                             }
                             else if (Path.GetExtension(file).ToLower() == ".obj")
                             {
                                 mesh = new ObjImporter().ImportFile(file);
                                 if (mesh != null)
-                                    Dbgl($"Imported {file} obj as game object");
+                                    Dbgl($"Imported {file} obj as mesh");
                             }
                             if (mesh != null)
                                 customMeshes[dirName][subdirName].Add(name, new CustomItemMesh(dirName, name, mesh));
+                            if (armature != null)
+                            {
+                                customGameObjects[dirName][subdirName].Add(name, armature);
+                                Dbgl($"Imported armature successfully");
+                            }
                         }
-                        catch { }
+                        catch { Dbgl("Error"); }
                     }
                 }
             }
@@ -232,6 +252,56 @@ namespace CustomMeshes
                 foreach (MeshFilter mf in mfs)
                 {
                     Dbgl($"dragging item name: {name}, mf: {mf.name}");
+                }
+            }
+        }
+        [HarmonyPatch(typeof(Player), "Awake")]
+        static class Player_Awake_Patch
+        {
+            static void Postfix(Player __instance)
+            {
+                Dbgl($"Player awake.");
+
+                if (customGameObjects.ContainsKey("player"))
+                {
+                    if (customGameObjects["player"].ContainsKey("model"))
+                    {
+                        Dbgl($"Got game object.");
+
+                        GameObject go = __instance.gameObject.transform.Find("Visual")?.Find("Armature")?.gameObject;
+                        if (go == null)
+                        {
+                            Dbgl($"Wrong game object hierarchy.");
+                            return;
+                        }
+                        Dbgl($"Got armature.");
+
+                        if (customGameObjects["player"]["model"].ContainsKey("0"))
+                        {
+                            Dbgl($"Replacing player armature 0.");
+
+                            GameObject newObject;
+                            newObject = Instantiate(customGameObjects["player"]["model"]["0"]);
+                            newObject.transform.position = go.transform.position;
+                            newObject.transform.rotation = go.transform.rotation;
+                            Transform parent = go.transform.parent;
+                            DestroyImmediate(go);
+                            newObject.transform.parent = parent;
+
+                        }
+                        if (customMeshes["player"]["model"].ContainsKey("1"))
+                        {
+                            Dbgl($"Replacing player armature 1.");
+
+                            GameObject newObject;
+                            newObject = Instantiate(customGameObjects["player"]["model"]["1"]);
+                            newObject.transform.position = go.transform.position;
+                            newObject.transform.rotation = go.transform.rotation;
+                            Transform parent = go.transform.parent;
+                            DestroyImmediate(go);
+                            newObject.transform.parent = parent;
+                        }
+                    }
                 }
             }
         }
