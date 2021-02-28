@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.4.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.4.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -87,11 +87,8 @@ namespace CraftFromContainers
                         continue;
                     if (c?.transform?.position != null && c.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, c.transform.position) < m_range.Value) && (c.name.StartsWith("piece_chest") || c.name.StartsWith("Container")) && c.GetInventory() != null && Traverse.Create(c).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
                     {
-                        Dbgl($"container {c.name}  {c.m_name} {c.transform?.position} inv {c.GetInventory() != null} added");
                         containers.Add(c);
                     }
-                    else
-                        Dbgl($"container {c.name}  {c.m_name} {c.transform?.position} inv {c.GetInventory() != null} skipped");
                 }
                 return containers;
             }
@@ -100,8 +97,44 @@ namespace CraftFromContainers
                 return new List<Container>();
             }
         }
+        /*
+        public static List<Container> GetNearbyContainers(Vector3 center)
+        {
+            List<Container> containers = new List<Container>();
+            foreach (Container container in containerList)
+            {
+                if (container != null && container.transform != null && container.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
+                {
+                    containers.Add(container);
+                }
+            }
+            return containers;
+        }
 
-        
+        [HarmonyPatch(typeof(Container), "Awake")]
+        static class Container_Awake_Patch
+        {
+            static void Postfix(Container __instance, ZNetView ___m_nview)
+            {
+
+                if ((__instance.name.StartsWith("piece_chest") || __instance.name.StartsWith("Container")) && __instance.GetInventory() != null)
+                {
+                    containerList.Add(__instance);
+                }
+            }
+        }
+        [HarmonyPatch(typeof(Container), "OnDestroyed")]
+        static class Container_OnDestroyed_Patch
+        {
+            static void Prefix(Container __instance)
+            {
+                containerList.Remove(__instance);
+
+            }
+        }
+        */
+
+
         [HarmonyPatch(typeof(Fireplace), "Interact")]
         static class Fireplace_Interact_Patch
         {

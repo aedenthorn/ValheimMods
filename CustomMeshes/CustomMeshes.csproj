@@ -122,6 +122,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BepInExPlugin.cs" />
+    <Compile Include="CustomItemMesh.cs" />
     <Compile Include="TextureLoader.cs" />
     <Compile Include="OBJLoader.cs" />
     <Compile Include="MeshImporter.cs" />

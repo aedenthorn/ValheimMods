@@ -25,7 +25,7 @@ namespace CustomAudio
         public static ConfigEntry<int> nexusID;
 
         private static string[] audioFiles;
-        private static BepInExPlugin instance;
+        private static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -34,7 +34,7 @@ namespace CustomAudio
         }
         private void Awake()
         {
-            instance = this;
+            context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             dumpSFX = Config.Bind<bool>("General", "DumpSFX", false, "Dump sound effect names to the console");
             nexusID = Config.Bind<int>("General", "NexusID", 90, "Nexus mod ID for updates");
@@ -61,12 +61,12 @@ namespace CustomAudio
                 audioFiles = Directory.GetFiles(path, "*.wav", SearchOption.AllDirectories);
                 foreach (string file in audioFiles)
                 {
-                    instance.StartCoroutine(PreloadClipCoroutine(file, AudioType.WAV));
+                    context.StartCoroutine(PreloadClipCoroutine(file, AudioType.WAV));
                 }
                 audioFiles = Directory.GetFiles(path, "*.ogg", SearchOption.AllDirectories);
                 foreach (string file in audioFiles)
                 {
-                    instance.StartCoroutine(PreloadClipCoroutine(file, AudioType.OGGVORBIS));
+                    context.StartCoroutine(PreloadClipCoroutine(file, AudioType.OGGVORBIS));
                 }
             }
         }
@@ -208,6 +208,25 @@ namespace CustomAudio
                 }
             }
 
+        }
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals("customaudio reset"))
+                {
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "Reloaded custom audio mod config values" }).GetValue();
+                    context.Config.Reload();
+                    context.Config.Save();
+                    return false;
+                }
+                return true;
+            }
         }
     }
 }

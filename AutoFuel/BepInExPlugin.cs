@@ -10,10 +10,10 @@ using UnityEngine.UI;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.5.0")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.5.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        private static readonly bool isDebug = false;
 
         public static ConfigEntry<float> dropRange;
         public static ConfigEntry<float> containerRange;
@@ -200,8 +200,6 @@ namespace AutoFuel
                 {
                     foreach (Smelter.ItemConversion itemConversion in __instance.m_conversion)
                     {
-
-
                         ItemDrop.ItemData oreItem = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
 
                         if (oreItem != null && Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() < __instance.m_maxOre)

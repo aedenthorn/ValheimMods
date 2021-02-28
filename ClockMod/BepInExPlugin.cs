@@ -224,8 +224,6 @@ namespace ClockMod
         {
             float fraction = (float)typeof(EnvMan).GetField("m_smoothDayFraction", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(EnvMan.instance);
 
-            var timeString = "";
-
             int hour = (int)(fraction * 24);
             int minute = (int)((fraction * 24 - hour) * 60);
             int second = (int)((((fraction * 24 - hour) * 60) - minute) * 60);
@@ -257,6 +255,7 @@ namespace ClockMod
                 if (text.ToLower().Equals("clockmod reset"))
                 {
                     context.Config.Reload();
+                    context.Config.Save();
                     ApplyConfig();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { "ClockMod config reloaded" }).GetValue();

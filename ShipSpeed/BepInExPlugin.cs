@@ -160,9 +160,10 @@ namespace ShipSpeed
                 string text = __instance.m_input.text;
                 if (text.ToLower().Equals("shipspeed reset"))
                 {
-                    Dbgl($"reloading ship speed mod config values");
-
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "Reloaded ship speed mod config values" }).GetValue();
                     context.Config.Reload();
+                    context.Config.Save();
                     return false;
                 }
                 return true;
