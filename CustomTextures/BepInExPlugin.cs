@@ -103,8 +103,8 @@ namespace CustomTextures
                 string fileName = Path.GetFileName(file);
                 Dbgl($"adding {fileName} custom texture.");
 
-                string id = fileName.Substring(0, fileName.Length - 4);
-                Texture2D tex = new Texture2D(2, 2);
+                string id = Path.GetFileNameWithoutExtension(fileName);
+                Texture2D tex = new Texture2D(2, 2, TextureFormat.RGBA32, true,  id.EndsWith("_bump"));
                 byte[] imageData = File.ReadAllBytes(file);
                 tex.LoadImage(imageData);
                 customTextures[id] = tex;
