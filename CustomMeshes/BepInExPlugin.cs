@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
 
 namespace CustomMeshes
@@ -42,13 +43,17 @@ namespace CustomMeshes
 
             if (!modEnabled.Value)
                 return;
-
-            PreloadMeshes();
+            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             return;
 
 
+        }
+
+        private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
+        {
+            PreloadMeshes();
         }
 
         private void Update()
@@ -86,6 +91,7 @@ namespace CustomMeshes
                 Dbgl($"Importing meshes: {dirName}");
 
                 customMeshes[dirName] = new Dictionary<string, Dictionary<string, CustomItemMesh>>();
+                customGameObjects[dirName] = new Dictionary<string, Dictionary<string, GameObject>>();
 
                 foreach (string subdir in Directory.GetDirectories(dir))
                 {
@@ -93,6 +99,7 @@ namespace CustomMeshes
                     Dbgl($"Importing meshes: {dirName}\\{subdirName}");
 
                     customMeshes[dirName][subdirName] = new Dictionary<string, CustomItemMesh>();
+                    customGameObjects[dirName][subdirName] = new Dictionary<string, GameObject>();
 
                     foreach (string file in Directory.GetFiles(subdir))
                     {
@@ -137,12 +144,12 @@ namespace CustomMeshes
                             if (mesh != null)
                                 customMeshes[dirName][subdirName].Add(name, new CustomItemMesh(dirName, name, mesh));
                             if (armature != null)
-                            {
                                 customGameObjects[dirName][subdirName].Add(name, armature);
-                                Dbgl($"Imported armature successfully");
-                            }
                         }
-                        catch { Dbgl("Error"); }
+                        catch(Exception ex) 
+                        { 
+                            //Dbgl($"Error:\n\n{ex}"); 
+                        }
                     }
                 }
             }
@@ -158,6 +165,15 @@ namespace CustomMeshes
                 result = name;
             return result;
         }
+        
+        [HarmonyPatch(typeof(ZNetScene), "Awake")]
+        static class ZNetScene_Awake_Patch
+        {
+            static void Postfix() 
+            {
+                PreloadMeshes();
+            }
+        }        
         
         [HarmonyPatch(typeof(ItemDrop), "Awake")]
         static class ItemDrop_Patch
@@ -261,7 +277,6 @@ namespace CustomMeshes
             static void Postfix(Player __instance)
             {
                 Dbgl($"Player awake.");
-
                 if (customGameObjects.ContainsKey("player"))
                 {
                     if (customGameObjects["player"].ContainsKey("model"))
@@ -281,12 +296,13 @@ namespace CustomMeshes
                             Dbgl($"Replacing player armature 0.");
 
                             GameObject newObject;
-                            newObject = Instantiate(customGameObjects["player"]["model"]["0"]);
-                            newObject.transform.position = go.transform.position;
-                            newObject.transform.rotation = go.transform.rotation;
                             Transform parent = go.transform.parent;
+                            Vector3 position = go.transform.position;
+                            Quaternion rotation = go.transform.rotation;
                             DestroyImmediate(go);
-                            newObject.transform.parent = parent;
+                            newObject = Instantiate(customGameObjects["player"]["model"]["0"], parent);
+                            newObject.transform.position = position;
+                            newObject.transform.rotation = rotation;
 
                         }
                         if (customMeshes["player"]["model"].ContainsKey("1"))
