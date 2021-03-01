@@ -28,9 +28,7 @@ namespace Durability
 
         public static ConfigEntry<float> shieldDurabilityLossMult;
         public static ConfigEntry<float> armorDurabilityLossMult;
-        
-        public static ConfigEntry<bool> requireMatsForRepair;
-
+       
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
@@ -55,7 +53,6 @@ namespace Durability
             shieldDurabilityLossMult = Config.Bind<float>("Durability", "ShieldDurabilityLossMult", 1f, "Shield durability loss multiplier.");
             armorDurabilityLossMult = Config.Bind<float>("Durability", "ArmorDurabilityLossMult", 1f, "Armor durability loss multiplier.");
 
-            requireMatsForRepair = Config.Bind<bool>("General", "RequireMatsForRepair", false, "Require a percentage of item's recipe materials based on missing durability.");
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 17, "Nexus mod ID for updates");
@@ -65,9 +62,6 @@ namespace Durability
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-
-        public static int JumpNumber { get; private set; }
-
 
         [HarmonyPatch(typeof(ItemDrop), "Awake")]
         static class ItemDrop_Patch
@@ -202,69 +196,5 @@ namespace Durability
         }
 
 
-        //[HarmonyPatch(typeof(InventoryGui), "CanRepair")]
-        static class InventoryGui_CanRepair_Patch
-        {
-            static void Postfix(ItemDrop.ItemData item, ref bool __result)
-            {
-                if (modEnabled.Value && requireMatsForRepair.Value && Environment.StackTrace.Contains("RepairOneItem") && !Environment.StackTrace.Contains("HaveRepairableItems") && __result == true)
-                {
-                    float percent = (item.GetMaxDurability() - item.m_durability) / item.GetMaxDurability();
-                    Recipe fullRecipe = ObjectDB.instance.GetRecipe(item);
-                    Dbgl($"{item.m_shared.m_name}, quality {item.m_quality} is {percent * 10000 / 100}% broken");
-                    Recipe recipe = ScriptableObject.CreateInstance<Recipe>();
-                    recipe.m_resources = new Piece.Requirement[fullRecipe.m_resources.Length];
-
-                    for (int i = 0; i < fullRecipe.m_resources.Length; i++)
-                    {
-                        Dbgl($"full amount of {fullRecipe.m_resources[i].m_resItem.name} is {fullRecipe.m_resources[i].GetAmount(item.m_quality)}");
-                        int amount = Mathf.FloorToInt(fullRecipe.m_resources[i].m_amount * percent);
-                        recipe.m_resources[i] = new Piece.Requirement()
-                        {
-                            m_resItem = fullRecipe.m_resources[i].m_resItem,
-                            m_amountPerLevel = fullRecipe.m_resources[i].m_amountPerLevel,
-                            m_amount = amount,
-                        };
-                        Dbgl($"required amount of {recipe.m_resources[i].m_resItem.name} is {recipe.m_resources[i].GetAmount(item.m_quality)}");
-
-                    }
-                    List<string> reqstring = new List<string>();
-                    foreach (Piece.Requirement req in recipe.m_resources)
-                    {
-                        reqstring.Add($"{req.GetAmount(item.m_quality)}/{Player.m_localPlayer.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name)} {req.m_resItem.name}");
-                    }
-                    string outstring = "";
-                    if (HaveRequirements(recipe.m_resources, item.m_quality))
-                    {
-                        //Player.m_localPlayer.ConsumeResources(recipe.m_resources, item.m_quality);
-                        outstring = $"Used {string.Join(", ", reqstring)} to repair {item.m_shared.m_name}";
-                        __result = true;
-                    }
-                    else
-                    {
-                        outstring = $"Require {string.Join(", ", reqstring)} to repair {item.m_shared.m_name}";
-                        __result = false;
-                    }
-                    Player.m_localPlayer.Message(MessageHud.MessageType.TopLeft, outstring, 0, null);
-                    Dbgl(outstring);
-                }
-            }
-        }
-
-        private static bool HaveRequirements(Piece.Requirement[] resources, int qualityLevel)
-        {
-            foreach (Piece.Requirement requirement in resources)
-            {
-                if (requirement.m_resItem)
-                {
-                    int amount = requirement.GetAmount(qualityLevel);
-                    if (Player.m_localPlayer.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) < amount)
-                    {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
     }
 }

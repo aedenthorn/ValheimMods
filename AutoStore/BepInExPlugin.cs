@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace AutoStore
 {
-    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.1")]
+    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -41,7 +41,6 @@ namespace AutoStore
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
-        public static List<Container> containerList = new List<Container>();
         private static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -111,32 +110,6 @@ namespace AutoStore
         private static bool IsInRange(Container container)
         {
             throw new NotImplementedException();
-        }
-
-        [HarmonyPatch(typeof(Container), "Awake")]
-        static class Container_Awake_Patch
-        {
-            static void Postfix(Container __instance, ZNetView ___m_nview)
-            {
-                if ((__instance.name.StartsWith("piece_chest") || __instance.name.StartsWith("Container")) && __instance.GetInventory() != null)
-                {
-                    containerList.Add(__instance);
-                    //Dbgl($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} added");
-                }
-                else
-                    //($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} skipped");
-
-            }
-        }
-
-        [HarmonyPatch(typeof(Container), "OnDestroyed")]
-        static class Container_OnDestroyed_Patch
-        {
-            static void Prefix(Container __instance)
-            {
-                containerList.Remove(__instance);
-
-            }
         }
 
         private static bool DisallowItem(Container container, ItemDrop.ItemData item)

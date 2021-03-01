@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.4.3")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.4.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

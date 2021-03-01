@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace MiningMod
 {
-    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.2.0")]
+    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -53,18 +53,42 @@ namespace MiningMod
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
+        private static string dropTableObject = "";
+
+        [HarmonyPatch(typeof(DropOnDestroyed), "Awake")]
+        static class Destructible_Start_Patch
+        {
+            static void Postfix(ref DropOnDestroyed __instance)
+            {
+                if (__instance.gameObject.name.Contains("MineRock"))
+                {
+                    __instance.m_dropWhenDestroyed.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropWhenDestroyed.m_dropMin);
+                    __instance.m_dropWhenDestroyed.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropWhenDestroyed.m_dropMax);
+                    __instance.m_dropWhenDestroyed.m_dropChance *= dropChanceMult.Value;
+                }
+
+            }
+        }
+        [HarmonyPatch(typeof(DropOnDestroyed), "OnDestroyed")]
+        static class DropOnDestroyed_OnDestroyed_Patch
+        {
+            static void Prefix(ref DropOnDestroyed __instance)
+            {
+                dropTableObject = __instance.gameObject.name;
+            }
+            static void Postfix(ref DropOnDestroyed __instance)
+            {
+                dropTableObject = "";
+            }
+        }
         [HarmonyPatch(typeof(MineRock), "Start", new Type[] { })]
         static class MineRock_Start_Patch
         {
             static void Postfix(ref MineRock __instance)
             {
-                if (Environment.StackTrace.Contains("MineRock"))
-                {
-                    __instance.m_dropItems.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropItems.m_dropMin);
-                    __instance.m_dropItems.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropItems.m_dropMax);
-                    __instance.m_dropItems.m_dropChance *= dropChanceMult.Value;
-
-                }
+                __instance.m_dropItems.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropItems.m_dropMin);
+                __instance.m_dropItems.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropItems.m_dropMax);
+                __instance.m_dropItems.m_dropChance *= dropChanceMult.Value;
 
             }
         }
@@ -73,14 +97,9 @@ namespace MiningMod
         {
             static void Postfix(ref MineRock5 __instance)
             {
-                if (Environment.StackTrace.Contains("MineRock"))
-                {
-                    __instance.m_dropItems.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropItems.m_dropMin);
-                    __instance.m_dropItems.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropItems.m_dropMax);
-                    __instance.m_dropItems.m_dropChance *= dropChanceMult.Value;
-
-                }
-
+                __instance.m_dropItems.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropItems.m_dropMin);
+                __instance.m_dropItems.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropItems.m_dropMax);
+                __instance.m_dropItems.m_dropChance *= dropChanceMult.Value;
             }
         }
         [HarmonyPatch(typeof(DropTable), "GetDropList", new Type[] { })]
@@ -88,7 +107,7 @@ namespace MiningMod
         {
             static void Postfix(ref List<GameObject> __result)
             {
-                if (Environment.StackTrace.Contains("MineRock"))
+                if (Environment.StackTrace.Contains("MineRock") || (Environment.StackTrace.Contains("DropOnDestroyed") && dropTableObject.Contains("MineRock")))
                 {
                     if(dropMult.Value > 1)
                     {
@@ -103,19 +122,16 @@ namespace MiningMod
                     }
                     if (UnityEngine.Random.value < rubyDropChance.Value)
                     {
-                        Dbgl("Dropping ruby");
                         GameObject go = ZNetScene.instance.GetPrefab("Ruby");
                         __result.Add(go);
                     }
                     if(UnityEngine.Random.value < amberDropChance.Value)
                     {
-                        Dbgl("Dropping amber");
                         GameObject go = ZNetScene.instance.GetPrefab("Amber");
                         __result.Add(go);
                     }
                     if (UnityEngine.Random.value < amberPearlDropChance.Value)
                     {
-                        Dbgl("Dropping amber pearl");
                         GameObject go = ZNetScene.instance.GetPrefab("AmberPearl");
                         __result.Add(go);
                     }
@@ -126,18 +142,15 @@ namespace MiningMod
         [HarmonyPatch(typeof(DropTable), "GetDropList", new Type[] {typeof(int) })]
         static class DropTable_GetDropList_Patch2
         {
-            static void Prefix(ref int amount)
+            static void Prefix(DropTable __instance, ref int amount)
             {
-
-                if (Environment.StackTrace.Contains("MineRock"))
+                if (Environment.StackTrace.Contains("MineRock") || (Environment.StackTrace.Contains("DropOnDestroyed") && dropTableObject.Contains("MineRock")))
                 {
-                    Dbgl($"GetDropList2 for mining rock");
-
                     amount = Mathf.RoundToInt(dropMult.Value * amount);
                 }
-                    
             }
         }
+
         [HarmonyPatch(typeof(MineRock), "Damage")]
         static class MineRock_Damage_Patch
         {
@@ -158,6 +171,20 @@ namespace MiningMod
                 hit.m_damage.m_blunt *= damageMult.Value;
                 hit.m_damage.m_chop *= damageMult.Value;
                 hit.m_damage.m_pierce *= damageMult.Value;
+            }
+        }
+        [HarmonyPatch(typeof(Destructible), "Damage")]
+        static class DropOnDestroyed_Damage_Patch
+        {
+            static void Prefix(Destructible __instance, ref HitData hit)
+            {
+                if (__instance.GetComponent<DropOnDestroyed>())
+                {
+                    hit.m_damage.m_pickaxe *= damageMult.Value;
+                    hit.m_damage.m_blunt *= damageMult.Value;
+                    hit.m_damage.m_chop *= damageMult.Value;
+                    hit.m_damage.m_pierce *= damageMult.Value;
+                }
             }
         }
 
