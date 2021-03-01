@@ -5,12 +5,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.6.0")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.7.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -104,8 +103,8 @@ namespace CustomTextures
                 string fileName = Path.GetFileName(file);
                 Dbgl($"adding {fileName} custom texture.");
 
-                string id = fileName.Substring(0, fileName.Length - 4);
-                Texture2D tex = new Texture2D(2, 2);
+                string id = Path.GetFileNameWithoutExtension(fileName);
+                Texture2D tex = new Texture2D(2, 2, TextureFormat.RGBA32, true,  id.EndsWith("_bump"));
                 byte[] imageData = File.ReadAllBytes(file);
                 tex.LoadImage(imageData);
                 customTextures[id] = tex;
@@ -127,16 +126,7 @@ namespace CustomTextures
                 LoadOneTexture(gameObject, gameObject.name, "object");
 
             }
-            GameObject root = (GameObject)typeof(ZNetScene).GetField("m_netSceneRoot", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ZNetScene.instance);
-            foreach (Terrain ter in root.GetComponentsInChildren<Terrain>(true))
-            {
-                Dbgl($"terrain name: {ter.name}, layers  {ter.terrainData.terrainLayers.Length}");
-                foreach (TerrainLayer tl in ter.terrainData.terrainLayers)
-                {
-                    Dbgl($"layer name: {tl.name}, d {tl.diffuseTexture},  {tl.maskMapTexture}, n {tl.normalMapTexture}");
-                }
 
-            }
             if (dumpSceneTextures.Value)
             {
                 string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\CustomTextures\\scene_dump.txt";
@@ -149,6 +139,9 @@ namespace CustomTextures
             List<string> logDump = new List<string>();
             try
             {
+                if (thingName.EndsWith("_frac"))
+                    return;
+
                 //Dbgl($"loading textures for { gameObject.name}");
                 MeshRenderer[] mrs = gameObject.GetComponentsInChildren<MeshRenderer>(true);
                 SkinnedMeshRenderer[] smrs = gameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true);
@@ -163,13 +156,25 @@ namespace CustomTextures
                             outputDump.Add($"\tnull");
                             continue;
                         }
+                        outputDump.Add($"\t{mr.name}:");
+                        if (mr.materials == null || !mr.materials.Any())
+                            continue;
+
                         foreach (Material m in mr.materials)
                         {
+                            outputDump.Add("\t\tproperties:");
+                            foreach (string property in m.GetTexturePropertyNames())
+                            {
+                                outputDump.Add($"\t\t\t{property}");
+                            }
                             if (!m.HasProperty("_MainTex"))
+                            {
+                                outputDump.Add($"\t\tmain texture is null");
                                 continue;
+                            }
 
-                            outputDump.Add($"\t{mr.name}: {mr.material.mainTexture.name}");
-                            string name = m.GetTexture("_MainTex").name;
+                            outputDump.Add($"\t\t{mr.name}: {mr.material.mainTexture.name}");
+                            string name = m.mainTexture.name;
 
                             if (customTextures.ContainsKey($"{prefix}_{thingName}_texture"))
                             {
@@ -185,10 +190,19 @@ namespace CustomTextures
                                 m.mainTexture.name = name;
                                 m.color = Color.white;
                             }
+                            if (customTextures.ContainsKey($"{prefix}_{thingName}_bump"))
+                            {
+                                logDump.Add($"{prefix} {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}_{thingName}_bump custom bump map.");
+                                m.SetTexture("_BumpMap", customTextures[$"{prefix}_{name}_bump"]);
+                            }
+                            else if (customTextures.ContainsKey($"texture_{name}_bump"))
+                            {
+                                logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using texture_{name}_bump custom bump map.");
+                                m.SetTexture("_BumpMap", customTextures[$"texture_{name}_bump"]);
+                            }
                         }
                     }
                 }
-
                 if (smrs?.Any() == true)
                 {
                     outputDump.Add($"{prefix} {thingName} has {smrs.Length} SkinnedMeshRenderers:");
@@ -199,9 +213,22 @@ namespace CustomTextures
                             outputDump.Add($"\tnull");
                             continue;
                         }
+                        if (smr.materials == null || !smr.materials.Any())
+                            continue;
+
+
                         foreach (Material m in smr.materials)
                         {
-
+                            outputDump.Add("\t\tproperties:");
+                            foreach (string property in m.GetTexturePropertyNames())
+                            {
+                                outputDump.Add($"\t\t\t{property}");
+                            }
+                            if (m.mainTexture == null)
+                            {
+                                outputDump.Add($"\t\tmain texture is null");
+                                continue;
+                            }
                             outputDump.Add($"\t{prefix}: {thingName}, smr: {smr.name}, mat: {smr.material.name},  texture: {smr.material.mainTexture?.name}");
                             string name = smr.material.mainTexture?.name;
                             if (name == null)
@@ -221,6 +248,17 @@ namespace CustomTextures
                                 m.mainTexture.name = name;
                                 m.color = Color.white;
 
+                            }
+                            if (customTextures.ContainsKey($"{prefix}_{thingName}_bump"))
+                            {
+                                logDump.Add($"{prefix} {thingName}, SkinnedMeshRenderer {smr.name}, material {m.name}, texture {name}, using {prefix}_{thingName}_bump custom bump map.");
+                                customTextures[$"{prefix}_{name}_bump"].name = name;
+                                m.SetTexture("_BumpMap", customTextures[$"{prefix}_{name}_bump"]);
+                            }
+                            else if (customTextures.ContainsKey($"texture_{name}_bump"))
+                            {
+                                logDump.Add($"object {thingName}, SkinnedMeshRenderer {smr.name}, material {m.name}, texture {name}, using texture_{name}_bump custom bump map.");
+                                m.SetTexture("_BumpMap", customTextures[$"texture_{name}_bump"]);
                             }
                         }
                     }

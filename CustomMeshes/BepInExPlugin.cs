@@ -1,13 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
-using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
+using UnityEngine.SceneManagement;
+using Debug = UnityEngine.Debug;
 
 namespace CustomMeshes
 {
@@ -16,9 +19,11 @@ namespace CustomMeshes
     {
         private static readonly bool isDebug = true;
 
-        private static Dictionary<string, Mesh> customMeshes = new Dictionary<string, Mesh>();
-        private static List<GameObject> customGameObjects = new List<GameObject>();
+        private static Dictionary<string, Dictionary<string, Dictionary<string, CustomItemMesh>>> customMeshes = new Dictionary<string, Dictionary<string, Dictionary<string, CustomItemMesh>>>();
+        private static Dictionary<string, AssetBundle> customAssetBundles = new Dictionary<string, AssetBundle>();
+        private static Dictionary<string, Dictionary<string, Dictionary<string, GameObject>>> customGameObjects = new Dictionary<string, Dictionary<string, Dictionary<string, GameObject>>>(); 
         public static ConfigEntry<int> nexusID;
+        private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
 
@@ -31,19 +36,14 @@ namespace CustomMeshes
         }
         private void Awake()
         {
+            context = this;
+
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            nexusID = Config.Bind<int>("General", "NexusID", 184, "Nexus id for update checking");
 
             if (!modEnabled.Value)
                 return;
-            return;
-            PreloadMeshes();
-            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes", "player_model_0.obj");
-            GameObject obj = OBJLoader.LoadOBJFile(path);
-
-            //GameObject obj = MeshImporter.Load(path);
-            MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
-            MeshFilter mr = mrs[0];
-            customMesh = mr.mesh;
+            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             return;
@@ -51,242 +51,380 @@ namespace CustomMeshes
 
         }
 
+        private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
+        {
+            PreloadMeshes();
+        }
+
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.U))
             {
-                Dbgl($"changing.");
+                return;
+                if (Console.IsVisible())
+                    return;
 
+                Dbgl($"Pressed U.");
 
-                Transform visual = Player.m_localPlayer.gameObject.transform.Find("Visual");
-                Dbgl($"1.");
-                Transform body = visual.Find("body");
-                Dbgl($"2.");
-                SkinnedMeshRenderer smr = body.GetComponent<SkinnedMeshRenderer>();
-                Dbgl($"3.");
-                //smr.sharedMesh = customMeshes["player_model_0"];
-                List<string> output = new List<string>();
-
-                foreach (Vector3 v in smr.sharedMesh.vertices)
-                    output.Add($"{smr.sharedMesh.name}: {v.x},{v.y},{v.z}");
-                Dbgl($"4.");
-
-                foreach (Vector3 v in customMesh.vertices)
-                    output.Add($"custom mesh: {v.x}");
-                Dbgl($"5.");
-                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes");
-
-                File.WriteAllLines(Path.Combine(path, "dump.txt"), output);
+                return;
             }
         }
 
         private static void PreloadMeshes()
         {
-            string path = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\CustomMeshes";
+            customMeshes.Clear();
+            customGameObjects.Clear();
+
+            Dbgl($"Importing meshes");
+
+            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes");
 
             if (!Directory.Exists(path))
             {
-                Dbgl($"Directory {path} does not exist! Creating.");
                 Directory.CreateDirectory(path);
                 return;
             }
 
-            customMeshes.Clear();
-
-            foreach (string file in Directory.GetFiles(path, "*.obj"))
+            foreach (string dir in Directory.GetDirectories(path))
             {
-                Dbgl($"Adding mesh {file}.");
-                Mesh mesh = new ObjImporter().ImportFile(file);
-                customMeshes.Add(Path.GetFileNameWithoutExtension(file), mesh);
-            }
+                string dirName = Path.GetFileName(dir);
+                Dbgl($"Importing meshes: {dirName}");
 
+                customMeshes[dirName] = new Dictionary<string, Dictionary<string, CustomItemMesh>>();
+                customGameObjects[dirName] = new Dictionary<string, Dictionary<string, GameObject>>();
+
+                foreach (string subdir in Directory.GetDirectories(dir))
+                {
+                    string subdirName = Path.GetFileName(subdir);
+                    Dbgl($"Importing meshes: {dirName}\\{subdirName}");
+
+                    customMeshes[dirName][subdirName] = new Dictionary<string, CustomItemMesh>();
+                    customGameObjects[dirName][subdirName] = new Dictionary<string, GameObject>();
+
+                    foreach (string file in Directory.GetFiles(subdir))
+                    {
+                        try
+                        {
+                            SkinnedMeshRenderer renderer = null;
+                            Mesh mesh = null;
+                            Dbgl($"Importing {file} {Path.GetFileNameWithoutExtension(file)} {Path.GetFileName(file)} {Path.GetExtension(file).ToLower()}");
+                            string name = Path.GetFileNameWithoutExtension(file);
+                            if (name == Path.GetFileName(file))
+                            {
+                                AssetBundle ab = AssetBundle.LoadFromFile(file);
+                                //customAssetBundles.Add(name, ab);
+
+                                GameObject prefab = ab.LoadAsset<GameObject>("Player");
+                                if (prefab != null)
+                                {
+                                    renderer = prefab.GetComponentInChildren<SkinnedMeshRenderer>();
+                                    if (renderer != null)
+                                    {
+                                        mesh = renderer.sharedMesh;
+                                        Dbgl($"Imported {file} asset bundle as player");
+                                    }
+                                    else
+                                    {
+                                        Dbgl($"No SkinnedMeshRenderer on {prefab}");
+                                    }
+                                }
+                                else
+                                {
+                                    mesh = ab.LoadAsset<Mesh>("body");
+
+                                    if (mesh != null)
+                                    {
+                                        Dbgl($"Imported {file} asset bundle as mesh");
+                                    }
+                                    else
+                                    {
+                                        Dbgl("Failed to find body");
+                                    }
+                                }
+                            }
+                            else if (Path.GetExtension(file).ToLower() == ".fbx")
+                            {
+                                GameObject obj = MeshImporter.Load(file)?.transform.Find("Player")?.Find("Visual")?.gameObject;
+                                /*
+                                int children = obj.transform.childCount;
+                                for(int i = 0; i < children; i++)
+                                {
+                                    Dbgl($"fbx child: {obj.transform.GetChild(i).name}");
+                                }
+                                */
+                                renderer = obj.GetComponentInChildren<SkinnedMeshRenderer>();
+                                mesh = obj.GetComponentInChildren<MeshFilter>().mesh;
+                                if (mesh != null)
+                                {
+                                    if (renderer != null)
+                                        Dbgl($"Imported {file} fbx as player");
+                                    else
+                                        Dbgl($"Imported {file} fbx as mesh");
+                                }
+                            }
+                            else if (Path.GetExtension(file).ToLower() == ".obj")
+                            {
+                                mesh = new ObjImporter().ImportFile(file);
+                                if (mesh != null)
+                                    Dbgl($"Imported {file} obj as mesh");
+                            }
+                            if (mesh != null)
+                                customMeshes[dirName][subdirName].Add(name, new CustomItemMesh(dirName, name, mesh, renderer));
+                        }
+                        catch { }
+                    }
+                }
+            }
         }
-        //[HarmonyPatch(typeof(Player), "Awake")]
-        static class Player_FixedUpdate_Patch
+        private static string GetPrefabName(string name)
         {
-            public static bool done = false;
-            static void Postfix(Player __instance) 
+            char[] anyOf = new char[] { '(', ' ' };
+            int num = name.IndexOfAny(anyOf);
+            string result;
+            if (num >= 0)
+                result = name.Substring(0, num);
+            else
+                result = name;
+            return result;
+        }
+        
+        [HarmonyPatch(typeof(ZNetScene), "Awake")]
+        static class ZNetScene_Awake_Patch
+        {
+            static void Postfix() 
             {
-
-                //smr.sharedMesh = customMesh;
+                PreloadMeshes();
             }
+        }        
+        
+        [HarmonyPatch(typeof(ItemDrop), "Awake")]
+        static class ItemDrop_Patch
+        {
+            static void Postfix(ItemDrop __instance) 
+            {
+                string name = __instance.m_itemData.m_dropPrefab.name;
+                if (customMeshes.ContainsKey(name))
+                {
+                    Dbgl($"got item name: {name}");
+                    MeshFilter[] mfs = __instance.m_itemData.m_dropPrefab.GetComponentsInChildren<MeshFilter>(true);
+                    foreach (MeshFilter mf in mfs)
+                    {
+                        string parent = mf.transform.parent.gameObject.name;
+                        Dbgl($"got item name: {name}, obj: {parent}, mf: {mf.name}");
+                        if (name == GetPrefabName(parent) && customMeshes[name].ContainsKey(mf.name) && customMeshes[name][mf.name].ContainsKey(mf.name))
+                        {
+                            Dbgl($"replacing item mesh {mf.name}");
+                            mf.mesh = customMeshes[name][mf.name][mf.name].mesh;
+                        }
+                        else if (customMeshes[name].ContainsKey(parent) && customMeshes[name][parent].ContainsKey(mf.name)) {
+                            Dbgl($"replacing attached mesh {mf.name}");
+                            mf.mesh = customMeshes[name][parent][mf.name].mesh;
+                        }
+                    }
+                }
+            }
+        }        
+                
+        [HarmonyPatch(typeof(Piece), "Awake")]
+        static class Piece_Patch
+        {
+            static void Postfix(Piece __instance) 
+            {
+                string name = GetPrefabName(__instance.gameObject.name);
+                MeshFilter[] mfs = __instance.gameObject.GetComponentsInChildren<MeshFilter>(true);
+
+                if (customMeshes.ContainsKey(name))
+                {
+                    foreach (MeshFilter mf in mfs)
+                    {
+                        string parent = mf.transform.parent.gameObject.name;
+                        Dbgl($"got piece name: {name}, obj: {parent}, mf: {mf.name}");
+                        if (customMeshes[name].ContainsKey(parent) && customMeshes[name][parent].ContainsKey(mf.name))
+                        {
+                            Dbgl($"replacing mesh {mf.name}");
+                            mf.mesh = customMeshes[name][parent][mf.name].mesh;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static Transform RecursiveFind(Transform parent, string childName)
+        {
+            Transform child = null;
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                child = parent.GetChild(i);
+                if (child.name == childName)
+                    break;
+                child = RecursiveFind(child, childName);
+                if (child != null)
+                    break;
+            }
+            return child;
         }
 
         [HarmonyPatch(typeof(VisEquipment), "Awake")]
         static class Awake_Patch
         {
-            public static bool done = false;
             static void Postfix(VisEquipment __instance)
             {
                 Dbgl($"Vis Awake .");
-                List<string> output = new List<string>();
-                foreach (Vector3 v in __instance.m_models[0].m_mesh.vertices)
-                    output.Add($"{__instance.m_models[0].m_mesh.name}: ({v.x},{v.y},{v.z})");
-                Dbgl($"4.");
 
-                foreach (Vector3 v in customMesh.vertices)
-                    output.Add($"custom mesh: {v}");
-                Dbgl($"5.");
-                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes");
+                if (!__instance.m_isPlayer || __instance.m_models.Length == 0)
+                    return;
 
-                File.WriteAllLines(Path.Combine(path, "dump.txt"), output);
-/*
-                __instance.m_models[0].m_mesh.vertices = customMesh.vertices;
-                __instance.m_models[0].m_mesh.RecalculateNormals();
-                return;
-
-                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"CustomMeshes");
-
-                foreach (string file in Directory.GetFiles(path, "*.fbx"))
+                if (customMeshes.ContainsKey("player"))
                 {
-                    string name = Path.GetFileNameWithoutExtension(file);
-                    if(name == "player_model_0")
+                    if (customMeshes["player"].ContainsKey("model"))
                     {
-                        GameObject obj = MeshImporter.Load(file);
-                        obj.name = "player_fbx";
-                        Dbgl($"Adding mesh from {file}.");
-
-                        MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
-                        MeshFilter mr = mrs[0];
-
-                        List<string> output = new List<string>();
-
-                        foreach (Vector3 v in __instance.m_models[0].m_mesh.vertices)
-                            output.Add($"vanilla: {v}");
-
-                        foreach (Vector3 v in mr.mesh.vertices)
-                            output.Add($"imported: {v}");
-
-                        //File.WriteAllLines(Path.Combine(path, "dump.txt"), output);
-
-                        __instance.m_models[0].m_mesh = mr.mesh;
-                        __instance.m_models[0].m_mesh.vertices = mr.mesh.vertices;
-                        //__instance.m_models[0].m_mesh.RecalculateNormals();
-                        continue;
-                    }
-                    if(name == "player_model_1")
-                    {
-                        GameObject obj = MeshImporter.Load(file);
-                        obj.name = "player_fbx";
-                        Dbgl($"Adding mesh from {file}.");
-
-                        MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
-                        MeshFilter mr = mrs[0];
-                        __instance.m_models[1].m_mesh = mr.mesh;
-
-                        //as__instance.m_models[1].m_mesh.vertices = mr.mesh.vertices;
-                        //__instance.m_models[1].m_mesh.RecalculateNormals();
-                        continue;
+                        SkinnedMeshRenderer renderer = null;
+                        if (customMeshes["player"]["model"].ContainsKey("0"))
+                        {
+                            Dbgl($"Replacing player model 0 with imported mesh.");
+                            CustomItemMesh custom = customMeshes["player"]["model"]["0"];
+                            __instance.m_models[0].m_mesh = custom.mesh;
+                            renderer = custom.renderer;
+                        }
+                        if (customMeshes["player"]["model"].ContainsKey("1"))
+                        {
+                            Dbgl($"Replacing player model 1 with imported mesh.");
+                            CustomItemMesh custom = customMeshes["player"]["model"]["1"];
+                            __instance.m_models[1].m_mesh = custom.mesh;
+                            renderer = custom.renderer;
+                        }
+                        if (renderer != null)
+                        {
+                            Transform armature = __instance.m_bodyModel.rootBone.parent;
+                            Dbgl($"Setting up new bones array");
+                            Transform[] newBones = new Transform[renderer.bones.Length];
+                            for (int i = 0; i < newBones.Length; i++)
+                            {
+                                newBones[i] = RecursiveFind(armature, renderer.bones[i].name);
+                                if (newBones[i] == null)
+                                {
+                                    Dbgl($"Could not find existing bone {renderer.bones[i].name}");
+                                }
+                            }
+                            __instance.m_bodyModel.bones = newBones;
+                        }
                     }
                 }
-*/
             }
         }
-        //[HarmonyPatch(typeof(VisEquipment), "UpdateBaseModel")]
-        static class UpdateBaseModel_Patch
+        [HarmonyPatch(typeof(InventoryGui), "SetupDragItem")]
+        static class SetupDragItem_Patch
         {
-            private static bool done;
-
-            static bool Prefix(VisEquipment __instance, ref int ___m_currentModelIndex, int ___m_modelIndex, ZNetView ___m_nview)
+            static void Postfix(ItemDrop.ItemData item)
             {
-                return true;
-                if (__instance.m_models.Length == 0)
-                {
-                    return false;
-                }
-                int num = ___m_modelIndex;
-                if (___m_nview.GetZDO() != null)
-                {
-                    num = ___m_nview.GetZDO().GetInt("ModelIndex", 0);
-                }
-                if (___m_currentModelIndex == num || __instance.m_bodyModel.sharedMesh == __instance.m_models[num].m_mesh)
-                    return false;
-
-                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"CustomMeshes");
-
-                foreach (string file in Directory.GetFiles(path, "*.fbx"))
-                {
-                    string name = Path.GetFileNameWithoutExtension(file);
-                    if(num == 0 && name == "player_model_0")
-                    {
-                        GameObject obj = MeshImporter.Load(file);
-                        obj.name = "player_fbx";
-                        Dbgl($"Adding mesh from {file}.");
-
-                        MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
-                        MeshFilter mr = mrs[0];
-
-                        ___m_currentModelIndex = num;
-                        __instance.m_bodyModel.sharedMesh.vertices = mr.mesh.vertices;
-                        __instance.m_bodyModel.sharedMesh.RecalculateNormals();
-                        __instance.m_bodyModel.materials[0].SetTexture("_MainTex", __instance.m_models[num].m_baseMaterial.GetTexture("_MainTex"));
-                        __instance.m_bodyModel.materials[0].SetTexture("_SkinBumpMap", __instance.m_models[num].m_baseMaterial.GetTexture("_SkinBumpMap"));
-                        return false;
-
-
-                        List<string> output = new List<string>();
-
-                        foreach (Vector3 v in __instance.m_models[0].m_mesh.vertices)
-                            output.Add($"vanilla: {v}");
-
-                        foreach (Vector3 v in mr.mesh.vertices)
-                            output.Add($"imported: {v}");
-
-                        File.WriteAllLines(Path.Combine(path, "dump.txt"), output);
-
-                        __instance.m_models[0].m_mesh.vertices = mr.mesh.vertices;
-                        __instance.m_models[0].m_mesh.RecalculateNormals();
-                        return false;
-                    }
-                    if(num == 110000 && name == "player_model_1")
-                    {
-                        GameObject obj = MeshImporter.Load(file);
-                        obj.name = "player_fbx";
-                        Dbgl($"Adding mesh from {file}.");
-
-                        MeshFilter[] mrs = obj.GetComponentsInChildren<MeshFilter>();
-                        MeshFilter mr = mrs[0];
-
-                        ___m_currentModelIndex = num;
-                        __instance.m_bodyModel.sharedMesh = mr.mesh;
-                        __instance.m_bodyModel.materials[0].SetTexture("_MainTex", __instance.m_models[num].m_baseMaterial.GetTexture("_MainTex"));
-                        __instance.m_bodyModel.materials[0].SetTexture("_SkinBumpMap", __instance.m_models[num].m_baseMaterial.GetTexture("_SkinBumpMap"));
-                        return false;
-
-                        __instance.m_models[1].m_mesh.vertices = mr.mesh.vertices;
-                        __instance.m_models[1].m_mesh.RecalculateNormals();
-                        return false;
-                    }
-                }
-                return true;
-            }
-            public static int ticks = 0;
-            static void Postfix(VisEquipment __instance, ref int ___m_currentModelIndex, int ___m_modelIndex, ZNetView ___m_nview)
-            {
-                return;
-                Dbgl($"Update.");
-                if (ticks++ == 60)
-                {
-                    Dbgl($"distorting.");
-                    for (int i = 0; i < __instance.m_bodyModel.sharedMesh.vertices.Length; i++)
-                        __instance.m_bodyModel.sharedMesh.vertices[i] *= Random.Range(0.1f,2.0f);
-                    ticks = 0;
-                }
-
-                return;
-
-                return;
-                if (done)
+                if (item == null)
                     return;
-                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes");
+                string name = item.m_dropPrefab.name;
+                MeshFilter[] mfs = item.m_dropPrefab.GetComponentsInChildren<MeshFilter>();
+                foreach (MeshFilter mf in mfs)
+                {
+                    Dbgl($"dragging item name: {name}, mf: {mf.name}");
+                }
+            }
+        }
+        [HarmonyPatch(typeof(Player), "Awake")]
+        static class Player_Awake_Patch
+        {
+            static void Postfix(Player __instance)
+            {
+                Dbgl($"Player awake.");
+                if (customGameObjects.ContainsKey("player"))
+                {
+                    if (customGameObjects["player"].ContainsKey("model"))
+                    {
+                        Dbgl($"Got game object.");
 
-                done = true;
-                List<string> output = new List<string>();
+                        GameObject go = __instance.gameObject.transform.Find("Visual")?.Find("Armature")?.gameObject;
+                        if (go == null)
+                        {
+                            Dbgl($"Wrong game object hierarchy.");
+                            return;
+                        }
+                        Dbgl($"Got armature.");
 
-                foreach (Vector3 v in __instance.m_bodyModel.sharedMesh.vertices)
-                    output.Add($"vanilla: {v}");
-                
-                File.WriteAllLines(Path.Combine(path, "dump.txt"), output);
+                        if (customGameObjects["player"]["model"].ContainsKey("0"))
+                        {
+                            Dbgl($"Replacing player armature 0.");
+
+                            GameObject newObject;
+                            Transform parent = go.transform.parent;
+                            Vector3 position = go.transform.position;
+                            Quaternion rotation = go.transform.rotation;
+                            DestroyImmediate(go);
+                            newObject = Instantiate(customGameObjects["player"]["model"]["0"], parent);
+                            newObject.transform.position = position;
+                            newObject.transform.rotation = rotation;
+
+                        }
+                        if (customMeshes["player"]["model"].ContainsKey("1"))
+                        {
+                            Dbgl($"Replacing player armature 1.");
+
+                            GameObject newObject;
+                            newObject = Instantiate(customGameObjects["player"]["model"]["1"]);
+                            newObject.transform.position = go.transform.position;
+                            newObject.transform.rotation = go.transform.rotation;
+                            Transform parent = go.transform.parent;
+                            DestroyImmediate(go);
+                            newObject.transform.parent = parent;
+                        }
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals("meshes dump"))
+                {
+                    List<string> dump = new List<string>();
+
+                    foreach (Collider collider in Physics.OverlapSphere(Player.m_localPlayer.transform.position, 20f, LayerMask.GetMask(new string[] { "piece", "item" })))
+                    {
+                        GameObject go = collider.transform.parent.gameObject;
+                        if (go != null)
+                        {
+                            string name = GetPrefabName(go.name);
+                            if (name == "_NetSceneRoot")
+                                continue;
+                            MeshFilter[] mfs = go.GetComponentsInChildren<MeshFilter>();
+
+                            foreach (MeshFilter mf in mfs)
+                            {
+                                string parent = mf.transform.parent.gameObject.name;
+
+                                if (GetPrefabName(parent) == name)
+                                    parent = mf.name;
+
+                                dump.Add($"piece: {name}, object: {parent}, mesh: {mf.name}; use {name}\\{parent}\\{mf.name}.fbx or {name}\\{parent}\\{mf.name}.obj");
+                            }
+                        }
+                    }
+                    
+                    Dbgl(string.Join("\r\n", dump));
+
+                    try
+                    {
+                        Process.Start(Path.Combine(Application.persistentDataPath, "Player.log"));
+                    }
+                    catch { }
+
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "Nearby piece info dumped to console" }).GetValue();
+                    return false;
+                }
+                return true;
             }
         }
     }

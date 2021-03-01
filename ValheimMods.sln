@@ -53,6 +53,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstantMonsterDrop", "Insta
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingDamageMod", "BuildingDamageMod\BuildingDamageMod.csproj", "{05E33387-F302-4EB9-B002-7DF95DD37CE7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomGraphicsSettings", "CustomGraphicsSettings\CustomGraphicsSettings.csproj", "{FC9E944F-8834-491C-A165-0DABFE80FDD6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscardDroppedItems", "DiscardDroppedItems\DiscardDroppedItems.csproj", "{766FBAFB-85B1-49D1-B262-98DDCFDB668D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoStore", "AutoStore\AutoStore.csproj", "{6BCB72BB-3244-42B5-B283-0C080AD73EA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiningMod", "MiningMod\MiningMod.csproj", "{E6159595-5A40-4248-932C-98624B950FBF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -159,6 +167,22 @@ Global
 		{05E33387-F302-4EB9-B002-7DF95DD37CE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{05E33387-F302-4EB9-B002-7DF95DD37CE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{05E33387-F302-4EB9-B002-7DF95DD37CE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC9E944F-8834-491C-A165-0DABFE80FDD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC9E944F-8834-491C-A165-0DABFE80FDD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC9E944F-8834-491C-A165-0DABFE80FDD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC9E944F-8834-491C-A165-0DABFE80FDD6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{766FBAFB-85B1-49D1-B262-98DDCFDB668D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{766FBAFB-85B1-49D1-B262-98DDCFDB668D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{766FBAFB-85B1-49D1-B262-98DDCFDB668D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{766FBAFB-85B1-49D1-B262-98DDCFDB668D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BCB72BB-3244-42B5-B283-0C080AD73EA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BCB72BB-3244-42B5-B283-0C080AD73EA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BCB72BB-3244-42B5-B283-0C080AD73EA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BCB72BB-3244-42B5-B283-0C080AD73EA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6159595-5A40-4248-932C-98624B950FBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6159595-5A40-4248-932C-98624B950FBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6159595-5A40-4248-932C-98624B950FBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6159595-5A40-4248-932C-98624B950FBF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

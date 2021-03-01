@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.2.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.4.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -31,6 +31,7 @@ namespace CraftFromContainers
         public static ConfigEntry<string> pulledMessage;
         public static ConfigEntry<string> preventModKey;
         public static ConfigEntry<string> fuelDisallowTypes;
+        public static ConfigEntry<string> oreDisallowTypes;
         public static ConfigEntry<bool> switchAddAll;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -51,16 +52,16 @@ namespace CraftFromContainers
         }
         private void Awake()
         {
-            modInstance = this;
-
-            m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from. Set to -1 to allow pulling from all active containers in the world");
+			modInstance = this;
+            m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from");
             resourceString = Config.Bind<string>("General", "ResourceCostString", "{0}/{1}", "String used to show required and available resources. {0} is replaced by how much is available, and {1} is replaced by how much is required");
             flashColor = Config.Bind<Color>("General", "FlashColor", Color.yellow, "Resource amounts will flash to this colour when coming from containers");
             unFlashColor = Config.Bind<Color>("General", "UnFlashColor", Color.white, "Resource amounts will flash from this colour when coming from containers (set both colors to the same color for no flashing)");
             pullItemsKey = Config.Bind<string>("General", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building");
             pulledMessage = Config.Bind<string>("General", "PulledMessage", "Pulled items to inventory", "Message to show after pulling items to player inventory");
             preventModKey = Config.Bind<string>("General", "PreventModKey", "left alt", "Modifier key to toggle fuel and ore filling behaviour when down");
-            fuelDisallowTypes = Config.Bind<string>("General", "FuelDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as fuel.");
+            fuelDisallowTypes = Config.Bind<string>("General", "FuelDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as fuel (i.e. anything that is consumed), comma-separated.");
+            oreDisallowTypes = Config.Bind<string>("General", "OreDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as ore (i.e. anything that is transformed), comma-separated).");
             switchAddAll = Config.Bind<bool>("General", "SwitchAddAll", true, "if true, holding down the modifier key will prevent this mod's behaviour; if false, holding down the key will allow it");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
@@ -96,12 +97,48 @@ namespace CraftFromContainers
                 return false;
             }
         }
+        /*
+        public static List<Container> GetNearbyContainers(Vector3 center)
+        {
+            List<Container> containers = new List<Container>();
+
+            foreach (Collider collider in Physics.OverlapSphere(center, m_range.Value, LayerMask.GetMask(new string[] { "piece" })))
+            {
+                try
+                {
+
+                    Dbgl($"collider name {collider.transform?.name} parent {collider.transform.parent?.name}");
+                    Container c = null;
+                    if (collider.transform.parent.name == "_NetSceneRoot")
+                    {
+                        c = collider.transform.gameObject?.GetComponentInChildren<Container>();
+                        if(c == null)
+                            c = collider.transform.gameObject?.transform.Find("Container").GetComponent<Container>();
+                    }
+                    else if (collider.transform.parent?.Find("Container") != null)
+                        c = collider.transform.parent?.Find("Container").GetComponent<Container>();
+                    else if (collider.transform.parent?.GetComponentInChildren<Container>() != null)
+                        c = collider.transform.parent?.GetComponentInChildren<Container>();
+                    if (c?.GetComponent<ZNetView>()?.IsValid() != true)
+                        continue;
+                    if (c?.transform?.position != null && c.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, c.transform.position) < m_range.Value) && (c.name.StartsWith("piece_chest") || c.name.StartsWith("Container")) && c.GetInventory() != null && Traverse.Create(c).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
+                    {
+                        containers.Add(c);
+                    }
+                }
+                catch
+                {
+                }
+            }
+            return containers;
+        }
+        */
         public static List<Container> GetNearbyContainers(Vector3 center)
         {
             List<Container> containers = new List<Container>();
             foreach (Container container in containerList)
             {
-                if (container != null && container.transform != null && container.GetInventory() != null && (m_range.Value <= 0 ||  Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
+                if (container != null && container.transform != null && container.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
                 {
                     containers.Add(container);
                 }
@@ -118,11 +155,7 @@ namespace CraftFromContainers
                 if ((__instance.name.StartsWith("piece_chest") || __instance.name.StartsWith("Container")) && __instance.GetInventory() != null)
                 {
                     containerList.Add(__instance);
-                    Dbgl($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} added");
                 }
-                else
-                    Dbgl($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} skipped");
-
             }
         }
         [HarmonyPatch(typeof(Container), "OnDestroyed")]
@@ -134,7 +167,8 @@ namespace CraftFromContainers
 
             }
         }
-        
+
+
         [HarmonyPatch(typeof(Fireplace), "Interact")]
         static class Fireplace_Interact_Patch
         {
@@ -213,6 +247,12 @@ namespace CraftFromContainers
                         ItemDrop.ItemData item = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
                         if (item != null)
                         {
+                            if (oreDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
+                            {
+                                Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
+                                continue;
+                            }
+
                             Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
                             __result = item;
                             c.GetInventory().RemoveItem(itemConversion.m_from.m_itemData.m_shared.m_name, 1);
@@ -247,11 +287,12 @@ namespace CraftFromContainers
                         ItemDrop.ItemData item = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
                         if (item != null)
                         {
-                            if (fuelDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
+                            if (oreDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
                             {
                                 Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
                                 continue;
                             }
+
 
                             Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
                             __result = item;

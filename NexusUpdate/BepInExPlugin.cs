@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace NexusUpdate
 {
-    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.6.1")]
+    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.6.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -52,7 +52,7 @@ namespace NexusUpdate
         {
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             showAllManagedMods = Config.Bind<bool>("General", "ShowAllManagedMods", false, "Show all mods that have a nexus ID in the list, even if they are up-to-date");
-            createEmptyConfigFiles = Config.Bind<bool>("General", "CreateEmptyConfigFiles", true, "Create empty GUID-based config files for mods that don't have them (may cause there to be duplicate config files)");
+            createEmptyConfigFiles = Config.Bind<bool>("General", "CreateEmptyConfigFiles", false, "Create empty GUID-based config files for mods that don't have them (may cause there to be duplicate config files)");
             updatesPosition = Config.Bind<Vector2>("General", "UpdatesPosition", new Vector2(40, 40), "Position of the updates list on the screen");
             updateTextWidth = Config.Bind<int>("General", "UpdateTextWidth", 600, "Width of the update text (will wrap if it is too long)");
             buttonWidth = Config.Bind<int>("General", "ButtonWidth", 100, "Width of the update button");
@@ -198,7 +198,7 @@ namespace NexusUpdate
                 string guid = null;
                 try
                 {
-                    var DLL = Assembly.LoadFile(file);
+                    Assembly DLL = Assembly.Load(File.ReadAllBytes(file));
 
                     Type[] types = DLL.GetTypes();
                     foreach (Type type in types)

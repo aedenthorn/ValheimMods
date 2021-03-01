@@ -8,11 +8,12 @@ using UnityEngine;
 
 namespace InstantMonsterDrop
 {
-    [BepInPlugin("aedenthorn.InstantMonsterDrop", "Instant Monster Drop", "0.1.1")]
+    [BepInPlugin("aedenthorn.InstantMonsterDrop", "Instant Monster Drop", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
         private static ConfigEntry<bool> modEnabled;
+        private static ConfigEntry<float> dropDelay;
         private static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -23,7 +24,10 @@ namespace InstantMonsterDrop
         private void Awake()
         {
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            dropDelay = Config.Bind<float>("General", "DropDelay", 0.01f, "Delay before dropping loot");
             nexusID = Config.Bind<int>("General", "NexusID", 164, "Mod ID on the Nexus for update checks");
+            nexusID.Value = 164;
+            Config.Save(); 
             if (!modEnabled.Value)
                 return;
 
@@ -35,7 +39,8 @@ namespace InstantMonsterDrop
         {
             static void Prefix(Ragdoll __instance)
             {
-                __instance.m_ttl = 0f;
+                Dbgl($"Changing death time from {__instance.m_ttl} to {dropDelay.Value}");
+                __instance.m_ttl = dropDelay.Value;
             }
         }
     }

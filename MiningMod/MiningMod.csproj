@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3CA2F556-BB70-402C-ADC3-AC6F0145B6E8}</ProjectGuid>
+    <ProjectGuid>{E6159595-5A40-4248-932C-98624B950FBF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CustomMeshes</RootNamespace>
-    <AssemblyName>CustomMeshes</AssemblyName>
+    <RootNamespace>MiningMod</RootNamespace>
+    <AssemblyName>MiningMod</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony20">
-      <HintPath>..\..\BepInEx\0Harmony20.dll</HintPath>
+      <HintPath>..\BepInEx\0Harmony20.dll</HintPath>
     </Reference>
     <Reference Include="assembly_googleanalytics">
       <HintPath>..\valheim_Data\Managed\assembly_googleanalytics.dll</HintPath>
@@ -46,15 +46,8 @@
     <Reference Include="assembly_valheim">
       <HintPath>..\valheim_Data\Managed\assembly_valheim.dll</HintPath>
     </Reference>
-    <Reference Include="AssimpNet, Version=5.0.0.0, Culture=neutral, PublicKeyToken=0d51b391f59f42a6, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\assimpnet\AssimpNet\bin\Debug\net4\AssimpNet.dll</HintPath>
-    </Reference>
     <Reference Include="BepInEx">
-      <HintPath>..\..\BepInEx\BepInEx.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\BepInEx\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -79,9 +72,6 @@
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>..\valheim_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
@@ -94,12 +84,8 @@
     <Reference Include="UnityEngine.JSONSerializeModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="UnityEngine.PhysicsModule">
       <HintPath>..\..\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.TerrainModule">
-      <HintPath>..\valheim_Data\Managed\UnityEngine.TerrainModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
@@ -122,18 +108,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BepInExPlugin.cs" />
-    <Compile Include="CustomItemMesh.cs" />
-    <Compile Include="TextureLoader.cs" />
-    <Compile Include="OBJLoader.cs" />
-    <Compile Include="MeshImporter.cs" />
-    <Compile Include="ObjImporter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="LICENCE.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

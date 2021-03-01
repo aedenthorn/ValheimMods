@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace ContainersAnywhere
 {
-    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.2.2")]
+    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -107,7 +107,7 @@ namespace ContainersAnywhere
         {
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
-                if(__instance.name.StartsWith("piece_chest") && __instance.GetInventory() != null)
+                if ((__instance.name.StartsWith("piece_chest") || __instance.name.StartsWith("Container")) && __instance.GetInventory() != null)
                     containerList.Add(__instance);
 
             }
