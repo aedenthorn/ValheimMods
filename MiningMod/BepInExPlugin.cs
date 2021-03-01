@@ -12,28 +12,21 @@ using UnityEngine.Networking;
 
 namespace MiningMod
 {
-    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.1.0")]
+    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.1.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
         private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
-        public static ConfigEntry<bool> showAllManagedMods;
-        public static ConfigEntry<bool> createEmptyConfigFiles;
-        public static ConfigEntry<Vector2> updatesPosition;
-        public static ConfigEntry<int> updateTextWidth;
-        public static ConfigEntry<int> fontSize;
-        public static ConfigEntry<Color> updateFontColor;
-        public static ConfigEntry<Color> nonUpdateFontColor;
-        public static ConfigEntry<Color> backgroundColor;
-        public static ConfigEntry<int> betweenSpace;
-        public static ConfigEntry<int> buttonWidth;
-        public static ConfigEntry<int> buttonHeight;
-        public static ConfigEntry<string> updateText;
-        public static ConfigEntry<string> nonUpdateText;
-        public static ConfigEntry<string> checkingUpdatesText;
-        public static ConfigEntry<string> buttonText;
+        public static ConfigEntry<float> damageMult;
+        public static ConfigEntry<int> dropMult;
+        public static ConfigEntry<float> dropMinMult;
+        public static ConfigEntry<float> dropMaxMult;
+        public static ConfigEntry<float> dropChanceMult;
+        public static ConfigEntry<float> rubyDropChance;
+        public static ConfigEntry<float> amberDropChance;
+        public static ConfigEntry<float> amberPearlDropChance;
         public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -44,21 +37,15 @@ namespace MiningMod
         private void Awake()
         {
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            showAllManagedMods = Config.Bind<bool>("General", "ShowAllManagedMods", false, "Show all mods that have a nexus ID in the list, even if they are up-to-date");
-            createEmptyConfigFiles = Config.Bind<bool>("General", "CreateEmptyConfigFiles", false, "Create empty GUID-based config files for mods that don't have them (may cause there to be duplicate config files)");
-            updatesPosition = Config.Bind<Vector2>("General", "UpdatesPosition", new Vector2(40, 40), "Position of the updates list on the screen");
-            updateTextWidth = Config.Bind<int>("General", "UpdateTextWidth", 600, "Width of the update text (will wrap if it is too long)");
-            buttonWidth = Config.Bind<int>("General", "ButtonWidth", 100, "Width of the update button");
-            buttonHeight = Config.Bind<int>("General", "ButtonHeight", 30, "Height of the update button");
-            betweenSpace = Config.Bind<int>("General", "BetweenSpace", 10, "Vertical space between each update in list");
-            fontSize = Config.Bind<int>("General", "FontSize", 16, "Size of the text in the updates list");
-            updateFontColor = Config.Bind<Color>("General", "UpdateFontColor", Color.white, "Color of the text in the updateable list");
-            nonUpdateFontColor = Config.Bind<Color>("General", "NonUpdateFontColor", new Color(0.7f, 0.7f, 0.7f, 1f), "Color of the text in the non-updateable list");
-            updateText = Config.Bind<string>("General", "UpdateText", "<b>{0}</b> (v. {1}) has an updated version: <b>{2}</b>", "Text to show for each update. {0} is replaced by the mod name, {1} is replaced by the current version, and {2} is replaced by the remote version");
-            nonUpdateText = Config.Bind<string>("General", "NonUpdateText", "<b>{0}</b> (v. {1}) is up-to-date!", "Text to show for each update. {0} is replaced by the mod name, {1} is replaced by the current version, and {2} is replaced by the remote version");
-            checkingUpdatesText = Config.Bind<string>("General", "CheckingUpdatesText", "<b>Checking for mod updates...</b>", "Text to show while checking for updates");
-            buttonText = Config.Bind<string>("General", "ButtonText", "<b>Visit</b>", "Text to show for each update button");
-            nexusID = Config.Bind<int>("General", "NexusID", 102, "Nexus mod ID for updates");
+            dropChanceMult = Config.Bind<float>("General", "DropChanceMult", 1.5f, "Multiply the drop chance by this amount");
+            dropMult = Config.Bind<int>("General", "DropMult", 2, "Multiply the amount dropped by this amount (whole number)");
+            dropMinMult = Config.Bind<float>("General", "DropMinMult", 1.1f, "Multiply the minimum amount dropped (before multiplier) by this amount");
+            dropMaxMult = Config.Bind<float>("General", "DropMaxMult", 1.1f, "Multiply the maximum amount dropped (before multiplier) by this amount");
+            rubyDropChance = Config.Bind<float>("General", "RubyDropChance", 0.05f, "Chance of dropping a ruby");
+            amberPearlDropChance = Config.Bind<float>("General", "AmberPearlDropChance", 0.1f, "Chance of dropping amber pearl");
+            amberDropChance = Config.Bind<float>("General", "AmberDropChance", 0.2f, "Chance of dropping amber");
+            damageMult = Config.Bind<float>("General", "DamageMult", 2f, "Damage multiplier to mining rocks");
+            nexusID = Config.Bind<int>("General", "NexusID", 206, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
@@ -66,13 +53,111 @@ namespace MiningMod
 
         }
 
-        [HarmonyPatch(typeof(Smelter), "GetAccumulator")]
-        static class Smelter_GetAccumulator_Patch
+        [HarmonyPatch(typeof(DropTable), "GetDropList", new Type[] { })]
+        static class DropTable_GetDropList_Patch
         {
-            static void Postfix(ref float __result)
+            static void Prefix(ref DropTable __instance)
             {
-                if (__result < 0)
-                    __result = 0;
+                if (Environment.StackTrace.Contains("MineRock"))
+                {
+                    __instance.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropMin);
+                    __instance.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropMax);
+                    __instance.m_dropChance *= dropChanceMult.Value;
+
+                }
+
+            }
+            static void Postfix(ref List<GameObject> __result)
+            {
+                if (Environment.StackTrace.Contains("MineRock"))
+                {
+                    if(dropMult.Value > 1)
+                    {
+                        int count = __result.Count;
+                        for (int i = 0; i < count; i++)
+                        {
+                            for (int j = 0; j < dropMult.Value - 1; j++)
+                            {
+                                __result.Add(__result[i]);
+                            }
+                        }
+                    }
+                    if (UnityEngine.Random.value < rubyDropChance.Value)
+                    {
+                        Dbgl("Dropping ruby");
+                        GameObject go = ZNetScene.instance.GetPrefab("Ruby");
+                        __result.Add(go);
+                    }
+                    if(UnityEngine.Random.value < amberDropChance.Value)
+                    {
+                        Dbgl("Dropping amber");
+                        GameObject go = ZNetScene.instance.GetPrefab("Amber");
+                        __result.Add(go);
+                    }
+                    if (UnityEngine.Random.value < amberPearlDropChance.Value)
+                    {
+                        Dbgl("Dropping amber pearl");
+                        GameObject go = ZNetScene.instance.GetPrefab("AmberPearl");
+                        __result.Add(go);
+                    }
+                }
+
+            }
+        }
+        [HarmonyPatch(typeof(DropTable), "GetDropList", new Type[] {typeof(int) })]
+        static class DropTable_GetDropList_Patch2
+        {
+            static void Prefix(ref int amount)
+            {
+                Dbgl($"GetDropList2 {Environment.StackTrace}");
+
+                if (Environment.StackTrace.Contains("MineRock"))
+                {
+                    Dbgl($"GetDropList2 for mining rock");
+
+                    amount = Mathf.RoundToInt(dropMult.Value * amount);
+                }
+                    
+            }
+        }
+        [HarmonyPatch(typeof(MineRock), "Damage")]
+        static class MineRock_Damage_Patch
+        {
+            static void Prefix(ref HitData hit)
+            {
+                hit.m_damage.m_pickaxe *= damageMult.Value;
+                hit.m_damage.m_blunt *= damageMult.Value;
+                hit.m_damage.m_chop *= damageMult.Value;
+                hit.m_damage.m_pierce *= damageMult.Value;
+            }
+        }
+        [HarmonyPatch(typeof(MineRock5), "Damage")]
+        static class MineRock5_Damage_Patch
+        {
+            static void Prefix(ref HitData hit)
+            {
+                hit.m_damage.m_pickaxe *= damageMult.Value;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals("mining reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "Mining Mod config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
             }
         }
     }

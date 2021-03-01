@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace AutoStore
 {
-    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.0")]
+    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -92,7 +92,7 @@ namespace AutoStore
             {
                 isOn.Value = !isOn.Value;
                 Config.Save();
-                Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(toggleString.Value, toggleKey.Value), 0, null);
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(toggleString.Value, isOn.Value), 0, null);
             }
 
         }
@@ -121,10 +121,10 @@ namespace AutoStore
                 if ((__instance.name.StartsWith("piece_chest") || __instance.name.StartsWith("Container")) && __instance.GetInventory() != null)
                 {
                     containerList.Add(__instance);
-                    Dbgl($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} added");
+                    //Dbgl($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} added");
                 }
                 else
-                    Dbgl($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} skipped");
+                    //($"container {__instance.name}  {__instance.m_name} {__instance.transform?.position} inv {__instance.GetInventory() != null} skipped");
 
             }
         }

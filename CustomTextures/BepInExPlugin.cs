@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.7.2")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.7.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -139,6 +139,9 @@ namespace CustomTextures
             List<string> logDump = new List<string>();
             try
             {
+                if (thingName.EndsWith("_frac"))
+                    return;
+
                 //Dbgl($"loading textures for { gameObject.name}");
                 MeshRenderer[] mrs = gameObject.GetComponentsInChildren<MeshRenderer>(true);
                 SkinnedMeshRenderer[] smrs = gameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true);
@@ -154,20 +157,17 @@ namespace CustomTextures
                             continue;
                         }
                         outputDump.Add($"\t{mr.name}:");
+                        if (mr.materials == null || !mr.materials.Any())
+                            continue;
 
-                        List<Material> mats = new List<Material>();
-                        mats.Add(mr.material);
-                        foreach (Material mat in mr.materials)
-                            mats.Add(mat);
-
-                        foreach (Material m in mats)
+                        foreach (Material m in mr.materials)
                         {
                             outputDump.Add("\t\tproperties:");
                             foreach (string property in m.GetTexturePropertyNames())
                             {
                                 outputDump.Add($"\t\t\t{property}");
                             }
-                            if (m.mainTexture == null)
+                            if (!m.HasProperty("_MainTex"))
                             {
                                 outputDump.Add($"\t\tmain texture is null");
                                 continue;
@@ -203,7 +203,6 @@ namespace CustomTextures
                         }
                     }
                 }
-
                 if (smrs?.Any() == true)
                 {
                     outputDump.Add($"{prefix} {thingName} has {smrs.Length} SkinnedMeshRenderers:");
@@ -214,14 +213,11 @@ namespace CustomTextures
                             outputDump.Add($"\tnull");
                             continue;
                         }
+                        if (smr.materials == null || !smr.materials.Any())
+                            continue;
 
 
-                        List<Material> mats = new List<Material>();
-                        mats.Add(smr.material);
-                        foreach (Material mat in smr.materials)
-                            mats.Add(mat);
-
-                        foreach (Material m in mats)
+                        foreach (Material m in smr.materials)
                         {
                             outputDump.Add("\t\tproperties:");
                             foreach (string property in m.GetTexturePropertyNames())
