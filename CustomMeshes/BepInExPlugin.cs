@@ -154,7 +154,8 @@ namespace CustomMeshes
                                 */
                                 renderer = obj.GetComponentInChildren<SkinnedMeshRenderer>();
                                 mesh = obj.GetComponentInChildren<MeshFilter>().mesh;
-                                if (mesh != null) {
+                                if (mesh != null)
+                                {
                                     if (renderer != null)
                                         Dbgl($"Imported {file} fbx as player");
                                     else
@@ -170,6 +171,7 @@ namespace CustomMeshes
                             if (mesh != null)
                                 customMeshes[dirName][subdirName].Add(name, new CustomItemMesh(dirName, name, mesh, renderer));
                         }
+                        catch { }
                     }
                 }
             }
