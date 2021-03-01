@@ -79,12 +79,12 @@ namespace HereFishy
                     Fish fish = collider.transform.parent?.gameObject?.GetComponent<Fish>();
                     if (fish?.GetComponent<ZNetView>()?.IsValid() == true)
                     {
-                        Dbgl($"got fishy at {fish.gameObject.transform.position}");
+                        //Dbgl($"got fishy at {fish.gameObject.transform.position}");
 
                         float distance = Vector3.Distance(Player.m_localPlayer.transform.position, fish.gameObject.transform.position);
                         if (distance < closest)
                         {
-                            Dbgl($"closest fishy");
+                            //Dbgl($"closest fishy");
                             closest = distance;
                             closestFish = fish;
                         }
@@ -92,7 +92,7 @@ namespace HereFishy
                 }
                 if (closestFish != null)
                 {
-                    Dbgl($"got closest fishy");
+                    Dbgl($"got closest fishy at {closestFish.gameObject.transform.position}");
 
                     currentFish = closestFish;
                     if (playHereFishy.Value && fishyClip != null)

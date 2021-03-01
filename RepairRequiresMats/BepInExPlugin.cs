@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace RepairRequiresMats
 {
-    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.1.0")]
+    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.1.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -69,9 +69,6 @@ namespace RepairRequiresMats
             {
                 if (!___m_tempWornItems.Any())
                     return;
-                GameObject go = (GameObject)typeof(UITooltip).GetField("m_tooltip", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
-                if (go == null)
-                    return;
 
                 List<RepairItemData> freeRepairs = new List<RepairItemData>();
                 List<RepairItemData> enoughRepairs = new List<RepairItemData>();
@@ -124,6 +121,12 @@ namespace RepairRequiresMats
                     orderedWornItems.Add(rid.item);
                 }
                 ___m_tempWornItems = new List<ItemDrop.ItemData>(orderedWornItems);
+
+                UITooltip tt = (UITooltip)typeof(UITooltip).GetField("m_current", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+                GameObject go = (GameObject)typeof(UITooltip).GetField("m_tooltip", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+
+                if (go == null || tt.transform.name != "RepairButton")
+                    return;
 
                 Utils.FindChild(go.transform, "Text").GetComponent<Text>().supportRichText = true;
                 Utils.FindChild(go.transform, "Text").GetComponent<Text>().alignment = TextAnchor.LowerCenter;
