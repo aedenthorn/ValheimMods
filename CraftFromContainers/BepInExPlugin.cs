@@ -616,6 +616,9 @@ namespace CraftFromContainers
                     bool bAddedConnections = false;
                     foreach (CraftingStation station in allStations)
                     {
+                        int connectionIndex = ConnectionExists(station);
+                        bool connectionAlreadyExists = connectionIndex != -1;
+
                         if (Vector3.Distance(station.transform.position, placementGhost.transform.position) < m_range.Value)
                         {
                             bAddedConnections = true;
@@ -623,10 +626,8 @@ namespace CraftFromContainers
                             Vector3 connectionStartPos = station.GetConnectionEffectPoint();
                             Vector3 connectionEndPos = placementGhost.transform.position + Vector3.up * ghostConnectionStartOffset.Value;
 
-                            ConnectionParams tempConnection = null;
-                            int connectionIndex = ConnectionExists(station);
-                            bool connectionAlreadyExists = connectionIndex == -1;
-                            if (connectionAlreadyExists)
+                            ConnectionParams tempConnection = null;    
+                            if (!connectionAlreadyExists)
                             {
                                 tempConnection = new ConnectionParams();
                                 tempConnection.stationPos = station.GetConnectionEffectPoint();
@@ -646,10 +647,15 @@ namespace CraftFromContainers
                                 tempConnection.connection.transform.localScale = new Vector3(1f, 1f, vector3.magnitude);
                             }
 
-                            if (connectionAlreadyExists)
+                            if (!connectionAlreadyExists)
                             {
                                 containerConnections.Add(tempConnection);
                             }
+                        }
+                        else if (connectionAlreadyExists)
+                        {
+                            UnityEngine.Object.Destroy((UnityEngine.Object)containerConnections[connectionIndex].connection);
+                            containerConnections.RemoveAt(connectionIndex);
                         }
                     }
 
