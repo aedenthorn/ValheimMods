@@ -98,18 +98,42 @@ namespace CustomMeshes
                     {
                         try
                         {
-                            GameObject armature = null;
+                            SkinnedMeshRenderer renderer = null;
                             Mesh mesh = null;
                             Dbgl($"Importing {file} {Path.GetFileNameWithoutExtension(file)} {Path.GetFileName(file)} {Path.GetExtension(file).ToLower()}");
                             string name = Path.GetFileNameWithoutExtension(file);
                             if (name == Path.GetFileName(file))
                             {
                                 AssetBundle ab = AssetBundle.LoadFromFile(file);
-                                mesh = ab.LoadAsset<Mesh>("body");
                                 //customAssetBundles.Add(name, ab);
 
-                                if(mesh != null)
-                                    Dbgl($"Imported {file} as asset bundle");
+                                GameObject prefab = ab.LoadAsset<GameObject>("Player");
+                                if (prefab != null)
+                                {
+                                    renderer = prefab.GetComponentInChildren<SkinnedMeshRenderer>();
+                                    if (renderer != null)
+                                    {
+                                        mesh = renderer.sharedMesh;
+                                        Dbgl($"Imported {file} asset bundle as player");
+                                    }
+                                    else
+                                    {
+                                        Dbgl($"No SkinnedMeshRenderer on {prefab}");
+                                    }
+                                }
+                                else
+                                {
+                                    mesh = ab.LoadAsset<Mesh>("body");
+
+                                    if (mesh != null)
+                                    {
+                                        Dbgl($"Imported {file} asset bundle as mesh");
+                                    }
+                                    else
+                                    {
+                                        Dbgl("Failed to find body");
+                                    }
+                                }
                             }
                             else if (Path.GetExtension(file).ToLower() == ".fbx")
                             {
@@ -121,12 +145,14 @@ namespace CustomMeshes
                                     Dbgl($"fbx child: {obj.transform.GetChild(i).name}");
                                 }
                                 */
-                                armature = obj.transform.Find("Armature")?.gameObject;
+                                renderer = obj.GetComponentInChildren<SkinnedMeshRenderer>();
                                 mesh = obj.GetComponentInChildren<MeshFilter>().mesh;
-                                if (mesh != null)
-                                    Dbgl($"Imported {file} fbx as mesh");
-                                if(armature != null)
-                                    Dbgl($"Imported {file} fbx as armature");
+                                if (mesh != null) {
+                                    if (renderer != null)
+                                        Dbgl($"Imported {file} fbx as player");
+                                    else
+                                        Dbgl($"Imported {file} fbx as mesh");
+                                }
                             }
                             else if (Path.GetExtension(file).ToLower() == ".obj")
                             {
@@ -135,12 +161,7 @@ namespace CustomMeshes
                                     Dbgl($"Imported {file} obj as mesh");
                             }
                             if (mesh != null)
-                                customMeshes[dirName][subdirName].Add(name, new CustomItemMesh(dirName, name, mesh));
-                            if (armature != null)
-                            {
-                                customGameObjects[dirName][subdirName].Add(name, armature);
-                                Dbgl($"Imported armature successfully");
-                            }
+                                customMeshes[dirName][subdirName].Add(name, new CustomItemMesh(dirName, name, mesh, renderer));
                         }
                         catch { Dbgl("Error"); }
                     }
@@ -210,7 +231,21 @@ namespace CustomMeshes
                 }
             }
         }
-              
+
+        private static Transform RecursiveFind(Transform parent, string childName)
+        {
+            Transform child = null;
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                child = parent.GetChild(i);
+                if (child.name == childName)
+                    break;
+                child = RecursiveFind(child, childName);
+                if (child != null)
+                    break;
+            }
+            return child;
+        }
 
         [HarmonyPatch(typeof(VisEquipment), "Awake")]
         static class Awake_Patch
@@ -226,15 +261,35 @@ namespace CustomMeshes
                 {
                     if (customMeshes["player"].ContainsKey("model"))
                     {
+                        SkinnedMeshRenderer renderer = null;
                         if (customMeshes["player"]["model"].ContainsKey("0"))
                         {
                             Dbgl($"Replacing player model 0 with imported mesh.");
-                            __instance.m_models[0].m_mesh = customMeshes["player"]["model"]["0"].mesh;
+                            CustomItemMesh custom = customMeshes["player"]["model"]["0"];
+                            __instance.m_models[0].m_mesh = custom.mesh;
+                            renderer = custom.renderer;
                         }
                         if (customMeshes["player"]["model"].ContainsKey("1"))
                         {
                             Dbgl($"Replacing player model 1 with imported mesh.");
-                            __instance.m_models[1].m_mesh = customMeshes["player"]["model"]["1"].mesh;
+                            CustomItemMesh custom = customMeshes["player"]["model"]["1"];
+                            __instance.m_models[1].m_mesh = custom.mesh;
+                            renderer = custom.renderer;
+                        }
+                        if (renderer != null)
+                        {
+                            Transform armature = __instance.m_bodyModel.rootBone.parent;
+                            Dbgl($"Setting up new bones array");
+                            Transform[] newBones = new Transform[renderer.bones.Length];
+                            for (int i = 0; i < newBones.Length; i++)
+                            {
+                                newBones[i] = RecursiveFind(armature, renderer.bones[i].name);
+                                if (newBones[i] == null)
+                                {
+                                    Dbgl($"Could not find existing bone {renderer.bones[i].name}");
+                                }
+                            }
+                            __instance.m_bodyModel.bones = newBones;
                         }
                     }
                 }
