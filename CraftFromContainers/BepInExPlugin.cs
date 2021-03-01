@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -15,7 +16,14 @@ namespace CraftFromContainers
     {
         private static readonly bool isDebug = true;
 
+        private static BepInExPlugin modInstance = null;
+        private static List<ConnectionParams> containerConnections = new List<ConnectionParams>();
+        private static GameObject connectionVfxPrefab = null;
+
         public static ConfigEntry<float> m_range;
+        public static ConfigEntry<bool> showGhostConnections;
+        public static ConfigEntry<float> ghostConnectionStartOffset;
+        public static ConfigEntry<float> ghostConnectionRemovalDelay;
         public static ConfigEntry<Color> flashColor;
         public static ConfigEntry<Color> unFlashColor;
         public static ConfigEntry<string> resourceString;
@@ -31,6 +39,12 @@ namespace CraftFromContainers
         public static List<Container> containerList = new List<Container>();
         private static BepInExPlugin context;
 
+        public class ConnectionParams
+        {
+            public GameObject connection = null;
+            public Vector3 stationPos;
+        }
+
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
@@ -38,6 +52,7 @@ namespace CraftFromContainers
         }
         private void Awake()
         {
+			modInstance = this;
             m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from");
             resourceString = Config.Bind<string>("General", "ResourceCostString", "{0}/{1}", "String used to show required and available resources. {0} is replaced by how much is available, and {1} is replaced by how much is required");
             flashColor = Config.Bind<Color>("General", "FlashColor", Color.yellow, "Resource amounts will flash to this colour when coming from containers");
@@ -50,6 +65,9 @@ namespace CraftFromContainers
             switchAddAll = Config.Bind<bool>("General", "SwitchAddAll", true, "if true, holding down the modifier key will prevent this mod's behaviour; if false, holding down the key will allow it");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
+            showGhostConnections = Config.Bind<bool>("Station Connections", "ShowConnections", false, "If true, will display connections to nearby workstations within range when building containers");
+            ghostConnectionStartOffset = Config.Bind<float>("Station Connections", "ConnectionStartOffset", 1.25f, "Height offset for the connection VFX start position");
+            ghostConnectionRemovalDelay = Config.Bind<float>("Station Connections", "ConnectionRemoveDelay", 0.05f, "");
 
             if (!modEnabled.Value)
                 return;
@@ -61,6 +79,11 @@ namespace CraftFromContainers
             if (CheckKeyHeld(preventModKey.Value))
                 return !switchAddAll.Value;
             return switchAddAll.Value;
+        }
+
+        private void OnDestroy()
+        {
+            StopConnectionEffects();
         }
 
         private static bool CheckKeyHeld(string value)
@@ -544,6 +567,133 @@ namespace CraftFromContainers
                 return false;
             }
         }
+
+        [HarmonyPatch(typeof(Player), "UpdatePlacementGhost")]
+        static class UpdatePlacementGhost_Patch
+        {
+            static void Postfix(Player __instance, bool flashGuardStone)
+            {
+                if (!showGhostConnections.Value)
+                {
+                    return;
+                }
+
+                FieldInfo placementGhostField = typeof(Player).GetField("m_placementGhost", BindingFlags.Instance | BindingFlags.NonPublic);
+                GameObject placementGhost = placementGhostField != null ? (GameObject)placementGhostField.GetValue(__instance) : null;
+                if (placementGhost == null)
+                {
+                    return;
+                }
+
+                Container ghostContainer = placementGhost.GetComponent<Container>();
+                if (ghostContainer == null)
+                {
+                    return;
+                }
+
+                FieldInfo allStationsField = typeof(CraftingStation).GetField("m_allStations", BindingFlags.Static | BindingFlags.NonPublic);
+                List<CraftingStation> allStations = allStationsField != null ? (List<CraftingStation>)allStationsField.GetValue(null) : null;
+
+                if (connectionVfxPrefab == null)
+                {
+                    foreach (GameObject go in Resources.FindObjectsOfTypeAll(typeof(GameObject)) as GameObject[])
+                    {
+                        if (go.name == "vfx_ExtensionConnection")
+                        {
+                            connectionVfxPrefab = go;
+                            break;
+                        }
+                    }
+                }
+
+                if (connectionVfxPrefab == null)
+                {
+                    return;
+                }
+
+                if (allStations != null)
+                {
+                    bool bAddedConnections = false;
+                    foreach (CraftingStation station in allStations)
+                    {
+                        int connectionIndex = ConnectionExists(station);
+                        bool connectionAlreadyExists = connectionIndex != -1;
+
+                        if (Vector3.Distance(station.transform.position, placementGhost.transform.position) < m_range.Value)
+                        {
+                            bAddedConnections = true;
+
+                            Vector3 connectionStartPos = station.GetConnectionEffectPoint();
+                            Vector3 connectionEndPos = placementGhost.transform.position + Vector3.up * ghostConnectionStartOffset.Value;
+
+                            ConnectionParams tempConnection = null;    
+                            if (!connectionAlreadyExists)
+                            {
+                                tempConnection = new ConnectionParams();
+                                tempConnection.stationPos = station.GetConnectionEffectPoint();
+                                tempConnection.connection = UnityEngine.Object.Instantiate<GameObject>(connectionVfxPrefab, connectionStartPos, Quaternion.identity);
+                            }
+                            else
+                            {
+                                tempConnection = containerConnections[connectionIndex];
+                            }
+
+                            if (tempConnection.connection != null)
+                            {
+                                Vector3 vector3 = connectionEndPos - connectionStartPos;
+                                Quaternion quaternion = Quaternion.LookRotation(vector3.normalized);
+                                tempConnection.connection.transform.position = connectionStartPos;
+                                tempConnection.connection.transform.rotation = quaternion;
+                                tempConnection.connection.transform.localScale = new Vector3(1f, 1f, vector3.magnitude);
+                            }
+
+                            if (!connectionAlreadyExists)
+                            {
+                                containerConnections.Add(tempConnection);
+                            }
+                        }
+                        else if (connectionAlreadyExists)
+                        {
+                            UnityEngine.Object.Destroy((UnityEngine.Object)containerConnections[connectionIndex].connection);
+                            containerConnections.RemoveAt(connectionIndex);
+                        }
+                    }
+
+                    if (bAddedConnections && modInstance != null)
+                    {
+                        modInstance.CancelInvoke("StopConnectionEffects");
+                        modInstance.Invoke("StopConnectionEffects", ghostConnectionRemovalDelay.Value);
+                    }
+                }
+            }
+        }
+
+        public static int ConnectionExists(CraftingStation station)
+        {
+            foreach (ConnectionParams c in containerConnections)
+            {
+                if (Vector3.Distance(c.stationPos, station.GetConnectionEffectPoint()) < 0.1f)
+                {
+                    return containerConnections.IndexOf(c);
+                }
+            }
+
+            return -1;
+        }
+
+        public void StopConnectionEffects()
+        {
+            if (containerConnections.Count > 0)
+            {
+                foreach (ConnectionParams c in containerConnections)
+                {
+                    UnityEngine.Object.Destroy((UnityEngine.Object)c.connection);
+                }
+            }
+
+            containerConnections.Clear();
+        }
+
         [HarmonyPatch(typeof(InventoryGui), "OnCraftPressed")]
         static class DoCrafting_Patch
         {
