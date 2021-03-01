@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace MiningMod
 {
-    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.1.1")]
+    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -36,6 +36,7 @@ namespace MiningMod
         }
         private void Awake()
         {
+            context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             dropChanceMult = Config.Bind<float>("General", "DropChanceMult", 1.5f, "Multiply the drop chance by this amount");
             dropMult = Config.Bind<int>("General", "DropMult", 2, "Multiply the amount dropped by this amount (whole number)");
@@ -50,23 +51,41 @@ namespace MiningMod
             if (!modEnabled.Value)
                 return;
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
-
         }
 
-        [HarmonyPatch(typeof(DropTable), "GetDropList", new Type[] { })]
-        static class DropTable_GetDropList_Patch
+        [HarmonyPatch(typeof(MineRock), "Start", new Type[] { })]
+        static class MineRock_Start_Patch
         {
-            static void Prefix(ref DropTable __instance)
+            static void Postfix(ref MineRock __instance)
             {
                 if (Environment.StackTrace.Contains("MineRock"))
                 {
-                    __instance.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropMin);
-                    __instance.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropMax);
-                    __instance.m_dropChance *= dropChanceMult.Value;
+                    __instance.m_dropItems.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropItems.m_dropMin);
+                    __instance.m_dropItems.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropItems.m_dropMax);
+                    __instance.m_dropItems.m_dropChance *= dropChanceMult.Value;
 
                 }
 
             }
+        }
+        [HarmonyPatch(typeof(MineRock5), "Start", new Type[] { })]
+        static class MineRock5_Start_Patch
+        {
+            static void Postfix(ref MineRock5 __instance)
+            {
+                if (Environment.StackTrace.Contains("MineRock"))
+                {
+                    __instance.m_dropItems.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropItems.m_dropMin);
+                    __instance.m_dropItems.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropItems.m_dropMax);
+                    __instance.m_dropItems.m_dropChance *= dropChanceMult.Value;
+
+                }
+
+            }
+        }
+        [HarmonyPatch(typeof(DropTable), "GetDropList", new Type[] { })]
+        static class DropTable_GetDropList_Patch
+        {
             static void Postfix(ref List<GameObject> __result)
             {
                 if (Environment.StackTrace.Contains("MineRock"))
@@ -109,7 +128,6 @@ namespace MiningMod
         {
             static void Prefix(ref int amount)
             {
-                Dbgl($"GetDropList2 {Environment.StackTrace}");
 
                 if (Environment.StackTrace.Contains("MineRock"))
                 {
@@ -137,6 +155,9 @@ namespace MiningMod
             static void Prefix(ref HitData hit)
             {
                 hit.m_damage.m_pickaxe *= damageMult.Value;
+                hit.m_damage.m_blunt *= damageMult.Value;
+                hit.m_damage.m_chop *= damageMult.Value;
+                hit.m_damage.m_pierce *= damageMult.Value;
             }
         }
 

@@ -8,13 +8,16 @@ using UnityEngine.UI;
 
 namespace ClockMod
 {
-    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.6.1")]
+    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
         private static BepInExPlugin context;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> showingClock;
+        public static ConfigEntry<bool> showClockOnChange;
+        public static ConfigEntry<float> showClockOnChangeFadeTime;
+        public static ConfigEntry<float> showClockOnChangeFadeLength;
         public static ConfigEntry<bool> toggleClockKeyOnPress;
         public static ConfigEntry<bool> clockUseOSFont;
         public static ConfigEntry<bool> clockUseShadow;
@@ -38,7 +41,8 @@ namespace ClockMod
         private static GUIStyle style;
         private static GUIStyle style2;
         private static Vector2 clockPosition;
-
+        private static float shownTime = 0;
+        private static string lastTimeString = "";
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
@@ -49,6 +53,9 @@ namespace ClockMod
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             showingClock = Config.Bind<bool>("General", "ShowClock", true, "Show the clock?");
+            showClockOnChange = Config.Bind<bool>("General", "ShowClockOnChange", true, "Only show the clock when the time changes?");
+            showClockOnChangeFadeTime = Config.Bind<float>("General", "ShowClockOnChangeFadeTime", 5f, "If only showing on change, length in seconds to show the clock before begining to fade");
+            showClockOnChangeFadeLength = Config.Bind<float>("General", "ShowClockOnChangeFadeLength", 1f, "How long fade should take in seconds");
             clockLocation = Config.Bind<Vector2>("General", "ClockLocation", new Vector2(Screen.width / 2, 40), "obsolete");
             clockLocationString = Config.Bind<string>("General", "ClockLocationString", "50%,3%", "Location on the screen to show the clock (x,y) or (x%,y%)");
             clockUseOSFont = Config.Bind<bool>("General", "ClockUseOSFont", false, "Set to true to specify the name of a font from your OS; otherwise limited to fonts in the game resources");
@@ -82,7 +89,7 @@ namespace ClockMod
         }
         private void Update()
         {
-            if (modEnabled.Value && !toggleClockKeyOnPress.Value && PressingToggleKey())
+            if (modEnabled.Value && !toggleClockKeyOnPress.Value && PressedToggleKey())
             {
                 bool show = showingClock.Value;
                 showingClock.Value = !show;
@@ -95,16 +102,38 @@ namespace ClockMod
         {
             if (modEnabled.Value && Player.m_localPlayer)
             {
-                if ((!toggleClockKeyOnPress.Value && showingClock.Value) || (toggleClockKeyOnPress.Value && PressingToggleKey()))
+                float alpha = 1f;
+                string newTimeString = GetCurrentTimeString();
+                if (showClockOnChange.Value)
                 {
-
+                    if (newTimeString == lastTimeString)
+                    {
+                        shownTime = 0;
+                        return;
+                    }
+                    if (shownTime > showClockOnChangeFadeTime.Value)
+                    {
+                        if (shownTime > showClockOnChangeFadeTime.Value + showClockOnChangeFadeLength.Value)
+                        {
+                            shownTime = 0;
+                            lastTimeString = newTimeString;
+                            return;
+                        }
+                        alpha = (showClockOnChangeFadeLength.Value + showClockOnChangeFadeTime.Value - shownTime) / showClockOnChangeFadeLength.Value;
+                    }
+                    shownTime += Time.deltaTime;
+                }
+                style.normal.textColor = new Color(clockFontColor.Value.r, clockFontColor.Value.g, clockFontColor.Value.b, clockFontColor.Value.a * alpha); 
+                style2.normal.textColor = new Color(clockShadowColor.Value.r, clockShadowColor.Value.g, clockShadowColor.Value.b, clockShadowColor.Value.a * alpha); 
+                if ((!toggleClockKeyOnPress.Value && showingClock.Value) || (toggleClockKeyOnPress.Value && CheckKeyHeld(toggleClockKey.Value)))
+                {
                     if (clockUseShadow.Value)
                     {
 
-                        GUI.Label(new Rect(clockPosition + new Vector2(-clockShadowOffset.Value, clockShadowOffset.Value), new Vector2(0, 0)), GetCurrentTimeString(), style2);
+                        GUI.Label(new Rect(clockPosition + new Vector2(-clockShadowOffset.Value, clockShadowOffset.Value), new Vector2(0, 0)), newTimeString, style2);
                     }
 
-                    GUI.Label(new Rect(clockPosition, new Vector2(0, 0)), GetCurrentTimeString(), style);
+                    GUI.Label(new Rect(clockPosition, new Vector2(0, 0)), newTimeString, style);
                 }
             }
         }
@@ -119,7 +148,7 @@ namespace ClockMod
                 return true;
             }
         }
-        private bool PressingToggleKey()
+        private bool PressedToggleKey()
         {
             try
             {
@@ -209,7 +238,6 @@ namespace ClockMod
                 alignment = TextAnchor.MiddleCenter,
                 font = clockFont
             };
-            style.normal.textColor = clockFontColor.Value;
             style2 = new GUIStyle
             {
                 richText = true,
@@ -217,7 +245,6 @@ namespace ClockMod
                 alignment = TextAnchor.MiddleCenter,
                 font = clockFont
             };
-            style2.normal.textColor = clockShadowColor.Value;
         }
 
         private string GetCurrentTimeString()
