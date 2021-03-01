@@ -7,12 +7,14 @@ namespace CustomMeshes
         public string objName;
         public string meshName;
         public Mesh mesh;
+        public SkinnedMeshRenderer renderer;
 
-        public CustomItemMesh(string dirName, string name, Mesh mesh)
+        public CustomItemMesh(string dirName, string name, Mesh mesh, SkinnedMeshRenderer renderer = null)
         {
             this.objName = dirName;
             this.meshName = name;
             this.mesh = mesh;
+            this.renderer = renderer;
         }
     }
 }
