@@ -65,6 +65,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepairRequiresMats", "Repai
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HereFishy", "HereFishy\HereFishy.csproj", "{85610E11-6796-40FB-9E7B-32C5CA7C14A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomItems", "CustomItems\CustomItems.csproj", "{EBBED5D5-6E40-4F03-A355-4D0F57E05FDA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -195,6 +197,10 @@ Global
 		{85610E11-6796-40FB-9E7B-32C5CA7C14A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{85610E11-6796-40FB-9E7B-32C5CA7C14A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{85610E11-6796-40FB-9E7B-32C5CA7C14A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBBED5D5-6E40-4F03-A355-4D0F57E05FDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBBED5D5-6E40-4F03-A355-4D0F57E05FDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBBED5D5-6E40-4F03-A355-4D0F57E05FDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBBED5D5-6E40-4F03-A355-4D0F57E05FDA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

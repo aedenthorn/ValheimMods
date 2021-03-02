@@ -16,15 +16,10 @@ namespace CustomMeshes
     {
         private static readonly bool isDebug = true;
 
-        private static Dictionary<string, Dictionary<string, Dictionary<string, CustomMeshData>>> customMeshes = new Dictionary<string, Dictionary<string, Dictionary<string, CustomMeshData>>>();
-        private static Dictionary<string, AssetBundle> customAssetBundles = new Dictionary<string, AssetBundle>();
-        private static Dictionary<string, Dictionary<string, Dictionary<string, GameObject>>> customGameObjects = new Dictionary<string, Dictionary<string, Dictionary<string, GameObject>>>();
+        private static Dictionary<string, CustomItem> customItems = new Dictionary<string, CustomItem>();
         public static ConfigEntry<int> nexusID;
         private static BepInExPlugin context;
-
         public static ConfigEntry<bool> modEnabled;
-
-        public static Mesh customMesh { get; set; }
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -36,21 +31,15 @@ namespace CustomMeshes
             context = this;
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            nexusID = Config.Bind<int>("General", "NexusID", 184, "Nexus id for update checking");
+            nexusID = Config.Bind<int>("General", "NexusID", , "Nexus id for update checking");
 
             if (!modEnabled.Value)
                 return;
-            SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             return;
 
 
-        }
-
-        private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
-        {
-            PreloadMeshes();
         }
 
         private void Update()
@@ -67,13 +56,9 @@ namespace CustomMeshes
             }
         }
 
-        private static void PreloadMeshes()
+        private static void LoadObjects()
         {
-            foreach (AssetBundle ab in customAssetBundles.Values)
-                ab.Unload(true);
-            customMeshes.Clear();
-            customGameObjects.Clear();
-            customAssetBundles.Clear();
+            customObjects.Clear();
 
             Dbgl($"Importing meshes");
 
@@ -90,7 +75,7 @@ namespace CustomMeshes
                 string dirName = Path.GetFileName(dir);
                 Dbgl($"Importing meshes: {dirName}");
 
-                customMeshes[dirName] = new Dictionary<string, Dictionary<string, CustomMeshData>>();
+                customMeshes[dirName] = new Dictionary<string, Dictionary<string, CustomItemMesh>>();
                 customGameObjects[dirName] = new Dictionary<string, Dictionary<string, GameObject>>();
 
                 foreach (string subdir in Directory.GetDirectories(dir))
@@ -98,7 +83,7 @@ namespace CustomMeshes
                     string subdirName = Path.GetFileName(subdir);
                     Dbgl($"Importing meshes: {dirName}\\{subdirName}");
 
-                    customMeshes[dirName][subdirName] = new Dictionary<string, CustomMeshData>();
+                    customMeshes[dirName][subdirName] = new Dictionary<string, CustomItemMesh>();
                     customGameObjects[dirName][subdirName] = new Dictionary<string, GameObject>();
 
                     foreach (string file in Directory.GetFiles(subdir))
@@ -172,7 +157,7 @@ namespace CustomMeshes
                                     Dbgl($"Imported {file} obj as mesh");
                             }
                             if (mesh != null)
-                                customMeshes[dirName][subdirName].Add(name, new CustomMeshData(dirName, name, mesh, renderer));
+                                customMeshes[dirName][subdirName].Add(name, new CustomItemMesh(dirName, name, mesh, renderer));
                         }
                         catch { }
                     }
@@ -196,7 +181,7 @@ namespace CustomMeshes
         {
             static void Postfix()
             {
-                //PreloadMeshes();
+                LoadObjects();
             }
         }
 
@@ -286,14 +271,14 @@ namespace CustomMeshes
                         if (customMeshes["player"]["model"].ContainsKey("0"))
                         {
                             Dbgl($"Replacing player model 0 with imported mesh.");
-                            CustomMeshData custom = customMeshes["player"]["model"]["0"];
+                            CustomItemMesh custom = customMeshes["player"]["model"]["0"];
                             __instance.m_models[0].m_mesh = custom.mesh;
                             renderer = custom.renderer;
                         }
                         if (customMeshes["player"]["model"].ContainsKey("1"))
                         {
                             Dbgl($"Replacing player model 1 with imported mesh.");
-                            CustomMeshData custom = customMeshes["player"]["model"]["1"];
+                            CustomItemMesh custom = customMeshes["player"]["model"]["1"];
                             __instance.m_models[1].m_mesh = custom.mesh;
                             renderer = custom.renderer;
                         }
