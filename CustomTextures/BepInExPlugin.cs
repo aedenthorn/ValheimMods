@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.7.3")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.8.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -105,6 +105,7 @@ namespace CustomTextures
 
                 string id = Path.GetFileNameWithoutExtension(fileName);
                 Texture2D tex = new Texture2D(2, 2, TextureFormat.RGBA32, true,  id.EndsWith("_bump"));
+                tex.filterMode = FilterMode.Point;
                 byte[] imageData = File.ReadAllBytes(file);
                 tex.LoadImage(imageData);
                 customTextures[id] = tex;

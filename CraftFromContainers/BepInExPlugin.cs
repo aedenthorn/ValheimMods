@@ -1,22 +1,20 @@
-﻿using System;
+﻿using BepInEx;
+using BepInEx.Configuration;
+using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
-using BepInEx;
-using BepInEx.Configuration;
-using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.4.4")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.5.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
 
-        private static BepInExPlugin modInstance = null;
         private static List<ConnectionParams> containerConnections = new List<ConnectionParams>();
         private static GameObject connectionVfxPrefab = null;
 
@@ -37,7 +35,7 @@ namespace CraftFromContainers
         public static ConfigEntry<int> nexusID;
 
         public static List<Container> containerList = new List<Container>();
-        private static BepInExPlugin context;
+        private static BepInExPlugin context = null;
 
         public class ConnectionParams
         {
@@ -52,7 +50,7 @@ namespace CraftFromContainers
         }
         private void Awake()
         {
-			modInstance = this;
+			context = this;
             m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from");
             resourceString = Config.Bind<string>("General", "ResourceCostString", "{0}/{1}", "String used to show required and available resources. {0} is replaced by how much is available, and {1} is replaced by how much is required");
             flashColor = Config.Bind<Color>("General", "FlashColor", Color.yellow, "Resource amounts will flash to this colour when coming from containers");
@@ -659,10 +657,10 @@ namespace CraftFromContainers
                         }
                     }
 
-                    if (bAddedConnections && modInstance != null)
+                    if (bAddedConnections && context != null)
                     {
-                        modInstance.CancelInvoke("StopConnectionEffects");
-                        modInstance.Invoke("StopConnectionEffects", ghostConnectionRemovalDelay.Value);
+                        context.CancelInvoke("StopConnectionEffects");
+                        context.Invoke("StopConnectionEffects", ghostConnectionRemovalDelay.Value);
                     }
                 }
             }
@@ -819,6 +817,25 @@ namespace CraftFromContainers
                 }
                 if(pulledMessage.Value?.Length > 0)
                     player.Message(MessageHud.MessageType.Center, pulledMessage.Value, 0, null);
+            }
+        }
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals("craftfromcontainers reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "Craft From Containers config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
             }
         }
     }

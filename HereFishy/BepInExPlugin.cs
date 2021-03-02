@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace HereFishy
 {
-    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.1.0")]
+    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.1.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -181,9 +181,15 @@ namespace HereFishy
         {
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "HereFishy", "herefishy.wav");
 
+            if (!File.Exists(path))
+            {
+                Dbgl($"file {path} does not exist!");
+                yield break;
+            }
             string filename = "file:///" + path.Replace("\\", "/");
+            Dbgl($"getting audio clip from filename: {filename}");
 
-            Dbgl($"filename: {filename}");
+
 
             using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(filename, AudioType.WAV))
             {
