@@ -18,6 +18,8 @@ namespace ContainersAnywhere
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<string> previousKey;
         public static ConfigEntry<string> nextKey;
+        public static ConfigEntry<string> previousTypeKey;
+        public static ConfigEntry<string> nextTypeKey;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
@@ -36,6 +38,8 @@ namespace ContainersAnywhere
             hotKey = Config.Bind<string>("General", "HotKey", "i", "Key press to open the containers. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             previousKey = Config.Bind<string>("General", "PreviousKey", "left", "Key press to switch to the previous container. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             nextKey = Config.Bind<string>("General", "NextKey", "right", "Key press to switch to the next container. Use https://docs.unity3d.com/Manual/class-InputManager.html");
+            previousTypeKey = Config.Bind<string>("General", "PreviousTypeKey", "up", "Key press to switch to the last container of a different type. Use https://docs.unity3d.com/Manual/class-InputManager.html");
+            nextTypeKey = Config.Bind<string>("General", "NextTypeKey", "down", "Key press to switch to the next container of a different type. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 146, "Nexus mod ID for updates");
 
@@ -63,33 +67,71 @@ namespace ContainersAnywhere
                     ((Container)typeof(InventoryGui).GetField("m_currentContainer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(InventoryGui.instance)).SetInUse(false);
                     OpenContainers(-1);
                 }
+                if (CheckKeyDown(previousTypeKey.Value))
+                {
+                    ((Container)typeof(InventoryGui).GetField("m_currentContainer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(InventoryGui.instance)).SetInUse(false);
+                    OpenContainerType(-1);
+
+                }
+                else if (CheckKeyDown(nextTypeKey.Value))
+                {
+                    ((Container)typeof(InventoryGui).GetField("m_currentContainer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(InventoryGui.instance)).SetInUse(false);
+                    OpenContainerType(1);
+                }
+            }
+        }
+
+        private void OpenContainerType(int which)
+        {
+            List<Container> containers = GetContainers();
+
+            currentContainer = currentContainer < 0 ? containers.Count - 1 : currentContainer % containers.Count;
+            string currentType = containers[currentContainer].name;
+            for(int i = 1; i < containers.Count; i++)
+            {
+                int idx = currentContainer + i * which;
+                if (idx < 0)
+                    idx = containers.Count - 1;
+                idx %= containers.Count;
+
+                if(containers[idx].name != currentType)
+                {
+                    Dbgl($"Opening container {idx}/{containers.Count}");
+                    ((ZNetView)typeof(Container).GetField("m_nview", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(containers[idx])).InvokeRPC("RequestOpen", new object[] { Player.m_localPlayer.GetPlayerID() });
+                }
             }
         }
 
         private void OpenContainers(int which)
         {
-            bool changed = false;
-            List<Container> newContainers = new List<Container>();
-            foreach(Container c in containerList)
-            {
-                if (Traverse.Create(c).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
-                    newContainers.Add(c);
-                else
-                {
-                    currentContainer = 0;
-                    changed = true;
-                }
-            }
-            if (changed)
-                containerList = new List<Container>(newContainers);
+            List<Container> containers = GetContainers();
 
-            int container = currentContainer + which < 0 ? containerList.Count - 1 : (currentContainer + which) % containerList.Count;
+
+            int container = currentContainer + which < 0 ? containers.Count - 1 : (currentContainer + which) % containers.Count;
             currentContainer = container;
-            Dbgl($"Opening container {container+1}/{containerList.Count}");
-            ((ZNetView)typeof(Container).GetField("m_nview", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(containerList[container])).InvokeRPC("RequestOpen", new object[]{ Player.m_localPlayer.GetPlayerID() });
+            Dbgl($"Opening container {container+1}/{containers.Count}");
+            ((ZNetView)typeof(Container).GetField("m_nview", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(containers[container])).InvokeRPC("RequestOpen", new object[]{ Player.m_localPlayer.GetPlayerID() });
             
         }
 
+        private List<Container> GetContainers()
+        {
+            Dictionary<string, List<Container>> containerTypes = new Dictionary<string, List<Container>>();
+            foreach (Container c in containerList)
+            {
+                if (Traverse.Create(c).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
+                {
+                    if (!containerTypes.ContainsKey(c.name))
+                        containerTypes[c.name] = new List<Container>();
+                    containerTypes[c.name].Add(c);
+                }
+            }
+            List<Container> newContainers = new List<Container>();
+            foreach (List<Container> cl in containerTypes.Values)
+                foreach (Container c in cl)
+                    newContainers.Add(c);
+            return newContainers;
+        }
         private static bool CheckKeyDown(string value)
         {
             try

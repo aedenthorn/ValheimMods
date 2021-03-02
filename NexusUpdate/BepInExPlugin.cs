@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace NexusUpdate
 {
-    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.6.3")]
+    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -20,6 +20,7 @@ namespace NexusUpdate
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> showAllManagedMods;
         public static ConfigEntry<bool> createEmptyConfigFiles;
+        public static ConfigEntry<bool> updateButtonFirst;
         public static ConfigEntry<Vector2> updatesPosition;
         public static ConfigEntry<int> updateTextWidth;
         public static ConfigEntry<int> fontSize;
@@ -57,6 +58,7 @@ namespace NexusUpdate
             updateTextWidth = Config.Bind<int>("General", "UpdateTextWidth", 600, "Width of the update text (will wrap if it is too long)");
             buttonWidth = Config.Bind<int>("General", "ButtonWidth", 100, "Width of the update button");
             buttonHeight = Config.Bind<int>("General", "ButtonHeight", 30, "Height of the update button");
+            updateButtonFirst = Config.Bind<bool>("General", "updateButtonFirst", false, "If false, will put the button on the right side");
             betweenSpace = Config.Bind<int>("General", "BetweenSpace", 10, "Vertical space between each update in list");
             fontSize = Config.Bind<int>("General", "FontSize", 16, "Size of the text in the updates list");
             updateFontColor = Config.Bind<Color>("General", "UpdateFontColor", Color.white, "Color of the text in the updateable list");
@@ -119,16 +121,30 @@ namespace NexusUpdate
                 for (int i = 0; i < nexusUpdatables.Count; i++)
                 {
                     GUILayout.BeginHorizontal(backStyle, new GUILayoutOption[] { GUILayout.Height(buttonHeight.Value), GUILayout.Width(updateTextWidth.Value + buttonWidth.Value + 20) });
+                    if (updateButtonFirst.Value)
+                    {
+                        if (GUILayout.Button(buttonText.Value, new GUILayoutOption[]{
+                            GUILayout.Width(buttonWidth.Value),
+                            GUILayout.Height(buttonHeight.Value)
+                        }))
+                        {
+                            Application.OpenURL($"https://www.nexusmods.com/valheim/mods/{nexusUpdatables[i].id}/?tab=files");
+                        }
+
+                    }
                     GUILayout.Label(string.Format(updateText.Value, nexusUpdatables[i].name, nexusUpdatables[i].currentVersion, nexusUpdatables[i].version), style, new GUILayoutOption[]{
                         GUILayout.Width(updateTextWidth.Value),
                         GUILayout.Height(buttonHeight.Value)
                     });
-                    if(GUILayout.Button(buttonText.Value, new GUILayoutOption[]{
-                        GUILayout.Width(buttonWidth.Value),
-                        GUILayout.Height(buttonHeight.Value)
-                    }))
+                    if (!updateButtonFirst.Value)
                     {
-                        Application.OpenURL($"https://www.nexusmods.com/valheim/mods/{nexusUpdatables[i].id}/?tab=files");
+                        if (GUILayout.Button(buttonText.Value, new GUILayoutOption[]{
+                            GUILayout.Width(buttonWidth.Value),
+                            GUILayout.Height(buttonHeight.Value)
+                        }))
+                        {
+                            Application.OpenURL($"https://www.nexusmods.com/valheim/mods/{nexusUpdatables[i].id}/?tab=files");
+                        }
                     }
                     GUILayout.EndHorizontal();
                     GUILayout.Space(betweenSpace.Value);
@@ -138,16 +154,29 @@ namespace NexusUpdate
                     for (int i = 0; i < nexusNonupdatables.Count; i++)
                     {
                         GUILayout.BeginHorizontal(backStyle, new GUILayoutOption[] { GUILayout.Height(buttonHeight.Value), GUILayout.Width(updateTextWidth.Value + buttonWidth.Value + 20) });
+                        if (updateButtonFirst.Value)
+                        {
+                            if (GUILayout.Button(buttonText.Value, new GUILayoutOption[]{
+                                GUILayout.Width(buttonWidth.Value),
+                                GUILayout.Height(buttonHeight.Value)
+                            }))
+                            {
+                                Application.OpenURL($"https://www.nexusmods.com/valheim/mods/{nexusNonupdatables[i].id}/?tab=files");
+                            }
+                        }
                         GUILayout.Label(string.Format(nonUpdateText.Value, nexusNonupdatables[i].name, nexusNonupdatables[i].currentVersion, nexusNonupdatables[i].version), style2, new GUILayoutOption[]{
                             GUILayout.Width(updateTextWidth.Value),
                             GUILayout.Height(buttonHeight.Value)
                         });
-                        if (GUILayout.Button(buttonText.Value, new GUILayoutOption[]{
-                            GUILayout.Width(buttonWidth.Value),
-                            GUILayout.Height(buttonHeight.Value)
-                        }))
+                        if (!updateButtonFirst.Value)
                         {
-                            Application.OpenURL($"https://www.nexusmods.com/valheim/mods/{nexusNonupdatables[i].id}/?tab=files");
+                            if (GUILayout.Button(buttonText.Value, new GUILayoutOption[]{
+                                GUILayout.Width(buttonWidth.Value),
+                                GUILayout.Height(buttonHeight.Value)
+                            }))
+                            {
+                                Application.OpenURL($"https://www.nexusmods.com/valheim/mods/{nexusNonupdatables[i].id}/?tab=files");
+                            }
                         }
                         GUILayout.EndHorizontal();
                         GUILayout.Space(betweenSpace.Value);

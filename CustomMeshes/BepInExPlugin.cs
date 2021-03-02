@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -11,7 +12,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomMeshes
 {
-    [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.1.3")]
+    [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.1.4")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -43,8 +44,6 @@ namespace CustomMeshes
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
-            return;
-
 
         }
 
@@ -77,7 +76,7 @@ namespace CustomMeshes
 
             Dbgl($"Importing meshes");
 
-            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomMeshes");
+            string path = Path.Combine(Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath), "CustomMeshes");
 
             if (!Directory.Exists(path))
             {

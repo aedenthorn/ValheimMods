@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace ClockMod
 {
-    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.7.0")]
+    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.8.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -109,7 +109,9 @@ namespace ClockMod
                     if (newTimeString == lastTimeString)
                     {
                         shownTime = 0;
-                        return;
+                        
+                        if(!toggleClockKeyOnPress.Value || !CheckKeyHeld(toggleClockKey.Value))
+                            return;
                     }
                     if (shownTime > showClockOnChangeFadeTime.Value)
                     {
@@ -117,7 +119,8 @@ namespace ClockMod
                         {
                             shownTime = 0;
                             lastTimeString = newTimeString;
-                            return;
+                            if (!toggleClockKeyOnPress.Value || !CheckKeyHeld(toggleClockKey.Value))
+                                return;
                         }
                         alpha = (showClockOnChangeFadeLength.Value + showClockOnChangeFadeTime.Value - shownTime) / showClockOnChangeFadeLength.Value;
                     }
@@ -125,7 +128,7 @@ namespace ClockMod
                 }
                 style.normal.textColor = new Color(clockFontColor.Value.r, clockFontColor.Value.g, clockFontColor.Value.b, clockFontColor.Value.a * alpha); 
                 style2.normal.textColor = new Color(clockShadowColor.Value.r, clockShadowColor.Value.g, clockShadowColor.Value.b, clockShadowColor.Value.a * alpha); 
-                if ((!toggleClockKeyOnPress.Value && showingClock.Value) || (toggleClockKeyOnPress.Value && CheckKeyHeld(toggleClockKey.Value)))
+                if ((!toggleClockKeyOnPress.Value && showingClock.Value) || (toggleClockKeyOnPress.Value && (showClockOnChange.Value || CheckKeyHeld(toggleClockKey.Value))))
                 {
                     if (clockUseShadow.Value)
                     {

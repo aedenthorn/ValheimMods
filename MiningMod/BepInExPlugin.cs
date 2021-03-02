@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace MiningMod
 {
-    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.3.0")]
+    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -107,7 +107,7 @@ namespace MiningMod
         {
             static void Postfix(ref List<GameObject> __result)
             {
-                if (Environment.StackTrace.Contains("MineRock") || (Environment.StackTrace.Contains("DropOnDestroyed") && dropTableObject.Contains("MineRock")))
+                if (Environment.StackTrace.Contains("MineRock") || (Environment.StackTrace.Contains("DropOnDestroyed") && dropTableObject.Contains("Rock")))
                 {
                     if(dropMult.Value > 1)
                     {
@@ -142,10 +142,11 @@ namespace MiningMod
         [HarmonyPatch(typeof(DropTable), "GetDropList", new Type[] {typeof(int) })]
         static class DropTable_GetDropList_Patch2
         {
-            static void Prefix(DropTable __instance, ref int amount)
+            static void Prefix(ref int amount)
             {
-                if (Environment.StackTrace.Contains("MineRock") || (Environment.StackTrace.Contains("DropOnDestroyed") && dropTableObject.Contains("MineRock")))
+                if (Environment.StackTrace.Contains("MineRock") || (Environment.StackTrace.Contains("DropOnDestroyed") && dropTableObject.Contains("Rock")))
                 {
+                    Dbgl($"Getting drops for {dropTableObject}");
                     amount = Mathf.RoundToInt(dropMult.Value * amount);
                 }
             }
@@ -154,8 +155,9 @@ namespace MiningMod
         [HarmonyPatch(typeof(MineRock), "Damage")]
         static class MineRock_Damage_Patch
         {
-            static void Prefix(ref HitData hit)
+            static void Prefix(MineRock __instance, ref HitData hit)
             {
+                Dbgl($"Damaging {__instance.gameObject.name}");
                 hit.m_damage.m_pickaxe *= damageMult.Value;
                 hit.m_damage.m_blunt *= damageMult.Value;
                 hit.m_damage.m_chop *= damageMult.Value;
@@ -165,8 +167,10 @@ namespace MiningMod
         [HarmonyPatch(typeof(MineRock5), "Damage")]
         static class MineRock5_Damage_Patch
         {
-            static void Prefix(ref HitData hit)
+            static void Prefix(MineRock5 __instance, ref HitData hit)
             {
+                Dbgl($"Damaging {__instance.gameObject.name}");
+
                 hit.m_damage.m_pickaxe *= damageMult.Value;
                 hit.m_damage.m_blunt *= damageMult.Value;
                 hit.m_damage.m_chop *= damageMult.Value;
@@ -178,8 +182,9 @@ namespace MiningMod
         {
             static void Prefix(Destructible __instance, ref HitData hit)
             {
-                if (__instance.GetComponent<DropOnDestroyed>())
+                if (__instance.GetComponent<DropOnDestroyed>() && __instance.gameObject.name.Contains("Rock"))
                 {
+                    Dbgl($"Damaging {__instance.gameObject.name}");
                     hit.m_damage.m_pickaxe *= damageMult.Value;
                     hit.m_damage.m_blunt *= damageMult.Value;
                     hit.m_damage.m_chop *= damageMult.Value;

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace QuickLoad
 {
-    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.3.2")]
+    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.4.0")]
     public class QuickLoad: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -78,7 +78,7 @@ namespace QuickLoad
 
 
                 ZNet.SetServer(true, isOn2, isOn, worldName, text, world);
-                ZNet.SetServerHost("", 0);
+                ZNet.ResetServerHost();
 
                 Dbgl($"Set server");
                 try

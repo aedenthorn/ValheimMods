@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.5.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -758,60 +758,57 @@ namespace CraftFromContainers
                         continue;
 
                     string reqName = requirement.m_resItem.m_itemData.m_shared.m_name;
-                    int totalAmount = pInventory.CountItems(reqName);
-                    Dbgl($"have {totalAmount}/{totalRequirement} {reqName} in player inventory");
+                    int totalAmount = 0;
+                    //Dbgl($"have {totalAmount}/{totalRequirement} {reqName} in player inventory");
 
-                    if (totalAmount < totalRequirement)
+                    foreach (Container c in nearbyContainers)
                     {
-                        foreach (Container c in nearbyContainers)
+                        Inventory cInventory = c.GetInventory();
+                        int thisAmount = Mathf.Min(cInventory.CountItems(reqName), totalRequirement - totalAmount);
+
+                        Dbgl($"Container at {c.transform.position} has {cInventory.CountItems(reqName)}");
+
+                        if (thisAmount == 0)
+                            continue;
+
+
+                        for (int i = 0; i < cInventory.GetAllItems().Count; i++)
                         {
-                            Inventory cInventory = c.GetInventory();
-                            int thisAmount = Mathf.Min(cInventory.CountItems(reqName), totalRequirement - totalAmount);
-
-                            Dbgl($"Container at {c.transform.position} has {cInventory.CountItems(reqName)}");
-
-                            if (thisAmount == 0)
-                                continue;
-
-
-                            for (int i = 0; i < cInventory.GetAllItems().Count; i++)
+                            ItemDrop.ItemData item = cInventory.GetItem(i);
+                            if (item.m_shared.m_name == reqName)
                             {
-                                ItemDrop.ItemData item = cInventory.GetItem(i);
-                                if (item.m_shared.m_name == reqName)
-                                {
-                                    Dbgl($"Got stack of {item.m_stack} {reqName}");
-                                    int stackAmount = Mathf.Min(item.m_stack, totalRequirement - totalAmount);
+                                Dbgl($"Got stack of {item.m_stack} {reqName}");
+                                int stackAmount = Mathf.Min(item.m_stack, totalRequirement - totalAmount);
 
-                                    if (!pInventory.HaveEmptySlot())
-                                        stackAmount = Math.Min(Traverse.Create(pInventory).Method("FindFreeStackSpace", new object[] { item.m_shared.m_name }).GetValue<int>(), stackAmount);
+                                if (!pInventory.HaveEmptySlot())
+                                    stackAmount = Math.Min(Traverse.Create(pInventory).Method("FindFreeStackSpace", new object[] { item.m_shared.m_name }).GetValue<int>(), stackAmount);
 
-                                    Dbgl($"Sending {stackAmount} {reqName} to player");
+                                Dbgl($"Sending {stackAmount} {reqName} to player");
 
-                                    ItemDrop.ItemData sendItem = item.Clone();
-                                    sendItem.m_stack = stackAmount;
+                                ItemDrop.ItemData sendItem = item.Clone();
+                                sendItem.m_stack = stackAmount;
 
-                                    pInventory.AddItem(sendItem);
+                                pInventory.AddItem(sendItem);
 
-                                    if (stackAmount == item.m_stack)
-                                        cInventory.RemoveItem(item);
-                                    else
-                                        item.m_stack -= stackAmount;
+                                if (stackAmount == item.m_stack)
+                                    cInventory.RemoveItem(item);
+                                else
+                                    item.m_stack -= stackAmount;
 
-                                    totalAmount += stackAmount;
-                                    Dbgl($"total amount is now {totalAmount}/{totalRequirement} {reqName}");
+                                totalAmount += stackAmount;
+                                Dbgl($"total amount is now {totalAmount}/{totalRequirement} {reqName}");
 
-                                    if (totalAmount >= totalRequirement)
-                                        break;
-                                }
+                                if (totalAmount >= totalRequirement)
+                                    break;
                             }
-                            c.GetType().GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                            cInventory.GetType().GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(cInventory, new object[] { });
+                        }
+                        c.GetType().GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
+                        cInventory.GetType().GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(cInventory, new object[] { });
 
-                            if (totalAmount >= totalRequirement)
-                            {
-                                Dbgl($"pulled enough {reqName}");
-                                break;
-                            }
+                        if (totalAmount >= totalRequirement)
+                        {
+                            Dbgl($"pulled enough {reqName}");
+                            break;
                         }
                     }
                 }
