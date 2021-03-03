@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.9.2")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "0.9.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -21,6 +21,7 @@ namespace CustomTextures
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<int> nexusID;
         public static Dictionary<string, string> customTextures = new Dictionary<string, string>();
+        public static Dictionary<string, Texture2D> cachedTextures = new Dictionary<string, Texture2D>();
         public static List<string> outputDump = new List<string>();
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -98,6 +99,7 @@ namespace CustomTextures
             }
 
             customTextures.Clear();
+            cachedTextures.Clear();
 
             foreach (string file in Directory.GetFiles(path, "*.png", SearchOption.AllDirectories))
             {
@@ -112,10 +114,13 @@ namespace CustomTextures
 
         private static Texture2D LoadTexture(string id)
         {
+            if (cachedTextures.ContainsKey(id))
+                return cachedTextures[id];
             Texture2D tex = new Texture2D(2, 2, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
             tex.filterMode = FilterMode.Point;
             byte[] imageData = File.ReadAllBytes(customTextures[id]);
             tex.LoadImage(imageData);
+            cachedTextures[id] = tex;
             return tex;
         }
 
@@ -142,7 +147,7 @@ namespace CustomTextures
             }
         }
 
-        private static void LoadOneTexture(GameObject gameObject, string thingName, string prefix)
+        private static void LoadOneTexture(GameObject gameObject, string thingName, string prefix, string fallbackTexture = null)
         {
             List<string> logDump = new List<string>();
 
@@ -180,15 +185,17 @@ namespace CustomTextures
                                 outputDump.Add($"\t\t\t{property}");
                             }
                             */
-                            if (!m.HasProperty("_MainTex"))
+                            if (m.mainTexture == null)
                             {
                                 outputDump.Add($"\t\tmr {mr.name} mat {m.name} main texture is null");
-                                continue;
+                                //continue;
                             }
                             idx++;
 
-                            outputDump.Add($"\t\ttexture name: {m.mainTexture.name}");
-                            string name = m.mainTexture.name;
+                            outputDump.Add($"\t\ttexture name: {m.mainTexture?.name}");
+                            string name = m.mainTexture?.name;
+                            if (name == null)
+                                name = thingName;
                             idx++;
 
                             if (customTextures.ContainsKey($"{prefix}_{thingName}_texture"))
@@ -273,19 +280,17 @@ namespace CustomTextures
                     {
                         foreach (Material m in mr.materials)
                         {
-                            /*
                             outputDump.Add("\t\tproperties:");
                             foreach (string property in m.GetTexturePropertyNames())
                             {
                                 outputDump.Add($"\t\t\t{property}");
                             }
-                            */
                             if (m.mainTexture == null)
                             {
-                                outputDump.Add($"\t\tsmr{mr.name} material {m.name} main texture is null");
-                                continue;
+                                outputDump.Add($"\t\tsmr {mr.name} material {m.name} main texture is null");
+                                //continue;
                             }
-                            outputDump.Add($"\t\ttexture name: {m.mainTexture.name}");
+                            outputDump.Add($"\t\ttexture name: {m.mainTexture?.name}");
                             string name = mr.material.mainTexture?.name;
                             if (name == null)
                                 name = thingName;
@@ -420,7 +425,7 @@ namespace CustomTextures
                             Dbgl($"body equipment child {child.name} smr: {s.name}");
                         }
 
-                        LoadOneTexture(child.gameObject, itemName, "item");
+                        LoadOneTexture(child.gameObject, itemName, "item", which);
                     }
                     //Dbgl(string.Join("\n", outputDump));
                 }
@@ -434,7 +439,7 @@ namespace CustomTextures
 
                 }
                 else
-                    Dbgl($"item {itemName}, texture name {smr.material.mainTexture.name}; use item_{itemName}_texture.png");
+                    Dbgl($"item {itemName}, texture name {smr.material.mainTexture?.name}; use item_{itemName}_texture.png");
 
                 if (customTextures.ContainsKey($"item_{itemName}_bump"))
                 {
@@ -470,7 +475,7 @@ namespace CustomTextures
                 {
                     if (customTextures.ContainsKey($"player_model_{i}_texture"))
                     {
-                        __instance.m_models[i].m_baseMaterial.SetTexture("_MainTex", LoadTexture($"player_model_{i}_texture"));
+                        __instance.m_models[i].m_baseMaterial.mainTexture = LoadTexture($"player_model_{i}_texture");
                         Dbgl($"set player_model_{i}_texture custom texture.");
                     }
                     if (customTextures.ContainsKey($"player_model_{i}_bump"))

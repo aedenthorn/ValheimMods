@@ -13,6 +13,7 @@ namespace BuildingDamageMod
     {
         private static readonly bool isDebug = true;
         private static BepInExPlugin context;
+        
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<float> creatorDamageMult;
         public static ConfigEntry<float> nonCreatorDamageMult;
@@ -21,6 +22,8 @@ namespace BuildingDamageMod
         public static ConfigEntry<bool> preventWearDamage;
         public static ConfigEntry<int> nexusID;
 
+        public static float lastMult;
+        public static bool damaging;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -62,36 +65,41 @@ namespace BuildingDamageMod
                 return true;
             }
         }
-        [HarmonyPatch(typeof(WearNTear), "Damage")]
-        static class Damage_Patch
+        [HarmonyPatch(typeof(WearNTear), "RPC_Damage")]
+        static class RPC_Damage_Patch
         {
             static void Prefix(ref HitData hit, ZNetView ___m_nview, Piece ___m_piece)
             {
                 if (!modEnabled.Value)
                     return;
+                damaging = true;
 
-                Dbgl($"attacker: {hit.m_attacker.userID}, creator { ___m_nview.IsOwner()}");
+                //Dbgl($"attacker: {hit.m_attacker.userID}, creator { ___m_nview.IsOwner()}");
                 if (!hit.m_attacker.IsNone())
                 {
                     if (___m_piece.GetCreator() == 0)
                     {
-                        MultiplyDamage(ref hit, uncreatedDamageMult.Value);
+                        lastMult = uncreatedDamageMult.Value;
                     }
                     else if(hit.m_attacker.userID == ___m_piece.GetCreator())
                     {
-                        MultiplyDamage(ref hit, creatorDamageMult.Value);
-                    }
-                    else if(hit.m_attacker.userID == 0)
-                    {
-                        MultiplyDamage(ref hit, naturalDamageMult.Value);
+                        lastMult = creatorDamageMult.Value;
                     }
                     else
                     {
-                        MultiplyDamage(ref hit, nonCreatorDamageMult.Value);
+                        lastMult = nonCreatorDamageMult.Value;
                     }
                 }
+                else
+                {
+                    lastMult = naturalDamageMult.Value;
+                }
+                MultiplyDamage(ref hit, lastMult);
             }
-
+            static void Postfix()
+            {
+                damaging = false;
+            }
             private static void MultiplyDamage(ref HitData hit, float value)
             {
                 value = Math.Max(0, value);

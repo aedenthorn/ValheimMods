@@ -41,6 +41,7 @@ namespace AnimationSpeed
             
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 240, "Nexus mod ID for updates");
+
             interactSpeed = Config.Bind<float>("General", "interactSpeed", 2f, "Speed for interactions");
             jumpSpeed = Config.Bind<float>("General", "jumpSpeed", 2f, "Speed for jumping");
             bowFireSpeed = Config.Bind<float>("General", "bowFireSpeed", 2f, "Speed for firing bows");
@@ -80,104 +81,59 @@ namespace AnimationSpeed
                 string name = ___m_animator.name;
                 if (___m_character.InAttack())
                 {
-                    Dbgl($"{___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name} {AnimatorExtensions.GetCurrentStateName(___m_animator, 0)}");
-                    if (___m_animator.GetCurrentAnimatorStateInfo(0).fullPathHash == Animator.StringToHash("swing_longsword0") || ___m_animator.GetCurrentAnimatorStateInfo(0).IsName("swing_longsword1") || ___m_animator.GetCurrentAnimatorStateInfo(0).IsName("swing_longsword2"))
+                    //Dbgl($"{___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name} {AnimatorExtensions.GetCurrentStateName(___m_animator, 0)}");
+                    if (___m_animator.GetCurrentAnimatorClipInfo(0)?.Any() == true && ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("Attack"))
                     {
-                        Dbgl($"animation {0}: sword");
                         ___m_animator.speed = swordSpeed.Value;
                     }
-                    else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("swing_axe0") || ___m_animator.GetCurrentAnimatorStateInfo(0).IsName("swing_axe1") || ___m_animator.GetCurrentAnimatorStateInfo(0).IsName("swing_axe2"))
+                    else if (___m_animator.GetCurrentAnimatorClipInfo(0)?.Any() == true && ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name == "axe_swing")
                     {
-                        Dbgl($"animation {0}: axe");
                         ___m_animator.speed = axeSpeed.Value;
                     }
-                    else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("knife_stab0") || ___m_animator.GetCurrentAnimatorStateInfo(0).IsName("knife_stab1") || ___m_animator.GetCurrentAnimatorStateInfo(0).IsName("knife_stab2"))
+                    else if (___m_animator.GetCurrentAnimatorClipInfo(0)?.Any() == true && ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("knife_slash"))
                     {
-                        Dbgl($"animation {0}: axe");
                         ___m_animator.speed = knifeSpeed.Value;
                     }
-                    else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("atgeir_attack0") || ___m_animator.GetCurrentAnimatorStateInfo(0).IsName("atgeir_attack1") || ___m_animator.GetCurrentAnimatorStateInfo(0).IsName("atgeir_attack2"))
+                    else if (___m_animator.GetCurrentAnimatorClipInfo(0)?.Any() == true && ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("2Hand-Spear-"))
                     {
-                        Dbgl($"animation {0}: atgeir");
                         ___m_animator.speed = atgeirSpeed.Value;
-                    }
-                    else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("interact"))
-                    {
-                        Dbgl($"animation {0}: interact");
-                        ___m_animator.speed = interactSpeed.Value;
-                    }
-                    else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("jump"))
-                    {
-                        Dbgl($"animation {0}: jump");
-                        ___m_animator.speed = jumpSpeed.Value;
                     }
                     else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("bow_fire"))
                     {
-                        Dbgl($"animation {0}: bow_fire");
                         ___m_animator.speed = bowFireSpeed.Value;
                     }
                     else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("spear_poke"))
                     {
-                        Dbgl($"animation {0}: spear_poke");
                         ___m_animator.speed = spearSpeed.Value;
                     }
                     else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("swing_pickaxe"))
                     {
-                        Dbgl($"animation {0}: swing_pickaxe");
                         ___m_animator.speed = pickAxeSpeed.Value;
                     }
                     
                 }
 
-                return;
-
-                // this works on all animations!
-
-
-                switch (name)
-                {
-                    case "interact":
-                        ___m_animator.speed = interactSpeed.Value;
-                        break;
-                    case "jump":
-                        ___m_animator.speed = jumpSpeed.Value;
-                        break;
-                    case "bow_fire":
-                        ___m_animator.speed = bowFireSpeed.Value;
-                        break;
-                    case "swing_pickaxe":
-                        ___m_animator.speed = pickAxeSpeed.Value;
-                        break;
-                    case "swing_axe0":
-                    case "swing_axe1":
-                    case "swing_axe2":
-                        ___m_animator.speed = axeSpeed.Value;
-                        break;
-                    case "spear_poke":
-                        ___m_animator.speed = spearSpeed.Value;
-                        break;
-                    case "atgeir_attack0":
-                    case "atgeir_attack1":
-                    case "atgeir_attack2":
-                        ___m_animator.speed = atgeirSpeed.Value;
-                        break;
-                    case "swing_longsword0":
-                    case "swing_longsword1":
-                    case "swing_longsword2":
-                        ___m_animator.speed = swordSpeed.Value;
-                        break;
-                    case "knife_stab0":
-                    case "knife_stab1":
-                    case "knife_stab2":
-                        ___m_animator.speed = knifeSpeed.Value;
-                        break;
-                    default:
-                        ___m_animator.speed = 1f;
-                        break;
-                }
-                Dbgl($"animation: {name} new speed {___m_animator.speed} ");
             }
         }
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals("animationspeed reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
 
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "Animation Speed config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
+            }
+        }
     }
 }
