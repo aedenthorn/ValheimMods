@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace DiscardInventoryItem
 {
-    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.3.3")]
+    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.3.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -51,10 +51,13 @@ namespace DiscardInventoryItem
                     if (returnResources.Value > 0)
                     {
                         Recipe recipe = ObjectDB.instance.GetRecipe(___m_dragItem);
-
-                        if (recipe != null)
+                        
+                        if(recipe != null)
+                            Dbgl($"Recipe stack: {recipe.m_amount} num of stacks: {___m_dragAmount / recipe.m_amount}");
+                        
+                        if (recipe != null && ___m_dragAmount / recipe.m_amount > 0)
                         {
-                            for (int i = 0; i < ___m_dragAmount; i++)
+                            for (int i = 0; i < ___m_dragAmount / recipe.m_amount; i++)
                             {
                                 foreach (Piece.Requirement req in recipe.m_resources)
                                 {

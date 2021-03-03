@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace DayCycle
 {
-    [BepInPlugin("aedenthorn.DayCycle", "DayCycle", "0.3.0")]
+    [BepInPlugin("aedenthorn.DayCycle", "DayCycle", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -33,11 +33,11 @@ namespace DayCycle
             context = this;
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            untieSmeltTimes = Config.Bind<bool>("General", "UntieCraftTimes", true, "Make smelting times independent from time scale changes");
-            dayStart = Config.Bind<float>("General", "DayStart", 0.25f, "Fraction of the 24 hours when the day begins");
-            nightStart = Config.Bind<float>("General", "NightStart", 0.75f, "Fraction of the 24 hours when the night begins");
+            //untieSmeltTimes = Config.Bind<bool>("General", "UntieCraftTimes", true, "Make smelting times independent from time scale changes");
+            //dayStart = Config.Bind<float>("General", "DayStart", 0.25f, "Fraction of the 24 hours when the day begins");
+            //nightStart = Config.Bind<float>("General", "NightStart", 0.75f, "Fraction of the 24 hours when the night begins");
             dayRate = Config.Bind<float>("General", "DayRate", 0.5f, "Rate at which the day progresses (0.5 = half speed, etc)");
-            nightRate = Config.Bind<float>("General", "NightRate", 1f, "Rate at which the night progresses (0.5 = half speed, etc)");
+            //nightRate = Config.Bind<float>("General", "NightRate", 1f, "Rate at which the night progresses (0.5 = half speed, etc)");
             nexusID = Config.Bind<int>("General", "NexusID", 98, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
@@ -48,7 +48,7 @@ namespace DayCycle
         }
 
 
-        [HarmonyPatch(typeof(ZNet), "UpdateNetTime")]
+        //[HarmonyPatch(typeof(ZNet), "UpdateNetTime")]
         static class UpdateNetTime_Patch
         {
 
@@ -68,7 +68,16 @@ namespace DayCycle
             }
         }
 
-        [HarmonyPatch(typeof(Smelter), "GetAccumulator")]
+        [HarmonyPatch(typeof(EnvMan), "Awake")]
+        static class EnvMan_Awake_Patch
+        {
+            static void Postfix(ref long ___m_dayLengthSec)
+            {
+                ___m_dayLengthSec = (long)Math.Round(___m_dayLengthSec / dayRate.Value);
+            }
+        }
+
+        //[HarmonyPatch(typeof(Smelter), "GetAccumulator")]
         static class Smelter_GetAccumulator_Patch
         {
             static void Postfix(ref float __result)
@@ -83,8 +92,7 @@ namespace DayCycle
         {
             static bool Prefix(WaterVolume __instance, ref float __result, Vector3 point, float waveFactor)
             {
-                return true;
-                float wrappedDayTimeSeconds = Time.time * (60 * 60 * 24 / 1200f);
+                float wrappedDayTimeSeconds = Time.time / (60 * 60 * 24) * 1200;
                 float depth = Traverse.Create(__instance).Method("Depth", new object[] { point }).GetValue<float>();
                 float num = Traverse.Create(__instance).Method("CalcWave", new object[] { point, depth, wrappedDayTimeSeconds, waveFactor }).GetValue<float>();
                 float num2 = __instance.transform.position.y + num;
@@ -97,11 +105,12 @@ namespace DayCycle
             }
             static void Postfix(float __result)
             {
-                Dbgl($"water surface {__result}");
+                //Dbgl($"water surface {__result}");
             }
         }
 
-        [HarmonyPatch(typeof(ZNet), "GetWrappedDayTimeSeconds")]
+        
+        //[HarmonyPatch(typeof(ZNet), "GetWrappedDayTimeSeconds")]
         static class ZNet_GetWrappedDayTimeSeconds_Patch
         {
             static bool Prefix(double ___m_netTime, ref float __result)
@@ -130,7 +139,7 @@ namespace DayCycle
             }
         }
 
-        [HarmonyPatch(typeof(Smelter), "GetDeltaTime")]
+        //[HarmonyPatch(typeof(Smelter), "GetDeltaTime")]
         static class Smelter_GetDeltaTime_Patch
         {
 
@@ -232,6 +241,10 @@ namespace DayCycle
                 if (text.ToLower().Equals("daycycle reset"))
                 {
                     context.Config.Reload();
+                    context.Config.Save();
+
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "Day Cycle config reloaded" }).GetValue();
                     return false;
                 }
                 return true;

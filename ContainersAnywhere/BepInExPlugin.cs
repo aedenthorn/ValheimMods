@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
@@ -9,7 +10,7 @@ using UnityEngine.UI;
 
 namespace ContainersAnywhere
 {
-    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.3.3")]
+    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.3.5")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -23,9 +24,11 @@ namespace ContainersAnywhere
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
-        public static List<Container> containerList = new List<Container>();
+        
+        public static Dictionary<string, List<Container>> containerDict = new Dictionary<string, List<Container>>();
         private static BepInExPlugin context;
-        private static int currentContainer = 0;
+        private static int currentContainerIndex = 0;
+        private static string currentType = "";
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -50,7 +53,7 @@ namespace ContainersAnywhere
         }
         private void Update()
         {
-            if (!modEnabled.Value || ZNetScene.instance == null || Console.IsVisible() || Chat.instance?.HasFocus() == true)
+            if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses())
                 return;
             if (CheckKeyDown(hotKey.Value))
                 OpenContainers(0);
@@ -83,54 +86,94 @@ namespace ContainersAnywhere
 
         private void OpenContainerType(int which)
         {
-            List<Container> containers = GetContainers();
-
-            currentContainer = currentContainer < 0 ? containers.Count - 1 : currentContainer % containers.Count;
-            string currentType = containers[currentContainer].name;
-            for(int i = 1; i < containers.Count; i++)
+            if (!containerDict.Any())
             {
-                int idx = currentContainer + i * which;
-                if (idx < 0)
-                    idx = containers.Count - 1;
-                idx %= containers.Count;
+                Dbgl("No containers!");
+                return;
+            }
 
-                if(containers[idx].name != currentType)
+            CheckOpenContainer();
+
+
+            List<string> keys = new List<string>();
+
+            foreach(string key in containerDict.Keys)
+            {
+                if (GetContainers(key).Any())
+                    keys.Add(key);
+            }
+
+            if (!keys.Contains(currentType))
+            {
+                currentType = keys[0];
+            }
+            else
+            {
+                int typeNo = keys.IndexOf(currentType);
+
+                currentType = keys[typeNo + which < 0 ? keys.Count - 1 : (typeNo + which) % keys.Count];
+            }
+
+            List<Container> containers = GetContainers(currentType);
+
+            currentContainerIndex = 0;
+
+            Dbgl($"Opening {currentType} container 1/{containers.Count}");
+            ((ZNetView)typeof(Container).GetField("m_nview", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(containers[0])).InvokeRPC("RequestOpen", new object[] { Player.m_localPlayer.GetPlayerID() });
+        }
+
+        private void CheckOpenContainer()
+        {
+            if (InventoryGui.instance?.IsContainerOpen() == true)
+            {
+                Container c = Traverse.Create(InventoryGui.instance).Field("m_currentContainer").GetValue<Container>();
+                if (containerDict.ContainsKey(c.name))
                 {
-                    Dbgl($"Opening container {idx+1}/{containers.Count}");
-                    ((ZNetView)typeof(Container).GetField("m_nview", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(containers[idx])).InvokeRPC("RequestOpen", new object[] { Player.m_localPlayer.GetPlayerID() });
+                    var cl = GetContainers(c.name);
+                    if (cl.Contains(c))
+                    {
+                        currentType = c.name;
+                        currentContainerIndex = cl.IndexOf(c);
+                    }
                 }
             }
         }
 
         private void OpenContainers(int which)
         {
-            List<Container> containers = GetContainers();
+            CheckOpenContainer();
 
-            int container = currentContainer + which < 0 ? containers.Count - 1 : (currentContainer + which) % containers.Count;
-            currentContainer = container;
-            Dbgl($"Opening container {container+1}/{containers.Count}");
+            List<string> keys = containerDict.Keys.ToList();
+            if (!containerDict.ContainsKey(currentType))
+                currentType = keys[0];
+
+            List<Container> containers = GetContainers(currentType);
+
+            int container = currentContainerIndex + which < 0 ? containers.Count - 1 : (currentContainerIndex + which) % containers.Count;
+            currentContainerIndex = container;
+            Dbgl($"Opening {currentType} container {container+1}/{containers.Count}");
             ((ZNetView)typeof(Container).GetField("m_nview", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(containers[container])).InvokeRPC("RequestOpen", new object[]{ Player.m_localPlayer.GetPlayerID() });
             
         }
 
-        private List<Container> GetContainers()
+        private static List<Container> GetContainers(string type)
         {
-            Dictionary<string, List<Container>> containerTypes = new Dictionary<string, List<Container>>();
-            foreach (Container c in containerList)
+            if (!containerDict.ContainsKey(type))
+            {
+                Dbgl($"no containers of type {type}");
+                return new List<Container>();
+            }
+
+            List<Container> newContainers = new List<Container>();
+            foreach (Container c in containerDict[type])
             {
                 if (c == null || Traverse.Create(c).Field("m_nview").GetValue() == null)
                     continue;
-                if (Traverse.Create(c).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
+                if (Traverse.Create(c).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && c.IsOwner())
                 {
-                    if (!containerTypes.ContainsKey(c.name))
-                        containerTypes[c.name] = new List<Container>();
-                    containerTypes[c.name].Add(c);
+                    newContainers.Add(c);
                 }
             }
-            List<Container> newContainers = new List<Container>();
-            foreach (List<Container> cl in containerTypes.Values)
-                foreach (Container c in cl)
-                    newContainers.Add(c);
             return newContainers;
         }
         private static bool CheckKeyDown(string value)
@@ -151,8 +194,11 @@ namespace ContainersAnywhere
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
                 if ((__instance.name.StartsWith("piece_chest") || __instance.name.StartsWith("Container")) && __instance.GetInventory() != null)
-                    containerList.Add(__instance);
-
+                {
+                    if (!containerDict.ContainsKey(__instance.name))
+                        containerDict.Add(__instance.name, new List<Container>());
+                    containerDict[__instance.name].Add(__instance);
+                }
             }
         }
         [HarmonyPatch(typeof(Container), "OnDestroyed")]
@@ -160,8 +206,12 @@ namespace ContainersAnywhere
         {
             static void Prefix(Container __instance)
             {
-                containerList.Remove(__instance);
-
+                if (containerDict.ContainsKey(__instance.name))
+                {
+                    containerDict[__instance.name].Remove(__instance);
+                    if (!containerDict[__instance.name].Any())
+                        containerDict.Remove(__instance.name);
+                }
             }
         }
         [HarmonyPatch(typeof(InventoryGui), "Awake")]
@@ -177,8 +227,12 @@ namespace ContainersAnywhere
         {
             static void Postfix(Container ___m_currentContainer)
             {
-                if (___m_currentContainer && containerList.Contains(___m_currentContainer))
-                    currentContainer = containerList.IndexOf(___m_currentContainer);
+                if (!___m_currentContainer)
+                    return;
+
+                var containers = GetContainers(___m_currentContainer.name);
+                if(containers.Contains(___m_currentContainer))
+                    currentContainerIndex = containers.IndexOf(___m_currentContainer);
             }
         }
         

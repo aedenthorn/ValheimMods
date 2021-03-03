@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.5.2")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.5.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = false;
@@ -120,7 +120,7 @@ namespace AutoFuel
                 List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
 
                 Vector3 position = __instance.transform.position + Vector3.up;
-                foreach (Collider collider in Physics.OverlapSphere(position, containerRange.Value, LayerMask.GetMask(new string[] { "item" })))
+                foreach (Collider collider in Physics.OverlapSphere(position, dropRange.Value, LayerMask.GetMask(new string[] { "item" })))
                 {
                     if (collider?.attachedRigidbody)
                     {

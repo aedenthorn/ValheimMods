@@ -69,6 +69,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonsterAITweaks", "MonsterA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimationSpeed", "AnimationSpeed\AnimationSpeed.csproj", "{84C8AB36-5D72-41C3-B9C4-F00BB2850C17}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapTeleport", "MapTeleport\MapTeleport.csproj", "{96DE9EC4-ACC8-4D91-9E2D-D6D52A9B5425}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -207,6 +209,10 @@ Global
 		{84C8AB36-5D72-41C3-B9C4-F00BB2850C17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84C8AB36-5D72-41C3-B9C4-F00BB2850C17}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84C8AB36-5D72-41C3-B9C4-F00BB2850C17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96DE9EC4-ACC8-4D91-9E2D-D6D52A9B5425}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96DE9EC4-ACC8-4D91-9E2D-D6D52A9B5425}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96DE9EC4-ACC8-4D91-9E2D-D6D52A9B5425}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96DE9EC4-ACC8-4D91-9E2D-D6D52A9B5425}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

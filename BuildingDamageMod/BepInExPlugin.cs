@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace BuildingDamageMod
 {
-    [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.1.0")]
+    [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -65,6 +65,25 @@ namespace BuildingDamageMod
                 return true;
             }
         }
+        [HarmonyPatch(typeof(WearNTear), "RPC_HealthChanged")]
+        static class RPC_HealthChanged_Patch
+        {
+            static bool Prefix(long peer, float health, ZNetView ___m_nview, Piece ___m_piece)
+            {
+                Dbgl($"creator: {___m_piece.GetCreator()} peer {peer}");
+
+                if (nonCreatorDamageMult.Value == 0 && peer != ___m_piece.GetCreator())
+                    return false;
+
+                if (uncreatedDamageMult.Value == 0 && ___m_piece.GetCreator() == 0)
+                    return false;
+
+                if (creatorDamageMult.Value == 0 && ___m_piece.GetCreator() == peer)
+                    return false;
+                return true;
+            }
+        }
+        
         [HarmonyPatch(typeof(WearNTear), "RPC_Damage")]
         static class RPC_Damage_Patch
         {

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace ClockMod
 {
-    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.8.3")]
+    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.8.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -89,7 +89,7 @@ namespace ClockMod
         }
         private void Update()
         {
-            if (!modEnabled.Value || ZNetScene.instance == null || Console.IsVisible() || Chat.instance?.HasFocus() == true || toggleClockKeyOnPress.Value || !PressedToggleKey())
+            if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses() || toggleClockKeyOnPress.Value || !PressedToggleKey())
                 return;
 
             bool show = showingClock.Value;
@@ -100,7 +100,7 @@ namespace ClockMod
 
         private void OnGUI()
         {
-            if (modEnabled.Value && Player.m_localPlayer)
+            if (modEnabled.Value && Player.m_localPlayer && EnvMan.instance)
             {
                 float alpha = 1f;
                 string newTimeString = GetCurrentTimeString();

@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace AutoStore
 {
-    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.3")]
+    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -85,7 +85,7 @@ namespace AutoStore
 
         private void Update()
         {
-            if (!modEnabled.Value || Player.m_localPlayer == null || Console.IsVisible() || Chat.instance?.HasFocus() == true)
+            if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses())
                 return;
             if (CheckKeyDown(toggleKey.Value))
             {
@@ -235,14 +235,18 @@ namespace AutoStore
                             typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance.GetInventory(), new object[] { });
                         }
 
-                        if (item.m_itemData.m_stack == 1 && __instance.GetInventory().CanAddItem(item.m_itemData))
+                        if (item.m_itemData.m_stack == 1 && __instance.GetInventory().CanAddItem(item.m_itemData, 1))
                         {
+                            Traverse.Create(item).Method("Save").GetValue();
                             ItemDrop.ItemData newItem = item.m_itemData.Clone();
+                            item.m_itemData.m_stack = 0;
                             if (___m_nview.GetZDO() == null)
                                 DestroyImmediate(item.gameObject);
                             else
                                 ZNetScene.instance.Destroy(item.gameObject);
                             __instance.GetInventory().AddItem(newItem);
+                            typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { });
+                            typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance.GetInventory(), new object[] { });
                         }
                     }
                 }

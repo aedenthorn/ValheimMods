@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 
 namespace HereFishy
 {
-    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.1.3")]
+    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.1.4")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -66,10 +66,10 @@ namespace HereFishy
         }
         private void Update()
         {
-            if (!modEnabled.Value || Player.m_localPlayer == null || Console.IsVisible() || Chat.instance?.HasFocus() == true)
+            if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses())
                 return;
 
-            if (CheckKeyDown(hotKey.Value))
+            if (AedenthornUtils.CheckKeyDown(hotKey.Value))
             {
                 Dbgl($"pressed hotkey");
                 Traverse.Create(Player.m_localPlayer).Field("m_guardianPowerCooldown").SetValue(0);
@@ -168,17 +168,7 @@ namespace HereFishy
             }
         }
 
-        private static bool CheckKeyDown(string value)
-        {
-            try
-            {
-                return Input.GetKeyDown(value.ToLower());
-            }
-            catch
-            {
-                return false;
-            }
-        }
+
 
         public static IEnumerator PreloadClipsCoroutine()
         {
