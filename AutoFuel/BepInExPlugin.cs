@@ -51,7 +51,7 @@ namespace AutoFuel
 
         private void Update()
         {
-            if (Console.IsVisible())
+            if (ZNetScene.instance == null || Player.m_localPlayer == null || Console.IsVisible() || Chat.instance?.HasFocus() == true)
                 return;
             if (CheckKeyDown(toggleKey.Value))
             {
@@ -250,6 +250,10 @@ namespace AutoFuel
                 if (text.ToLower().Equals("autofuel reset"))
                 {
                     context.Config.Reload();
+                    context.Config.Save();
+
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "AutoFuel config reloaded" }).GetValue();
                     return false;
                 }
                 return true;

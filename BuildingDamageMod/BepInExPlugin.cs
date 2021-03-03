@@ -14,9 +14,10 @@ namespace BuildingDamageMod
         private static readonly bool isDebug = true;
         private static BepInExPlugin context;
         public static ConfigEntry<bool> modEnabled;
-        public static ConfigEntry<bool> preventCreatorDamage;
-        public static ConfigEntry<bool> preventNonCreatorDamage;
-        public static ConfigEntry<bool> preventUncreatedDamage;
+        public static ConfigEntry<float> creatorDamageMult;
+        public static ConfigEntry<float> nonCreatorDamageMult;
+        public static ConfigEntry<float> uncreatedDamageMult;
+        public static ConfigEntry<float> naturalDamageMult;
         public static ConfigEntry<bool> preventWearDamage;
         public static ConfigEntry<int> nexusID;
 
@@ -30,15 +31,14 @@ namespace BuildingDamageMod
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            preventCreatorDamage = Config.Bind<bool>("General", "PreventCreatorDamage", false, "Prevent creators from damaging their own structures.");
-            preventNonCreatorDamage = Config.Bind<bool>("General", "PreventNonCreatorDamage", false, "Prevent damaging structures created by others.");
-            preventUncreatedDamage = Config.Bind<bool>("General", "PreventUncreatedDamage", false, "Prevent damaging structures not created by players.");
-            nexusID = Config.Bind<int>("General", "NexusID", 85, "Nexus mod ID for updates");
+            creatorDamageMult = Config.Bind<float>("General", "CreatorDamagMult", 1f, "Multiply damage by creators by this much");
+            nonCreatorDamageMult = Config.Bind<float>("General", "NonCreatorDamagMult", 1f, "Multiply damage by non-creators by this much");
+            uncreatedDamageMult = Config.Bind<float>("General", "UncreatedDamagMult", 1f, "Multiply damage to uncreated buildings by this much");
+            naturalDamageMult = Config.Bind<float>("General", "NaturalDamagMult", 1f, "Multiply natural wear damage to buildings by this much");
+            nexusID = Config.Bind<int>("General", "NexusID", 233, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
-
-
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
@@ -51,9 +51,12 @@ namespace BuildingDamageMod
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("buildingdamagemod reset"))
+                if (text.ToLower().Equals("buildingdamage reset"))
                 {
                     context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "Building Damage config reloaded" }).GetValue();
                     return false;
                 }
                 return true;
@@ -62,24 +65,47 @@ namespace BuildingDamageMod
         [HarmonyPatch(typeof(WearNTear), "Damage")]
         static class Damage_Patch
         {
-            static bool Prefix(WearNTear __instance, HitData hit, ZNetView ___m_nview, Piece ___m_piece)
+            static void Prefix(ref HitData hit, ZNetView ___m_nview, Piece ___m_piece)
             {
                 if (!modEnabled.Value)
-                    return true;
+                    return;
 
                 Dbgl($"attacker: {hit.m_attacker.userID}, creator { ___m_nview.IsOwner()}");
-                if (!hit.m_attacker.IsNone() && 
-                    (hit.m_attacker.userID != ___m_piece.GetCreator() && preventNonCreatorDamage.Value)
-                    ||
-                    (hit.m_attacker.userID == ___m_piece.GetCreator() && preventCreatorDamage.Value)
-                    ||
-                    (___m_piece.GetCreator() == 0 && preventUncreatedDamage.Value)
-                )
+                if (!hit.m_attacker.IsNone())
                 {
-                    Dbgl("Preventing damage");
-                    return false;
+                    if (___m_piece.GetCreator() == 0)
+                    {
+                        MultiplyDamage(ref hit, uncreatedDamageMult.Value);
+                    }
+                    else if(hit.m_attacker.userID == ___m_piece.GetCreator())
+                    {
+                        MultiplyDamage(ref hit, creatorDamageMult.Value);
+                    }
+                    else if(hit.m_attacker.userID == 0)
+                    {
+                        MultiplyDamage(ref hit, naturalDamageMult.Value);
+                    }
+                    else
+                    {
+                        MultiplyDamage(ref hit, nonCreatorDamageMult.Value);
+                    }
                 }
-                return true;
+            }
+
+            private static void MultiplyDamage(ref HitData hit, float value)
+            {
+                value = Math.Max(0, value);
+                hit.m_damage.m_damage *= value;
+                hit.m_damage.m_blunt *= value;
+                hit.m_damage.m_slash *= value;
+                hit.m_damage.m_pierce *= value;
+                hit.m_damage.m_chop *= value;
+                hit.m_damage.m_pickaxe *= value;
+                hit.m_damage.m_fire *= value;
+                hit.m_damage.m_frost *= value;
+                hit.m_damage.m_lightning *= value;
+                hit.m_damage.m_poison *= value;
+                hit.m_damage.m_spirit *= value;
             }
         }
 

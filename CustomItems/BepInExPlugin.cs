@@ -38,26 +38,12 @@ namespace CustomItems
             if (!modEnabled.Value)
                 return;
 
-            LoadItems();
+            //LoadItems();
 
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+            //Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             return;
 
 
-        }
-
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.U))
-            {
-                return;
-                if (Console.IsVisible())
-                    return;
-
-                Dbgl($"Pressed U.");
-
-                return;
-            }
         }
 
         private static void LoadItems()

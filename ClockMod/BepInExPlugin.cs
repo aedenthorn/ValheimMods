@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace ClockMod
 {
-    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.8.0")]
+    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "0.8.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -53,7 +53,7 @@ namespace ClockMod
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             showingClock = Config.Bind<bool>("General", "ShowClock", true, "Show the clock?");
-            showClockOnChange = Config.Bind<bool>("General", "ShowClockOnChange", true, "Only show the clock when the time changes?");
+            showClockOnChange = Config.Bind<bool>("General", "ShowClockOnChange", false, "Only show the clock when the time changes?");
             showClockOnChangeFadeTime = Config.Bind<float>("General", "ShowClockOnChangeFadeTime", 5f, "If only showing on change, length in seconds to show the clock before begining to fade");
             showClockOnChangeFadeLength = Config.Bind<float>("General", "ShowClockOnChangeFadeLength", 1f, "How long fade should take in seconds");
             clockLocation = Config.Bind<Vector2>("General", "ClockLocation", new Vector2(Screen.width / 2, 40), "obsolete");
@@ -89,13 +89,13 @@ namespace ClockMod
         }
         private void Update()
         {
-            if (modEnabled.Value && !toggleClockKeyOnPress.Value && PressedToggleKey())
-            {
-                bool show = showingClock.Value;
-                showingClock.Value = !show;
-                Config.Save();
-                Dbgl($"show clock: {showingClock.Value}");
-            }
+            if (!modEnabled.Value || ZNetScene.instance == null || Console.IsVisible() || Chat.instance?.HasFocus() == true || toggleClockKeyOnPress.Value || !PressedToggleKey())
+                return;
+
+            bool show = showingClock.Value;
+            showingClock.Value = !show;
+            Config.Save();
+            Dbgl($"show clock: {showingClock.Value}");
         }
 
         private void OnGUI()

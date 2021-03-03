@@ -52,19 +52,6 @@ namespace CustomMeshes
             PreloadMeshes();
         }
 
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.U))
-            {
-                return;
-                if (Console.IsVisible())
-                    return;
-
-                Dbgl($"Pressed U.");
-
-                return;
-            }
-        }
 
         private static void PreloadMeshes()
         {

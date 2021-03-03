@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace AutoStore
 {
-    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.2")]
+    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -85,7 +85,7 @@ namespace AutoStore
 
         private void Update()
         {
-            if (Console.IsVisible())
+            if (!modEnabled.Value || Player.m_localPlayer == null || Console.IsVisible() || Chat.instance?.HasFocus() == true)
                 return;
             if (CheckKeyDown(toggleKey.Value))
             {
@@ -238,14 +238,12 @@ namespace AutoStore
                         if (item.m_itemData.m_stack == 1 && __instance.GetInventory().CanAddItem(item.m_itemData))
                         {
                             ItemDrop.ItemData newItem = item.m_itemData.Clone();
-                            __instance.GetInventory().AddItem(newItem);
-
                             if (___m_nview.GetZDO() == null)
-                                Destroy(item.gameObject);
+                                DestroyImmediate(item.gameObject);
                             else
                                 ZNetScene.instance.Destroy(item.gameObject);
+                            __instance.GetInventory().AddItem(newItem);
                         }
-
                     }
                 }
             }

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace DiscardInventoryItem
 {
-    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.3.0")]
+    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.3.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -17,6 +17,8 @@ namespace DiscardInventoryItem
         public static ConfigEntry<float> returnResources;
         public static ConfigEntry<int> nexusID;
 
+        private static BepInExPlugin context;
+
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
@@ -24,6 +26,8 @@ namespace DiscardInventoryItem
         }
         private void Awake()
         {
+            context = this;
+
             m_hotkey = Config.Bind<string>("General", "DiscardHotkey", "delete", "The hotkey to discard an item");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             returnResources = Config.Bind<float>("General", "ReturnResources", 1f, "Fraction of resources to return");
@@ -66,7 +70,7 @@ namespace DiscardInventoryItem
                                             int stack = Mathf.Min(req.m_resItem.m_itemData.m_shared.m_maxStackSize, numToAdd);
                                             numToAdd -= stack;
 
-                                            if (Player.m_localPlayer.GetInventory().AddItem(prefab.name, stack, req.m_resItem.m_itemData.m_quality, req.m_resItem.m_itemData.m_variant, 0, null) == null)
+                                            if (Player.m_localPlayer.GetInventory().AddItem(prefab.name, stack, req.m_resItem.m_itemData.m_quality, req.m_resItem.m_itemData.m_variant, 0, "") == null)
                                             {
                                                 ItemDrop component = Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward + Player.m_localPlayer.transform.up, Player.m_localPlayer.transform.rotation).GetComponent<ItemDrop>();
                                                 component.m_itemData = newItem.Clone();
@@ -92,6 +96,26 @@ namespace DiscardInventoryItem
                     ___m_dragGo = null; 
                     __instance.GetType().GetMethod("UpdateCraftingPanel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { false });
                 }
+            }
+        }
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals("discardinventoryitem reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
+
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "Discard Inventory Item config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
             }
         }
     }

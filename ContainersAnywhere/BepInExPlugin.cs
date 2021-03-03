@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace ContainersAnywhere
 {
-    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.3.0")]
+    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.3.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -50,7 +50,7 @@ namespace ContainersAnywhere
         }
         private void Update()
         {
-            if (Console.IsVisible())
+            if (!modEnabled.Value || ZNetScene.instance == null || Console.IsVisible() || Chat.instance?.HasFocus() == true)
                 return;
             if (CheckKeyDown(hotKey.Value))
                 OpenContainers(0);
@@ -59,15 +59,15 @@ namespace ContainersAnywhere
                 if (CheckKeyDown(previousKey.Value))
                 {
                     ((Container)typeof(InventoryGui).GetField("m_currentContainer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(InventoryGui.instance)).SetInUse(false);
-                    OpenContainers(1);
+                    OpenContainers(-1);
 
                 }
                 else if (CheckKeyDown(nextKey.Value))
                 {
                     ((Container)typeof(InventoryGui).GetField("m_currentContainer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(InventoryGui.instance)).SetInUse(false);
-                    OpenContainers(-1);
+                    OpenContainers(1);
                 }
-                if (CheckKeyDown(previousTypeKey.Value))
+                else if (CheckKeyDown(previousTypeKey.Value))
                 {
                     ((Container)typeof(InventoryGui).GetField("m_currentContainer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(InventoryGui.instance)).SetInUse(false);
                     OpenContainerType(-1);
@@ -96,7 +96,7 @@ namespace ContainersAnywhere
 
                 if(containers[idx].name != currentType)
                 {
-                    Dbgl($"Opening container {idx}/{containers.Count}");
+                    Dbgl($"Opening container {idx+1}/{containers.Count}");
                     ((ZNetView)typeof(Container).GetField("m_nview", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(containers[idx])).InvokeRPC("RequestOpen", new object[] { Player.m_localPlayer.GetPlayerID() });
                 }
             }
@@ -105,7 +105,6 @@ namespace ContainersAnywhere
         private void OpenContainers(int which)
         {
             List<Container> containers = GetContainers();
-
 
             int container = currentContainer + which < 0 ? containers.Count - 1 : (currentContainer + which) % containers.Count;
             currentContainer = container;
@@ -119,6 +118,8 @@ namespace ContainersAnywhere
             Dictionary<string, List<Container>> containerTypes = new Dictionary<string, List<Container>>();
             foreach (Container c in containerList)
             {
+                if (c == null || Traverse.Create(c).Field("m_nview").GetValue() == null)
+                    continue;
                 if (Traverse.Create(c).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
                 {
                     if (!containerTypes.ContainsKey(c.name))

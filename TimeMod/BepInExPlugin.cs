@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace TimeMod
 {
-    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.4.0")]
+    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.4.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -54,7 +54,7 @@ namespace TimeMod
         }
         private void Update()
         {
-            if (ZNetScene.instance == null || Console.IsVisible())
+            if (ZNetScene.instance == null || Console.IsVisible() || Chat.instance?.HasFocus() == true)
                 return;
 
             string outString = null;
