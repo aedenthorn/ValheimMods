@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using System;
 using System.Collections;
@@ -11,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace NexusUpdate
 {
-    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.7.0")]
+    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.8.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -107,7 +108,10 @@ namespace NexusUpdate
 
                         backStyle.normal.background = result;
             */
+        }
 
+        private void Start()
+        {
             StartCoroutine(CheckPlugins());
         }
 
@@ -116,8 +120,8 @@ namespace NexusUpdate
             if (modEnabled.Value && FejdStartup.instance?.enabled == true)
             {
 
-                GUILayout.BeginArea(new Rect(updatesPosition.Value.x, updatesPosition.Value.y, updateTextWidth.Value + buttonWidth.Value + 30, Screen.height - updatesPosition.Value.y));
-                scrollPosition = GUILayout.BeginScrollView(scrollPosition, new GUILayoutOption[] { GUILayout.Width(updateTextWidth.Value + buttonWidth.Value + 30), GUILayout.Height(Screen.height - updatesPosition.Value.y) });
+                GUILayout.BeginArea(new Rect(updatesPosition.Value.x, updatesPosition.Value.y, updateTextWidth.Value + buttonWidth.Value + 50, Screen.height - updatesPosition.Value.y - 80));
+                scrollPosition = GUILayout.BeginScrollView(scrollPosition, new GUILayoutOption[] { GUILayout.Width(updateTextWidth.Value + buttonWidth.Value + 40), GUILayout.Height(Screen.height - updatesPosition.Value.y - 80) });
                 for (int i = 0; i < nexusUpdatables.Count; i++)
                 {
                     GUILayout.BeginHorizontal(backStyle, new GUILayoutOption[] { GUILayout.Height(buttonHeight.Value), GUILayout.Width(updateTextWidth.Value + buttonWidth.Value + 20) });
@@ -198,64 +202,15 @@ namespace NexusUpdate
         }
         private IEnumerator CheckPlugins()
         {
-            string[] pluginPaths = new string[0];
-            string[] scriptPaths = new string[0]; 
-            try
-            {
-                pluginPaths = Directory.GetFiles(Path.Combine(Directory.GetParent(Path.GetDirectoryName(typeof(BepInProcess).Assembly.Location)).FullName, "plugins"), "*.dll", SearchOption.AllDirectories);
-            }
-            catch
-            {
-            }
-            try
-            {
-                scriptPaths = Directory.GetFiles(Path.Combine(Directory.GetParent(Path.GetDirectoryName(typeof(BepInProcess).Assembly.Location)).FullName, "scripts"), "*.dll", SearchOption.AllDirectories);
-            }
-            catch
-            {
-                
-            }
 
-            string[] files = new string[pluginPaths.Length + scriptPaths.Length];
-            pluginPaths.CopyTo(files, 0);
-            scriptPaths.CopyTo(files, pluginPaths.Length);
+            Dictionary<string, PluginInfo> pluginInfos = Chainloader.PluginInfos;
 
-            foreach (string file in files)
+            foreach (KeyValuePair<string, PluginInfo> kvp in pluginInfos)
             {
-                Version currentVersion = null;
-                string pluginName = null;
-                string guid = null;
-                try
-                {
-                    Assembly DLL = Assembly.Load(File.ReadAllBytes(file));
 
-                    Type[] types = DLL.GetTypes();
-                    foreach (Type type in types)
-                    {
-                        MethodInfo awake = type.GetMethod("Awake", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                        if (awake != null)
-                        {
-                            Version version = type.GetCustomAttribute<BepInPlugin>()?.Version;
-                            if (version != null)
-                            {
-                                currentVersion = version;
-                                pluginName = type.GetCustomAttribute<BepInPlugin>()?.Name;
-                                guid = type.GetCustomAttribute<BepInPlugin>()?.GUID;
-                                break;
-                            }
-                        }
-                    }
-
-                }
-                catch
-                {
-                    continue;
-                }
-                if (currentVersion == null)
-                {
-                    continue;
-                }
-
+                Version currentVersion = kvp.Value.Metadata.Version;
+                string pluginName = kvp.Value.Metadata.Name;
+                string guid = kvp.Value.Metadata.GUID;
 
                 string cfgFile = Path.Combine(new string[]{ Directory.GetParent(Path.GetDirectoryName(typeof(BepInProcess).Assembly.Location)).FullName, "config", $"{guid}.cfg"});
                 //Dbgl($"{cfgFile}");
@@ -281,7 +236,7 @@ namespace NexusUpdate
                 if (id == -1)
                     continue;
 
-                Dbgl($"{pluginName} {id} {file} current version: {currentVersion}");
+                Dbgl($"{pluginName} {id} current version: {currentVersion}");
 
                 WWWForm form = new WWWForm();
 

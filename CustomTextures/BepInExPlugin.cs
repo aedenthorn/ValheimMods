@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.0.0")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.0.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -193,13 +193,11 @@ namespace CustomTextures
                     {
                         foreach (Material m in mr.materials)
                         {
-                            /*
                             outputDump.Add("\t\tproperties:");
                             foreach (string property in m.GetTexturePropertyNames())
                             {
                                 outputDump.Add($"\t\t\t{property}");
                             }
-                            */
                             if (!m.HasProperty("_MainTex") || m.GetTexture("_MainTex") == null)
                             {
                                 outputDump.Add($"\t\tmr {mr.name} mat {m.name} main texture is null");
@@ -221,14 +219,14 @@ namespace CustomTextures
                             else if (customTextures.ContainsKey($"{prefix}mesh_{thingName}_{mr.name}_texture"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}mesh_{thingName}_{mr.name}_texture custom texture.");
-                                m.SetTexture("_MainTex", LoadTexture($"mesh_{thingName}_{name}_texture"));
+                                m.SetTexture("_MainTex", LoadTexture($"{prefix}mesh_{thingName}_{name}_texture"));
                                 m.mainTexture.name = name;
                                 m.color = Color.white;
                             }
                             else if (customTextures.ContainsKey($"{prefix}texture_{thingName}_{name}_texture"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}texture_{thingName}_{name}_texture custom texture.");
-                                m.SetTexture("_MainTex", LoadTexture($"mesh_{thingName}_{name}_texture"));
+                                m.SetTexture("_MainTex", LoadTexture($"{prefix}texture_{thingName}_{name}_texture"));
                                 m.mainTexture.name = name;
                                 m.color = Color.white;
                             }
@@ -244,17 +242,17 @@ namespace CustomTextures
                             if (customTextures.ContainsKey($"{prefix}_{thingName}_bump"))
                             {
                                 logDump.Add($"{prefix} {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}_{thingName}_bump custom bump map.");
-                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}_{name}_bump"));
+                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}_{thingName}_bump"));
                             }
                             else if (customTextures.ContainsKey($"{prefix}mesh_{thingName}_{mr.name}_bump"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}mesh_{thingName}_{mr.name}_bump custom bump map.");
-                                m.SetTexture("_BumpMap", LoadTexture($"mesh_{thingName}_{mr.name}_bump"));
+                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}mesh_{thingName}_{mr.name}_bump"));
                             }
                             else if (customTextures.ContainsKey($"{prefix}texture_{thingName}_{name}_bump"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}texture_{thingName}_{name}_bump custom bump map.");
-                                m.SetTexture("_BumpMap", LoadTexture($"mesh_{thingName}_{name}_bump"));
+                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}texture_{thingName}_{name}_bump"));
                             }
                             else if (customTextures.ContainsKey($"texture_{name}_bump"))
                             {
@@ -265,17 +263,17 @@ namespace CustomTextures
                             if (customTextures.ContainsKey($"{prefix}_{thingName}_style"))
                             {
                                 logDump.Add($"{prefix} {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}_{thingName}_style style texture.");
-                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}_{name}_style"));
+                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}_{thingName}_style"));
                             }
                             else if (customTextures.ContainsKey($"{prefix}mesh_{thingName}_{mr.name}_style"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}mesh_{thingName}_{mr.name}_style style texture.");
-                                m.SetTexture("_StyleTex", LoadTexture($"mesh_{thingName}_{mr.name}_style"));
+                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}mesh_{thingName}_{mr.name}_style"));
                             }
                             else if (customTextures.ContainsKey($"{prefix}texture_{thingName}_{name}_style"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}texture_{thingName}_{name}_style style texture.");
-                                m.SetTexture("_StyleTex", LoadTexture($"mesh_{thingName}_{name}_style"));
+                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}texture_{thingName}_{name}_style"));
                             }
                             else if (customTextures.ContainsKey($"texture_{name}_style"))
                             {

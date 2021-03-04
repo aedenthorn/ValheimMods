@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace MiningMod
 {
-    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.4.0")]
+    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.4.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -56,11 +56,11 @@ namespace MiningMod
         private static string dropTableObject = "";
 
         [HarmonyPatch(typeof(DropOnDestroyed), "Awake")]
-        static class Destructible_Start_Patch
+        static class DropOnDestroyed_Awake_Patch
         {
             static void Postfix(ref DropOnDestroyed __instance)
             {
-                if (__instance.gameObject.name.Contains("MineRock"))
+                if (__instance.gameObject.name.Contains("Rock"))
                 {
                     __instance.m_dropWhenDestroyed.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropWhenDestroyed.m_dropMin);
                     __instance.m_dropWhenDestroyed.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropWhenDestroyed.m_dropMax);
@@ -157,7 +157,7 @@ namespace MiningMod
         {
             static void Prefix(MineRock __instance, ref HitData hit)
             {
-                Dbgl($"Damaging {__instance.gameObject.name}");
+                //Dbgl($"Damaging {__instance.gameObject.name}");
                 hit.m_damage.m_pickaxe *= damageMult.Value;
                 hit.m_damage.m_blunt *= damageMult.Value;
                 hit.m_damage.m_chop *= damageMult.Value;
@@ -169,7 +169,7 @@ namespace MiningMod
         {
             static void Prefix(MineRock5 __instance, ref HitData hit)
             {
-                Dbgl($"Damaging {__instance.gameObject.name}");
+                //Dbgl($"Damaging {__instance.gameObject.name}");
 
                 hit.m_damage.m_pickaxe *= damageMult.Value;
                 hit.m_damage.m_blunt *= damageMult.Value;
@@ -184,7 +184,7 @@ namespace MiningMod
             {
                 if (__instance.GetComponent<DropOnDestroyed>() && __instance.gameObject.name.Contains("Rock"))
                 {
-                    Dbgl($"Damaging {__instance.gameObject.name}");
+                    //Dbgl($"Damaging {__instance.gameObject.name}");
                     hit.m_damage.m_pickaxe *= damageMult.Value;
                     hit.m_damage.m_blunt *= damageMult.Value;
                     hit.m_damage.m_chop *= damageMult.Value;

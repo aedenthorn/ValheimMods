@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.5.1")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.5.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -51,12 +51,6 @@ namespace CustomAudio
         private static void PreloadAudioClips()
         {
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomAudio");
-            if (!Directory.Exists(path))
-            {
-                Dbgl($"Directory {path} does not exist! Creating.");
-                Directory.CreateDirectory(path);
-                return;
-            }
             if (Directory.Exists(path))
             {
                 customMusic.Clear();
@@ -73,7 +67,6 @@ namespace CustomAudio
                 else 
                 {
                     Directory.CreateDirectory(Path.Combine(path, "Music"));
-                    return;
                 }
                 if (Directory.Exists(Path.Combine(path, "SFX")))
                 {
@@ -82,7 +75,6 @@ namespace CustomAudio
                 else 
                 {
                     Directory.CreateDirectory(Path.Combine(path, "SFX"));
-                    return;
                 }
                 if (Directory.Exists(Path.Combine(path, "Ambient")))
                 {
@@ -91,8 +83,15 @@ namespace CustomAudio
                 else 
                 {
                     Directory.CreateDirectory(Path.Combine(path, "Ambient"));
-                    return;
                 }
+            }
+            else
+            {
+                Dbgl($"Directory {path} does not exist! Creating.");
+                Directory.CreateDirectory(path);
+                Directory.CreateDirectory(Path.Combine(path, "Ambient"));
+                Directory.CreateDirectory(Path.Combine(path, "Music"));
+                Directory.CreateDirectory(Path.Combine(path, "SFX"));
             }
         }
 
@@ -151,7 +150,7 @@ namespace CustomAudio
                             ac.name = name;
                             if (!whichDict.ContainsKey(name))
                                 whichDict[name] = ac;
-                            Dbgl($"\t\tadded audio clip {name} to dict");
+                            Dbgl($"Added audio clip {name} to dict");
                         }
                         else
                         {
@@ -324,12 +323,12 @@ namespace CustomAudio
                 }
                 if (___m_currentMusic != null && !___m_musicSource.isPlaying && PlayerPrefs.GetInt("ContinousMusic", 1) == 1)
                 {
-                    Dbgl($"done {___m_musicSource.clip?.name}, setting queued to current {___m_currentMusic.m_clips.Length}");
+                    //Dbgl($"done {___m_musicSource.clip?.name}, setting queued to current {___m_currentMusic.m_clips.Length}");
                     ___m_queuedMusic = ___m_currentMusic;
                 }
                 if (___m_queuedMusic != null)
                 {
-                    Dbgl($"queued, setting loop to false {___m_queuedMusic.m_clips.Length}");
+                    //Dbgl($"queued, setting loop to false {___m_queuedMusic.m_clips.Length}");
                     ___m_queuedMusic.m_loop = false;
                 }
             }

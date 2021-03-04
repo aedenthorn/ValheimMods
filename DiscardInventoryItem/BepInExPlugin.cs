@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace DiscardInventoryItem
 {
-    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.3.4")]
+    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.3.5")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -90,8 +90,9 @@ namespace DiscardInventoryItem
 
                     if (___m_dragAmount == ___m_dragItem.m_stack)
                     {
+                        Player.m_localPlayer.RemoveFromEquipQueue(___m_dragItem);
+                        Player.m_localPlayer.UnequipItem(___m_dragItem, false);
                         ___m_dragInventory.RemoveItem(___m_dragItem);
-
                     }
                     else
                         ___m_dragInventory.RemoveItem(___m_dragItem, ___m_dragAmount);
