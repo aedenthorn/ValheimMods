@@ -71,6 +71,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimationSpeed", "Animation
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapTeleport", "MapTeleport\MapTeleport.csproj", "{96DE9EC4-ACC8-4D91-9E2D-D6D52A9B5425}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SleepWithoutSpawn", "SleepWithoutSpawn\SleepWithoutSpawn.csproj", "{E9EDC6FF-AB75-4487-9D45-D60A9EDC7789}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlantMod", "PlantMod\PlantMod.csproj", "{F98C028D-737B-41B1-AC78-AA89839F5655}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -213,6 +217,14 @@ Global
 		{96DE9EC4-ACC8-4D91-9E2D-D6D52A9B5425}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96DE9EC4-ACC8-4D91-9E2D-D6D52A9B5425}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96DE9EC4-ACC8-4D91-9E2D-D6D52A9B5425}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9EDC6FF-AB75-4487-9D45-D60A9EDC7789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9EDC6FF-AB75-4487-9D45-D60A9EDC7789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9EDC6FF-AB75-4487-9D45-D60A9EDC7789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9EDC6FF-AB75-4487-9D45-D60A9EDC7789}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F98C028D-737B-41B1-AC78-AA89839F5655}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F98C028D-737B-41B1-AC78-AA89839F5655}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F98C028D-737B-41B1-AC78-AA89839F5655}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F98C028D-737B-41B1-AC78-AA89839F5655}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

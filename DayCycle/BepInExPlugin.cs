@@ -7,21 +7,23 @@ using UnityEngine;
 
 namespace DayCycle
 {
-    [BepInPlugin("aedenthorn.DayCycle", "DayCycle", "0.4.0")]
+    [BepInPlugin("aedenthorn.DayCycle", "DayCycle", "0.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
         private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
-        public static ConfigEntry<bool> untieSmeltTimes;
         public static ConfigEntry<float> dayStart;
         public static ConfigEntry<float> nightStart;
         public static ConfigEntry<float> dayRate;
         public static ConfigEntry<float> nightRate;
         public static ConfigEntry<int> nexusID;
 
-        private static float currentRate;
+        private static long vanillaDayLengthSec;
+
+        private static bool firstSet = true;
+        private static int dayPeriod = 0;
         
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -33,7 +35,6 @@ namespace DayCycle
             context = this;
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            //untieSmeltTimes = Config.Bind<bool>("General", "UntieCraftTimes", true, "Make smelting times independent from time scale changes");
             //dayStart = Config.Bind<float>("General", "DayStart", 0.25f, "Fraction of the 24 hours when the day begins");
             //nightStart = Config.Bind<float>("General", "NightStart", 0.75f, "Fraction of the 24 hours when the night begins");
             dayRate = Config.Bind<float>("General", "DayRate", 0.5f, "Rate at which the day progresses (0.5 = half speed, etc)");
@@ -42,194 +43,83 @@ namespace DayCycle
 
             if (!modEnabled.Value)
                 return;
-            
+            /*
+            if(nightStart.Value - dayStart.Value < 0.2)
+            {
+                Dbgl("Daytime too short, adjusting");
+                float diff = 0.2f - (nightStart.Value - dayStart.Value); // 0.99 0.89 = 0.1
+                float nightCap = Mathf.Min(0, 1 - (nightStart.Value + diff / 2f)); // 1 - 0.99 - 0.05 = -0.04
+                float dayCap = Mathf.Min(0, dayStart.Value - diff / 2f); // 0.89 - 0.05 = 0 clamped
+                nightStart.Value = Mathf.Min(1, nightStart.Value + diff / 2f - dayCap); // 1 clamped
+                dayStart.Value = Mathf.Max(0, dayStart.Value - diff / 2f + nightCap); // 0.89 - 0.5 +(-0.04) = 0.8
+                Config.Save();
+            }
+            */
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
 
-        //[HarmonyPatch(typeof(ZNet), "UpdateNetTime")]
-        static class UpdateNetTime_Patch
-        {
-
-            static void Prefix(ref float dt)
-            {
-                float fraction = (float)typeof(EnvMan).GetField("m_smoothDayFraction", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(EnvMan.instance);
-                if (fraction > dayStart.Value && fraction < nightStart.Value)
-                {
-                    dt *= dayRate.Value;
-                    currentRate = dayRate.Value;
-                }
-                else
-                {
-                    dt *= nightRate.Value;
-                    currentRate = nightRate.Value;
-                }
-            }
-        }
 
         [HarmonyPatch(typeof(EnvMan), "Awake")]
         static class EnvMan_Awake_Patch
         {
+
             static void Postfix(ref long ___m_dayLengthSec)
             {
-                ___m_dayLengthSec = (long)Math.Round(___m_dayLengthSec / dayRate.Value);
+                ___m_dayLengthSec = (long)(Mathf.Round(___m_dayLengthSec / dayRate.Value));
             }
         }
 
-        //[HarmonyPatch(typeof(Smelter), "GetAccumulator")]
-        static class Smelter_GetAccumulator_Patch
-        {
-            static void Postfix(ref float __result)
-            {
-                if (__result < 0)
-                    __result = 0;
-            }
-        }
-        
-        //[HarmonyPatch(typeof(WaterVolume), "GetWaterSurface")]
-        static class WaterVolume_GetWaterSurface_Patch
-        {
-            static bool Prefix(WaterVolume __instance, ref float __result, Vector3 point, float waveFactor)
-            {
-                float wrappedDayTimeSeconds = Time.time / (60 * 60 * 24) * 1200;
-                float depth = Traverse.Create(__instance).Method("Depth", new object[] { point }).GetValue<float>();
-                float num = Traverse.Create(__instance).Method("CalcWave", new object[] { point, depth, wrappedDayTimeSeconds, waveFactor }).GetValue<float>();
-                float num2 = __instance.transform.position.y + num;
-                if (Utils.LengthXZ(point) > 10500f && __instance.m_forceDepth < 0f)
-                {
-                    num2 -= 100f;
-                }
-                __result = num2;
-                return false;
-            }
-            static void Postfix(float __result)
-            {
-                //Dbgl($"water surface {__result}");
-            }
-        }
-
-        
         //[HarmonyPatch(typeof(ZNet), "GetWrappedDayTimeSeconds")]
-        static class ZNet_GetWrappedDayTimeSeconds_Patch
+        static class GetWrappedDayTimeSeconds_Patch
         {
+
             static bool Prefix(double ___m_netTime, ref float __result)
             {
-                if (!modEnabled.Value)
-                    return true;
+                int fullDays = (int)(___m_netTime / 86400);
+                __result = fullDays * (dayStart.Value + (1 - nightStart.Value)) * 86400 * nightRate.Value + fullDays * (nightStart.Value - dayStart.Value) * 86400 * dayRate.Value;
+                float seconds = (float)(___m_netTime % 86400);
+                if(seconds > 86400 * nightStart.Value)
+                {
+                    __result += 86400 * dayStart.Value * nightRate.Value + 86400 * (nightStart.Value - dayStart.Value) * dayRate.Value + (seconds - 86400 * nightStart.Value) * nightRate.Value;
 
-                int secondsPerDay = 60 * 60 * 24;
-
-                double thisTimeOfDayFraction = (___m_netTime % secondsPerDay) / secondsPerDay;
-
-                double newTotalSeconds = 0;
-
-                if (thisTimeOfDayFraction > nightStart.Value)
-                    newTotalSeconds += secondsPerDay * (thisTimeOfDayFraction - nightStart.Value) / nightRate.Value + secondsPerDay * (nightStart.Value - dayStart.Value) / dayRate.Value + secondsPerDay * (dayStart.Value) / nightRate.Value;
-                else if (thisTimeOfDayFraction > dayStart.Value)
-                    newTotalSeconds += secondsPerDay * (thisTimeOfDayFraction - dayStart.Value) / dayRate.Value + secondsPerDay * (dayStart.Value) / nightRate.Value;
+                }
+                else if(seconds > 86400 * dayStart.Value)
+                {
+                    __result += 86400 * dayStart.Value * nightRate.Value + (seconds - 86400 * dayStart.Value) * dayRate.Value;
+                }
                 else
-                    newTotalSeconds += secondsPerDay * thisTimeOfDayFraction / nightRate.Value;
-
-
-
-                __result = (float)newTotalSeconds;
-                //Dbgl($"net time: {___m_netTime % secondsPerDay} new time {__result}");
+                {
+                    __result += seconds * nightRate.Value;
+                }
                 return false;
             }
         }
-
-        //[HarmonyPatch(typeof(Smelter), "GetDeltaTime")]
-        static class Smelter_GetDeltaTime_Patch
+        //[HarmonyPatch(typeof(EnvMan), "RescaleDayFraction")]
+        static class RescaleDayFraction_Patch
         {
 
-            static bool Prefix(ZNetView ___m_nview, ref double __result)
+            static void Postfix(ref float fraction, ref float ___m_smoothDayFraction)
             {
-                if (!untieSmeltTimes.Value)
-                    return true;
-
-
-                DateTime thisTime = ZNet.instance.GetTime();
-                DateTime startTime = new DateTime(___m_nview.GetZDO().GetLong("StartTime", thisTime.Ticks));
-
-                double newTotalSeconds = 0;
-                int secondsPerDay = 60 * 60 * 24;
-
-                double startTimeOfDayFraction = (startTime - startTime.Date).TotalSeconds  / (double)secondsPerDay;
-                double thisTimeOfDayFraction = (thisTime - thisTime.Date).TotalSeconds / (double)(secondsPerDay);
-                double oneDay = (nightStart.Value - dayStart.Value) / dayRate.Value + (1 - (nightStart.Value - dayStart.Value)) / nightRate.Value;
-
-                if (thisTime.Date.CompareTo(startTime.Date) != 0)
+                float newFraction = 0;
+                if (fraction > nightStart.Value)
                 {
-                    // modify first day
-
-
-                    if (startTimeOfDayFraction < dayStart.Value)
-                        newTotalSeconds += secondsPerDay * (dayStart.Value - startTimeOfDayFraction) / nightRate.Value + secondsPerDay * (nightStart.Value - dayStart.Value) / dayRate.Value + secondsPerDay * (1 - nightStart.Value) / nightRate.Value;
-                    else if (startTimeOfDayFraction < nightStart.Value)
-                        newTotalSeconds += secondsPerDay * (nightStart.Value - startTimeOfDayFraction) / dayRate.Value + secondsPerDay * (1 - nightStart.Value) / nightRate.Value;
-                    else
-                        newTotalSeconds += secondsPerDay * (1 - startTimeOfDayFraction) / nightRate.Value;
-
-
-                    // modify full days  10 - 5
-
-                    int days = (thisTime.Date - startTime.Date).Days - 1;
-
-                    newTotalSeconds += days * oneDay * secondsPerDay;
-
-                    // modify this day
-
-                    if (thisTimeOfDayFraction > nightStart.Value)
-                        newTotalSeconds += secondsPerDay * (thisTimeOfDayFraction - nightStart.Value) / nightRate.Value + secondsPerDay * (nightStart.Value - dayStart.Value) / dayRate.Value + secondsPerDay * (dayStart.Value) / nightRate.Value;
-                    else if (thisTimeOfDayFraction > dayStart.Value)
-                        newTotalSeconds += secondsPerDay * (thisTimeOfDayFraction - dayStart.Value) / dayRate.Value + secondsPerDay * (dayStart.Value) / nightRate.Value;
-                    else
-                        newTotalSeconds += secondsPerDay * thisTimeOfDayFraction / nightRate.Value;
+                    newFraction = dayStart.Value * nightRate.Value + (nightStart.Value - dayStart.Value) * dayRate.Value + (fraction - nightStart.Value) * nightRate.Value;
 
                 }
-                else if(thisTime.Ticks == startTime.Ticks)
+                else if (fraction > dayStart.Value)
                 {
-                    // less than one tick
-                    //Dbgl($"less than one tick passed");
-                    startTime.AddTicks(-1);
-                    newTotalSeconds = (thisTime - startTime).TotalSeconds;
+                    newFraction += dayStart.Value * nightRate.Value + (fraction - dayStart.Value) * dayRate.Value;
                 }
                 else
                 {
-                    newTotalSeconds = oneDay * secondsPerDay;
-
-                   // Dbgl($"start {startTimeOfDayFraction}, now {thisTimeOfDayFraction}, one day {secondsPerDay} => {oneDay * secondsPerDay}");
-
-                    // subtract seconds in start time
-
-                    if (startTimeOfDayFraction > nightStart.Value)
-                        newTotalSeconds -= secondsPerDay * (startTimeOfDayFraction - nightStart.Value) / nightRate.Value + secondsPerDay * (nightStart.Value - dayStart.Value) / dayRate.Value + secondsPerDay * (dayStart.Value) / nightRate.Value;
-                    else if (startTimeOfDayFraction > dayStart.Value)
-                        newTotalSeconds -= secondsPerDay * (startTimeOfDayFraction - dayStart.Value) / dayRate.Value + secondsPerDay * (dayStart.Value) / nightRate.Value;
-                    else
-                        newTotalSeconds -= secondsPerDay * startTimeOfDayFraction / nightRate.Value;
-
-                    //Dbgl($"lost from startTime {oneDay * secondsPerDay - newTotalSeconds}");
-
-                    // subtract seconds left in day
-
-                    if (thisTimeOfDayFraction < dayStart.Value)
-                        newTotalSeconds -= secondsPerDay * (dayStart.Value - thisTimeOfDayFraction) / nightRate.Value + secondsPerDay * (nightStart.Value - dayStart.Value) / dayRate.Value + secondsPerDay * (1 - nightStart.Value) / nightRate.Value;
-                    else if (thisTimeOfDayFraction < nightStart.Value)
-                        newTotalSeconds -= secondsPerDay * (nightStart.Value - thisTimeOfDayFraction) / dayRate.Value + secondsPerDay * (1 - nightStart.Value) / nightRate.Value;
-                    else
-                        newTotalSeconds -= secondsPerDay * (1 - thisTimeOfDayFraction) / nightRate.Value;
-
-                    //Dbgl($"lost from starttime and nowtime {oneDay * secondsPerDay - newTotalSeconds}");
+                    newFraction += fraction * nightRate.Value;
                 }
-
-                __result = Math.Max(1, newTotalSeconds);
-                //Dbgl($"time passed: {__result}");
-                ___m_nview.GetZDO().Set("StartTime", thisTime.Ticks);
-                return false;
+                fraction = newFraction;
             }
         }
+
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch
         {
@@ -242,7 +132,7 @@ namespace DayCycle
                 {
                     context.Config.Reload();
                     context.Config.Save();
-
+                    firstSet = true;
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { "Day Cycle config reloaded" }).GetValue();
                     return false;
