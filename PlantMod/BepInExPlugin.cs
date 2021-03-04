@@ -138,7 +138,7 @@ namespace PlantMod
         }
 
                         
-        [HarmonyPatch(typeof(Humanoid), "UpdateEquipment")]
+        //[HarmonyPatch(typeof(Humanoid), "UpdateEquipment")]
         static class UpdateEquipment_Patch
         {
             static void Prefix(ItemDrop.ItemData ___m_rightItem, ItemDrop.ItemData ___m_leftItem)
