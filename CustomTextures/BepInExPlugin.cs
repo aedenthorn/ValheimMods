@@ -139,6 +139,7 @@ namespace CustomTextures
             tex.filterMode = FilterMode.Point;
             if (customTextures.ContainsKey(id))
             {
+                Dbgl($"loading custom texture file for {id}");
                 byte[] imageData = File.ReadAllBytes(customTextures[id]);
                 tex.LoadImage(imageData);
             }
@@ -214,7 +215,17 @@ namespace CustomTextures
                     {
                         for (int y = 0; y < height; y++)
                         {
-                            if(scaleX * scaleY < 1) // layer is bigger
+                            if(scaleX == 1 && scaleY == 1)
+                            {
+                                Color texColor = tex.GetPixel(x, y);
+                                Color layerColor = layerTex.GetPixel(x, y);
+
+                                Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
+
+                                tex.SetPixel(x, y, final_color);
+
+                            }
+                            else if (scaleX * scaleY < 1) // layer is bigger
                             {
 
                                 for (int i = 0; i < (int)(1 / scaleX); i++) // < 4, so 0, 1, 2, 3 become layer x = 0
