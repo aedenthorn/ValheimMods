@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.6.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.6.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
