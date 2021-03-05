@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.0.1")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.1.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -122,14 +122,98 @@ namespace CustomTextures
             }
         }
 
-        private static Texture2D LoadTexture(string id)
+        private static bool HasCustomTexture(string id)
+        {
+            return (customTextures.ContainsKey(id) || customTextures.Any(p => p.Key.StartsWith(id)));
+        }
+
+        private static Texture2D LoadTexture(string id, Texture vanilla)
         {
             if (cachedTextures.ContainsKey(id))
                 return cachedTextures[id];
-            Texture2D tex = new Texture2D(2, 2, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
-            tex.filterMode = FilterMode.Point;
-            byte[] imageData = File.ReadAllBytes(customTextures[id]);
-            tex.LoadImage(imageData);
+            
+            Texture2D tex = new Texture2D(vanilla.width, vanilla.height, TextureFormat.RGBA32, true, id.EndsWith("_bump")); 
+            if (customTextures.ContainsKey(id))
+            {
+                tex.filterMode = FilterMode.Point;
+                byte[] imageData = File.ReadAllBytes(customTextures[id]);
+                tex.LoadImage(imageData);
+            }
+            else
+            {
+                Dbgl($"texture {id} has no custom texture, using vanilla");
+                Graphics.CopyTexture(vanilla, tex);
+            }
+            var layers = customTextures.Where(p => p.Key.StartsWith(id) && p.Key != id);
+            if (layers.Any())
+            {
+                Dbgl($"texture {id} has {layers.Count()} layers");
+                foreach(var layer in layers)
+                {
+
+                    Texture2D layerTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
+                    layerTex.filterMode = FilterMode.Point;
+                    byte[] layerData = File.ReadAllBytes(customTextures[layer.Key]);
+                    layerTex.LoadImage(layerData);
+
+                    //8x5, 2x2
+
+                    float scaleX = tex.width / (float)layerTex.width; // 8 / 2 = 4 or 2 / 8 = 0.25
+                    float scaleY = tex.height / (float)layerTex.height; // 5 / 2 = 2.5 or 2 / 5 = 0.4
+
+                    int width = layerTex.width;
+                    int height = layerTex.width;
+
+                    if (scaleX * scaleY < 1) // layer is bigger
+                    {
+                        width = tex.width;
+                        height = tex.height;
+                    }
+
+                    Dbgl($"adding layer {layer.Key} to {id}, scale diff {scaleX},{scaleY}");
+
+
+                    for (int x = 0; x < width; x++)
+                    {
+                        for (int y = 0; y < height; y++)
+                        {
+                            if(scaleX * scaleY < 1) // layer is bigger
+                            {
+
+                                for (int i = 0; i < (int)(1 / scaleX); i++) // < 4, so 0, 1, 2, 3 become layer x = 0
+                                {
+                                    for (int j = 0; j < (int)(1 / scaleY); j++) // < 2, so 0, 1 become layer y = 0
+                                    {
+                                        Color texColor = tex.GetPixel(x, y);
+                                        Color layerColor = layerTex.GetPixel((x * (int)(1 / scaleX)) + i, (y * (int)(1 / scaleY)) + j);
+
+                                        Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
+
+                                        tex.SetPixel(x, y, final_color);
+                                    }
+                                }
+                            }
+                            else // tex is bigger, multiply layer
+                            {
+                                for(int i = 0; i < (int)scaleX; i++) // < 4, so 0, 1, 2, 3 become layer x = 0    2 so 0,1
+                                {
+                                    for (int j = 0; j < (int)scaleY; j++) // < 2, so 0, 1 become layer y = 0    2 so 0,1
+                                    {
+                                        Color texColor = tex.GetPixel((x * (int)scaleX) + i, (y * (int)scaleY) + j);
+                                        Color layerColor = layerTex.GetPixel(x, y);
+
+                                        Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
+
+                                        tex.SetPixel((x * (int)scaleX) + i, (y * (int)scaleY) + j, final_color);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    tex.Apply();
+                }
+            }
+
             cachedTextures[id] = tex;
             return tex;
         }
@@ -212,28 +296,28 @@ namespace CustomTextures
                             if (customTextures.ContainsKey($"{prefix}_{thingName}_texture"))
                             {
                                 logDump.Add($"{prefix} {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}_{thingName}_texture custom texture.");
-                                m.SetTexture("_MainTex", LoadTexture($"{prefix}_{thingName}_texture"));
+                                m.SetTexture("_MainTex", LoadTexture($"{prefix}_{thingName}_texture", m.mainTexture));
                                 m.mainTexture.name = name;
                                 m.color = Color.white;
                             }
                             else if (customTextures.ContainsKey($"{prefix}mesh_{thingName}_{mr.name}_texture"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}mesh_{thingName}_{mr.name}_texture custom texture.");
-                                m.SetTexture("_MainTex", LoadTexture($"{prefix}mesh_{thingName}_{name}_texture"));
+                                m.SetTexture("_MainTex", LoadTexture($"{prefix}mesh_{thingName}_{name}_texture", m.mainTexture));
                                 m.mainTexture.name = name;
                                 m.color = Color.white;
                             }
                             else if (customTextures.ContainsKey($"{prefix}texture_{thingName}_{name}_texture"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}texture_{thingName}_{name}_texture custom texture.");
-                                m.SetTexture("_MainTex", LoadTexture($"{prefix}texture_{thingName}_{name}_texture"));
+                                m.SetTexture("_MainTex", LoadTexture($"{prefix}texture_{thingName}_{name}_texture", m.mainTexture));
                                 m.mainTexture.name = name;
                                 m.color = Color.white;
                             }
                             else if (customTextures.ContainsKey($"texture_{name}_texture"))
                             {
                                 logDump.Add($"{prefix} {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using texture_{name}_texture custom texture.");
-                                m.SetTexture("_MainTex", LoadTexture($"texture_{name}_texture"));
+                                m.SetTexture("_MainTex", LoadTexture($"texture_{name}_texture", m.mainTexture));
                                 m.mainTexture.name = name;
                                 m.color = Color.white;
 
@@ -242,43 +326,43 @@ namespace CustomTextures
                             if (customTextures.ContainsKey($"{prefix}_{thingName}_bump"))
                             {
                                 logDump.Add($"{prefix} {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}_{thingName}_bump custom bump map.");
-                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}_{thingName}_bump"));
+                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}_{thingName}_bump", m.GetTexture("_BumpMap")));
                             }
                             else if (customTextures.ContainsKey($"{prefix}mesh_{thingName}_{mr.name}_bump"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}mesh_{thingName}_{mr.name}_bump custom bump map.");
-                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}mesh_{thingName}_{mr.name}_bump"));
+                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}mesh_{thingName}_{mr.name}_bump", m.GetTexture("_BumpMap")));
                             }
                             else if (customTextures.ContainsKey($"{prefix}texture_{thingName}_{name}_bump"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}texture_{thingName}_{name}_bump custom bump map.");
-                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}texture_{thingName}_{name}_bump"));
+                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}texture_{thingName}_{name}_bump", m.GetTexture("_BumpMap")));
                             }
                             else if (customTextures.ContainsKey($"texture_{name}_bump"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using texture_{name}_bump custom bump map.");
-                                m.SetTexture("_BumpMap", LoadTexture($"texture_{name}_bump"));
+                                m.SetTexture("_BumpMap", LoadTexture($"texture_{name}_bump", m.GetTexture("_BumpMap")));
                             }
 
                             if (customTextures.ContainsKey($"{prefix}_{thingName}_style"))
                             {
                                 logDump.Add($"{prefix} {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}_{thingName}_style style texture.");
-                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}_{thingName}_style"));
+                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}_{thingName}_style", m.GetTexture("_StyleTex")));
                             }
                             else if (customTextures.ContainsKey($"{prefix}mesh_{thingName}_{mr.name}_style"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}mesh_{thingName}_{mr.name}_style style texture.");
-                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}mesh_{thingName}_{mr.name}_style"));
+                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}mesh_{thingName}_{mr.name}_style", m.GetTexture("_StyleTex")));
                             }
                             else if (customTextures.ContainsKey($"{prefix}texture_{thingName}_{name}_style"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}texture_{thingName}_{name}_style style texture.");
-                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}texture_{thingName}_{name}_style"));
+                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}texture_{thingName}_{name}_style", m.GetTexture("_StyleTex")));
                             }
                             else if (customTextures.ContainsKey($"texture_{name}_style"))
                             {
                                 logDump.Add($"object {thingName}, MeshRenderer {mr.name}, material {m.name}, texture {name}, using texture_{name}_style style texture.");
-                                m.SetTexture("_StyleTex", LoadTexture($"texture_{name}_style"));
+                                m.SetTexture("_StyleTex", LoadTexture($"texture_{name}_style", m.GetTexture("_StyleTex")));
                             }
                         }
                     }
@@ -329,28 +413,28 @@ namespace CustomTextures
                             if (customTextures.ContainsKey($"{prefix}_{thingName}_texture"))
                             {
                                 logDump.Add($"{prefix} {thingName}, SkinnedMeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}_{thingName}_texture custom texture.");
-                                m.SetTexture("_MainTex", LoadTexture($"{prefix}_{thingName}_texture"));
+                                m.SetTexture("_MainTex", LoadTexture($"{prefix}_{thingName}_texture", m.mainTexture));
                                 m.mainTexture.name = name;
                                 m.color = Color.white;
                             }
                             else if (customTextures.ContainsKey($"{prefix}mesh_{thingName}_{mr.name}_texture"))
                             {
                                 logDump.Add($"object {thingName}, SkinnedMeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}mesh_{thingName}_{mr.name}_texture custom texture.");
-                                m.SetTexture("_MainTex", LoadTexture($"{prefix}mesh_{thingName}_{mr.name}_texture"));
+                                m.SetTexture("_MainTex", LoadTexture($"{prefix}mesh_{thingName}_{name}_texture", m.mainTexture));
                                 m.mainTexture.name = name;
                                 m.color = Color.white;
                             }
                             else if (customTextures.ContainsKey($"{prefix}texture_{thingName}_{name}_texture"))
                             {
                                 logDump.Add($"object {thingName}, SkinnedMeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}texture_{thingName}_{name}_texture custom texture.");
-                                m.SetTexture("_MainTex", LoadTexture($"{prefix}texture_{thingName}_{name}_texture"));
+                                m.SetTexture("_MainTex", LoadTexture($"{prefix}texture_{thingName}_{name}_texture", m.mainTexture));
                                 m.mainTexture.name = name;
                                 m.color = Color.white;
                             }
                             else if (customTextures.ContainsKey($"texture_{name}_texture"))
                             {
                                 logDump.Add($"{prefix} {thingName}, SkinnedMeshRenderer {mr.name}, material {m.name}, texture {name}, using texture_{name}_texture custom texture.");
-                                m.SetTexture("_MainTex", LoadTexture($"texture_{name}_texture"));
+                                m.SetTexture("_MainTex", LoadTexture($"texture_{name}_texture", m.mainTexture));
                                 m.mainTexture.name = name;
                                 m.color = Color.white;
 
@@ -359,43 +443,43 @@ namespace CustomTextures
                             if (customTextures.ContainsKey($"{prefix}_{thingName}_bump"))
                             {
                                 logDump.Add($"{prefix} {thingName}, SkinnedMeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}_{thingName}_bump custom bump map.");
-                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}_{name}_bump"));
+                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}_{thingName}_bump", m.GetTexture("_BumpMap")));
                             }
                             else if (customTextures.ContainsKey($"{prefix}mesh_{thingName}_{mr.name}_bump"))
                             {
                                 logDump.Add($"object {thingName}, SkinnedMeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}mesh_{thingName}_{mr.name}_bump custom bump map.");
-                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}mesh_{thingName}_{name}_bump"));
+                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}mesh_{thingName}_{mr.name}_bump", m.GetTexture("_BumpMap")));
                             }
                             else if (customTextures.ContainsKey($"{prefix}texture_{thingName}_{name}_bump"))
                             {
                                 logDump.Add($"object {thingName}, SkinnedMeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}texture_{thingName}_{name}_bump custom bump map.");
-                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}texture_{thingName}_{name}_bump"));
+                                m.SetTexture("_BumpMap", LoadTexture($"{prefix}texture_{thingName}_{name}_bump", m.GetTexture("_BumpMap")));
                             }
                             else if (customTextures.ContainsKey($"texture_{name}_bump"))
                             {
                                 logDump.Add($"object {thingName}, SkinnedMeshRenderer {mr.name}, material {m.name}, texture {name}, using texture_{name}_bump custom bump map.");
-                                m.SetTexture("_BumpMap", LoadTexture($"texture_{name}_bump"));
+                                m.SetTexture("_BumpMap", LoadTexture($"texture_{name}_bump", m.GetTexture("_BumpMap")));
                             }
 
                             if (customTextures.ContainsKey($"{prefix}_{thingName}_style"))
                             {
                                 logDump.Add($"{prefix} {thingName}, SkinnedMeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}_{thingName}_style style texture.");
-                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}_{name}_style"));
+                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}_{thingName}_style", m.GetTexture("_StyleTex")));
                             }
                             else if (customTextures.ContainsKey($"{prefix}mesh_{thingName}_{mr.name}_style"))
                             {
                                 logDump.Add($"object {thingName}, SkinnedMeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}mesh_{thingName}_{mr.name}_style style texture.");
-                                m.SetTexture("_StyleTex", LoadTexture($"mesh_{thingName}_{mr.name}_style"));
+                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}mesh_{thingName}_{mr.name}_style", m.GetTexture("_StyleTex")));
                             }
                             else if (customTextures.ContainsKey($"{prefix}texture_{thingName}_{name}_style"))
                             {
                                 logDump.Add($"object {thingName}, SkinnedMeshRenderer {mr.name}, material {m.name}, texture {name}, using {prefix}texture_{thingName}_{name}_style style texture.");
-                                m.SetTexture("_StyleTex", LoadTexture($"mesh_{thingName}_{name}_style"));
+                                m.SetTexture("_StyleTex", LoadTexture($"{prefix}texture_{thingName}_{name}_style", m.GetTexture("_StyleTex")));
                             }
                             else if (customTextures.ContainsKey($"texture_{name}_style"))
                             {
                                 logDump.Add($"object {thingName}, SkinnedMeshRenderer {mr.name}, material {m.name}, texture {name}, using texture_{name}_style style texture.");
-                                m.SetTexture("_StyleTex", LoadTexture($"texture_{name}_style"));
+                                m.SetTexture("_StyleTex", LoadTexture($"texture_{name}_style", m.GetTexture("_StyleTex")));
                             }
 
                         }
@@ -486,7 +570,7 @@ namespace CustomTextures
                 if (customTextures.ContainsKey($"item_{itemName}_texture"))
                 {
                     Dbgl($"setting custom texture for item {itemName}: item_{itemName}_texture.png");
-                    smr.material.SetTexture($"{which}Tex", LoadTexture($"item_{itemName}_texture"));
+                    smr.material.SetTexture($"{which}Tex", LoadTexture($"item_{itemName}_texture", smr.material.GetTexture($"{which}Tex")));
                     smr.material.color = Color.white;
 
                 }
@@ -496,12 +580,12 @@ namespace CustomTextures
                 if (customTextures.ContainsKey($"item_{itemName}_bump"))
                 {
                     Dbgl($"setting custom texture for item {itemName}: item_{itemName}_bump.png");
-                    smr.material.SetTexture($"{which}BumpMap", LoadTexture($"item_{itemName}_bump"));
+                    smr.material.SetTexture($"{which}BumpMap", LoadTexture($"item_{itemName}_bump", smr.material.GetTexture($"{which}BumpMap")));
                 }
                 if (customTextures.ContainsKey($"item_{itemName}_metal"))
                 {
                     Dbgl($"setting custom texture for item {itemName}: item_{itemName}_metal.png");
-                    smr.material.SetTexture($"{which}Metal", LoadTexture($"item_{itemName}_metal"));
+                    smr.material.SetTexture($"{which}Metal", LoadTexture($"item_{itemName}_metal", smr.material.GetTexture($"{which}Metal")));
                 }
             }
 
@@ -527,12 +611,12 @@ namespace CustomTextures
                 {
                     if (customTextures.ContainsKey($"player_model_{i}_texture"))
                     {
-                        __instance.m_models[i].m_baseMaterial.mainTexture = LoadTexture($"player_model_{i}_texture");
+                        __instance.m_models[i].m_baseMaterial.mainTexture = LoadTexture($"player_model_{i}_texture", __instance.m_models[i].m_baseMaterial.mainTexture);
                         Dbgl($"set player_model_{i}_texture custom texture.");
                     }
                     if (customTextures.ContainsKey($"player_model_{i}_bump"))
                     {
-                        __instance.m_models[i].m_baseMaterial.SetTexture("_SkinBumpMap", LoadTexture($"player_model_{i}_bump"));
+                        __instance.m_models[i].m_baseMaterial.SetTexture("_SkinBumpMap", LoadTexture($"player_model_{i}_bump", __instance.m_models[i].m_baseMaterial.mainTexture));
                         Dbgl($"set player_model_{i}_bump custom skin bump map.");
                     }
                 }

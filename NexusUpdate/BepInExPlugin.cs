@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace NexusUpdate
 {
-    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.8.0")]
+    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.8.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -112,7 +112,8 @@ namespace NexusUpdate
 
         private void Start()
         {
-            StartCoroutine(CheckPlugins());
+            if(modEnabled.Value)
+                StartCoroutine(CheckPlugins());
         }
 
         private void OnGUI()

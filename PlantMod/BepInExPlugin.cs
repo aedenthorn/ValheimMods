@@ -136,19 +136,6 @@ namespace PlantMod
                     __result += $"\n{Mathf.RoundToInt((float)timeSincePlanted)}/{Mathf.RoundToInt(growTime)}";
             }
         }
-
-                        
-        //[HarmonyPatch(typeof(Humanoid), "UpdateEquipment")]
-        static class UpdateEquipment_Patch
-        {
-            static void Prefix(ItemDrop.ItemData ___m_rightItem, ItemDrop.ItemData ___m_leftItem)
-            {
-                if(___m_rightItem != null)
-                    ___m_rightItem.m_durability = Math.Min(1, ___m_rightItem.m_durability);
-                if (___m_leftItem != null)
-                    ___m_leftItem.m_durability = Math.Min(1, ___m_leftItem.m_durability);
-            }
-        }
         
         
         [HarmonyPatch(typeof(Plant), "Awake")]

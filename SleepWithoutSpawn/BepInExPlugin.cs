@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace SleepWithoutSpawn
 {
-    [BepInPlugin("aedenthorn.SleepWithoutSpawn", "Sleep Without Spawn", "0.1.0")]
+    [BepInPlugin("aedenthorn.SleepWithoutSpawn", "Sleep Without Spawn", "0.1.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -41,9 +41,9 @@ namespace SleepWithoutSpawn
         [HarmonyPatch(typeof(Bed), "GetHoverText")]
         static class Bed_GetHoverText_Patch
         {
-            static void Postfix(ref string __result, ZNetView ___m_nview)
+            static void Postfix(Bed __instance, ref string __result, ZNetView ___m_nview)
             {
-                if ((unclaimedOnly.Value && ___m_nview.GetZDO().GetLong("owner", 0L) != 0) || ___m_nview.GetZDO().GetLong("owner", 0L) == Game.instance.GetPlayerProfile().GetPlayerID())
+                if ((unclaimedOnly.Value && ___m_nview.GetZDO().GetLong("owner", 0L) != 0) || Traverse.Create(__instance).Method("IsCurrent").GetValue<bool>())
                 {
                     return;
                 }
@@ -58,11 +58,8 @@ namespace SleepWithoutSpawn
         {
             static bool Prefix(Bed __instance, Humanoid human, bool repeat, ref bool __result, ZNetView ___m_nview)
             {
-                if (___m_nview.GetZDO().GetLong("owner", 0L) == Game.instance.GetPlayerProfile().GetPlayerID())
-                    return true;
-                if (repeat || !AedenthornUtils.CheckKeyHeld(modKey.Value) || (unclaimedOnly.Value && ___m_nview.GetZDO().GetLong("owner", 0L) != 0))
+                if (Traverse.Create(__instance).Method("IsCurrent").GetValue<bool>() || repeat || !AedenthornUtils.CheckKeyHeld(modKey.Value) || (unclaimedOnly.Value && ___m_nview.GetZDO().GetLong("owner", 0L) != 0))
                 {
-                    Dbgl($"something's wrong: {repeat} {!AedenthornUtils.CheckKeyHeld(modKey.Value)} {unclaimedOnly.Value && ___m_nview.GetZDO().GetLong("owner", 0L) != 0}");
                     return true;
                 }
                 Dbgl($"trying to sleep on bed");

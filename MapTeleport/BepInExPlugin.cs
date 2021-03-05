@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MapTeleport
 {
-    [BepInPlugin("aedenthorn.MapTeleport", "Map Teleport", "0.2.0")]
+    [BepInPlugin("aedenthorn.MapTeleport", "Map Teleport", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -51,12 +51,12 @@ namespace MapTeleport
                 {
                     if (Player.m_localPlayer)
                     {
+                        typeof(Minimap).GetMethod("SetMapMode", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Minimap.instance, new object[] { 1 });
+                        Minimap.instance.m_smallRoot.SetActive(true);
                         float y = ZoneSystem.instance.GetGroundHeight(pos);
-
                         Dbgl($"teleporting from {Player.m_localPlayer.transform.position} to {pos}");
                         Vector3 pos2 = new Vector3(pos.x, y, pos.z);
                         Player.m_localPlayer.TeleportTo(pos2, Player.m_localPlayer.transform.rotation, true);
-                        Minimap.instance.m_largeRoot.SetActive(false);
                     }
                 }
 

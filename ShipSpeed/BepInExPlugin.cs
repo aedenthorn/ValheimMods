@@ -7,13 +7,15 @@ using UnityEngine.UI;
 
 namespace ShipSpeed
 {
-    [BepInPlugin("aedenthorn.ShipSpeed", "Ship Speed Mod", "0.2.2")]
+    [BepInPlugin("aedenthorn.ShipSpeed", "Ship Speed Mod", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
         private static BepInExPlugin context;
 
         private static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<int> nexusID;
+
         private static ConfigEntry<float> forceDistanceMult;
         private static ConfigEntry<float> forceMult;
         private static ConfigEntry<float> dampingMult;
@@ -34,12 +36,13 @@ namespace ShipSpeed
         private static ConfigEntry<float> waterImpactDamageMult;
         private static ConfigEntry<float> upsideDownDmgIntervalMult;
         private static ConfigEntry<float> upsideDownDmgMult;
+
         private static ConfigEntry<float> windAngleFactorMin;
         private static ConfigEntry<float> windAngleFactorMult;
         private static ConfigEntry<float> headWindDegrees;
         private static ConfigEntry<float> tailWindMult;
         private static ConfigEntry<float> headWindMult;
-        public static ConfigEntry<int> nexusID;
+        private static ConfigEntry<float> damageMult;
 
         private Harmony harmony;
 
@@ -53,6 +56,7 @@ namespace ShipSpeed
             context = this;
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            nexusID = Config.Bind<int>("General", "NexusID", 119, "Nexus mod ID for updates");
             forceDistanceMult = Config.Bind<float>("Ships", "ForceDistanceMult", 1f, "Force Distance Multiplier");
             forceMult = Config.Bind<float>("Ships", "ForceMult", 1f, "Force Multiplier");
             dampingMult = Config.Bind<float>("Ships", "DampingMult", 1f, "Damping Multiplier");
@@ -73,12 +77,13 @@ namespace ShipSpeed
             waterImpactDamageMult = Config.Bind<float>("Ships", "WaterImpactDamageMult", 1f, "Water Impact Damage Multiplier");
             upsideDownDmgIntervalMult = Config.Bind<float>("Ships", "UpsideDownDmgIntervalMult", 1f, "Upside Down Dmg Interval Multiplier");
             upsideDownDmgMult = Config.Bind<float>("Ships", "UpsideDownDmgMult", 1f, "Upside Down Dmg Multiplier");
+
             headWindDegrees = Config.Bind<float>("Custom", "HeadWindDegrees", 135f, "Degree difference between heading and wind to call headwind");
             windAngleFactorMin = Config.Bind<float>("Custom", "WindAngleFactorMin", 0.1f, "Wind Angle Factor Minimum");
             windAngleFactorMult = Config.Bind<float>("Custom", "WindAngleFactorMult", 1f, "Wind Angle Factor Multiplier");
             tailWindMult = Config.Bind<float>("Custom", "TailWindMult", 1f, "Tail Wind Multiplier");
             headWindMult = Config.Bind<float>("Custom", "HeadWindMult", 1f, "Head Wind Multiplier");
-            nexusID = Config.Bind<int>("General", "NexusID", 119, "Nexus mod ID for updates");
+            damageMult = Config.Bind<float>("Custom", "DamageMult", 1f, "All Damage Multiplier");
 
             if (!modEnabled.Value)
                 return;
@@ -97,7 +102,7 @@ namespace ShipSpeed
         [HarmonyPatch(typeof(Ship), "Awake")]
         static class Awake_Patch
         {
-            static void Postfix(ref float ___m_forceDistance, ref float ___m_force, ref float ___m_damping, ref float ___m_dampingSideway, ref float ___m_dampingForward, ref float ___m_angularDamping, ref float ___m_disableLevel, ref float ___m_sailForceFactor, ref float ___m_rudderSpeed, ref float ___m_stearForceOffset, ref float ___m_stearForce, ref float ___m_stearVelForceFactor, ref float ___m_backwardForce, ref float ___m_rudderRotationMax, ref float ___m_rudderRotationSpeed, ref float ___m_minWaterImpactForce, ref float ___m_minWaterImpactInterval, ref float ___m_waterImpactDamage, ref float ___m_upsideDownDmgInterval, ref float ___m_upsideDownDmg)
+            static void Postfix(Ship __instance, ref float ___m_forceDistance, ref float ___m_force, ref float ___m_damping, ref float ___m_dampingSideway, ref float ___m_dampingForward, ref float ___m_angularDamping, ref float ___m_disableLevel, ref float ___m_sailForceFactor, ref float ___m_rudderSpeed, ref float ___m_stearForceOffset, ref float ___m_stearForce, ref float ___m_stearVelForceFactor, ref float ___m_backwardForce, ref float ___m_rudderRotationMax, ref float ___m_rudderRotationSpeed, ref float ___m_minWaterImpactForce, ref float ___m_minWaterImpactInterval, ref float ___m_waterImpactDamage, ref float ___m_upsideDownDmgInterval, ref float ___m_upsideDownDmg)
             {
                 ___m_forceDistance *= forceDistanceMult.Value;
                 ___m_force *= forceMult.Value;
@@ -119,7 +124,37 @@ namespace ShipSpeed
                 ___m_waterImpactDamage *= waterImpactDamageMult.Value;
                 ___m_upsideDownDmgInterval *= upsideDownDmgIntervalMult.Value;
                 ___m_upsideDownDmg *= upsideDownDmgMult.Value;
+
+
             }
+        }
+
+        [HarmonyPatch(typeof(WearNTear), "Damage")]
+        static class Damage_Patch
+        {
+            static void Prefix(WearNTear __instance, ref HitData hit)
+            {
+                if (__instance.gameObject.GetComponent<Ship>() == null)
+                    return;
+                MultiplyDamage(ref hit, damageMult.Value);
+
+            }
+        }
+
+        private static void MultiplyDamage(ref HitData hit, float value)
+        {
+            value = Math.Max(0, value);
+            hit.m_damage.m_damage *= value;
+            hit.m_damage.m_blunt *= value;
+            hit.m_damage.m_slash *= value;
+            hit.m_damage.m_pierce *= value;
+            hit.m_damage.m_chop *= value;
+            hit.m_damage.m_pickaxe *= value;
+            hit.m_damage.m_fire *= value;
+            hit.m_damage.m_frost *= value;
+            hit.m_damage.m_lightning *= value;
+            hit.m_damage.m_poison *= value;
+            hit.m_damage.m_spirit *= value;
         }
 
         [HarmonyPatch(typeof(Ship), "GetSailForce")]

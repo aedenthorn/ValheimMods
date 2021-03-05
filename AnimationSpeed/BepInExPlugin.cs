@@ -60,17 +60,17 @@ namespace AnimationSpeed
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 240, "Nexus mod ID for updates");
 
-            bowFireSpeed = Config.Bind<float>("General", "BowFireSpeed", 1f, "Speed for firing bows");
-            axeSpeed = Config.Bind<float>("General", "AxeSpeed", 1f, "Speed for axe swing");
-            battleAxeSpeed = Config.Bind<float>("General", "BattleAxeSpeed", 1f, "Speed for battle axe swing");
-            clubSpeed = Config.Bind<float>("General", "ClubSpeed", 1f, "Speed for club swing");
-            pickAxeSpeed = Config.Bind<float>("General", "PickAxeSpeed", 1f, "Speed for pick axe swing");
-            spearSpeed = Config.Bind<float>("General", "SpearSpeed", 1f, "Speed for spear stab");
-            atgeirSpeed = Config.Bind<float>("General", "AtgeirSpeed", 1f, "Speed for atgeir thrust");
-            swordSpeed = Config.Bind<float>("General", "SwordSpeed", 1f, "Speed for sword swing");
-            hammerSpeed = Config.Bind<float>("General", "HammerSpeed", 1f, "Speed for hammer swing");
-            knifeSpeed = Config.Bind<float>("General", "KnifeSpeed", 1f, "Speed for knife stab");
-            unarmedSpeed = Config.Bind<float>("General", "UnarmedSpeed", 1f, "Speed for punch attacks");
+            bowFireSpeed = Config.Bind<float>("General", "BowFireSpeed", 2f, "Speed for firing bows");
+            axeSpeed = Config.Bind<float>("General", "AxeSpeed", 2f, "Speed for axe swing");
+            battleAxeSpeed = Config.Bind<float>("General", "BattleAxeSpeed", 2f, "Speed for battle axe swing");
+            clubSpeed = Config.Bind<float>("General", "ClubSpeed", 2f, "Speed for club swing");
+            pickAxeSpeed = Config.Bind<float>("General", "PickAxeSpeed", 2f, "Speed for pick axe swing");
+            spearSpeed = Config.Bind<float>("General", "SpearSpeed", 2f, "Speed for spear stab");
+            atgeirSpeed = Config.Bind<float>("General", "AtgeirSpeed", 2f, "Speed for atgeir thrust");
+            swordSpeed = Config.Bind<float>("General", "SwordSpeed", 2f, "Speed for sword swing");
+            hammerSpeed = Config.Bind<float>("General", "HammerSpeed", 2f, "Speed for hammer swing");
+            knifeSpeed = Config.Bind<float>("General", "KnifeSpeed", 2f, "Speed for knife stab");
+            unarmedSpeed = Config.Bind<float>("General", "UnarmedSpeed", 2f, "Speed for punch attacks");
 
             bowFireEnemySpeed = Config.Bind<float>("General", "BowFireEnemySpeed", 1f, "Enemy speed for firing bows");
             axeEnemySpeed = Config.Bind<float>("General", "AxeEnemySpeed", 1f, "Enemy speed for axe swing");

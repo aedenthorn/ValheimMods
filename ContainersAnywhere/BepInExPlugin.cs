@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace ContainersAnywhere
 {
-    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.3.5")]
+    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.3.7")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -143,11 +143,35 @@ namespace ContainersAnywhere
         {
             CheckOpenContainer();
 
+            if (!containerDict.Any())
+            {
+                Dbgl("No container types in dicitionary!");
+                return;
+            }
+
             List<string> keys = containerDict.Keys.ToList();
-            if (!containerDict.ContainsKey(currentType))
-                currentType = keys[0];
+            if (!containerDict.ContainsKey(currentType) || !containerDict[currentType].Any())
+            {
+                currentType = "";
+                for(int i = 0; i < keys.Count; i++)
+                {
+                    if (containerDict[keys[i]].Any())
+                    {
+                        currentType = keys[i];
+                        break;
+                    }
+                }
+                if(currentType == "")
+                {
+                    Dbgl("No containers in any container type in dicitionary!");
+                    return;
+                }
+            }
 
             List<Container> containers = GetContainers(currentType);
+
+            if (containers.Count == 0)
+                return;
 
             int container = currentContainerIndex + which < 0 ? containers.Count - 1 : (currentContainerIndex + which) % containers.Count;
             currentContainerIndex = container;

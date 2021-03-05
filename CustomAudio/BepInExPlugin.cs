@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.5.2")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.5.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -314,23 +314,37 @@ namespace CustomAudio
         [HarmonyPatch(typeof(MusicMan), "UpdateMusic")]
         static class UpdateMusic_Patch
         {
-            static void Prefix(ref MusicMan.NamedMusic ___m_currentMusic, ref MusicMan.NamedMusic ___m_queuedMusic, AudioSource ___m_musicSource)
+            private static MusicMan.NamedMusic lastMusic = null;
+
+            static void Prefix(ref MusicMan.NamedMusic ___m_currentMusic, ref MusicMan.NamedMusic ___m_queuedMusic, AudioSource ___m_musicSource, bool ___m_stopMusic)
             {
-                if(___m_musicSource?.clip != null &&  lastMusicName != ___m_musicSource.clip.name)
+                if (___m_musicSource?.clip != null && lastMusicName != ___m_musicSource.clip.name)
                 {
                     Dbgl($"Switching music from {lastMusicName} to {___m_musicSource.clip.name}");
                     lastMusicName = ___m_musicSource.clip.name;
                 }
-                if (___m_currentMusic != null && !___m_musicSource.isPlaying && PlayerPrefs.GetInt("ContinousMusic", 1) == 1)
+                if (___m_queuedMusic == null && !___m_musicSource.isPlaying && PlayerPrefs.GetInt("ContinousMusic", 1) == 1)
                 {
-                    //Dbgl($"done {___m_musicSource.clip?.name}, setting queued to current {___m_currentMusic.m_clips.Length}");
-                    ___m_queuedMusic = ___m_currentMusic;
+                    if (lastMusic != null)
+                    {
+                        ___m_queuedMusic = lastMusic;
+                        lastMusic = null;
+                    }
+                    else if (___m_currentMusic != null)
+                        lastMusic = ___m_currentMusic;
+                    else
+                        lastMusic = null;
                 }
-                if (___m_queuedMusic != null)
+                else
+                    lastMusic = null;
+                if (___m_musicSource.isPlaying)
                 {
-                    //Dbgl($"queued, setting loop to false {___m_queuedMusic.m_clips.Length}");
-                    ___m_queuedMusic.m_loop = false;
+                    //Dbgl($"queued {___m_queuedMusic.m_name}, setting loop to false {___m_queuedMusic.m_clips.Length}");
+                    ___m_musicSource.loop = false;
                 }
+            }
+            static void Postfix(ref MusicMan.NamedMusic ___m_currentMusic, ref MusicMan.NamedMusic ___m_queuedMusic, AudioSource ___m_musicSource, bool ___m_stopMusic)
+            {
             }
         }
 

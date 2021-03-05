@@ -47,6 +47,13 @@ namespace CustomMeshes
 
         }
 
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.U))
+            {
+            }
+        }
+
         private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
             PreloadMeshes();
@@ -182,7 +189,8 @@ namespace CustomMeshes
         {
             static void Postfix()
             {
-                //PreloadMeshes();
+
+
             }
         }
 
@@ -323,6 +331,29 @@ namespace CustomMeshes
             static void Postfix(Player __instance)
             {
                 Dbgl($"Player awake.");
+                /*
+                foreach (GameObject go in Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>().Values)
+                {
+                    if (go.name.StartsWith("Skeleton"))
+                    {
+                        try
+                        {
+                            SkinnedMeshRenderer smr = go.GetComponentInChildren<SkinnedMeshRenderer>();
+                            Dbgl($"smr is null: {smr == null}");
+                            SkinnedMeshRenderer smr2 = __instance.transform.Find("Visual").Find("body").GetComponent<SkinnedMeshRenderer>();
+                            Dbgl($"smr2 is null: {smr2 == null}");
+                            if (smr != null && smr2 != null)
+                            {
+                                smr2 = smr;
+                                return;
+
+                            }
+
+                        }
+                        catch { }
+                    }
+                }
+                */
                 if (customGameObjects.ContainsKey("player"))
                 {
                     if (customGameObjects["player"].ContainsKey("model"))

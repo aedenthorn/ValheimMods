@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.5.3")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.5.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = false;
@@ -89,12 +89,12 @@ namespace AutoFuel
             try { 
                 List<Container> containers = new List<Container>();
 
-                foreach (Collider collider in Physics.OverlapSphere(center, containerRange.Value, LayerMask.GetMask(new string[] { "piece" })))
+                foreach (Collider collider in Physics.OverlapSphere(center, Mathf.Max(containerRange.Value, 0), LayerMask.GetMask(new string[] { "piece" })))
                 {
                     Container container = collider.transform.parent?.parent?.gameObject?.GetComponent<Container>();
                     if (container?.GetComponent<ZNetView>()?.IsValid() != true)
                         continue;
-                    if (container?.transform?.position != null && container.GetInventory() != null && (containerRange.Value <= 0 || Vector3.Distance(center, container.transform.position) < containerRange.Value) && (container.name.StartsWith("piece_chest") || container.name.StartsWith("Container")) && container.GetInventory() != null)
+                    if (container?.transform?.position != null && (container.name.StartsWith("piece_chest") || container.name.StartsWith("Container")) && container.GetInventory() != null)
                     {
                         containers.Add(container);
                     }
