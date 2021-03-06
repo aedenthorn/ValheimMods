@@ -32,13 +32,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony20">
-      <HintPath>..\..\BepInEx\0Harmony20.dll</HintPath>
+      <HintPath>..\BepInEx\0Harmony20.dll</HintPath>
     </Reference>
     <Reference Include="assembly_valheim">
       <HintPath>..\valheim_Data\Managed\assembly_valheim.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>..\..\BepInEx\BepInEx.dll</HintPath>
+      <HintPath>..\BepInEx\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
