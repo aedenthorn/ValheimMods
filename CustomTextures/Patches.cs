@@ -10,6 +10,29 @@ namespace CustomTextures
     public partial class BepInExPlugin
     {
 
+        [HarmonyPatch(typeof(ItemDrop), "Awake")]
+        static class ItemData_GetIcon_Patch
+        {
+            static void Postfix(ItemDrop __instance)
+            {
+                if (modEnabled.Value && customTextures.ContainsKey("icon_atlas"))
+                {
+                    Texture2D tex = LoadTexture("icon_atlas", new Texture2D(2,2));
+                    for (int i = 0; i < __instance.m_itemData.m_shared.m_icons.Length; i++)
+                    {
+                        Sprite sprite = __instance.m_itemData.m_shared.m_icons[i];
+                        float scaleX = tex.width / (float)sprite.texture.width;
+                        float scaleY = tex.height / (float)sprite.texture.height;
+                        float scale = (scaleX + scaleY) / 2;
+
+                        sprite = Sprite.Create(tex, new Rect(sprite.textureRect.x * scaleX, sprite.textureRect.y * scaleY, sprite.textureRect.width * scaleX, sprite.textureRect.height * scaleY), Vector2.zero, sprite.pixelsPerUnit * scale);
+                        __instance.m_itemData.m_shared.m_icons[i] = sprite;
+                    }
+                }
+
+            }
+        }
+        
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
         static class ZNetScene_Awake_Patch
         {

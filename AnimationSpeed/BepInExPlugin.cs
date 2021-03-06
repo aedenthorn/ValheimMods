@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace AnimationSpeed
 {
-    [BepInPlugin("aedenthorn.AnimationSpeed", "Animation Speed", "0.5.0")]
+    [BepInPlugin("aedenthorn.AnimationSpeed", "Animation Speed", "0.5.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -112,14 +112,14 @@ namespace AnimationSpeed
 
                 if (___m_animator?.GetCurrentAnimatorClipInfo(0)?.Any() != true || ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip == null)
                 {
-                    Dbgl($"current clip is null");
+                    //Dbgl($"current clip is null");
                     return;
                 }
-
+                /*
                 Dbgl($"{___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name} speed {speedScale}");
                 if ((___m_character as Humanoid).GetCurrentWeapon() != null)
                     Dbgl($"{(___m_character as Humanoid).GetCurrentWeapon()?.m_dropPrefab?.name} {(___m_character as Humanoid).GetCurrentWeapon()?.m_shared?.m_skillType}");
-
+                */
                 if (___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("Attack"))
                 {
                     if((___m_character as Humanoid).GetCurrentWeapon()?.m_shared?.m_skillType == Skills.SkillType.Clubs)
@@ -165,7 +165,7 @@ namespace AnimationSpeed
                 {
                     speedScale *= enemy ? unarmedEnemySpeedMult.Value : unarmedSpeedMult.Value;
                 }
-                Dbgl($"speed after {speedScale}");
+                //Dbgl($"speed after {speedScale}");
             }
         }
         [HarmonyPatch(typeof(Console), "InputText")]

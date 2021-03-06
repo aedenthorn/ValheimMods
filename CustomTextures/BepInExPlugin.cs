@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.3.0")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.3.1")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -136,7 +136,7 @@ namespace CustomTextures
         {
             if (cachedTextures.ContainsKey(id))
             {
-                Dbgl($"loading cached texture for {id}");
+                //Dbgl($"loading cached texture for {id}");
                 return cachedTextures[id];
             }
 
@@ -144,13 +144,13 @@ namespace CustomTextures
             tex.filterMode = FilterMode.Point;
             if (customTextures.ContainsKey(id))
             {
-                Dbgl($"loading custom texture file for {id}");
+                //Dbgl($"loading custom texture file for {id}");
                 byte[] imageData = File.ReadAllBytes(customTextures[id]);
                 tex.LoadImage(imageData);
             }
             else
             {
-                Dbgl($"texture {id} has no custom texture, using vanilla");
+                //Dbgl($"texture {id} has no custom texture, using vanilla");
 
                 // https://support.unity.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
 
@@ -192,7 +192,7 @@ namespace CustomTextures
             var layers = customTextures.Where(p => p.Key.StartsWith(id) && p.Key != id);
             if (layers.Any())
             {
-                Dbgl($"texture {id} has {layers.Count()} layers");
+                //Dbgl($"texture {id} has {layers.Count()} layers");
                 foreach(var layer in layers)
                 {
 

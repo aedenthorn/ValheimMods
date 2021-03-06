@@ -92,13 +92,13 @@ namespace BuildingDamageMod
                 
                 float mult = 1;
                 //Dbgl($"attacker: {hit.m_attacker.userID}, creator { ___m_nview.IsOwner()}");
-                if (!hit.m_attacker.IsNone())
+                if (hit.m_attacker != null && !hit.m_attacker.IsNone())
                 {
-                    if (___m_piece.GetCreator() == 0)
+                    if (___m_piece?.GetCreator() == 0)
                     {
                         mult = uncreatedDamageMult.Value;
                     }
-                    else if(hit.m_attacker.userID == ___m_piece.GetCreator())
+                    else if(hit.m_attacker.userID == ___m_piece?.GetCreator())
                     {
                         mult = creatorDamageMult.Value;
                     }
