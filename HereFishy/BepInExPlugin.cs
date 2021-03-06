@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 
 namespace HereFishy
 {
-    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.1.4")]
+    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.1.5")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -34,6 +34,8 @@ namespace HereFishy
         private static Vector3 origPos;
         private static Vector3 flatPos;
         private static bool hereFishying;
+        private static AudioSource playerAudio;
+        private static AudioSource fishAudio;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -66,7 +68,7 @@ namespace HereFishy
         }
         private void Update()
         {
-            if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses())
+            if (!modEnabled.Value || Player.m_localPlayer == null || !Traverse.Create(Player.m_localPlayer).Method("TakeInput").GetValue<bool>())
                 return;
 
             if (AedenthornUtils.CheckKeyDown(hotKey.Value))
@@ -101,8 +103,14 @@ namespace HereFishy
                         hereFishying = true;
                         
                         ((ZSyncAnimation)typeof(Player).GetField("m_zanim", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Player.m_localPlayer)).SetTrigger("gpower");
+                        Destroy(Player.m_localPlayer.gameObject.GetComponent<AudioSource>());
+                        playerAudio = Player.m_localPlayer.gameObject.AddComponent<AudioSource>();
+                        playerAudio.volume = Mathf.Clamp(hereFishyVolume.Value, 0.1f, 1f);
+                        playerAudio.clip = fishyClip;
+                        playerAudio.loop = false;
+                        playerAudio.spatialBlend = 1f;
+                        playerAudio.Play();
 
-                        AudioSource.PlayClipAtPoint(fishyClip, Player.m_localPlayer.transform.position, Mathf.Clamp(hereFishyVolume.Value, 0.1f, 1f));
                         Invoke("StartJump", fishyClip.length);
                     }
                     else
@@ -115,15 +123,16 @@ namespace HereFishy
         private void StartJump()
         {
             Dbgl("starting fish jump");
+            Destroy(playerAudio);
             hereFishying = false;
             if (playWeeee.Value)
             {
-                AudioSource audioSource = currentFish.gameObject.AddComponent<AudioSource>();
-                audioSource.volume = Mathf.Clamp(weeVolume.Value, 0.1f, 1f);
-                audioSource.clip = weeClip;
-                audioSource.loop = false;
-                audioSource.spatialBlend = 1f;
-                audioSource.Play();
+                fishAudio = currentFish.gameObject.AddComponent<AudioSource>();
+                fishAudio.volume = Mathf.Clamp(weeVolume.Value, 0.1f, 1f);
+                fishAudio.clip = weeClip;
+                fishAudio.loop = false;
+                fishAudio.spatialBlend = 1f;
+                fishAudio.Play();
             }
             origPos = currentFish.gameObject.transform.position;
             flatPos = origPos;
@@ -160,7 +169,7 @@ namespace HereFishy
                 if (Vector3.Distance(playerPos, currentFish.gameObject.transform.position) < jumpSpeed.Value)
                 {
                     Dbgl("taking fish");
-
+                    Destroy(fishAudio);
                     currentFish.Pickup(Player.m_localPlayer);
                     break;
                 }

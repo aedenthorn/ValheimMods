@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Regeneration
 {
-    [BepInPlugin("aedenthorn.Regeneration", "Regeneration", "0.2.1")]
+    [BepInPlugin("aedenthorn.Regeneration", "Regeneration", "0.3.1")]
     public class Regeneration : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -22,7 +22,9 @@ namespace Regeneration
         public static ConfigEntry<float> dodgeStaminaLoss;
         public static ConfigEntry<float> jumpStaminaLoss;
         public static ConfigEntry<float> blockStaminaLoss;
+
         public static ConfigEntry<float> buildStaminaLossMult;
+        public static ConfigEntry<float> hookedStaminaPerSec;
         
         public static ConfigEntry<float> weightStaminaFactor;
         public static ConfigEntry<float> encumberedStaminaLoss;
@@ -58,6 +60,7 @@ namespace Regeneration
             encumberedStaminaLoss = Config.Bind<float>("Stamina", "EncumberedStaminaLoss", 10f, "Stamina loss when encumbered.");
 
             buildStaminaLossMult = Config.Bind<float>("Stamina", "BuildStaminaLossMult", 1f, "Stamina loss multiplier for building.");
+            hookedStaminaPerSec = Config.Bind<float>("Stamina", "HookedStaminaPerSec", 1f, "Stamina loss per second while reeling in a hooked fish.");
 
             staminaRegenMult = Config.Bind<float>("Stamina", "StaminaRegenMult", 1f, "Stamina gain multiplier.");
             staminaRegenCooldownMult = Config.Bind<float>("Stamina", "StaminaRegenCooldownMult", 1f, "Stamina regen cooldown time multiplier.");
@@ -140,6 +143,19 @@ namespace Regeneration
                     {
                         ___m_stamina = Mathf.Max(0, __state - (__state- ___m_stamina) * buildStaminaLossMult.Value);
                     }
+                }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(FishingFloat), "Awake")]
+        static class FishingFloat_Awake_Patch
+        {
+            static void Postfix(ref FishingFloat __instance)
+            {
+                if (modEnabled.Value)
+                {
+                    __instance.m_hookedStaminaPerSec = hookedStaminaPerSec.Value;
                 }
             }
         }

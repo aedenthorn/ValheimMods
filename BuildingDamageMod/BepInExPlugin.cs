@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace BuildingDamageMod
 {
-    [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.2.0")]
+    [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -22,8 +22,6 @@ namespace BuildingDamageMod
         public static ConfigEntry<bool> preventWearDamage;
         public static ConfigEntry<int> nexusID;
 
-        public static float lastMult;
-        public static bool damaging;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -72,13 +70,13 @@ namespace BuildingDamageMod
             {
                 Dbgl($"creator: {___m_piece.GetCreator()} peer {peer}");
 
-                if (nonCreatorDamageMult.Value == 0 && peer != ___m_piece.GetCreator())
-                    return false;
-
                 if (uncreatedDamageMult.Value == 0 && ___m_piece.GetCreator() == 0)
                     return false;
 
-                if (creatorDamageMult.Value == 0 && ___m_piece.GetCreator() == peer)
+                if (nonCreatorDamageMult.Value == 0 && (___m_piece.GetCreator() != 0 && peer != ___m_piece.GetCreator()))
+                    return false;
+
+                if (creatorDamageMult.Value == 0 && (___m_piece.GetCreator() != 0 && peer == ___m_piece.GetCreator()))
                     return false;
                 return true;
             }
@@ -87,37 +85,33 @@ namespace BuildingDamageMod
         [HarmonyPatch(typeof(WearNTear), "RPC_Damage")]
         static class RPC_Damage_Patch
         {
-            static void Prefix(ref HitData hit, ZNetView ___m_nview, Piece ___m_piece)
+            static void Prefix(ref HitData hit, Piece ___m_piece)
             {
                 if (!modEnabled.Value)
                     return;
-                damaging = true;
-
+                
+                float mult = 1;
                 //Dbgl($"attacker: {hit.m_attacker.userID}, creator { ___m_nview.IsOwner()}");
                 if (!hit.m_attacker.IsNone())
                 {
                     if (___m_piece.GetCreator() == 0)
                     {
-                        lastMult = uncreatedDamageMult.Value;
+                        mult = uncreatedDamageMult.Value;
                     }
                     else if(hit.m_attacker.userID == ___m_piece.GetCreator())
                     {
-                        lastMult = creatorDamageMult.Value;
+                        mult = creatorDamageMult.Value;
                     }
                     else
                     {
-                        lastMult = nonCreatorDamageMult.Value;
+                        mult = nonCreatorDamageMult.Value;
                     }
                 }
                 else
                 {
-                    lastMult = naturalDamageMult.Value;
+                    mult = naturalDamageMult.Value;
                 }
-                MultiplyDamage(ref hit, lastMult);
-            }
-            static void Postfix()
-            {
-                damaging = false;
+                MultiplyDamage(ref hit, mult);
             }
             private static void MultiplyDamage(ref HitData hit, float value)
             {
@@ -135,6 +129,16 @@ namespace BuildingDamageMod
                 hit.m_damage.m_spirit *= value;
             }
         }
-
+        
+        [HarmonyPatch(typeof(WearNTear), "ApplyDamage")]
+        static class ApplyDamage_Patch
+        {
+            static void Prefix(ref float damage)
+            {
+                if (!modEnabled.Value || Environment.StackTrace.Contains("RPC_Damage"))
+                    return;
+                damage *= naturalDamageMult.Value;
+            }
+        }
     }
 }

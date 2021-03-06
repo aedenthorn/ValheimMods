@@ -67,7 +67,8 @@ namespace DayCycle
 
             static void Postfix(ref long ___m_dayLengthSec)
             {
-                ___m_dayLengthSec = (long)(Mathf.Round(___m_dayLengthSec / dayRate.Value));
+                vanillaDayLengthSec = ___m_dayLengthSec;
+                ___m_dayLengthSec = (long)(Mathf.Round(vanillaDayLengthSec / dayRate.Value));
             }
         }
 
@@ -132,7 +133,7 @@ namespace DayCycle
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    firstSet = true;
+                    Traverse.Create(EnvMan.instance).Field("m_dayLengthSec").SetValue((long)Mathf.Round(vanillaDayLengthSec / dayRate.Value));
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { "Day Cycle config reloaded" }).GetValue();
                     return false;

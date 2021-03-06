@@ -1,14 +1,16 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace TreeRespawn
 {
-    [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.1.1")]
+    [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.2.0")]
     public class TreeRespawn : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -19,9 +21,11 @@ namespace TreeRespawn
                 Debug.Log((pref ? typeof(TreeRespawn).Namespace + " " : "") + str);
         }
 
-        public static ConfigEntry<string> hotKey;
+        private static TreeRespawn context;
+
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<int> spawnDelay;
 
         public static Dictionary<string, string> seedsDic = new Dictionary<string, string>
         {
@@ -32,8 +36,10 @@ namespace TreeRespawn
 
         private void Awake()
         {
+            context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 37, "Nexus mod ID for updates");
+            spawnDelay = Config.Bind<int>("General", "SpawnDelay", 2000, "Delay in ms to spawn sapling");
 
             if (!modEnabled.Value)
                 return;
@@ -55,10 +61,16 @@ namespace TreeRespawn
                     GameObject prefab = ZNetScene.instance.GetPrefab(name);
                     if (prefab != null)
                     {
-                        Instantiate(prefab, __instance.transform.position, Quaternion.identity);
-                        Dbgl($"created new {name}");
+                        Task.Run(() => SpawnTree(prefab, __instance.transform.position));
+                        Dbgl($"created new {prefab.name}");
                     }
                 }
+            }
+
+            private static async void SpawnTree(GameObject prefab, Vector3 position)
+            {
+                await Task.Delay(spawnDelay.Value);
+                Instantiate(prefab, position, Quaternion.identity);
             }
         }
     }

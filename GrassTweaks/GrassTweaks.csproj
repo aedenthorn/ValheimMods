@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{453B3B2F-54ED-42E3-995E-D306ECB518BA}</ProjectGuid>
+    <ProjectGuid>{197882E5-903E-40FD-9963-3AFAFFC85978}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TimeMod</RootNamespace>
-    <AssemblyName>TimeMod</AssemblyName>
+    <RootNamespace>GrassTweaks</RootNamespace>
+    <AssemblyName>GrassTweaks</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -32,20 +32,25 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony20">
-      <HintPath>..\..\BepInEx\0Harmony20.dll</HintPath>
+      <HintPath>..\BepInEx\0Harmony20.dll</HintPath>
     </Reference>
     <Reference Include="assembly_googleanalytics">
       <HintPath>..\valheim_Data\Managed\assembly_googleanalytics.dll</HintPath>
     </Reference>
-    <Reference Include="assembly_utils, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="assembly_guiutils">
+      <HintPath>..\valheim_Data\Managed\assembly_guiutils.dll</HintPath>
+    </Reference>
+    <Reference Include="assembly_steamworks">
+      <HintPath>..\valheim_Data\Managed\assembly_steamworks.dll</HintPath>
+    </Reference>
+    <Reference Include="assembly_utils">
       <HintPath>..\valheim_Data\Managed\assembly_utils.dll</HintPath>
     </Reference>
     <Reference Include="assembly_valheim">
       <HintPath>..\valheim_Data\Managed\assembly_valheim.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>..\..\BepInEx\BepInEx.dll</HintPath>
+      <HintPath>..\BepInEx\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -58,11 +63,17 @@
     <Reference Include="UnityEngine">
       <HintPath>..\valheim_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>..\valheim_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <HintPath>..\valheim_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>..\valheim_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>..\valheim_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
@@ -73,15 +84,32 @@
     <Reference Include="UnityEngine.InputModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.InputModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.ScreenCaptureModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+      <HintPath>..\valheim_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>..\..\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ScreenCaptureModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.ScreenCaptureModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>..\valheim_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>..\valheim_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAudioModule">
+      <HintPath>..\valheim_Data\Managed\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestModule">
+      <HintPath>..\valheim_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestWWWModule">
+      <HintPath>..\valheim_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

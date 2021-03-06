@@ -237,9 +237,9 @@ namespace AutoStore
 
                         if (item.m_itemData.m_stack == 1 && __instance.GetInventory().CanAddItem(item.m_itemData, 1))
                         {
-                            Traverse.Create(item).Method("Save").GetValue();
                             ItemDrop.ItemData newItem = item.m_itemData.Clone();
                             item.m_itemData.m_stack = 0;
+                            Traverse.Create(item).Method("Save").GetValue();
                             if (___m_nview.GetZDO() == null)
                                 DestroyImmediate(item.gameObject);
                             else

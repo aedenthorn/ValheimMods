@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace AnimationSpeed
 {
-    [BepInPlugin("aedenthorn.AnimationSpeed", "Animation Speed", "0.4.0")]
+    [BepInPlugin("aedenthorn.AnimationSpeed", "Animation Speed", "0.5.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -18,36 +18,34 @@ namespace AnimationSpeed
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
-        public static ConfigEntry<float> interactSpeed;
-        public static ConfigEntry<float> jumpSpeed;
-        public static ConfigEntry<float> bowFireSpeed;
-        public static ConfigEntry<float> axeSpeed;
-        public static ConfigEntry<float> battleAxeSpeed;
-        public static ConfigEntry<float> clubSpeed;
-        public static ConfigEntry<float> pickAxeSpeed;
-        public static ConfigEntry<float> spearSpeed;
-        public static ConfigEntry<float> atgeirSpeed;
-        public static ConfigEntry<float> swordSpeed;
-        public static ConfigEntry<float> knifeSpeed;
-        public static ConfigEntry<float> hammerSpeed;
-        public static ConfigEntry<float> unarmedSpeed;
+        public static ConfigEntry<float> bowFireSpeedMult;
+        public static ConfigEntry<float> axeSpeedMult;
+        public static ConfigEntry<float> battleAxeSpeedMult;
+        public static ConfigEntry<float> clubSpeedMult;
+        public static ConfigEntry<float> pickAxeSpeedMult;
+        public static ConfigEntry<float> spearSpeedMult;
+        public static ConfigEntry<float> polearmSpeedMult;
+        public static ConfigEntry<float> swordSpeedMult;
+        public static ConfigEntry<float> knifeSpeedMult;
+        public static ConfigEntry<float> hammerSpeedMult;
+        public static ConfigEntry<float> unarmedSpeedMult;
 
         public static ConfigEntry<float> interactEnemySpeed;
         public static ConfigEntry<float> jumpEnemySpeed;
-        public static ConfigEntry<float> bowFireEnemySpeed;
-        public static ConfigEntry<float> axeEnemySpeed;
-        public static ConfigEntry<float> battleAxeEnemySpeed;
-        public static ConfigEntry<float> clubEnemySpeed;
-        public static ConfigEntry<float> pickAxeEnemySpeed;
-        public static ConfigEntry<float> spearEnemySpeed;
-        public static ConfigEntry<float> atgeirEnemySpeed;
-        public static ConfigEntry<float> swordEnemySpeed;
-        public static ConfigEntry<float> knifeEnemySpeed;
-        public static ConfigEntry<float> hammerEnemySpeed;
-        public static ConfigEntry<float> unarmedEnemySpeed;
+        public static ConfigEntry<float> bowFireEnemySpeedMult;
+        public static ConfigEntry<float> axeEnemySpeedMult;
+        public static ConfigEntry<float> battleAxeEnemySpeedMult;
+        public static ConfigEntry<float> clubEnemySpeedMult;
+        public static ConfigEntry<float> pickAxeEnemySpeedMult;
+        public static ConfigEntry<float> spearEnemySpeedMult;
+        public static ConfigEntry<float> polearmEnemySpeedMult;
+        public static ConfigEntry<float> swordEnemySpeedMult;
+        public static ConfigEntry<float> knifeEnemySpeedMult;
+        public static ConfigEntry<float> hammerEnemySpeedMult;
+        public static ConfigEntry<float> unarmedEnemySpeedMult;
 
         private static BepInExPlugin context;
-
+        
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
@@ -60,29 +58,29 @@ namespace AnimationSpeed
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 240, "Nexus mod ID for updates");
 
-            bowFireSpeed = Config.Bind<float>("General", "BowFireSpeed", 2f, "Speed for firing bows");
-            axeSpeed = Config.Bind<float>("General", "AxeSpeed", 2f, "Speed for axe swing");
-            battleAxeSpeed = Config.Bind<float>("General", "BattleAxeSpeed", 2f, "Speed for battle axe swing");
-            clubSpeed = Config.Bind<float>("General", "ClubSpeed", 2f, "Speed for club swing");
-            pickAxeSpeed = Config.Bind<float>("General", "PickAxeSpeed", 2f, "Speed for pick axe swing");
-            spearSpeed = Config.Bind<float>("General", "SpearSpeed", 2f, "Speed for spear stab");
-            atgeirSpeed = Config.Bind<float>("General", "AtgeirSpeed", 2f, "Speed for atgeir thrust");
-            swordSpeed = Config.Bind<float>("General", "SwordSpeed", 2f, "Speed for sword swing");
-            hammerSpeed = Config.Bind<float>("General", "HammerSpeed", 2f, "Speed for hammer swing");
-            knifeSpeed = Config.Bind<float>("General", "KnifeSpeed", 2f, "Speed for knife stab");
-            unarmedSpeed = Config.Bind<float>("General", "UnarmedSpeed", 2f, "Speed for punch attacks");
+            bowFireSpeedMult = Config.Bind<float>("General", "BowFireSpeedMult", 1f, "Speed multiplier for firing bows");
+            axeSpeedMult = Config.Bind<float>("General", "AxeSpeedMult", 1f, "Speed multiplier for axe swing");
+            battleAxeSpeedMult = Config.Bind<float>("General", "BattleAxeSpeedMult", 1f, "Speed multiplier for battle axe swing");
+            clubSpeedMult = Config.Bind<float>("General", "ClubSpeedMult", 1f, "Speed multiplier for club swing");
+            pickAxeSpeedMult = Config.Bind<float>("General", "PickAxeSpeedMult", 1f, "Speed multiplier for pick axe swing");
+            spearSpeedMult = Config.Bind<float>("General", "SpearSpeedMult", 1f, "Speed multiplier for spear stab");
+            polearmSpeedMult = Config.Bind<float>("General", "AtgeirSpeedMult", 1f, "Speed multiplier for atgeir thrust");
+            swordSpeedMult = Config.Bind<float>("General", "SwordSpeedMult", 1f, "Speed multiplier for sword swing");
+            hammerSpeedMult = Config.Bind<float>("General", "HammerSpeedMult", 1f, "Speed multiplier for hammer swing");
+            knifeSpeedMult = Config.Bind<float>("General", "KnifeSpeedMult", 1f, "Speed multiplier for knife stab");
+            unarmedSpeedMult = Config.Bind<float>("General", "UnarmedSpeedMult", 1f, "Speed multiplier for punch attacks");
 
-            bowFireEnemySpeed = Config.Bind<float>("General", "BowFireEnemySpeed", 1f, "Enemy speed for firing bows");
-            axeEnemySpeed = Config.Bind<float>("General", "AxeEnemySpeed", 1f, "Enemy speed for axe swing");
-            battleAxeEnemySpeed = Config.Bind<float>("General", "BattleAxeEnemySpeed", 1f, "Enemy speed for battle axe swing");
-            clubEnemySpeed = Config.Bind<float>("General", "ClubEnemySpeed", 1f, "Enemy speed for club swing");
-            pickAxeEnemySpeed = Config.Bind<float>("General", "PickAxeEnemySpeed", 1f, "Enemy speed for pick axe swing");
-            spearEnemySpeed = Config.Bind<float>("General", "SpearEnemySpeed", 1f, "Enemy speed for spear stab");
-            atgeirEnemySpeed = Config.Bind<float>("General", "AtgeirEnemySpeed", 1f, "Enemy speed for atgeir thrust");
-            swordEnemySpeed = Config.Bind<float>("General", "SwordEnemySpeed", 1f, "Enemy speed for sword swing");
-            hammerEnemySpeed = Config.Bind<float>("General", "HammerEnemySpeed", 1f, "Speed for hammer swing");
-            knifeEnemySpeed = Config.Bind<float>("General", "KnifeEnemySpeed", 1f, "Enemy speed for knife attacks");
-            unarmedEnemySpeed = Config.Bind<float>("General", "UnarmedEnemySpeed", 1f, "Enemy speed for punch attacks");
+            bowFireEnemySpeedMult = Config.Bind<float>("General", "BowFireEnemySpeedMult", 1f, "Enemy speed multiplier for firing bows");
+            axeEnemySpeedMult = Config.Bind<float>("General", "AxeEnemySpeedMult", 1f, "Enemy speed multiplier for axe swing");
+            battleAxeEnemySpeedMult = Config.Bind<float>("General", "BattleAxeEnemySpeedMult", 1f, "Enemy speed multiplier for battle axe swing");
+            clubEnemySpeedMult = Config.Bind<float>("General", "ClubEnemySpeedMult", 1f, "Enemy speed multiplier for club swing");
+            pickAxeEnemySpeedMult = Config.Bind<float>("General", "PickAxeEnemySpeedMult", 1f, "Enemy speed multiplier for pick axe swing");
+            spearEnemySpeedMult = Config.Bind<float>("General", "SpearEnemySpeedMult", 1f, "Enemy speed multiplier for spear stab");
+            polearmEnemySpeedMult = Config.Bind<float>("General", "AtgeirEnemySpeedMult", 1f, "Enemy speed multiplier for atgeir thrust");
+            swordEnemySpeedMult = Config.Bind<float>("General", "SwordEnemySpeedMult", 1f, "Enemy speed multiplier for sword swing");
+            hammerEnemySpeedMult = Config.Bind<float>("General", "HammerEnemySpeedMult", 1f, "Speed multiplier for hammer swing");
+            knifeEnemySpeedMult = Config.Bind<float>("General", "KnifeEnemySpeedMult", 1f, "Enemy speed multiplier for knife attacks");
+            unarmedEnemySpeedMult = Config.Bind<float>("General", "UnarmedEnemySpeedMult", 1f, "Enemy speed multiplier for punch attacks");
 
             if (!modEnabled.Value)
                 return;
@@ -102,82 +100,72 @@ namespace AnimationSpeed
             }
         }
 
-        [HarmonyPatch(typeof(CharacterAnimEvent), "FixedUpdate")]
-        static class CharacterAnimEvent_FixedUpdate_Patch
+        [HarmonyPatch(typeof(CharacterAnimEvent), "Speed")]
+        static class CharacterAnimEvent_Speed_Patch
         {
-            static void Postfix(ref Animator ___m_animator, Character ___m_character)
+            static void Prefix(Animator ___m_animator, Character ___m_character, ref float speedScale)
             {
-                if (!modEnabled.Value || !(___m_character is Humanoid || ___m_character is Player) || Player.m_localPlayer == null || (___m_character is Player &&  (___m_character as Player).GetPlayerID() != Player.m_localPlayer.GetPlayerID()))
+                if (!modEnabled.Value || !(___m_character is Humanoid) || Player.m_localPlayer == null || (___m_character is Player &&  (___m_character as Player).GetPlayerID() != Player.m_localPlayer.GetPlayerID()))
                     return;
                 
                 bool enemy = !(___m_character is Player);
 
-                string name = ___m_animator.name;
-                if (___m_character.InAttack())
+                if (___m_animator?.GetCurrentAnimatorClipInfo(0)?.Any() != true || ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip == null)
                 {
-                    /*
-                    try
-                    {
-                        if (___m_animator.GetCurrentAnimatorClipInfo(0)?.Any() == true)
-                            Dbgl($"{___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name}");
-                    }
-                    catch { }
-                    try
-                    {
-                        if ((___m_character as Humanoid).GetCurrentWeapon() != null)
-                            Dbgl($"{(___m_character as Humanoid).GetCurrentWeapon()?.m_dropPrefab.name} {(___m_character as Humanoid).GetCurrentWeapon()?.m_shared.m_skillType}");
-
-                    }
-                    catch { }
-                    */
-                    if (___m_animator.GetCurrentAnimatorClipInfo(0)?.Any() == true && ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("Attack"))
-                    {
-                        if((___m_character as Humanoid).GetCurrentWeapon().m_shared.m_skillType == Skills.SkillType.Clubs)
-                            ___m_animator.speed = enemy ? clubEnemySpeed.Value : clubSpeed.Value;
-                        else if((___m_character as Humanoid).GetCurrentWeapon().m_shared.m_skillType == Skills.SkillType.Swords)
-                            ___m_animator.speed = enemy ? swordEnemySpeed.Value : swordSpeed.Value;
-                        else
-                            ___m_animator.speed = enemy ? swordEnemySpeed.Value : swordSpeed.Value;
-                    }
-                    else if (___m_animator.GetCurrentAnimatorClipInfo(0)?.Any() == true && ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("Sledge-Attack"))
-                    {
-                        ___m_animator.speed = enemy ? hammerEnemySpeed.Value : hammerSpeed.Value;
-                    }
-                    else if (___m_animator.GetCurrentAnimatorClipInfo(0)?.Any() == true && (___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("BattleAxe")))
-                    {
-                        ___m_animator.speed = enemy ? battleAxeEnemySpeed.Value : battleAxeSpeed.Value;
-                    }
-                    else if (___m_animator.GetCurrentAnimatorClipInfo(0)?.Any() == true && (___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name == "axe_swing" || ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("Axe")))
-                    {
-                        ___m_animator.speed = enemy ? axeEnemySpeed.Value : axeSpeed.Value;
-                    }
-                    else if (___m_animator.GetCurrentAnimatorClipInfo(0)?.Any() == true && ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("knife_slash"))
-                    {
-                        ___m_animator.speed = enemy ? knifeEnemySpeed.Value : knifeSpeed.Value;
-                    }
-                    else if (___m_animator.GetCurrentAnimatorClipInfo(0)?.Any() == true && ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("2Hand-Spear-"))
-                    {
-                        ___m_animator.speed = enemy ? atgeirEnemySpeed.Value : atgeirSpeed.Value;
-                    }
-                    else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("bow_fire"))
-                    {
-                        ___m_animator.speed = enemy ? bowFireEnemySpeed.Value : bowFireSpeed.Value;
-                    }
-                    else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("spear_poke"))
-                    {
-                        ___m_animator.speed = enemy ? spearEnemySpeed.Value : spearSpeed.Value;
-                    }
-                    else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("swing_pickaxe"))
-                    {
-                        ___m_animator.speed = enemy ? pickAxeEnemySpeed.Value : pickAxeSpeed.Value;
-                    }
-                    else if (___m_animator.GetCurrentAnimatorClipInfo(0)?.Any() == true && ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("Punchstep"))
-                    {
-                        ___m_animator.speed = enemy ? unarmedEnemySpeed.Value : unarmedSpeed.Value;
-                    }
-                    
+                    Dbgl($"current clip is null");
+                    return;
                 }
 
+                Dbgl($"{___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name} speed {speedScale}");
+                if ((___m_character as Humanoid).GetCurrentWeapon() != null)
+                    Dbgl($"{(___m_character as Humanoid).GetCurrentWeapon()?.m_dropPrefab?.name} {(___m_character as Humanoid).GetCurrentWeapon()?.m_shared?.m_skillType}");
+
+                if (___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("Attack"))
+                {
+                    if((___m_character as Humanoid).GetCurrentWeapon()?.m_shared?.m_skillType == Skills.SkillType.Clubs)
+                        speedScale *= enemy ? clubEnemySpeedMult.Value : clubSpeedMult.Value;
+                    else if ((___m_character as Humanoid).GetCurrentWeapon()?.m_shared?.m_skillType == Skills.SkillType.Swords)
+                        speedScale *= enemy ? swordEnemySpeedMult.Value : swordSpeedMult.Value;
+                    else
+                        speedScale *= enemy ? swordEnemySpeedMult.Value : swordSpeedMult.Value;
+                }
+                else if (___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("Sledge-Attack"))
+                {
+                    speedScale *= enemy ? hammerEnemySpeedMult.Value : hammerSpeedMult.Value;
+                }
+                else if ((___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("BattleAxe")))
+                {
+                    speedScale *= enemy ? battleAxeEnemySpeedMult.Value : battleAxeSpeedMult.Value;
+                }
+                else if ((___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name == "axe_swing" || ___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("Axe")))
+                {
+                    speedScale *= enemy ? axeEnemySpeedMult.Value : axeSpeedMult.Value;
+                }
+                else if (___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("knife_slash"))
+                {
+                    speedScale *= enemy ? knifeEnemySpeedMult.Value : knifeSpeedMult.Value;
+                }
+                else if (___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("2Hand-Spear-"))
+                {
+                    speedScale *= enemy ? polearmEnemySpeedMult.Value : polearmSpeedMult.Value;
+                }
+                else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("bow_fire"))
+                {
+                    speedScale *= enemy ? bowFireEnemySpeedMult.Value : bowFireSpeedMult.Value;
+                }
+                else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("spear_poke"))
+                {
+                    speedScale *= enemy ? spearEnemySpeedMult.Value : spearSpeedMult.Value;
+                }
+                else if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("swing_pickaxe"))
+                {
+                    speedScale *= enemy ? pickAxeEnemySpeedMult.Value : pickAxeSpeedMult.Value;
+                }
+                else if (___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name.StartsWith("Punchstep"))
+                {
+                    speedScale *= enemy ? unarmedEnemySpeedMult.Value : unarmedSpeedMult.Value;
+                }
+                Dbgl($"speed after {speedScale}");
             }
         }
         [HarmonyPatch(typeof(Console), "InputText")]
