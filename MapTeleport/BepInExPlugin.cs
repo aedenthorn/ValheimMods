@@ -1,12 +1,13 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
 namespace MapTeleport
 {
-    [BepInPlugin("aedenthorn.MapTeleport", "Map Teleport", "0.3.2")]
+    [BepInPlugin("aedenthorn.MapTeleport", "Map Teleport", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -45,7 +46,7 @@ namespace MapTeleport
 
                 Vector3 pos = Traverse.Create(__instance).Method("ScreenToWorldPoint", new object[] { Input.mousePosition }).GetValue<Vector3>();
 
-                Dbgl($"trying to teleport to {pos}");
+                Dbgl($"trying to teleport from {Player.m_localPlayer.transform.position} to {pos}");
 
                 if (pos != Vector3.zero)
                 {
@@ -53,10 +54,13 @@ namespace MapTeleport
                     {
                         typeof(Minimap).GetMethod("SetMapMode", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Minimap.instance, new object[] { 1 });
                         Minimap.instance.m_smallRoot.SetActive(true);
-                        float y = ZoneSystem.instance.GetGroundHeight(pos);
+
+                        HeightmapBuilder.HMBuildData data = new HeightmapBuilder.HMBuildData(pos, 1, 1, false, WorldGenerator.instance);
+                        Traverse.Create(HeightmapBuilder.instance).Method("Build", new object[] { data }).GetValue();
+
+                        pos.y = data.m_baseHeights[0];
                         Dbgl($"teleporting from {Player.m_localPlayer.transform.position} to {pos}");
-                        Vector3 pos2 = new Vector3(pos.x, y, pos.z) + Vector3.up;
-                        Player.m_localPlayer.TeleportTo(pos2, Player.m_localPlayer.transform.rotation, true);
+                        Player.m_localPlayer.TeleportTo(pos, Player.m_localPlayer.transform.rotation, true);
                     }
                 }
 

@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.6.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -19,19 +19,23 @@ namespace CraftFromContainers
         private static List<ConnectionParams> containerConnections = new List<ConnectionParams>();
         private static GameObject connectionVfxPrefab = null;
 
-        public static ConfigEntry<float> m_range;
         public static ConfigEntry<bool> showGhostConnections;
         public static ConfigEntry<float> ghostConnectionStartOffset;
         public static ConfigEntry<float> ghostConnectionRemovalDelay;
+
+        public static ConfigEntry<float> m_range;
         public static ConfigEntry<Color> flashColor;
         public static ConfigEntry<Color> unFlashColor;
         public static ConfigEntry<string> resourceString;
-        public static ConfigEntry<string> pullItemsKey;
         public static ConfigEntry<string> pulledMessage;
-        public static ConfigEntry<string> preventModKey;
         public static ConfigEntry<string> fuelDisallowTypes;
         public static ConfigEntry<string> oreDisallowTypes;
+
+        public static ConfigEntry<string> pullItemsKey;
+        public static ConfigEntry<string> preventModKey;
+        public static ConfigEntry<string> fillAllModKey;
         public static ConfigEntry<bool> switchAddAll;
+
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
@@ -52,21 +56,26 @@ namespace CraftFromContainers
         private void Awake()
         {
 			context = this;
+
+            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
+
             m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from");
             resourceString = Config.Bind<string>("General", "ResourceCostString", "{0}/{1}", "String used to show required and available resources. {0} is replaced by how much is available, and {1} is replaced by how much is required");
             flashColor = Config.Bind<Color>("General", "FlashColor", Color.yellow, "Resource amounts will flash to this colour when coming from containers");
             unFlashColor = Config.Bind<Color>("General", "UnFlashColor", Color.white, "Resource amounts will flash from this colour when coming from containers (set both colors to the same color for no flashing)");
-            pullItemsKey = Config.Bind<string>("General", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building");
             pulledMessage = Config.Bind<string>("General", "PulledMessage", "Pulled items to inventory", "Message to show after pulling items to player inventory");
-            preventModKey = Config.Bind<string>("General", "PreventModKey", "left alt", "Modifier key to toggle fuel and ore filling behaviour when down");
             fuelDisallowTypes = Config.Bind<string>("General", "FuelDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as fuel (i.e. anything that is consumed), comma-separated.");
             oreDisallowTypes = Config.Bind<string>("General", "OreDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as ore (i.e. anything that is transformed), comma-separated).");
-            switchAddAll = Config.Bind<bool>("General", "SwitchAddAll", true, "if true, holding down the modifier key will prevent this mod's behaviour; if false, holding down the key will allow it");
-            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
+
             showGhostConnections = Config.Bind<bool>("Station Connections", "ShowConnections", false, "If true, will display connections to nearby workstations within range when building containers");
             ghostConnectionStartOffset = Config.Bind<float>("Station Connections", "ConnectionStartOffset", 1.25f, "Height offset for the connection VFX start position");
             ghostConnectionRemovalDelay = Config.Bind<float>("Station Connections", "ConnectionRemoveDelay", 0.05f, "");
+
+            switchAddAll = Config.Bind<bool>("Hot Keys", "SwitchAddAll", true, "if true, holding down the modifier key will prevent this mod's behaviour; if false, holding down the key will allow it");
+            preventModKey = Config.Bind<string>("Hot Keys", "PreventModKey", "left alt", "Modifier key to toggle fuel and ore filling behaviour when down");
+            pullItemsKey = Config.Bind<string>("Hot Keys", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building");
+            fillAllModKey = Config.Bind<string>("Hot Keys", "FillAllModKey", "left shift", "Modifier key to pull all available fuel or ore when down");
 
             if (!modEnabled.Value)
                 return;
@@ -85,7 +94,7 @@ namespace CraftFromContainers
             StopConnectionEffects();
         }
 
-        private static bool CheckKeyHeld(string value)
+        private static bool CheckKeyHeld(string value, bool req = true)
         {
             try
             {
@@ -93,7 +102,7 @@ namespace CraftFromContainers
             }
             catch
             {
-                return false;
+                return !req;
             }
         }
         /*
@@ -173,53 +182,69 @@ namespace CraftFromContainers
         {
             static bool Prefix(Fireplace __instance, Humanoid user, bool hold, ref bool __result, ZNetView ___m_nview)
             {
-                __result = false;
-                if (!AllowByKey())
+                __result = true;
+                bool pullAll = CheckKeyHeld(fillAllModKey.Value);
+                Inventory inventory = user.GetInventory();
+
+                if (!AllowByKey() || hold || inventory == null || (inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && !pullAll))
                     return true;
-                if (hold)
-                {
-                    return false;
-                }
+
                 if (!___m_nview.HasOwner())
                 {
                     ___m_nview.ClaimOwnership();
                 }
-                Inventory inventory = user.GetInventory();
-                if (inventory == null)
+
+
+                if(pullAll && inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name))
                 {
-                    __result = true;
-                    return false;
+                    int amount = (int)Mathf.Min(__instance.m_maxFuel - Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)), inventory.CountItems(__instance.m_fuelItem.m_itemData.m_shared.m_name));
+                    inventory.RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
+                    typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { });
+                    for (int i = 0; i < amount; i++)
+                        ___m_nview.InvokeRPC("AddFuel", new object[] { });
+
+                    user.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$msg_fireadding", new string[]{__instance.m_fuelItem.m_itemData.m_shared.m_name}), 0, null);
+
+                    __result = false;
                 }
-                if (!inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && (float)Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) < __instance.m_maxFuel)
+
+                if (!inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) < __instance.m_maxFuel)
                 {
                     List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
 
                     foreach (Container c in nearbyContainers)
                     {
                         ItemDrop.ItemData item = c.GetInventory().GetItem(__instance.m_fuelItem.m_itemData.m_shared.m_name);
-                        if (item != null)
+                        if (item != null && Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) < __instance.m_maxFuel)
                         {
                             if (fuelDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
                             {
                                 Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
                                 continue;
                             }
-                            Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
-                            c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, 1);
+
+                            int amount = pullAll ? (int)Mathf.Min(__instance.m_maxFuel - Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)), item.m_stack) : 1;
+
+                            Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking {amount}");
+
+                            c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
                             typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                             typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
-                            user.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$msg_fireadding", new string[]
-                            {
-                                __instance.m_fuelItem.m_itemData.m_shared.m_name
-                            }), 0, null);
-                            inventory.RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, 1);
-                            ___m_nview.InvokeRPC("AddFuel", new object[] { });
-                            __result = true;
-                            return false;
+                            
+                            if(__result)
+                                user.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$msg_fireadding", new string[]{__instance.m_fuelItem.m_itemData.m_shared.m_name}), 0, null);
+                            
+                            for(int i = 0; i < amount; i++)
+                                ___m_nview.InvokeRPC("AddFuel", new object[] { });
+                            
+                            __result = false;
+                            
+                            if(!pullAll || Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) >= __instance.m_maxFuel)
+                                return false;
                         }
                     }
                 }
-                return true;
+                return __result;
             }
         }
 
@@ -264,46 +289,120 @@ namespace CraftFromContainers
             }
 
         }
-        
-
-        [HarmonyPatch(typeof(Smelter), "FindCookableItem")]
-        static class Smelter_FindCookableItem_Patch
+        [HarmonyPatch(typeof(Smelter), "UpdateHoverTexts")]
+        static class Bed_GetHoverText_Patch
         {
-            static void Postfix(Smelter __instance, ref ItemDrop.ItemData __result)
+            static void Postfix(Smelter __instance)
             {
-                if (!AllowByKey() || __result != null || ((int)typeof(Smelter).GetMethod("GetQueueSize", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) >= __instance.m_maxOre)
-                    return;
+                if(fillAllModKey.Value?.Length > 0)
+                    __instance.m_addOreSwitch.m_hoverText += $"\n[<color=yellow><b>{fillAllModKey.Value}+$KEY_Use</b></color>] {__instance.m_addOreTooltip} max";
 
-                Dbgl($"missing cookable in player inventory");
+            }
+        }
 
 
-                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
+        [HarmonyPatch(typeof(Smelter), "OnAddOre")]
+        static class Smelter_OnAddOre_Patch
+        {
+            static bool Prefix(Smelter __instance, Humanoid user, ItemDrop.ItemData item, ZNetView ___m_nview)
+            {
+                if (!AllowByKey() || item != null || Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre)
+                    return true;
+
+                bool pullAll = CheckKeyHeld(fillAllModKey.Value);
+                Inventory inventory = user.GetInventory();
+
 
                 foreach (Smelter.ItemConversion itemConversion in __instance.m_conversion)
                 {
+                    if (inventory.HaveItem(itemConversion.m_from.m_itemData.m_shared.m_name) && !pullAll)
+                        return true;
+                }
+
+                Dictionary<string, int> added = new Dictionary<string, int>();
+
+                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
+                
+                foreach (Smelter.ItemConversion itemConversion in __instance.m_conversion)
+                {
+                    if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre || !pullAll)
+                        break;
+
+                    string name = itemConversion.m_from.m_itemData.m_shared.m_name;
+                    if (pullAll && inventory.HaveItem(name))
+                    {
+                        ItemDrop.ItemData newItem = inventory.GetItem(name);
+
+                        if (oreDisallowTypes.Value.Split(',').Contains(newItem.m_dropPrefab.name))
+                        {
+                            Dbgl($"player has {newItem.m_stack} {newItem.m_dropPrefab.name} but it's forbidden by config");
+                            continue;
+                        }
+
+                        int amount = Mathf.Min(__instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>(), inventory.CountItems(name));
+
+                        if(!added.ContainsKey(name))
+                            added[name] = 0;
+                        added[name] += amount;
+
+                        inventory.RemoveItem(itemConversion.m_from.m_itemData.m_shared.m_name, amount);
+                        typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { });
+
+                        for (int i = 0; i < amount; i++)
+                            ___m_nview.InvokeRPC("AddOre", new object[] { newItem.m_dropPrefab.name });
+
+                        user.Message(MessageHud.MessageType.TopLeft, $"$msg_added {amount} {name}", 0, null);
+                        if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre)
+                            break;
+                    }
+
                     foreach (Container c in nearbyContainers)
                     {
-                        ItemDrop.ItemData item = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
-                        if (item != null)
+                        ItemDrop.ItemData newItem = c.GetInventory().GetItem(name);
+                        if (newItem != null)
                         {
-                            if (oreDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
+                            if (oreDisallowTypes.Value.Split(',').Contains(newItem.m_dropPrefab.name))
                             {
-                                Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
+                                Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name} but it's forbidden by config");
                                 continue;
                             }
+                            int amount = (int)Mathf.Min(__instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>(), c.GetInventory().CountItems(name));
 
+                            if (!added.ContainsKey(name))
+                                added[name] = 0;
+                            added[name] += amount;
 
-                            Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
-                            __result = item;
-                            c.GetInventory().RemoveItem(itemConversion.m_from.m_itemData.m_shared.m_name, 1);
+                            Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name}, taking {amount}");
+
+                            c.GetInventory().RemoveItem(name, amount);
                             typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                             typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
-                            return;
+
+                            for (int i = 0; i < amount; i++)
+                                ___m_nview.InvokeRPC("AddOre", new object[] { newItem.m_dropPrefab.name });
+
+                            user.Message(MessageHud.MessageType.TopLeft, $"$msg_added {amount} {name}", 0, null);
+
+                            if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre || !pullAll)
+                                break; 
                         }
                     }
                 }
-            }
 
+                if (!added.Any())
+                    user.Message(MessageHud.MessageType.Center, "$msg_noprocessableitems", 0, null);
+                else
+                {
+                    List<string> outAdded = new List<string>();
+                    foreach(var kvp in added)
+                    {
+                        outAdded.Add($"$msg_added {kvp.Value} {kvp.Key}");
+                    }
+                    user.Message(MessageHud.MessageType.Center, string.Join("\n", outAdded), 0, null);
+                }
+
+                return false;
+            }
         }
         
 
@@ -312,16 +411,33 @@ namespace CraftFromContainers
         {
             static bool Prefix(Smelter __instance, ref bool __result, ZNetView ___m_nview, Humanoid user, ItemDrop.ItemData item)
             {
-                if (!AllowByKey() || user.GetInventory().HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) || item != null)
+                bool pullAll = CheckKeyHeld(fillAllModKey.Value);
+                Inventory inventory = user.GetInventory();
+                if (!AllowByKey() || item != null || inventory == null || (inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && !pullAll))
                     return true;
 
-                if(((float)typeof(Smelter).GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) > __instance.m_maxFuel - 1)
+                __result = true;
+
+
+                if (((float)typeof(Smelter).GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) > __instance.m_maxFuel - 1)
                 {
                     user.Message(MessageHud.MessageType.Center, "$msg_itsfull", 0, null);
+                    __result = false;
                     return false;
                 }
 
-                Dbgl($"missing fuel in player inventory");
+                if (pullAll && inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name))
+                {
+                    int amount = (int)Mathf.Min(__instance.m_maxFuel - ((float)typeof(Smelter).GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })), inventory.CountItems(__instance.m_fuelItem.m_itemData.m_shared.m_name));
+                    inventory.RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
+                    typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { });
+                    for (int i = 0; i < amount; i++)
+                        ___m_nview.InvokeRPC("AddFuel", new object[] { });
+
+                    user.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$msg_fireadding", new string[] { __instance.m_fuelItem.m_itemData.m_shared.m_name }), 0, null);
+
+                    __result = false;
+                }
 
                 List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
 
@@ -335,20 +451,27 @@ namespace CraftFromContainers
                             Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name} but it's forbidden by config");
                             continue;
                         }
+                        int amount = pullAll ? (int)Mathf.Min(__instance.m_maxFuel - ((float)typeof(Smelter).GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })), item.m_stack) : 1;
 
-                        Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name}, taking one");
+                        Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name}, taking {amount}");
 
-                        user.Message(MessageHud.MessageType.Center, "$msg_added " + __instance.m_fuelItem.m_itemData.m_shared.m_name, 0, null);
-                        ___m_nview.InvokeRPC("AddFuel", new object[] { });
-                        c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, 1);
+                        c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
                         typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                         typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
 
-                        __result = true;
-                        return false;
+                        for (int i = 0; i < amount; i++)
+                            ___m_nview.InvokeRPC("AddFuel", new object[] { });
+
+                        if (__result)
+                            user.Message(MessageHud.MessageType.Center, "$msg_added " + __instance.m_fuelItem.m_itemData.m_shared.m_name, 0, null);
+
+                        __result = false;
+
+                        if (!pullAll || Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) >= __instance.m_maxFuel)
+                            return false;
                     }
                 }
-                return true;
+                return __result;
             }
         }
         
@@ -407,6 +530,87 @@ namespace CraftFromContainers
                             foreach(Container c in nearbyContainers)
                                 invAmount += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
                             if (invAmount < amount)
+                                return;
+                        }
+                    }
+                }
+                __result = true;
+            }
+        }
+
+        [HarmonyPatch(typeof(Player), "HaveRequirements", new Type[] { typeof(Piece), typeof(Player.RequirementMode) })]
+        static class HaveRequirements_Patch2
+        {
+            static void Postfix(Player __instance, ref bool __result, Piece piece, Player.RequirementMode mode, HashSet<string> ___m_knownMaterial, Dictionary<string, int> ___m_knownStations)
+            {
+                if (__result || __instance?.transform?.position == null || !AllowByKey())
+                    return;
+
+                if (piece.m_craftingStation)
+                {
+                    if (mode == Player.RequirementMode.IsKnown || mode == Player.RequirementMode.CanAlmostBuild)
+                    {
+                        if (!___m_knownStations.ContainsKey(piece.m_craftingStation.m_name))
+                        {
+                            return;
+                        }
+                    }
+                    else if (!CraftingStation.HaveBuildStationInRange(piece.m_craftingStation.m_name, __instance.transform.position))
+                    {
+                        return;
+                    }
+                }
+                if (piece.m_dlc.Length > 0 && !DLCMan.instance.IsDLCInstalled(piece.m_dlc))
+                {
+                    return;
+                }
+
+                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
+
+                foreach (Piece.Requirement requirement in piece.m_resources)
+                {
+                    if (requirement.m_resItem && requirement.m_amount > 0)
+                    {
+                        if (mode == Player.RequirementMode.IsKnown)
+                        {
+                            if (!___m_knownMaterial.Contains(requirement.m_resItem.m_itemData.m_shared.m_name))
+                            {
+                                return;
+                            }
+                        }
+                        else if (mode == Player.RequirementMode.CanAlmostBuild)
+                        {
+                            if (!__instance.GetInventory().HaveItem(requirement.m_resItem.m_itemData.m_shared.m_name))
+                            {
+                                bool hasItem = false;
+                                foreach (Container c in nearbyContainers)
+                                {
+                                    if (c.GetInventory().HaveItem(requirement.m_resItem.m_itemData.m_shared.m_name))
+                                    {
+                                        hasItem = true;
+                                        break;
+                                    }
+                                }
+                                if (!hasItem)
+                                    return;
+                            }
+                        }
+                        else if (mode == Player.RequirementMode.CanBuild && __instance.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) < requirement.m_amount)
+                        {
+                            int hasItems = __instance.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
+                            foreach (Container c in nearbyContainers)
+                            {
+                                try
+                                {
+                                    hasItems += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
+                                    if (hasItems >= requirement.m_amount)
+                                    {
+                                        break;
+                                    }
+                                }
+                                catch { }
+                            }
+                            if (hasItems < requirement.m_amount)
                                 return;
                         }
                     }
@@ -826,8 +1030,8 @@ namespace CraftFromContainers
             return true;
         }
 
-        [HarmonyPatch(typeof(Player), "HaveRequirements", new Type[] { typeof(Piece), typeof(Player.RequirementMode) })]
-        static class HaveRequirements_Patch2
+        //[HarmonyPatch(typeof(Player), "HaveRequirements", new Type[] { typeof(Piece), typeof(Player.RequirementMode) })]
+        static class HaveRequirements_Patch2_broken
         {
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
             {

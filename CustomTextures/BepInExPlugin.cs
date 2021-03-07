@@ -11,7 +11,7 @@ using UnityEngine.SceneManagement;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.3.1")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.4.2")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -41,6 +41,8 @@ namespace CustomTextures
                 return;
 
             LoadCustomTextures();
+
+            //SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
@@ -86,7 +88,7 @@ namespace CustomTextures
                         SetBodyEquipmentTexture((string)typeof(VisEquipment).GetField("m_chestItem", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), ve.m_bodyModel, (List<GameObject>)typeof(VisEquipment).GetField("m_chestItemInstances", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ve), "_Chest");
                     }
                 }
-
+                ReloadInventoryIcons();
             }
 
         }
@@ -132,7 +134,7 @@ namespace CustomTextures
             return (customTextures.ContainsKey(id) || customTextures.Any(p => p.Key.StartsWith(id)));
         }
 
-        private static Texture2D LoadTexture(string id, Texture vanilla)
+        private static Texture2D LoadTexture(string id, Texture vanilla, bool point = true)
         {
             if (cachedTextures.ContainsKey(id))
             {
@@ -140,15 +142,35 @@ namespace CustomTextures
                 return cachedTextures[id];
             }
 
-            Texture2D tex = new Texture2D(vanilla.width, vanilla.height, TextureFormat.RGBA32, true, id.EndsWith("_bump")); 
-            tex.filterMode = FilterMode.Point;
+            Texture2D tex;
+            var layers = customTextures.Where(p => p.Key.StartsWith(id) && p.Key != id);
+
+            if (vanilla == null)
+            {
+                if (!layers.Any())
+                {
+                    //Dbgl($"No vanilla texture or layers for {id}. This shouldn't happen. Odin would be disappointed.");
+                    return null;
+                }
+                tex = new Texture2D(2, 2, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
+                if (point)
+                    tex.filterMode = FilterMode.Point;
+                byte[] layerData = File.ReadAllBytes(layers.First().Value);
+                tex.LoadImage(layerData);
+            }
+            else
+                tex = new Texture2D(vanilla.width, vanilla.height, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
+
+            if(point)
+                tex.filterMode = FilterMode.Point;
+
             if (customTextures.ContainsKey(id))
             {
                 //Dbgl($"loading custom texture file for {id}");
                 byte[] imageData = File.ReadAllBytes(customTextures[id]);
                 tex.LoadImage(imageData);
             }
-            else
+            else if(vanilla != null)
             {
                 //Dbgl($"texture {id} has no custom texture, using vanilla");
 
@@ -156,8 +178,8 @@ namespace CustomTextures
 
                 // Create a temporary RenderTexture of the same size as the texture
                 RenderTexture tmp = RenderTexture.GetTemporary(
-                                    vanilla.width,
-                                    vanilla.height,
+                                    tex.width,
+                                    tex.height,
                                     0,
                                     RenderTextureFormat.Default,
                                     RenderTextureReadWrite.Linear);
@@ -186,19 +208,17 @@ namespace CustomTextures
 
                 // "myTexture2D" now has the same pixels from "texture" and it's readable.
 
-
-                tex.SetPixels((myTexture2D).GetPixels());
+                tex.SetPixels(myTexture2D.GetPixels());
             }
-            var layers = customTextures.Where(p => p.Key.StartsWith(id) && p.Key != id);
             if (layers.Any())
             {
                 //Dbgl($"texture {id} has {layers.Count()} layers");
-                foreach(var layer in layers)
+                foreach(var layer in layers.Skip(vanilla == null? 1 : 0))
                 {
 
                     Texture2D layerTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
                     layerTex.filterMode = FilterMode.Point;
-                    byte[] layerData = File.ReadAllBytes(customTextures[layer.Key]);
+                    byte[] layerData = File.ReadAllBytes(layer.Value);
                     layerTex.LoadImage(layerData);
 
                     //8x5, 2x2
@@ -295,6 +315,27 @@ namespace CustomTextures
 
             }
 
+        }
+        private static void ReloadInventoryIcons()
+        {
+            Dbgl($"Loading inventory icons for {ObjectDB.instance.m_items.Count} items...");
+
+            Texture2D tex = LoadTexture("atlas_item_icons", new Texture2D(2, 2), false);
+            foreach (GameObject go in ObjectDB.instance.m_items)
+            {
+                ItemDrop item = go.GetComponent<ItemDrop>();
+                //Dbgl($"Loading inventory icons for {go.name}, {item.m_itemData.m_shared.m_icons.Length} icons...");
+                for (int i = 0; i < item.m_itemData.m_shared.m_icons.Length; i++)
+                {
+                    Sprite sprite = item.m_itemData.m_shared.m_icons[i];
+                    float scaleX = tex.width / (float)sprite.texture.width;
+                    float scaleY = tex.height / (float)sprite.texture.height;
+                    float scale = (scaleX + scaleY) / 2;
+
+                    sprite = Sprite.Create(tex, new Rect(sprite.textureRect.x * scaleX, sprite.textureRect.y * scaleY, sprite.textureRect.width * scaleX, sprite.textureRect.height * scaleY), Vector2.zero, sprite.pixelsPerUnit * scale);
+                    item.m_itemData.m_shared.m_icons[i] = sprite;
+                }
+            }
         }
 
         private static void LoadOneTexture(GameObject gameObject, string thingName, string prefix, string fallbackTexture = null)
@@ -423,42 +464,54 @@ namespace CustomTextures
                 outputDump.Add($"\t\t{rendererType} {rendererName} material {m.name} main texture is null");
                 //continue;
             }
-            outputDump.Add($"\t\ttexture name: {(m.HasProperty("_MainTex") ? m.GetTexture("_MainTex")?.name : "null")}");
-            string name = m.HasProperty("_MainTex") ? m.GetTexture("_MainTex")?.name : null;
+            outputDump.Add($"\t\ttexture name: {(m.HasProperty("_MainTex") && m.GetTexture("_MainTex") != null ? m.GetTexture("_MainTex")?.name : "null")}");
+            string name = m.HasProperty("_MainTex") && m.GetTexture("_MainTex") != null ? m.GetTexture("_MainTex")?.name : null;
             if (name == null)
                 name = thingName;
 
             if (HasCustomTexture($"{prefix}_{thingName}_texture"))
             {
                 logDump.Add($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {prefix}_{thingName}_texture custom texture.");
-                m.SetTexture("_MainTex", LoadTexture($"{prefix}_{thingName}_texture", m.mainTexture));
+                m.SetTexture("_MainTex", LoadTexture($"{prefix}_{thingName}_texture", m.GetTexture("_MainTex")));
                 if(m.HasProperty("_ChestTex"))
-                    m.SetTexture("_ChestTex", LoadTexture($"{prefix}_{thingName}_texture", m.mainTexture));
+                    m.SetTexture("_ChestTex", LoadTexture($"{prefix}_{thingName}_texture", m.GetTexture("_MainTex")));
                 if(m.HasProperty("_LegsTex"))
-                    m.SetTexture("_LegsTex", LoadTexture($"{prefix}_{thingName}_texture", m.mainTexture));
-                m.mainTexture.name = name;
-                m.color = Color.white;
+                    m.SetTexture("_LegsTex", LoadTexture($"{prefix}_{thingName}_texture", m.GetTexture("_MainTex")));
+                if(m.GetTexture("_MainTex") != null)
+                {
+                    m.GetTexture("_MainTex").name = name;
+                    m.color = Color.white;
+                }
             }
             else if (HasCustomTexture($"{prefix}mesh_{thingName}_{rendererName}_texture"))
             {
                 logDump.Add($"object {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {prefix}mesh_{thingName}_{rendererName}_texture custom texture.");
-                m.SetTexture("_MainTex", LoadTexture($"{prefix}mesh_{thingName}_{name}_texture", m.mainTexture));
-                m.mainTexture.name = name;
-                m.color = Color.white;
+                m.SetTexture("_MainTex", LoadTexture($"{prefix}mesh_{thingName}_{name}_texture", m.GetTexture("_MainTex")));
+                if (m.GetTexture("_MainTex") != null)
+                {
+                    m.GetTexture("_MainTex").name = name;
+                    m.color = Color.white;
+                }
             }
             else if (HasCustomTexture($"{prefix}texture_{thingName}_{name}_texture"))
             {
                 logDump.Add($"object {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {prefix}texture_{thingName}_{name}_texture custom texture.");
-                m.SetTexture("_MainTex", LoadTexture($"{prefix}texture_{thingName}_{name}_texture", m.mainTexture));
-                m.mainTexture.name = name;
-                m.color = Color.white;
+                m.SetTexture("_MainTex", LoadTexture($"{prefix}texture_{thingName}_{name}_texture", m.GetTexture("_MainTex")));
+                if (m.GetTexture("_MainTex") != null)
+                {
+                    m.GetTexture("_MainTex").name = name;
+                    m.color = Color.white;
+                }
             }
             else if (HasCustomTexture($"texture_{name}_texture"))
             {
                 logDump.Add($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using texture_{name}_texture custom texture.");
-                m.SetTexture("_MainTex", LoadTexture($"texture_{name}_texture", m.mainTexture));
-                m.mainTexture.name = name;
-                m.color = Color.white;
+                m.SetTexture("_MainTex", LoadTexture($"texture_{name}_texture", m.GetTexture("_MainTex")));
+                if (m.GetTexture("_MainTex") != null)
+                {
+                    m.GetTexture("_MainTex").name = name;
+                    m.color = Color.white;
+                }
 
             }
 

@@ -202,12 +202,12 @@ namespace CustomMeshes
                 string name = __instance.m_itemData.m_dropPrefab.name;
                 if (customMeshes.ContainsKey(name))
                 {
-                    Dbgl($"got item name: {name}");
+                    //Dbgl($"got item name: {name}");
                     MeshFilter[] mfs = __instance.m_itemData.m_dropPrefab.GetComponentsInChildren<MeshFilter>(true);
                     foreach (MeshFilter mf in mfs)
                     {
                         string parent = mf.transform.parent.gameObject.name;
-                        Dbgl($"got item name: {name}, obj: {parent}, mf: {mf.name}");
+                        //Dbgl($"got item name: {name}, obj: {parent}, mf: {mf.name}");
                         if (name == GetPrefabName(parent) && customMeshes[name].ContainsKey(mf.name) && customMeshes[name][mf.name].ContainsKey(mf.name))
                         {
                             Dbgl($"replacing item mesh {mf.name}");

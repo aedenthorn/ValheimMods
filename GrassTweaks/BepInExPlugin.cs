@@ -104,8 +104,28 @@ namespace GrassTweaks
                 string text = __instance.m_input.text;
                 if (text.ToLower().Equals("grasstweaks reset"))
                 {
+
+                    ClutterSystem.instance.m_amountScale /= amountMult.Value;
+                    for (int i = 0; i < ClutterSystem.instance.m_clutter.Count; i++)
+                    {
+                        ClutterSystem.instance.m_clutter[i].m_scaleMin /= scaleMinMult.Value;
+                        ClutterSystem.instance.m_clutter[i].m_scaleMax /= scaleMaxMult.Value;
+                    }
+
                     context.Config.Reload();
                     context.Config.Save();
+
+                    ClutterSystem.instance.m_amountScale *= amountMult.Value;
+                    for (int i = 0; i < ClutterSystem.instance.m_clutter.Count; i++)
+                    {
+                        ClutterSystem.instance.m_clutter[i].m_scaleMin *= scaleMinMult.Value;
+                        ClutterSystem.instance.m_clutter[i].m_scaleMax *= scaleMaxMult.Value;
+                    }
+                    ClutterSystem.instance.m_distance = clutterDistance.Value;
+                    ClutterSystem.instance.m_grassPatchSize = grassPatchSize.Value;
+                    ClutterSystem.instance.m_playerPushFade = playerPushFade.Value;
+
+
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { "Grass Tweaks config reloaded" }).GetValue();
                     return false;

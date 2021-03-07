@@ -10,7 +10,7 @@ using UnityEngine.Networking;
 
 namespace HereFishy
 {
-    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.1.5")]
+    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.1.6")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -98,10 +98,9 @@ namespace HereFishy
                     Dbgl($"got closest fishy at {closestFish.gameObject.transform.position}");
 
                     currentFish = closestFish;
+                    hereFishying = true;
                     if (playHereFishy.Value && fishyClip != null)
                     {
-                        hereFishying = true;
-                        
                         ((ZSyncAnimation)typeof(Player).GetField("m_zanim", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Player.m_localPlayer)).SetTrigger("gpower");
                         Destroy(Player.m_localPlayer.gameObject.GetComponent<AudioSource>());
                         playerAudio = Player.m_localPlayer.gameObject.AddComponent<AudioSource>();
