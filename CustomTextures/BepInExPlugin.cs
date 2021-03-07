@@ -144,7 +144,7 @@ namespace CustomTextures
             }
 
             Texture2D tex;
-            var layers = customTextures.Where(p => p.Key.StartsWith(id) && p.Key != id);
+            var layers = customTextures.Where(p => p.Key.StartsWith($"{id}_"));
 
             if (!customTextures.ContainsKey(id) && !layers.Any())
                 return (Texture2D) vanilla;
@@ -156,8 +156,11 @@ namespace CustomTextures
                 tex = new Texture2D(2, 2, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
                 if (point)
                     tex.filterMode = FilterMode.Point;
-                byte[] layerData = File.ReadAllBytes(layers.First().Value);
-                tex.LoadImage(layerData);
+                if (!customTextures.ContainsKey(id))
+                {
+                    byte[] layerData = File.ReadAllBytes(layers.First().Value);
+                    tex.LoadImage(layerData);
+                }
             }
             else
                 tex = new Texture2D(vanilla.width, vanilla.height, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
@@ -326,9 +329,11 @@ namespace CustomTextures
             Dbgl($"Replacing textures for {objectDB.m_items.Count} objects...");
             foreach (GameObject go in objectDB.m_items)
             {
-                LoadOneTexture(go, go.name, "object");
-
                 ItemDrop item = go.GetComponent<ItemDrop>();
+
+                // object textures
+
+                LoadOneTexture(go, go.name, "object");
 
                 //Dbgl($"Loading inventory icons for {go.name}, {item.m_itemData.m_shared.m_icons.Length} icons...");
                 for (int i = 0; i < item.m_itemData.m_shared.m_icons.Length; i++)
@@ -389,7 +394,7 @@ namespace CustomTextures
                     {
                         try
                         {
-                            ReplaceMaterialTextures(m, thingName, prefix, "MeshRenderer", r.name, which, logDump);
+                            ReplaceMaterialTextures(m, thingName, prefix, "MeshRenderer", r.name, logDump);
                         }
                         catch (Exception ex)
                         {
@@ -423,7 +428,7 @@ namespace CustomTextures
                     {
                         try
                         {
-                            ReplaceMaterialTextures(m, thingName, prefix, "SkinnedMeshRenderer", r.name, which, logDump);
+                            ReplaceMaterialTextures(m, thingName, prefix, "SkinnedMeshRenderer", r.name, logDump);
                         }
                         catch (Exception ex)
                         {
@@ -453,7 +458,7 @@ namespace CustomTextures
 
                     try
                     {
-                        ReplaceMaterialTextures(r.m_material, thingName, prefix, "InstanceRenderer", r.name, which, logDump);
+                        ReplaceMaterialTextures(r.m_material, thingName, prefix, "InstanceRenderer", r.name, logDump);
                     }
                     catch (Exception ex)
                     {
@@ -461,41 +466,54 @@ namespace CustomTextures
                     }
                 }
             }
+
+            ItemDrop item = gameObject.GetComponent<ItemDrop>();
+            if (item != null && item.m_itemData.m_shared.m_armorMaterial != null)
+            {
+                Material m = item.m_itemData.m_shared.m_armorMaterial;
+                //Dbgl($"\nMaterial {m.name} color {m.color} props: \n\t{ string.Join("\n\t", m.GetTexturePropertyNames())}");
+                ReplaceMaterialTextures(item.m_itemData.m_shared.m_armorMaterial, thingName, prefix, "Armor", gameObject.name, logDump);
+            }
+
             if (logDump.Any())
                 Dbgl("\n"+string.Join("\n", logDump));
         }
 
-        private static void ReplaceMaterialTextures(Material m, string thingName, string prefix, string rendererType, string rendererName, string which, List<string> logDump)
+        private static void ReplaceMaterialTextures(Material m, string thingName, string prefix, string rendererType, string rendererName, List<string> logDump)
         {
             outputDump.Add("\t\tproperties:");
             foreach (string property in m.GetTexturePropertyNames())
             {
                 outputDump.Add($"\t\t\t{property} {m.GetTexture(property)?.name}");
             }
-            string name = (m.HasProperty($"{which}Tex") && m.GetTexture($"{which}Tex") != null ? m.GetTexture($"{which}Tex")?.name : null);
+            string name = (m.HasProperty($"_MainTex") && m.GetTexture($"_MainTex") != null ? m.GetTexture($"_MainTex")?.name : null);
             outputDump.Add($"\t\ttexture name: {name}");
             if (name == null)
                 name = thingName;
 
             List<string> strings = MakePrefixStrings(prefix, thingName, rendererName, name);
 
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name,  "_texture", which + "Tex", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name,  "_texture", "_MainTex", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name,  "_chest", "_ChestTex", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name,  "_legs", "_LegsTex", strings, logDump);
             
             CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_bump", "_BumpMap", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_bump", $"{which}BumpMap", strings, logDump);
-            
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_skin", "_SkinBumpMap", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_chestbump", "_ChestBumpMap", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_legsbump", "_LegsBumpMap", strings, logDump);
+
             CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_style", "_StyleTex", strings, logDump);
             
             CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_metal", "_MetallicGlossMap", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_metal", $"{which}Metal", strings, logDump);
-            
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_chest", $"_ChestTex", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_chestbump", $"_ChestBumpMap", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_chestmetal", $"_ChestMetal", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_chestmetal", "_ChestMetal", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_legsmetal", "_LegsMetal", strings, logDump);
 
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_legs", $"_LegsTex", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_legsbump", $"_LegsBumpMap", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_legsmetal", $"_LegsMetal", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_detailalbedo", "_DetailAlbedoMap", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_detail", "_DetailMask", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_detailnormal", "_DetailNormalMap", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_parallax", "_ParallaxMap", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_occlusion", "_OcclusionMap", strings, logDump);
+            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_emission", "_EmissionMap", strings, logDump);
 
         }
 
@@ -523,16 +541,16 @@ namespace CustomTextures
             return strings;
         }
 
-        private static void SetMatTextures(Material m, string name, string textureName, string texName, List<string> logDump)
+        private static void SetMatTextures(Material m, string name, string textureName, string which, List<string> logDump)
         {
 
-            if (m.HasProperty(texName))
+            if (m.HasProperty(which))
             {
-                logDump.Add($"replacing {texName}");
-                m.SetTexture(texName, LoadTexture(textureName, m.GetTexture(texName)));
-                if (m.GetTexture(texName) != null)
+                logDump.Add($"replacing {which}");
+                m.SetTexture(which, LoadTexture(textureName, m.GetTexture(which)));
+                if (m.GetTexture(which) != null)
                 {
-                    m.GetTexture(texName).name = name;
+                    m.GetTexture(which).name = name;
                     m.color = Color.white;
                 }
             }
