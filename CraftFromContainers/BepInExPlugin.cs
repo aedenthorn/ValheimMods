@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.7.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.7.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -295,7 +295,12 @@ namespace CraftFromContainers
             static void Postfix(Smelter __instance)
             {
                 if(fillAllModKey.Value?.Length > 0)
-                    __instance.m_addOreSwitch.m_hoverText += $"\n[<color=yellow><b>{fillAllModKey.Value}+$KEY_Use</b></color>] {__instance.m_addOreTooltip} max";
+                {
+                    if(__instance.m_addOreSwitch?.m_hoverText != null)
+                        __instance.m_addOreSwitch.m_hoverText += $"\n[<color=yellow><b>{fillAllModKey.Value}+$KEY_Use</b></color>] {__instance.m_addOreTooltip} max";
+                    if (__instance.m_addWoodSwitch?.m_hoverText != null)
+                        __instance.m_addWoodSwitch.m_hoverText += $"\n[<color=yellow><b>{fillAllModKey.Value}+$KEY_Use</b></color>] $piece_smelter_add max";
+                }
 
             }
         }
@@ -418,6 +423,7 @@ namespace CraftFromContainers
 
                 __result = true;
 
+                int added = 0;
 
                 if (((float)typeof(Smelter).GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) > __instance.m_maxFuel - 1)
                 {
@@ -434,7 +440,9 @@ namespace CraftFromContainers
                     for (int i = 0; i < amount; i++)
                         ___m_nview.InvokeRPC("AddFuel", new object[] { });
 
-                    user.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$msg_fireadding", new string[] { __instance.m_fuelItem.m_itemData.m_shared.m_name }), 0, null);
+                    added += amount;
+
+                    user.Message(MessageHud.MessageType.TopLeft, Localization.instance.Localize("$msg_fireadding", new string[] { __instance.m_fuelItem.m_itemData.m_shared.m_name }), 0, null);
 
                     __result = false;
                 }
@@ -451,7 +459,7 @@ namespace CraftFromContainers
                             Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name} but it's forbidden by config");
                             continue;
                         }
-                        int amount = pullAll ? (int)Mathf.Min(__instance.m_maxFuel - ((float)typeof(Smelter).GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })), item.m_stack) : 1;
+                        int amount = pullAll ? (int)Mathf.Min(__instance.m_maxFuel - ((float)typeof(Smelter).GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })), newItem.m_stack) : 1;
 
                         Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name}, taking {amount}");
 
@@ -462,8 +470,9 @@ namespace CraftFromContainers
                         for (int i = 0; i < amount; i++)
                             ___m_nview.InvokeRPC("AddFuel", new object[] { });
 
-                        if (__result)
-                            user.Message(MessageHud.MessageType.Center, "$msg_added " + __instance.m_fuelItem.m_itemData.m_shared.m_name, 0, null);
+                        added += amount;
+
+                        user.Message(MessageHud.MessageType.TopLeft, "$msg_added " + __instance.m_fuelItem.m_itemData.m_shared.m_name, 0, null);
 
                         __result = false;
 
@@ -471,6 +480,12 @@ namespace CraftFromContainers
                             return false;
                     }
                 }
+
+                if (added == 0)
+                    user.Message(MessageHud.MessageType.Center, "$msg_noprocessableitems", 0, null);
+                else
+                    user.Message(MessageHud.MessageType.Center, $"$msg_added {added} {__instance.m_fuelItem.m_itemData.m_shared.m_name}", 0, null);
+                
                 return __result;
             }
         }
