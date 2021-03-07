@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.7.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.7.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -330,7 +330,7 @@ namespace CraftFromContainers
                 
                 foreach (Smelter.ItemConversion itemConversion in __instance.m_conversion)
                 {
-                    if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre || !pullAll)
+                    if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre || (added.Any() && !pullAll))
                         break;
 
                     string name = itemConversion.m_from.m_itemData.m_shared.m_name;
@@ -344,7 +344,7 @@ namespace CraftFromContainers
                             continue;
                         }
 
-                        int amount = Mathf.Min(__instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>(), inventory.CountItems(name));
+                        int amount = pullAll ? Mathf.Min(__instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>(), inventory.CountItems(name)) : 1;
 
                         if(!added.ContainsKey(name))
                             added[name] = 0;
@@ -371,7 +371,7 @@ namespace CraftFromContainers
                                 Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name} but it's forbidden by config");
                                 continue;
                             }
-                            int amount = (int)Mathf.Min(__instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>(), c.GetInventory().CountItems(name));
+                            int amount = pullAll ? (int)Mathf.Min(__instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>(), c.GetInventory().CountItems(name)) : 1;
 
                             if (!added.ContainsKey(name))
                                 added[name] = 0;

@@ -1,33 +1,25 @@
 ﻿using HarmonyLib;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using UnityEngine;
 
 namespace CustomTextures
 {
     public partial class BepInExPlugin
     {
 
-        [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        static class ZNetScene_Awake_Patch
+        [HarmonyPatch(typeof(FejdStartup), "SetupObjectDB")]
+        static class FejdStartup_SetupObjectDB_Patch
         {
-            static void Postfix(Dictionary<int, GameObject> ___m_namedPrefabs)
+            static void Prefix()
             {
-                Dbgl($"ZNetScene awake");
+                if (!modEnabled.Value)
+                    return;
 
-                outputDump.Clear();
+                Dbgl($"SetupObjectDB prefix");
 
-                Dbgl($"Checking {___m_namedPrefabs.Values.Count} prefabs");
 
-                LoadSceneTextures(___m_namedPrefabs.Values.ToArray());
+                ReplaceObjectDBTextures();
 
-                if (modEnabled.Value && customTextures.ContainsKey("atlas_item_icons"))
-                {
-                    ReloadInventoryIcons();
-                }
             }
         }
 
@@ -38,17 +30,12 @@ namespace CustomTextures
             {
                 Dbgl($"Clutter system awake");
 
-                List<GameObject> gos = new List<GameObject>();
+                outputDump.Clear();
+
+                Dbgl($"Checking {__instance.m_clutter.Count} clutters");
                 foreach (ClutterSystem.Clutter clutter in __instance.m_clutter)
                 {
-                    gos.Add(clutter.m_prefab);
-                }
-                Dbgl($"Checking {gos.Count} clutters");
-                LoadSceneTextures(gos.ToArray());
-                if (dumpSceneTextures.Value)
-                {
-                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
-                    File.WriteAllLines(path, outputDump);
+                    LoadOneTexture(clutter.m_prefab, clutter.m_prefab.name, "object");
                 }
             }
         }
@@ -73,108 +60,5 @@ namespace CustomTextures
                 }
             }
         }
-
-
-        [HarmonyPatch(typeof(VisEquipment), "SetLeftHandEquiped")]
-        static class VisEquipment_SetLeftHandEquiped_Patch
-        {
-            static void Postfix(bool __result, string ___m_leftItem, GameObject ___m_leftItemInstance)
-            {
-                if (!__result)
-                    return;
-
-                SetEquipmentTexture(___m_leftItem, ___m_leftItemInstance);
-            }
-        }
-
-        [HarmonyPatch(typeof(VisEquipment), "SetRightHandEquiped")]
-        static class VisEquipment_SetRightHandEquiped_Patch
-        {
-            static void Postfix(bool __result, string ___m_rightItem, GameObject ___m_rightItemInstance)
-            {
-                if (!__result)
-                    return;
-
-                SetEquipmentTexture(___m_rightItem, ___m_rightItemInstance);
-            }
-        }
-
-        [HarmonyPatch(typeof(VisEquipment), "SetHelmetEquiped")]
-        static class VisEquipment_SetHelmetEquiped_Patch
-        {
-            static void Postfix(bool __result, string ___m_helmetItem, GameObject ___m_helmetItemInstance)
-            {
-                if (!__result)
-                    return;
-
-                SetEquipmentTexture(___m_helmetItem, ___m_helmetItemInstance);
-            }
-        }
-
-        [HarmonyPatch(typeof(VisEquipment), "SetBackEquiped")]
-        static class VisEquipment_SetBackEquiped_Patch
-        {
-            static void Postfix(bool __result, string ___m_leftBackItem, GameObject ___m_leftBackItemInstance, string ___m_rightBackItem, GameObject ___m_rightBackItemInstance)
-            {
-                if (!__result)
-                    return;
-
-                SetEquipmentTexture(___m_leftBackItem, ___m_leftBackItemInstance);
-                SetEquipmentTexture(___m_rightBackItem, ___m_rightBackItemInstance);
-
-
-            }
-        }
-
-        [HarmonyPatch(typeof(VisEquipment), "SetShoulderEquiped")]
-        static class VisEquipment_SetShoulderEquiped_Patch
-        {
-            static void Postfix(bool __result, string ___m_shoulderItem, List<GameObject> ___m_shoulderItemInstances)
-            {
-                if (!__result)
-                    return;
-
-                SetEquipmentListTexture(___m_shoulderItem, ___m_shoulderItemInstances);
-
-            }
-        }
-
-        [HarmonyPatch(typeof(VisEquipment), "SetUtilityEquiped")]
-        static class VisEquipment_SetUtilityEquiped_Patch
-        {
-            static void Postfix(bool __result, string ___m_utilityItem, List<GameObject> ___m_utilityItemInstances)
-            {
-                if (!__result)
-                    return;
-
-                SetEquipmentListTexture(___m_utilityItem, ___m_utilityItemInstances);
-            }
-        }
-
-        [HarmonyPatch(typeof(VisEquipment), "SetLegEquiped")]
-        static class VisEquipment_SetLegEquiped_Patch
-        {
-            static void Postfix(bool __result, string ___m_legItem, SkinnedMeshRenderer ___m_bodyModel, List<GameObject> ___m_legItemInstances)
-            {
-                if (!__result)
-                    return;
-
-                SetBodyEquipmentTexture(___m_legItem, ___m_bodyModel, ___m_legItemInstances, "_Legs");
-            }
-        }
-
-        [HarmonyPatch(typeof(VisEquipment), "SetChestEquiped")]
-        static class VisEquipment_SetChestEquiped_Patch
-        {
-            static void Postfix(bool __result, string ___m_chestItem, SkinnedMeshRenderer ___m_bodyModel, List<GameObject> ___m_chestItemInstances)
-            {
-                if (!__result)
-                    return;
-
-                SetBodyEquipmentTexture(___m_chestItem, ___m_bodyModel, ___m_chestItemInstances, "_Chest");
-
-            }
-        }
-
     }
 }

@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -122,6 +123,8 @@ namespace NexusUpdate
             {
 
                 GUILayout.BeginArea(new Rect(updatesPosition.Value.x, updatesPosition.Value.y, updateTextWidth.Value + buttonWidth.Value + 50, Screen.height - updatesPosition.Value.y - 80));
+                if(nexusUpdatables.Any() || (showAllManagedMods.Value && nexusNonupdatables.Any()))
+                    GUI.Box(new Rect(updatesPosition.Value.x, updatesPosition.Value.y, updateTextWidth.Value + buttonWidth.Value + 50, Screen.height - updatesPosition.Value.y - 80), "Nexus Updates");
                 scrollPosition = GUILayout.BeginScrollView(scrollPosition, new GUILayoutOption[] { GUILayout.Width(updateTextWidth.Value + buttonWidth.Value + 40), GUILayout.Height(Screen.height - updatesPosition.Value.y - 80) });
                 for (int i = 0; i < nexusUpdatables.Count; i++)
                 {

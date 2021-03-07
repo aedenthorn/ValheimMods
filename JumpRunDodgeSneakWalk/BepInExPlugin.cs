@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace JumpRunDodgeSneakWalk
 {
-    [BepInPlugin("aedenthorn.JumpRunDodgeSneakWalk", "Jump Run Sneak Walk Swim", "0.1.0")]
+    [BepInPlugin("aedenthorn.JumpRunDodgeSneakWalk", "Jump Run Sneak Walk Swim", "0.1.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -148,13 +148,13 @@ namespace JumpRunDodgeSneakWalk
                 {
                     return;
                 }
-                Dbgl($"{___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name} speed {speedScale}");
+                //Dbgl($"{___m_animator.GetCurrentAnimatorClipInfo(0)[0].clip.name} speed {speedScale}");
 
                 if (___m_animator.GetCurrentAnimatorStateInfo(0).IsName("dodge"))
                 {
                     
                     speedScale *= dodgeSpeedMult.Value;
-                    Dbgl($"Dodge speed after {speedScale}");
+                    //Dbgl($"Dodge speed after {speedScale}");
                 }
             }
         }
