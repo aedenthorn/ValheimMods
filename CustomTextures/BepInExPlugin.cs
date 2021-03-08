@@ -21,6 +21,8 @@ namespace CustomTextures
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<int> nexusID;
         public static Dictionary<string, string> customTextures = new Dictionary<string, string>();
+        public static Dictionary<string, DateTime> fileWriteTimes = new Dictionary<string, DateTime>();
+        public static List<string> texturesToLoad = new List<string>();
         public static Dictionary<string, Texture2D> cachedTextures = new Dictionary<string, Texture2D>();
         public static List<string> outputDump = new List<string>();
         public static List<string> logDump = new List<string>();
@@ -58,23 +60,26 @@ namespace CustomTextures
                 LoadCustomTextures();
                 ReplaceObjectDBTextures();
 
-                GameObject root = (GameObject)typeof(ZNetScene).GetField("m_netSceneRoot", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ZNetScene.instance);
-
-                Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
 
                 List<GameObject> gos = new List<GameObject>();
+
+                /*
+                GameObject root = (GameObject)typeof(ZNetScene).GetField("m_netSceneRoot", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ZNetScene.instance);
+                Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
                 foreach (Transform t in transforms)
                 {
                     if(t.parent == root.transform)
                         gos.Add(t.gameObject);
                 }
+                */
 
                 foreach (ClutterSystem.Clutter clutter in ClutterSystem.instance.m_clutter)
                 {
                     gos.Add(clutter.m_prefab);
                 }
                 LoadSceneTextures(gos.ToArray());
-                LoadSceneTextures(((Dictionary<int, GameObject>)typeof(ZNetScene).GetField("m_namedPrefabs", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ZNetScene.instance )).Values.ToArray());
+
+                LoadSceneTextures(Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>().Values.ToArray());
 
                 foreach (Player player in Player.GetAllPlayers())
                 {
@@ -120,16 +125,19 @@ namespace CustomTextures
                 Directory.CreateDirectory(path);
                 return;
             }
-
-            customTextures.Clear();
-            cachedTextures.Clear();
+            texturesToLoad.Clear();
 
             foreach (string file in Directory.GetFiles(path, "*.png", SearchOption.AllDirectories))
             {
                 string fileName = Path.GetFileName(file);
-                Dbgl($"adding {fileName} custom texture.");
-
                 string id = Path.GetFileNameWithoutExtension(fileName);
+                if (!fileWriteTimes.ContainsKey(id) || (cachedTextures.ContainsKey(id) && !DateTime.Equals(File.GetLastWriteTimeUtc(file), fileWriteTimes[id])))
+                {
+                    cachedTextures.Remove(id);
+                    texturesToLoad.Add(id);
+                    fileWriteTimes[id] = File.GetLastWriteTimeUtc(file);
+                }
+                Dbgl($"adding {fileName} custom texture.");
                 
                 customTextures[id] = file;
             }
@@ -138,6 +146,10 @@ namespace CustomTextures
         private static bool HasCustomTexture(string id)
         {
             return (customTextures.ContainsKey(id) || customTextures.Any(p => p.Key.StartsWith(id)));
+        }
+        private static bool ShouldLoadCustomTexture(string id)
+        {
+            return (texturesToLoad.Contains(id) || texturesToLoad.Any(p => p.StartsWith(id)));
         }
 
         private static Texture2D LoadTexture(string id, Texture vanilla, bool point = true, bool needLayers = false)
@@ -160,8 +172,6 @@ namespace CustomTextures
 
             if (vanilla == null)
             {
-
-
                 tex = new Texture2D(2, 2, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
                 if (point)
                     tex.filterMode = FilterMode.Point;
@@ -520,7 +530,7 @@ namespace CustomTextures
         {
             foreach (string str in strings)
             {
-                if (HasCustomTexture($"{str}{property}") || (property == "_MainTex" && HasCustomTexture($"{str}_texture")) || (property == "_BumpMap" && HasCustomTexture($"{str}_bump")))
+                if (ShouldLoadCustomTexture($"{str}{property}") || (property == "_MainTex" && ShouldLoadCustomTexture($"{str}_texture")) || (property == "_BumpMap" && ShouldLoadCustomTexture($"{str}_bump")))
                 {
                     logDump.Add($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {str}{property}.png for {property}.");
                     if (m.HasProperty(property))
@@ -528,11 +538,11 @@ namespace CustomTextures
                         logDump.Add($"replacing {property}");
 
                         Texture2D result = null;
-                        if (HasCustomTexture($"{str}{property}"))
+                        if (ShouldLoadCustomTexture($"{str}{property}"))
                             result = LoadTexture($"{str}{property}", m.GetTexture(property));
-                        else if(property == "_MainTex" && HasCustomTexture($"{str}_texture"))
+                        else if(property == "_MainTex" && ShouldLoadCustomTexture($"{str}_texture"))
                             result = LoadTexture($"{str}_texture", m.GetTexture(property));
-                        else if(property == "_BumpMap" && HasCustomTexture($"{str}_bump"))
+                        else if(property == "_BumpMap" && ShouldLoadCustomTexture($"{str}_bump"))
                             result = LoadTexture($"{str}_bump", m.GetTexture(property));
 
                         if (result == null)

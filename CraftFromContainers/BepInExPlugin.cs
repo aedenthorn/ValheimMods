@@ -146,7 +146,7 @@ namespace CraftFromContainers
             List<Container> containers = new List<Container>();
             foreach (Container container in containerList)
             {
-                if (container != null && container.transform != null && container.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
+                if (container != null && container.transform != null && container.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
                 {
                     containers.Add(container);
                 }
