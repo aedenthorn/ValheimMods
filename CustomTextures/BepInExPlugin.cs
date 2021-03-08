@@ -143,185 +143,6 @@ namespace CustomTextures
             }
         }
 
-        private static bool HasCustomTexture(string id)
-        {
-            return (customTextures.ContainsKey(id) || customTextures.Any(p => p.Key.StartsWith(id)));
-        }
-        private static bool ShouldLoadCustomTexture(string id)
-        {
-            return (texturesToLoad.Contains(id) || texturesToLoad.Any(p => p.StartsWith(id)));
-        }
-
-        private static Texture2D LoadTexture(string id, Texture vanilla, bool point = true, bool needLayers = false)
-        {
-            if (cachedTextures.ContainsKey(id))
-            {
-                //Dbgl($"loading cached texture for {id}");
-                return cachedTextures[id];
-            }
-
-            Texture2D tex;
-            var layers = customTextures.Where(p => p.Key.StartsWith($"{id}_"));
-
-            if (!customTextures.ContainsKey(id) && !layers.Any())
-            {
-                if (needLayers)
-                    return null;
-                return (Texture2D)vanilla;
-            }
-
-            if (vanilla == null)
-            {
-                tex = new Texture2D(2, 2, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
-                if (point)
-                    tex.filterMode = FilterMode.Point;
-                if (!customTextures.ContainsKey(id))
-                {
-                    byte[] layerData = File.ReadAllBytes(layers.First().Value);
-                    tex.LoadImage(layerData);
-                }
-            }
-            else
-                tex = new Texture2D(vanilla.width, vanilla.height, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
-
-            if(point)
-                tex.filterMode = FilterMode.Point;
-
-            if (customTextures.ContainsKey(id))
-            {
-                //Dbgl($"loading custom texture file for {id}");
-                byte[] imageData = File.ReadAllBytes(customTextures[id]);
-                tex.LoadImage(imageData);
-            }
-            else if(vanilla != null)
-            {
-                //Dbgl($"texture {id} has no custom texture, using vanilla");
-
-                // https://support.unity.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
-
-                // Create a temporary RenderTexture of the same size as the texture
-                RenderTexture tmp = RenderTexture.GetTemporary(
-                                    tex.width,
-                                    tex.height,
-                                    0,
-                                    RenderTextureFormat.Default,
-                                    RenderTextureReadWrite.Linear);
-
-                // Blit the pixels on texture to the RenderTexture
-                Graphics.Blit(vanilla, tmp);
-
-                // Backup the currently set RenderTexture
-                RenderTexture previous = RenderTexture.active;
-
-                // Set the current RenderTexture to the temporary one we created
-                RenderTexture.active = tmp;
-
-                // Create a new readable Texture2D to copy the pixels to it
-                Texture2D myTexture2D = new Texture2D(vanilla.width, vanilla.height);
-
-                // Copy the pixels from the RenderTexture to the new Texture
-                myTexture2D.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
-                myTexture2D.Apply();
-
-                // Reset the active RenderTexture
-                RenderTexture.active = previous;
-
-                // Release the temporary RenderTexture
-                RenderTexture.ReleaseTemporary(tmp);
-
-                // "myTexture2D" now has the same pixels from "texture" and it's readable.
-
-                tex.SetPixels(myTexture2D.GetPixels());
-            }
-            if (layers.Any())
-            {
-                //Dbgl($"texture {id} has {layers.Count()} layers");
-                foreach(var layer in layers.Skip(vanilla == null? 1 : 0))
-                {
-
-                    Texture2D layerTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
-                    layerTex.filterMode = FilterMode.Point;
-                    byte[] layerData = File.ReadAllBytes(layer.Value);
-                    layerTex.LoadImage(layerData);
-
-                    //8x5, 2x2
-
-                    float scaleX = tex.width / (float)layerTex.width; // 8 / 2 = 4 or 2 / 8 = 0.25
-                    float scaleY = tex.height / (float)layerTex.height; // 5 / 2 = 2.5 or 2 / 5 = 0.4
-
-                    int width = layerTex.width;
-                    int height = layerTex.width;
-
-                    if (scaleX * scaleY < 1) // layer is bigger
-                    {
-                        width = tex.width;
-                        height = tex.height;
-                    }
-
-                    Dbgl($"adding layer {layer.Key} to {id}, scale diff {scaleX},{scaleY}");
-
-
-                    for (int x = 0; x < width; x++)
-                    {
-                        for (int y = 0; y < height; y++)
-                        {
-                            if(scaleX == 1 && scaleY == 1)
-                            {
-                                Color texColor = tex.GetPixel(x, y);
-                                Color layerColor = layerTex.GetPixel(x, y);
-
-                                Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
-
-                                tex.SetPixel(x, y, final_color);
-
-                            }
-                            else if (scaleX * scaleY < 1) // layer is bigger
-                            {
-
-                                for (int i = 0; i < (int)(1 / scaleX); i++) // < 4, so 0, 1, 2, 3 become layer x = 0
-                                {
-                                    for (int j = 0; j < (int)(1 / scaleY); j++) // < 2, so 0, 1 become layer y = 0
-                                    {
-                                        Color texColor = tex.GetPixel(x, y);
-                                        Color layerColor = layerTex.GetPixel((x * (int)(1 / scaleX)) + i, (y * (int)(1 / scaleY)) + j);
-                                        
-                                        if (layerColor == Color.clear)
-                                            continue;
-
-                                        Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
-                                        final_color.a = 1f;
-                                        
-                                        tex.SetPixel(x, y, final_color);
-                                    }
-                                }
-                            }
-                            else // tex is bigger, multiply layer
-                            {
-                                for(int i = 0; i < (int)scaleX; i++) // < 4, so 0, 1, 2, 3 become layer x = 0    2 so 0,1
-                                {
-                                    for (int j = 0; j < (int)scaleY; j++) // < 2, so 0, 1 become layer y = 0    2 so 0,1
-                                    {
-                                        Color texColor = tex.GetPixel((x * (int)scaleX) + i, (y * (int)scaleY) + j);
-                                        Color layerColor = layerTex.GetPixel(x, y);
-                                        if (layerColor == Color.clear)
-                                            continue;
-
-                                        Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
-                                        final_color.a = 1f;
-
-                                        tex.SetPixel((x * (int)scaleX) + i, (y * (int)scaleY) + j, final_color);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            tex.Apply();
-
-            cachedTextures[id] = tex;
-            return tex;
-        }
 
         private static void LoadSceneTextures(GameObject[] gos)
         {
@@ -601,6 +422,187 @@ namespace CustomTextures
             {
                 LoadOneTexture(go, itemName, "object");
             }
+        }
+
+
+        private static bool HasCustomTexture(string id)
+        {
+            return (customTextures.ContainsKey(id) || customTextures.Any(p => p.Key.StartsWith(id)));
+        }
+        private static bool ShouldLoadCustomTexture(string id)
+        {
+            return (texturesToLoad.Contains(id) || texturesToLoad.Any(p => p.StartsWith(id)));
+        }
+
+        private static Texture2D LoadTexture(string id, Texture vanilla, bool point = true, bool needLayers = false)
+        {
+            if (cachedTextures.ContainsKey(id))
+            {
+                //Dbgl($"loading cached texture for {id}");
+                return cachedTextures[id];
+            }
+
+            Texture2D tex;
+            var layers = customTextures.Where(p => p.Key.StartsWith($"{id}_"));
+
+            if (!customTextures.ContainsKey(id) && !layers.Any())
+            {
+                if (needLayers)
+                    return null;
+                return (Texture2D)vanilla;
+            }
+
+            if (vanilla == null)
+            {
+                tex = new Texture2D(2, 2, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
+                if (point)
+                    tex.filterMode = FilterMode.Point;
+                if (!customTextures.ContainsKey(id))
+                {
+                    byte[] layerData = File.ReadAllBytes(layers.First().Value);
+                    tex.LoadImage(layerData);
+                }
+            }
+            else
+                tex = new Texture2D(vanilla.width, vanilla.height, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
+
+            if (point)
+                tex.filterMode = FilterMode.Point;
+
+            if (customTextures.ContainsKey(id))
+            {
+                //Dbgl($"loading custom texture file for {id}");
+                byte[] imageData = File.ReadAllBytes(customTextures[id]);
+                tex.LoadImage(imageData);
+            }
+            else if (vanilla != null)
+            {
+                //Dbgl($"texture {id} has no custom texture, using vanilla");
+
+                // https://support.unity.com/hc/en-us/articles/206486626-How-can-I-get-pixels-from-unreadable-textures-
+
+                // Create a temporary RenderTexture of the same size as the texture
+                RenderTexture tmp = RenderTexture.GetTemporary(
+                                    tex.width,
+                                    tex.height,
+                                    0,
+                                    RenderTextureFormat.Default,
+                                    RenderTextureReadWrite.Linear);
+
+                // Blit the pixels on texture to the RenderTexture
+                Graphics.Blit(vanilla, tmp);
+
+                // Backup the currently set RenderTexture
+                RenderTexture previous = RenderTexture.active;
+
+                // Set the current RenderTexture to the temporary one we created
+                RenderTexture.active = tmp;
+
+                // Create a new readable Texture2D to copy the pixels to it
+                Texture2D myTexture2D = new Texture2D(vanilla.width, vanilla.height);
+
+                // Copy the pixels from the RenderTexture to the new Texture
+                myTexture2D.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
+                myTexture2D.Apply();
+
+                // Reset the active RenderTexture
+                RenderTexture.active = previous;
+
+                // Release the temporary RenderTexture
+                RenderTexture.ReleaseTemporary(tmp);
+
+                // "myTexture2D" now has the same pixels from "texture" and it's readable.
+
+                tex.SetPixels(myTexture2D.GetPixels());
+            }
+            if (layers.Any())
+            {
+                //Dbgl($"texture {id} has {layers.Count()} layers");
+                foreach (var layer in layers.Skip(vanilla == null ? 1 : 0))
+                {
+
+                    Texture2D layerTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, id.EndsWith("_bump"));
+                    layerTex.filterMode = FilterMode.Point;
+                    byte[] layerData = File.ReadAllBytes(layer.Value);
+                    layerTex.LoadImage(layerData);
+
+                    //8x5, 2x2
+
+                    float scaleX = tex.width / (float)layerTex.width; // 8 / 2 = 4 or 2 / 8 = 0.25
+                    float scaleY = tex.height / (float)layerTex.height; // 5 / 2 = 2.5 or 2 / 5 = 0.4
+
+                    int width = layerTex.width;
+                    int height = layerTex.width;
+
+                    if (scaleX * scaleY < 1) // layer is bigger
+                    {
+                        width = tex.width;
+                        height = tex.height;
+                    }
+
+                    Dbgl($"adding layer {layer.Key} to {id}, scale diff {scaleX},{scaleY}");
+
+
+                    for (int x = 0; x < width; x++)
+                    {
+                        for (int y = 0; y < height; y++)
+                        {
+                            if (scaleX == 1 && scaleY == 1)
+                            {
+                                Color texColor = tex.GetPixel(x, y);
+                                Color layerColor = layerTex.GetPixel(x, y);
+
+                                Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
+
+                                tex.SetPixel(x, y, final_color);
+
+                            }
+                            else if (scaleX * scaleY < 1) // layer is bigger
+                            {
+
+                                for (int i = 0; i < (int)(1 / scaleX); i++) // < 4, so 0, 1, 2, 3 become layer x = 0
+                                {
+                                    for (int j = 0; j < (int)(1 / scaleY); j++) // < 2, so 0, 1 become layer y = 0
+                                    {
+                                        Color texColor = tex.GetPixel(x, y);
+                                        Color layerColor = layerTex.GetPixel((x * (int)(1 / scaleX)) + i, (y * (int)(1 / scaleY)) + j);
+
+                                        if (layerColor == Color.clear)
+                                            continue;
+
+                                        Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
+                                        final_color.a = 1f;
+
+                                        tex.SetPixel(x, y, final_color);
+                                    }
+                                }
+                            }
+                            else // tex is bigger, multiply layer
+                            {
+                                for (int i = 0; i < (int)scaleX; i++) // < 4, so 0, 1, 2, 3 become layer x = 0    2 so 0,1
+                                {
+                                    for (int j = 0; j < (int)scaleY; j++) // < 2, so 0, 1 become layer y = 0    2 so 0,1
+                                    {
+                                        Color texColor = tex.GetPixel((x * (int)scaleX) + i, (y * (int)scaleY) + j);
+                                        Color layerColor = layerTex.GetPixel(x, y);
+                                        if (layerColor == Color.clear)
+                                            continue;
+
+                                        Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
+                                        final_color.a = 1f;
+
+                                        tex.SetPixel((x * (int)scaleX) + i, (y * (int)scaleY) + j, final_color);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            tex.Apply();
+
+            cachedTextures[id] = tex;
+            return tex;
         }
     }
 }
