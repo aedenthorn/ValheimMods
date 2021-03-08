@@ -7,11 +7,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.4.3")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.5.2")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -24,6 +23,7 @@ namespace CustomTextures
         public static Dictionary<string, string> customTextures = new Dictionary<string, string>();
         public static Dictionary<string, Texture2D> cachedTextures = new Dictionary<string, Texture2D>();
         public static List<string> outputDump = new List<string>();
+        public static List<string> logDump = new List<string>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -52,6 +52,8 @@ namespace CustomTextures
             if (ZNetScene.instance != null && CheckKeyDown(hotKey.Value))
             {
                 Dbgl($"Pressed reload key.");
+
+                logDump.Clear();
 
                 LoadCustomTextures();
                 ReplaceObjectDBTextures();
@@ -90,6 +92,9 @@ namespace CustomTextures
                         SetBodyEquipmentTexture(ve, Traverse.Create(ve).Field("m_chestItem").GetValue<string>(), ve.m_bodyModel, Traverse.Create(ve).Field("m_chestItemInstances").GetValue<List<GameObject>>(), "_Chest", Traverse.Create(ve).Field("m_currentChestItemHash").GetValue<int>());
                     }
                 }
+
+                if (logDump.Any())
+                    Dbgl("\n" + string.Join("\n", logDump));
             }
 
         }
@@ -135,7 +140,7 @@ namespace CustomTextures
             return (customTextures.ContainsKey(id) || customTextures.Any(p => p.Key.StartsWith(id)));
         }
 
-        private static Texture2D LoadTexture(string id, Texture vanilla, bool point = true)
+        private static Texture2D LoadTexture(string id, Texture vanilla, bool point = true, bool needLayers = false)
         {
             if (cachedTextures.ContainsKey(id))
             {
@@ -147,7 +152,11 @@ namespace CustomTextures
             var layers = customTextures.Where(p => p.Key.StartsWith($"{id}_"));
 
             if (!customTextures.ContainsKey(id) && !layers.Any())
-                return (Texture2D) vanilla;
+            {
+                if (needLayers)
+                    return null;
+                return (Texture2D)vanilla;
+            }
 
             if (vanilla == null)
             {
@@ -322,10 +331,10 @@ namespace CustomTextures
         }
         private static void ReplaceObjectDBTextures()
         {
+            logDump.Clear();
+            ObjectDB objectDB = ObjectDB.instance;
 
-            ObjectDB objectDB = FejdStartup.instance.m_gameMainPrefab.GetComponent<ObjectDB>();
-
-            Texture2D tex = LoadTexture("atlas_item_icons", new Texture2D(2, 2), false);
+            Texture2D tex = LoadTexture("atlas_item_icons", objectDB.m_items[0]?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_icons[0]?.texture, false, true);
             Dbgl($"Replacing textures for {objectDB.m_items.Count} objects...");
             foreach (GameObject go in objectDB.m_items)
             {
@@ -335,36 +344,34 @@ namespace CustomTextures
 
                 LoadOneTexture(go, go.name, "object");
 
-                //Dbgl($"Loading inventory icons for {go.name}, {item.m_itemData.m_shared.m_icons.Length} icons...");
-                for (int i = 0; i < item.m_itemData.m_shared.m_icons.Length; i++)
+                if (tex != null)
                 {
-                    Sprite sprite = item.m_itemData.m_shared.m_icons[i];
-                    float scaleX = tex.width / (float)sprite.texture.width;
-                    float scaleY = tex.height / (float)sprite.texture.height;
-                    float scale = (scaleX + scaleY) / 2;
+                    //Dbgl($"Loading inventory icons for {go.name}, {item.m_itemData.m_shared.m_icons.Length} icons...");
+                    for (int i = 0; i < item.m_itemData.m_shared.m_icons.Length; i++)
+                    {
+                        Sprite sprite = item.m_itemData.m_shared.m_icons[i];
+                        float scaleX = tex.width / (float)sprite.texture.width;
+                        float scaleY = tex.height / (float)sprite.texture.height;
+                        float scale = (scaleX + scaleY) / 2;
 
-                    sprite = Sprite.Create(tex, new Rect(sprite.textureRect.x * scaleX, sprite.textureRect.y * scaleY, sprite.textureRect.width * scaleX, sprite.textureRect.height * scaleY), Vector2.zero, sprite.pixelsPerUnit * scale);
-                    item.m_itemData.m_shared.m_icons[i] = sprite;
+                        sprite = Sprite.Create(tex, new Rect(sprite.textureRect.x * scaleX, sprite.textureRect.y * scaleY, sprite.textureRect.width * scaleX, sprite.textureRect.height * scaleY), Vector2.zero, sprite.pixelsPerUnit * scale);
+                        item.m_itemData.m_shared.m_icons[i] = sprite;
+                    }
                 }
             }
+            Traverse.Create(objectDB).Method("UpdateItemHashes").GetValue();
 
-            if (dumpSceneTextures.Value)
-            {
-                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
-                Dbgl($"Writing {path}");
-                File.WriteAllLines(path, outputDump);
-
-            }
+            if (logDump.Any())
+                Dbgl("\n" + string.Join("\n", logDump));
         }
 
-        private static void LoadOneTexture(GameObject gameObject, string thingName, string prefix, string which = "_Main")
+        private static void LoadOneTexture(GameObject gameObject, string thingName, string prefix)
         {
             if (thingName.Contains("_frac"))
             {
                 outputDump.Add($"skipping _frac {thingName}");
                 return;
             }
-            List<string> logDump = new List<string>();
 
             //Dbgl($"loading textures for { gameObject.name}");
             MeshRenderer[] mrs = gameObject.GetComponentsInChildren<MeshRenderer>(true);
@@ -386,19 +393,22 @@ namespace CustomTextures
                     outputDump.Add($"\tMeshRenderer name: {r.name}");
                     if (r.materials == null || !r.materials.Any())
                     {
-                        outputDump.Add($"\t\tsmr {r.name} has no materials");
+                        outputDump.Add($"\t\tmr {r.name} has no materials");
                         continue;
                     }
+                    outputDump.Add($"\t\tmr {r.name} has {r.materials.Length} materials");
 
                     foreach (Material m in r.materials)
                     {
                         try
                         {
+                            outputDump.Add($"\t\t\t{m.name}:");
+
                             ReplaceMaterialTextures(m, thingName, prefix, "MeshRenderer", r.name, logDump);
                         }
                         catch (Exception ex)
                         {
-                            //Dbgl($"Error loading {mr.name}:\r\nindex: {idx}\r\n{ex}");
+                            logDump.Add($"\t\t\tError loading {r.name}:\r\n{ex}");
                         }
                     }
 
@@ -407,7 +417,6 @@ namespace CustomTextures
             if (smrs?.Any() == true)
             {
                 outputDump.Add($"{prefix} {thingName} has {smrs.Length} SkinnedMeshRenderers:");
-                //logDump.Add($"{prefix} {thingName} has {smrs.Length} SkinnedMeshRenderers:");
                 foreach (SkinnedMeshRenderer r in smrs)
                 {
                     if (r == null)
@@ -417,22 +426,25 @@ namespace CustomTextures
                     }
 
                     outputDump.Add($"\tSkinnedMeshRenderer name: {r.name}");
-                    //logDump.Add($"\tSkinnedMeshRenderer name: {r.name}");
                     if (r.materials == null || !r.materials.Any())
                     {
                         outputDump.Add($"\t\tsmr {r.name} has no materials");
                         continue;
                     }
 
+                    outputDump.Add($"\t\tsmr {r.name} has {r.materials.Length} materials");
+
                     foreach (Material m in r.materials)
                     {
                         try
                         {
+                            outputDump.Add($"\t\t\t{m.name}:");
+
                             ReplaceMaterialTextures(m, thingName, prefix, "SkinnedMeshRenderer", r.name, logDump);
                         }
                         catch (Exception ex)
                         {
-                            logDump.Add($"Error loading {r.name}:\r\n{ex}");
+                            logDump.Add($"\t\t\tError loading {r.name}:\r\n{ex}");
                         }
                     }
 
@@ -458,11 +470,13 @@ namespace CustomTextures
 
                     try
                     {
+                        outputDump.Add($"\t\t\t{r.m_material.name}:");
+
                         ReplaceMaterialTextures(r.m_material, thingName, prefix, "InstanceRenderer", r.name, logDump);
                     }
                     catch (Exception ex)
                     {
-                        logDump.Add($"Error loading {r.name}:\r\n{ex}");
+                        logDump.Add($"\t\t\tError loading {r.name}:\r\n{ex}");
                     }
                 }
             }
@@ -470,61 +484,67 @@ namespace CustomTextures
             ItemDrop item = gameObject.GetComponent<ItemDrop>();
             if (item != null && item.m_itemData.m_shared.m_armorMaterial != null)
             {
+                outputDump.Add($"armor {thingName} has Material:");
                 Material m = item.m_itemData.m_shared.m_armorMaterial;
-                //Dbgl($"\nMaterial {m.name} color {m.color} props: \n\t{ string.Join("\n\t", m.GetTexturePropertyNames())}");
-                ReplaceMaterialTextures(item.m_itemData.m_shared.m_armorMaterial, thingName, prefix, "Armor", gameObject.name, logDump);
+                
+                outputDump.Add($"\tArmor name: {m.name}");
+
+                ReplaceMaterialTextures(m, thingName, "armor", "Armor", gameObject.name, logDump);
             }
 
-            if (logDump.Any())
-                Dbgl("\n"+string.Join("\n", logDump));
         }
 
         private static void ReplaceMaterialTextures(Material m, string thingName, string prefix, string rendererType, string rendererName, List<string> logDump)
         {
-            outputDump.Add("\t\tproperties:");
+            outputDump.Add("\t\t\t\tproperties:");
+
+            if (prefix == "item")
+                prefix = "object";
+
             foreach (string property in m.GetTexturePropertyNames())
             {
-                outputDump.Add($"\t\t\t{property} {m.GetTexture(property)?.name}");
+                outputDump.Add($"\t\t\t\t\t{property} {m.GetTexture(property)?.name}");
+
+                string name = m.GetTexture(property)?.name;
+
+                if (name == null)
+                    name = thingName;
+
+                List<string> strings = MakePrefixStrings(prefix, thingName, rendererName, name);
+                CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, property, strings, logDump);
+
             }
-            string name = (m.HasProperty($"_MainTex") && m.GetTexture($"_MainTex") != null ? m.GetTexture($"_MainTex")?.name : null);
-            outputDump.Add($"\t\ttexture name: {name}");
-            if (name == null)
-                name = thingName;
-
-            List<string> strings = MakePrefixStrings(prefix, thingName, rendererName, name);
-
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name,  "_texture", "_MainTex", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name,  "_chest", "_ChestTex", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name,  "_legs", "_LegsTex", strings, logDump);
-            
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_bump", "_BumpMap", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_skin", "_SkinBumpMap", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_chestbump", "_ChestBumpMap", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_legsbump", "_LegsBumpMap", strings, logDump);
-
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_style", "_StyleTex", strings, logDump);
-            
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_metal", "_MetallicGlossMap", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_chestmetal", "_ChestMetal", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_legsmetal", "_LegsMetal", strings, logDump);
-
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_detailalbedo", "_DetailAlbedoMap", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_detail", "_DetailMask", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_detailnormal", "_DetailNormalMap", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_parallax", "_ParallaxMap", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_occlusion", "_OcclusionMap", strings, logDump);
-            CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, "_emission", "_EmissionMap", strings, logDump);
-
         }
 
-        private static void CheckSetMatTextures(Material m, string prefix, string thingName, string rendererType, string rendererName, string name,  string suffix, string which, List<string> strings, List<string> logDump)
+        private static void CheckSetMatTextures(Material m, string prefix, string thingName, string rendererType, string rendererName, string name, string property, List<string> strings, List<string> logDump)
         {
             foreach (string str in strings)
             {
-                if (HasCustomTexture($"{str}{suffix}"))
+                if (HasCustomTexture($"{str}{property}") || (property == "_MainTex" && HasCustomTexture($"{str}_texture")) || (property == "_BumpMap" && HasCustomTexture($"{str}_bump")))
                 {
-                    logDump.Add($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {str}{suffix} for {which}.");
-                    SetMatTextures(m, name, $"{str}{suffix}", which , logDump);
+                    logDump.Add($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {str}{property}.png for {property}.");
+                    if (m.HasProperty(property))
+                    {
+                        logDump.Add($"replacing {property}");
+
+                        Texture2D result = null;
+                        if (HasCustomTexture($"{str}{property}"))
+                            result = LoadTexture($"{str}{property}", m.GetTexture(property));
+                        else if(property == "_MainTex" && HasCustomTexture($"{str}_texture"))
+                            result = LoadTexture($"{str}_texture", m.GetTexture(property));
+                        else if(property == "_BumpMap" && HasCustomTexture($"{str}_bump"))
+                            result = LoadTexture($"{str}_bump", m.GetTexture(property));
+
+                        if (result == null)
+                            continue;
+
+                        m.SetTexture(property, result);
+                        if (m.GetTexture(property) != null)
+                        {
+                            m.GetTexture(property).name = name;
+                            m.color = Color.white;
+                        }
+                    }
                     break;
                 }
             }
@@ -541,26 +561,11 @@ namespace CustomTextures
             return strings;
         }
 
-        private static void SetMatTextures(Material m, string name, string textureName, string which, List<string> logDump)
-        {
-
-            if (m.HasProperty(which))
-            {
-                logDump.Add($"replacing {which}");
-                m.SetTexture(which, LoadTexture(textureName, m.GetTexture(which)));
-                if (m.GetTexture(which) != null)
-                {
-                    m.GetTexture(which).name = name;
-                    m.color = Color.white;
-                }
-            }
-        }
-
         private static void SetEquipmentTexture(string itemName, GameObject item)
         {
             if (item != null && itemName != null && itemName.Length > 0)
             {
-                LoadOneTexture(item.gameObject, itemName, "item");
+                LoadOneTexture(item.gameObject, itemName, "object");
             }
         }
 
@@ -580,108 +585,11 @@ namespace CustomTextures
 
         private static void SetBodyEquipmentTexture(VisEquipment instance, string itemName, SkinnedMeshRenderer smr, List<GameObject> itemInstances, string which, int hash)
         {
-            Dbgl($"XYZ body equipment {which} {itemName} smr: {smr.name}");
-
-            //LoadOneTexture(smr.gameObject, itemName, "item", which);
-            //return;
-
-            GameObject itemPrefab = ObjectDB.instance.GetItemPrefab(hash);
-            if (itemPrefab == null)
-            {
-                return;
-            }
-            ItemDrop component = itemPrefab.GetComponent<ItemDrop>();
-            if (component.m_itemData.m_shared.m_armorMaterial)
-            {
-                Dbgl($"XYZ component {component.m_itemData.m_shared.m_name}, name: {component.m_itemData.m_shared.m_armorMaterial.GetTexture($"{which}Tex").name}");
-
-                if (HasCustomTexture($"item_{itemName}_texture"))
-                {
-                    Dbgl($"XYZ replacing");
-                    instance.m_bodyModel.material.SetTexture($"{which}Tex", LoadTexture($"item_{itemName}_texture", component.m_itemData.m_shared.m_armorMaterial.GetTexture($"{which}Tex")));
-                }
-                if (HasCustomTexture($"item_{itemName}_bump"))
-                    instance.m_bodyModel.material.SetTexture("_ChestBumpMap", LoadTexture($"item_{itemName}_bump", component.m_itemData.m_shared.m_armorMaterial.GetTexture("_ChestBumpMap")));
-                if(HasCustomTexture($"item_{itemName}_metal"))
-                    instance.m_bodyModel.material.SetTexture("_ChestMetal", LoadTexture($"item_{itemName}_texture", component.m_itemData.m_shared.m_armorMaterial.GetTexture("_ChestMetal")));
-            }
-
-            //smr.material.SetTexture($"{which}Tex", LoadTexture($"item_{itemName}_texture", smr.material.GetTexture($"{which}Tex")));
-            //smr.material.SetTexture("_MainTex", LoadTexture($"item_{itemName}_texture", smr.material.GetTexture("_MainTex")));
-            return;
-
+            LoadOneTexture(smr.gameObject, itemName, "object");
 
             foreach(GameObject go in itemInstances)
             {
-                /*
-                Dbgl($"body equipment {which} gameObject: {go.name}");
-                foreach(SkinnedMeshRenderer s in go.GetComponentsInChildren<SkinnedMeshRenderer>())
-                {
-                    Dbgl($"body equipment {which} smr: {s.name}");
-                }
-                foreach(MeshRenderer s in go.GetComponentsInChildren<MeshRenderer>())
-                {
-                    Dbgl($"body equipment {which} mr: {s.name}");
-                }
-                foreach(Material m in go.GetComponentsInChildren<Material>())
-                {
-                    Dbgl($"body equipment {which} material: {m.name}");
-                }
-                foreach(Texture2D t in go.GetComponentsInChildren<Texture2D>())
-                {
-                    Dbgl($"body equipment {which} texture: {t.name}");
-                }
-                */
-
-                foreach (SkinnedMeshRenderer s in go.GetComponentsInChildren<SkinnedMeshRenderer>())
-                {
-                    Dbgl($"body equipment {go.name} smr: {s.name}");
-                }
-
-                LoadOneTexture(go, itemName, "item", which);
-
-                int childCount = go.transform.childCount;
-                for (int i = 0; i < childCount; i++)
-                {
-
-                    Transform child = go.transform.GetChild(i);
-                    foreach (SkinnedMeshRenderer s in child.GetComponentsInChildren<SkinnedMeshRenderer>())
-                    {
-                        Dbgl($"body equipment child {child.name} smr: {s.name}");
-                    }
-
-                    LoadOneTexture(child.gameObject, itemName, "item", which);
-                }
-                //Dbgl(string.Join("\n", outputDump));
-            }
-
-            LoadOneTexture(smr.gameObject, itemName, "item", which);
-
-            return;
-            if (component.m_itemData.m_shared.m_armorMaterial)
-            {
-                Dbgl($"{which} item: {itemName}");
-                if (HasCustomTexture($"item_{itemName}_texture"))
-                {
-                    Dbgl($"setting custom texture for item {itemName}: item_{itemName}_texture.png");
-                    smr.material.SetTexture($"{which}Tex", LoadTexture($"item_{itemName}_texture", smr.material.GetTexture($"{which}Tex")));
-                    smr.material.color = Color.white;
-
-                }
-                else
-                    Dbgl($"item {itemName}, texture name {smr.material.mainTexture?.name}; use item_{itemName}_texture.png");
-
-                if (HasCustomTexture($"item_{itemName}_bump"))
-                {
-                    Dbgl($"setting custom texture for item {itemName}: item_{itemName}_bump.png");
-                    smr.material.SetTexture($"{which}BumpMap", LoadTexture($"item_{itemName}_bump", smr.material.GetTexture($"{which}BumpMap")));
-                }
-                if (HasCustomTexture($"item_{itemName}_metal"))
-                {
-                    Dbgl($"setting custom texture for item {itemName}: item_{itemName}_metal.png");
-                    smr.material.SetTexture($"{which}Metal", LoadTexture($"item_{itemName}_metal", smr.material.GetTexture($"{which}Metal")));
-                }
-
+                LoadOneTexture(go, itemName, "object");
             }
         }
     }
