@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.7.4")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.8.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -34,7 +34,7 @@ namespace CraftFromContainers
         public static ConfigEntry<string> pullItemsKey;
         public static ConfigEntry<string> preventModKey;
         public static ConfigEntry<string> fillAllModKey;
-        public static ConfigEntry<bool> switchAddAll;
+        public static ConfigEntry<bool> switchPrevent;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -72,7 +72,7 @@ namespace CraftFromContainers
             ghostConnectionStartOffset = Config.Bind<float>("Station Connections", "ConnectionStartOffset", 1.25f, "Height offset for the connection VFX start position");
             ghostConnectionRemovalDelay = Config.Bind<float>("Station Connections", "ConnectionRemoveDelay", 0.05f, "");
 
-            switchAddAll = Config.Bind<bool>("Hot Keys", "SwitchAddAll", true, "if true, holding down the modifier key will prevent this mod's behaviour; if false, holding down the key will allow it");
+            switchPrevent = Config.Bind<bool>("Hot Keys", "SwitchPrevent", false, "if true, holding down the PreventModKey modifier key will allow this mod's behaviour; if false, holding down the key will prevent it");
             preventModKey = Config.Bind<string>("Hot Keys", "PreventModKey", "left alt", "Modifier key to toggle fuel and ore filling behaviour when down");
             pullItemsKey = Config.Bind<string>("Hot Keys", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building");
             fillAllModKey = Config.Bind<string>("Hot Keys", "FillAllModKey", "left shift", "Modifier key to pull all available fuel or ore when down");
@@ -85,8 +85,8 @@ namespace CraftFromContainers
         private static bool AllowByKey()
         {
             if (CheckKeyHeld(preventModKey.Value))
-                return !switchAddAll.Value;
-            return switchAddAll.Value;
+                return switchPrevent.Value;
+            return !switchPrevent.Value;
         }
 
         private void OnDestroy()
