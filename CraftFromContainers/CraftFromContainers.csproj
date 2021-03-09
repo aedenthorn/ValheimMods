@@ -50,7 +50,7 @@
       <HintPath>..\valheim_Data\Managed\assembly_valheim.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>..\..\BepInEx\BepInEx.dll</HintPath>
+      <HintPath>..\BepInEx\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -89,7 +89,7 @@
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>..\valheim_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>..\valheim_Data\Managed\UnityEngine.UI.dll</HintPath>
