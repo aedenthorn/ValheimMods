@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.5.4")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = false;
@@ -116,6 +116,9 @@ namespace AutoFuel
                 if (!Player.m_localPlayer || !isOn.Value)
                     return;
 
+                int maxOre = __instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>();
+                int maxFuel = __instance.m_maxFuel - Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f));
+
 
                 List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
 
@@ -134,7 +137,7 @@ namespace AutoFuel
 
                         foreach (Smelter.ItemConversion itemConversion in __instance.m_conversion)
                         {
-                            if (item.m_itemData.m_shared.m_name == itemConversion.m_from.m_itemData.m_shared.m_name && Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() < __instance.m_maxOre)
+                            if (item.m_itemData.m_shared.m_name == itemConversion.m_from.m_itemData.m_shared.m_name && maxOre > 0)
                             {
 
                                 if (oreDisallowTypes.Value.Split(',').Contains(name))
@@ -145,25 +148,29 @@ namespace AutoFuel
 
                                 Dbgl($"auto adding ore {name} from ground");
 
-                                while (item.m_itemData.m_stack > 1 && Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() < __instance.m_maxOre)
+                                int amount = Mathf.Min(item.m_itemData.m_stack, maxOre);
+                                maxOre -= amount;
+
+                                for(int i = 0; i < amount; i++)
                                 {
+                                    if(item.m_itemData.m_stack <= 1)
+                                    {
+                                        if (___m_nview.GetZDO() == null)
+                                            Destroy(item.gameObject);
+                                        else
+                                            ZNetScene.instance.Destroy(item.gameObject);
+                                        ___m_nview.InvokeRPC("AddOre", new object[] { name });
+                                        break;
+                                    }
+
                                     item.m_itemData.m_stack--;
                                     ___m_nview.InvokeRPC("AddOre", new object[]{ name });
                                     Traverse.Create(item).Method("Save").GetValue();
                                 }
-
-                                if (item.m_itemData.m_stack == 1 && Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() < __instance.m_maxOre)
-                                {
-                                    if (___m_nview.GetZDO() == null)
-                                        Destroy(item.gameObject);
-                                    else
-                                        ZNetScene.instance.Destroy(item.gameObject);
-                                    ___m_nview.InvokeRPC("AddOre", new object[] { name });
-                                }
                             }
                         }
 
-                        if (__instance.m_fuelItem && item.m_itemData.m_shared.m_name == __instance.m_fuelItem.m_itemData.m_shared.m_name && Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) < __instance.m_maxFuel)
+                        if (__instance.m_fuelItem && item.m_itemData.m_shared.m_name == __instance.m_fuelItem.m_itemData.m_shared.m_name && maxFuel > 0)
                         {
 
                             if (fuelDisallowTypes.Value.Split(',').Contains(name))
@@ -174,22 +181,26 @@ namespace AutoFuel
 
                             Dbgl($"auto adding fuel {name} from ground");
 
-                            while (item.m_itemData.m_stack > 1 && Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) < __instance.m_maxFuel)
+                            int amount = Mathf.Min(item.m_itemData.m_stack, maxFuel);
+                            maxFuel -= amount;
+
+                            for (int i = 0; i < amount; i++)
                             {
+                                if (item.m_itemData.m_stack <= 1)
+                                {
+                                    if (___m_nview.GetZDO() == null)
+                                        Destroy(item.gameObject);
+                                    else
+                                        ZNetScene.instance.Destroy(item.gameObject);
+                                    ___m_nview.InvokeRPC("AddFuel", new object[] { });
+                                    break;
+
+                                }
+
                                 item.m_itemData.m_stack--;
                                 ___m_nview.InvokeRPC("AddFuel", new object[] { });
                                 Traverse.Create(item).Method("Save").GetValue();
                             }
-
-                            if (item.m_itemData.m_stack == 1 && Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) < __instance.m_maxFuel)
-                            {
-                                if (___m_nview.GetZDO() == null)
-                                    Destroy(item.gameObject);
-                                else
-                                    ZNetScene.instance.Destroy(item.gameObject);
-                                ___m_nview.InvokeRPC("AddFuel", new object[] { });
-                            }
-                            
                         }
                     }
                 }
@@ -200,9 +211,9 @@ namespace AutoFuel
                     {
                         ItemDrop.ItemData oreItem = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
 
-                        if (oreItem != null && Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() < __instance.m_maxOre)
+                        if (oreItem != null && maxOre > 0)
                         {
-
+                            maxOre--;
                             if (oreDisallowTypes.Value.Split(',').Contains(oreItem.m_dropPrefab.name))
                                 continue;
 
@@ -215,12 +226,12 @@ namespace AutoFuel
                         }
                     }
 
-                    if (__instance.m_fuelItem && Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) < __instance.m_maxFuel)
+                    if (__instance.m_fuelItem && maxFuel > 0)
                     {
                         ItemDrop.ItemData fuelItem = c.GetInventory().GetItem(__instance.m_fuelItem.m_itemData.m_shared.m_name);
                         if (fuelItem != null)
                         {
-
+                            maxFuel--;
                             if (fuelDisallowTypes.Value.Split(',').Contains(fuelItem.m_dropPrefab.name))
                             {
                                 //Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");

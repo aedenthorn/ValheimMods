@@ -11,10 +11,12 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.8.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.9.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
+
+        private static bool wasAllowed;
 
         private static List<ConnectionParams> containerConnections = new List<ConnectionParams>();
         private static GameObject connectionVfxPrefab = null;
@@ -72,16 +74,25 @@ namespace CraftFromContainers
             ghostConnectionStartOffset = Config.Bind<float>("Station Connections", "ConnectionStartOffset", 1.25f, "Height offset for the connection VFX start position");
             ghostConnectionRemovalDelay = Config.Bind<float>("Station Connections", "ConnectionRemoveDelay", 0.05f, "");
 
-            switchPrevent = Config.Bind<bool>("Hot Keys", "SwitchPrevent", false, "if true, holding down the PreventModKey modifier key will allow this mod's behaviour; if false, holding down the key will prevent it");
-            preventModKey = Config.Bind<string>("Hot Keys", "PreventModKey", "left alt", "Modifier key to toggle fuel and ore filling behaviour when down");
-            pullItemsKey = Config.Bind<string>("Hot Keys", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building");
-            fillAllModKey = Config.Bind<string>("Hot Keys", "FillAllModKey", "left shift", "Modifier key to pull all available fuel or ore when down");
+            switchPrevent = Config.Bind<bool>("Hot Keys", "SwitchPrevent", false, "if true, holding down the PreventModKey modifier key will allow this mod's behaviour; if false, holding down the key will prevent it.");
+
+            preventModKey = Config.Bind<string>("Hot Keys", "PreventModKey", "left alt", "Modifier key to toggle fuel and ore filling behaviour when down. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
+            pullItemsKey = Config.Bind<string>("Hot Keys", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
+            fillAllModKey = Config.Bind<string>("Hot Keys", "FillAllModKey", "left shift", "Modifier key to pull all available fuel or ore when down. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
 
             if (!modEnabled.Value)
                 return;
 
+            wasAllowed = !switchPrevent.Value;
+
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
+
+        private void LateUpdate()
+        {
+            wasAllowed = AllowByKey();
+        }
+
         private static bool AllowByKey()
         {
             if (CheckKeyHeld(preventModKey.Value))
@@ -152,6 +163,16 @@ namespace CraftFromContainers
                 }
             }
             return containers;
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), "Update")]
+        static class InventoryGui_Update_Patch
+        {
+            static void Prefix(InventoryGui __instance)
+            {
+                if (wasAllowed != AllowByKey())
+                    Traverse.Create(__instance).Method("UpdateCraftingPanel", new object[] { false }).GetValue();
+            }
         }
 
         [HarmonyPatch(typeof(Container), "Awake")]
@@ -311,10 +332,10 @@ namespace CraftFromContainers
         {
             static bool Prefix(Smelter __instance, Humanoid user, ItemDrop.ItemData item, ZNetView ___m_nview)
             {
-                if (!AllowByKey() || item != null || Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre)
+                bool pullAll = CheckKeyHeld(fillAllModKey.Value);
+                if ((!AllowByKey() && !pullAll) || item != null || Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre)
                     return true;
 
-                bool pullAll = CheckKeyHeld(fillAllModKey.Value);
                 Inventory inventory = user.GetInventory();
 
 
@@ -418,7 +439,7 @@ namespace CraftFromContainers
             {
                 bool pullAll = CheckKeyHeld(fillAllModKey.Value);
                 Inventory inventory = user.GetInventory();
-                if (!AllowByKey() || item != null || inventory == null || (inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && !pullAll))
+                if ((!AllowByKey() && !pullAll)|| item != null || inventory == null || (inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && !pullAll))
                     return true;
 
                 __result = true;

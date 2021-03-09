@@ -142,6 +142,11 @@ namespace NexusUpdate
             {
                 if (!finishedChecking || nexusUpdatables.Any() || (showAllManagedMods.Value && nexusNonupdatables.Any()))
                     windowRect = GUI.Window(424242, windowRect, new GUI.WindowFunction(WindowBuilder), finishedChecking ? windowTitleText.Value : windowTitleTextChecking.Value);
+                if(!Input.GetKey(KeyCode.Mouse0) && ( windowRect.x != updatesPosition.Value.x || windowRect.y != updatesPosition.Value.y))
+                {
+                    updatesPosition.Value = new Vector2(windowRect.x, windowRect.y);
+                    Config.Save();
+                }
             }
         }
 
@@ -260,6 +265,12 @@ namespace NexusUpdate
                 dict.Add(ignore[0], ignore[1]);
             MakeIgnores(dict);
         }
+        private void RemoveIgnore(string id)
+        {
+            Dictionary<string, string> dict = GetIgnores();
+            dict.Remove(id);
+            MakeIgnores(dict);
+        }
 
         private Dictionary<string, string> GetIgnores()
         {
@@ -363,11 +374,23 @@ namespace NexusUpdate
                             Version version = new Version(match.Groups[1].Value);
                             Dbgl($"remote version: {version}.");
 
-                            if (!showAllManagedMods.Value && ignores.ContainsKey("" + id) && ignores["" + id] == version.ToString())
+                            if(ignores.ContainsKey("" + id))
                             {
-                                Dbgl($"ignoring {pluginName} {id} version: {version}");
-                                break;
+                                if(ignores["" + id] == version.ToString())
+                                {
+                                    if (!showAllManagedMods.Value)
+                                    {
+                                        Dbgl($"ignoring {pluginName} {id} version: {version}");
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    Dbgl($"new version {version}, removing ignore {ignores[""+id]}");
+                                    RemoveIgnore(""+id);
+                                }
                             }
+
 
                             if (version > currentVersion)
                             {
