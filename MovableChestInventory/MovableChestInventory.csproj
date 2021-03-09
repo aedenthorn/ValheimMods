@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony20">
-      <HintPath>..\..\BepInEx\0Harmony20.dll</HintPath>
+      <HintPath>..\BepInEx\0Harmony20.dll</HintPath>
     </Reference>
     <Reference Include="assembly_googleanalytics">
       <HintPath>..\valheim_Data\Managed\assembly_googleanalytics.dll</HintPath>
@@ -85,7 +85,7 @@
       <HintPath>..\valheim_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>..\..\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>..\valheim_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>

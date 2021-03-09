@@ -88,7 +88,7 @@
       <HintPath>..\valheim_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>..\..\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>..\valheim_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ScreenCaptureModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.ScreenCaptureModule.dll</HintPath>
