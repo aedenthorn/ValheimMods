@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace NexusUpdate
 {
-    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "0.9.2")]
+    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "1.1.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -30,7 +30,7 @@ namespace NexusUpdate
         public static ConfigEntry<int> fontSize;
         public static ConfigEntry<Color> updateFontColor;
         public static ConfigEntry<Color> nonUpdateFontColor;
-        public static ConfigEntry<Color> backgroundColor;
+        public static ConfigEntry<Color> windowBackgroundColor;
         public static ConfigEntry<float> windowHeight;
         public static ConfigEntry<int> betweenSpace;
         public static ConfigEntry<int> buttonWidth;
@@ -54,7 +54,6 @@ namespace NexusUpdate
         private static bool finishedChecking = false;
         private static GUIStyle style;
         private static GUIStyle style2;
-        private static GUIStyle backStyle;
         public static float rowWidth;
         private static Rect windowRect;
 
@@ -71,31 +70,31 @@ namespace NexusUpdate
             createEmptyConfigFiles = Config.Bind<bool>("General", "CreateEmptyConfigFiles", false, "Create empty GUID-based config files for mods that don't have them (may cause there to be duplicate config files)");
             showIgnoreButton = Config.Bind<bool>("General", "ShowIgnoreButton", true, "If true, will add a button to ignore an existing update - only works if ShowAllManagedMods is false");
             updateButtonFirst = Config.Bind<bool>("General", "UpdateButtonFirst", false, "If false, will put the button on the right side");
-            
-            updatesPosition = Config.Bind<Vector2>("General", "UpdatesPosition", new Vector2(40, 40), "Position of the updates list on the screen");
-            updateTextWidth = Config.Bind<int>("General", "UpdateTextWidth", 600, "Width of the update text (will wrap if it is too long)");
-            buttonWidth = Config.Bind<int>("General", "ButtonWidth", 100, "Width of the update button");
-            buttonHeight = Config.Bind<int>("General", "ButtonHeight", 30, "Height of the update button");
-            betweenSpace = Config.Bind<int>("General", "BetweenSpace", 10, "Vertical space between each update in list");
-            
-            windowHeight = Config.Bind<float>("General", "WindowHeight", Screen.height / 3, "Height of the update window");
-            
-            fontSize = Config.Bind<int>("General", "FontSize", 16, "Size of the text in the updates list");
-            updateFontColor = Config.Bind<Color>("General", "UpdateFontColor", new Color(1,1,0.7f,1), "Color of the text in the updateable list");
-            nonUpdateFontColor = Config.Bind<Color>("General", "NonUpdateFontColor", Color.white, "Color of the text in the non-updateable list");
-            
-            windowTitleText = Config.Bind<string>("General", "WindowTitleText", "<b>Nexus Updates</b>", "Window title when not checking for updates");
-            windowTitleTextChecking = Config.Bind<string>("General", "WindowTitleTextChecking", "<b>Nexus Updates - checking for updates...</b>", "Text to show for each ignore button");
-            updateText = Config.Bind<string>("General", "UpdateText", "<b>{0}</b> (v. {1}) has an updated version: <b>{2}</b>", "Text to show for each update. {0} is replaced by the mod name, {1} is replaced by the current version, and {2} is replaced by the remote version");
-            nonUpdateText = Config.Bind<string>("General", "NonUpdateText", "<b>{0}</b> (v. {1}) is up-to-date!", "Text to show for each update. {0} is replaced by the mod name, {1} is replaced by the current version, and {2} is replaced by the remote version");
-            buttonText = Config.Bind<string>("General", "ButtonText", "<b>Visit</b>", "Text to show for each update button");
-            ignoreButtonText = Config.Bind<string>("General", "IgnoreButtonText", "<b>Ignore</b>", "Text to show for each ignore button");
-            
             ignoreList = Config.Bind<string>("General", "IgnoreList", "", "Comma-separated list of updates to ignore, format: NexusModId:VersionNumber");
+            
+            updatesPosition = Config.Bind<Vector2>("UI", "UpdatesPosition", new Vector2(40, 40), "Position of the updates list on the screen");
+            updateTextWidth = Config.Bind<int>("UI", "UpdateTextWidth", Screen.width / 6, "Width of the update text (will wrap if it is too long)");
+            buttonWidth = Config.Bind<int>("UI", "ButtonWidth", 100, "Width of the update button");
+            buttonHeight = Config.Bind<int>("UI", "ButtonHeight", 30, "Height of the update button");
+            betweenSpace = Config.Bind<int>("UI", "BetweenSpace", 10, "Vertical space between each update in list");
+            windowHeight = Config.Bind<float>("UI", "WindowHeight", Screen.height / 3, "Height of the update window");
+            windowBackgroundColor = Config.Bind<Color>("UI", "WindowBackgroundColor", new Color(1,1,1,0.25f), "Color of the window background");
+            
+            fontSize = Config.Bind<int>("Text", "FontSize", 14, "Size of the text in the updates list");
+            updateFontColor = Config.Bind<Color>("Text", "UpdateFontColor", new Color(1,1,0.7f,1), "Color of the text in the updateable list");
+            nonUpdateFontColor = Config.Bind<Color>("Text", "NonUpdateFontColor", Color.white, "Color of the text in the non-updateable list");
+            windowTitleText = Config.Bind<string>("Text", "WindowTitleText", "<b>Nexus Updates</b>", "Window title when not checking for updates");
+            windowTitleTextChecking = Config.Bind<string>("Text", "WindowTitleTextChecking", "<b>Nexus Updates - checking for updates...</b>", "Text to show for each ignore button");
+            updateText = Config.Bind<string>("Text", "UpdateText", "<b>{0}</b> (v. {1}) has an updated version: <b>{2}</b>", "Text to show for each update. {0} is replaced by the mod name, {1} is replaced by the current version, and {2} is replaced by the remote version");
+            nonUpdateText = Config.Bind<string>("Text", "NonUpdateText", "<b>{0}</b> (v. {1}) is up-to-date!", "Text to show for each update. {0} is replaced by the mod name, {1} is replaced by the current version, and {2} is replaced by the remote version");
+            buttonText = Config.Bind<string>("Text", "ButtonText", "<b>Visit</b>", "Text to show for each update button");
+            ignoreButtonText = Config.Bind<string>("Text", "IgnoreButtonText", "<b>Ignore</b>", "Text to show for each ignore button");
+            
+            
             
             nexusID = Config.Bind<int>("General", "NexusID", 102, "Nexus mod ID for updates");
 
-            if (!modEnabled.Value)
+            if (!modEnabled.Value) 
                 return;
 
             ApplyConfig();
@@ -127,7 +126,6 @@ namespace NexusUpdate
             };
             style2.normal.textColor = nonUpdateFontColor.Value;
 
-            backStyle = new GUIStyle();
         }
 
         private void Start()
@@ -140,6 +138,9 @@ namespace NexusUpdate
         {
             if (modEnabled.Value && FejdStartup.instance?.enabled == true)
             {
+                GUI.backgroundColor = windowBackgroundColor.Value;
+
+
                 if (!finishedChecking || nexusUpdatables.Any() || (showAllManagedMods.Value && nexusNonupdatables.Any()))
                     windowRect = GUI.Window(424242, windowRect, new GUI.WindowFunction(WindowBuilder), finishedChecking ? windowTitleText.Value : windowTitleTextChecking.Value);
                 if(!Input.GetKey(KeyCode.Mouse0) && ( windowRect.x != updatesPosition.Value.x || windowRect.y != updatesPosition.Value.y))
@@ -156,13 +157,15 @@ namespace NexusUpdate
             GUI.DragWindow(new Rect(0, 0, rowWidth + 50, 20));
 
             scrollPosition = GUILayout.BeginScrollView(scrollPosition, new GUILayoutOption[] { GUILayout.Width(rowWidth + 40), GUILayout.Height(windowHeight.Value - 30) });
-            for (int i = 0; i < nexusUpdatables.Count; i++)
+            List<NexusUpdatable> reverseNUL = new List<NexusUpdatable>(nexusUpdatables);
+            reverseNUL.Reverse();
+            for (int i = reverseNUL.Count - 1; i >= 0; i--)
             {
 
-                if (!showAllManagedMods.Value && IsIgnored(nexusUpdatables[i]))
+                if (!showAllManagedMods.Value && IsIgnored(reverseNUL[i]))
                     continue;
 
-                GUILayout.BeginHorizontal(backStyle, new GUILayoutOption[] { GUILayout.Height(buttonHeight.Value), GUILayout.Width(rowWidth + 20) });
+                GUILayout.BeginHorizontal(new GUILayoutOption[] { GUILayout.Height(buttonHeight.Value), GUILayout.Width(rowWidth + 20) });
                 if (updateButtonFirst.Value)
                 {
                     if (GUILayout.Button(buttonText.Value, new GUILayoutOption[]{
@@ -170,7 +173,7 @@ namespace NexusUpdate
                             GUILayout.Height(buttonHeight.Value)
                         }))
                     {
-                        Application.OpenURL($"https://www.nexusmods.com/valheim/mods/{nexusUpdatables[i].id}/?tab=files");
+                        Application.OpenURL($"https://www.nexusmods.com/valheim/mods/{reverseNUL[i].id}/?tab=files");
                     }
                     if (showIgnoreButton.Value && !showAllManagedMods.Value)
                     {
@@ -179,11 +182,12 @@ namespace NexusUpdate
                             GUILayout.Height(buttonHeight.Value)
                         }))
                         {
-                            AddIgnore($"{nexusUpdatables[i].id}:{nexusUpdatables[i].version}");
+                            AddIgnore($"{reverseNUL[i].id}:{reverseNUL[i].version}");
+                            reverseNUL.RemoveAt(i);
                         }
                     }
                 }
-                GUILayout.Label(string.Format(updateText.Value, nexusUpdatables[i].name, nexusUpdatables[i].currentVersion, nexusUpdatables[i].version), style, new GUILayoutOption[]{
+                GUILayout.Label(string.Format(updateText.Value, reverseNUL[i].name, reverseNUL[i].currentVersion, reverseNUL[i].version), style, new GUILayoutOption[]{
                         GUILayout.Width(updateTextWidth.Value),
                         GUILayout.Height(buttonHeight.Value)
                     });
@@ -203,19 +207,23 @@ namespace NexusUpdate
                             GUILayout.Height(buttonHeight.Value)
                         }))
                         {
-                            AddIgnore($"{nexusUpdatables[i].id}:{nexusUpdatables[i].version}");
+                            AddIgnore($"{reverseNUL[i].id}:{reverseNUL[i].version}");
+                            reverseNUL.RemoveAt(i);
                         }
                     }
-
                 }
                 GUILayout.EndHorizontal();
                 GUILayout.Space(betweenSpace.Value);
             }
+
+            nexusUpdatables = new List<NexusUpdatable>(reverseNUL);
+            nexusUpdatables.Reverse();
+
             if (showAllManagedMods.Value)
             {
                 for (int i = 0; i < nexusNonupdatables.Count; i++)
                 {
-                    GUILayout.BeginHorizontal(backStyle, new GUILayoutOption[] { GUILayout.Height(buttonHeight.Value), GUILayout.Width(rowWidth + 20) });
+                    GUILayout.BeginHorizontal(new GUILayoutOption[] { GUILayout.Height(buttonHeight.Value), GUILayout.Width(rowWidth + 20) });
                     if (updateButtonFirst.Value)
                     {
                         if (GUILayout.Button(buttonText.Value, new GUILayoutOption[]{

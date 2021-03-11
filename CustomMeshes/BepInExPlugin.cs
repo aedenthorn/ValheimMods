@@ -12,7 +12,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomMeshes
 {
-    [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.1.4")]
+    [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.1.5")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -199,8 +199,8 @@ namespace CustomMeshes
         {
             static void Postfix(ItemDrop __instance)
             {
-                string name = __instance.m_itemData.m_dropPrefab.name;
-                if (customMeshes.ContainsKey(name))
+                string name = __instance.m_itemData?.m_dropPrefab?.name;
+                if (name != null && customMeshes.ContainsKey(name))
                 {
                     //Dbgl($"got item name: {name}");
                     MeshFilter[] mfs = __instance.m_itemData.m_dropPrefab.GetComponentsInChildren<MeshFilter>(true);

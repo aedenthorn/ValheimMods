@@ -30,9 +30,8 @@ namespace CustomTextures
                     cachedTextures.Remove(id);
                     texturesToLoad.Add(id);
                     fileWriteTimes[id] = File.GetLastWriteTimeUtc(file);
+                    Dbgl($"adding new {fileName} custom texture.");
                 }
-                Dbgl($"adding {fileName} custom texture.");
-                
                 customTextures[id] = file;
             }
         }

@@ -8,13 +8,14 @@ using Object = UnityEngine.Object;
 
 namespace PlantMod
 {
-    [BepInPlugin("aedenthorn.PlantMod", "Plant Mod", "0.2.2")]
+    [BepInPlugin("aedenthorn.PlantMod", "Plant Mod", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
 
         public static ConfigEntry<int> nexusID;
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> displayGrowth;
         public static ConfigEntry<bool> plantAnywhere;
         public static ConfigEntry<bool> ignoreBiome;
         public static ConfigEntry<bool> ignoreSun;
@@ -42,6 +43,7 @@ namespace PlantMod
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 273, "Nexus mod ID for updates");
 
+            displayGrowth = Config.Bind<bool>("General", "DisplayGrowth", true, "Display growth progress in hover text");
             plantAnywhere = Config.Bind<bool>("General", "PlantAnywhere", false, "Don't require cultivated ground to plant anything");
             ignoreBiome = Config.Bind<bool>("General", "IgnoreBiome", false, "Allow planting anything in any biome.");
             ignoreSun = Config.Bind<bool>("General", "IgnoreSun", false, "Allow planting under roofs.");
@@ -130,6 +132,8 @@ namespace PlantMod
         {
             static void Postfix(ref Plant __instance, ref string __result)
             {
+                if (!displayGrowth.Value)
+                    return;
                 double timeSincePlanted = Traverse.Create(__instance).Method("TimeSincePlanted").GetValue<double>();
                 float growTime = Traverse.Create(__instance).Method("GetGrowTime").GetValue<float>();
                 if(timeSincePlanted < growTime)
@@ -219,6 +223,30 @@ namespace PlantMod
                     return false;
                 }
                 return true;
+            }
+            static void Postfix(Plant __instance, ref bool __result)
+            {
+                if (!__result)
+                {
+                    var spaceMask = LayerMask.GetMask(new string[]
+                    {
+                                    "Default",
+                                    "static_solid",
+                                    "Default_small",
+                                    "piece",
+                                    "piece_nonsolid"
+                    });
+                    Collider[] array = Physics.OverlapSphere(__instance.transform.position, __instance.m_growRadius, spaceMask);
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        Plant component = array[i].GetComponent<Plant>();
+                        if (component && component != __instance)
+                        {
+                            Dbgl($"{Vector3.Distance(__instance.transform.position, component.transform.position)} {component.m_growRadius} {__instance.m_growRadius}");
+                        }
+                    }
+                }
+                //Dbgl($"checking too close?");
             }
         }
                  

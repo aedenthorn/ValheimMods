@@ -70,7 +70,7 @@ namespace ClockMod
             toggleClockKeyOnPress = Config.Bind<bool>("General", "ShowClockKeyOnPress", false, "If true, limit clock display to when the hotkey is down");
             clockFormat = Config.Bind<string>("General", "ClockFormat", "HH:mm", "Time format; set to 'fuzzy' for fuzzy time");
             clockString = Config.Bind<string>("General", "ClockString", "<b>{0}</b>", "Formatted clock string - {0} is replaced by the actual time string, and {1} is replaced by the fuzzy string (if you want both)");
-            clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Midnight,Before Dawn,Before Dawn,Dawn,Dawn,Morning,Morning,Late Morning,Late Morning,Midday,Midday,Afternoon,Afternoon,Evening,Evening,Night,Night,Late Night,Late Night,Midnight", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
+            clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Midnight,Early Morning,Early Morning,Before Dawn,Before Dawn,Dawn,Dawn,Morning,Morning,Late Morning,Late Morning,Midday,Midday,Early Afternoon,Early Afternoon,Afternoon,Afternoon,Evening,Evening,Night,Night,Late Night,Late Night,Midnight", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
             nexusID = Config.Bind<int>("General", "NexusID", 85, "Nexus mod ID for updates");
 
             if(clockLocation.Value.y != 40 && clockLocationString.Value == "50%,3%")

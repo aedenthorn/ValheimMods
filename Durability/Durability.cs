@@ -69,7 +69,7 @@ namespace Durability
 
             static void Postfix(ItemDrop __instance)
             {
-                if (modEnabled.Value)
+                if (modEnabled.Value && __instance.name != null && __instance.m_itemData?.m_shared != null)
                 {
                     //Dbgl($"{__instance.name}, type: {Enum.GetName(typeof(ItemDrop.ItemData.ItemType), __instance.m_itemData.m_shared.m_itemType)} drain: {__instance.m_itemData.m_shared.m_durabilityDrain}, use: {__instance.m_itemData.m_shared.m_useDurabilityDrain}");
 

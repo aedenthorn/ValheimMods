@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace CustomTextures
@@ -164,7 +165,7 @@ namespace CustomTextures
         {
             foreach (string str in strings)
             {
-                if (ShouldLoadCustomTexture($"{str}{property}") || (property == "_MainTex" && ShouldLoadCustomTexture($"{str}_texture")) || (property == "_BumpMap" && ShouldLoadCustomTexture($"{str}_bump")))
+                if (ShouldLoadCustomTexture($"{str}{property}") || ShouldLoadCustomTexture($"{str}{property}") || (property == "_MainTex" && ShouldLoadCustomTexture($"{str}_texture")) || (property == "_BumpMap" && ShouldLoadCustomTexture($"{str}_bump")))
                 {
                     logDump.Add($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {str}{property}.png for {property}.");
                     if (m.HasProperty(property))
@@ -179,13 +180,14 @@ namespace CustomTextures
                         else if (property == "_BumpMap" && ShouldLoadCustomTexture($"{str}_bump"))
                             result = LoadTexture($"{str}_bump", m.GetTexture(property));
 
+
                         if (result == null)
                             continue;
 
                         m.SetTexture(property, result);
                         if (m.GetTexture(property) != null)
                         {
-                            m.GetTexture(property).name = "xyz"+name;
+                            m.GetTexture(property).name = name;
                             if(property == "_MainTex")
                                 m.color = Color.white;
                         }
@@ -207,11 +209,11 @@ namespace CustomTextures
         }
 
 
-        private static Texture2D LoadTexture(string id, Texture vanilla, bool point = true, bool needLayers = false)
+        private static Texture2D LoadTexture(string id, Texture vanilla, bool point = true, bool needCustom = false, bool isSprite = false)
         {
             if (cachedTextures.ContainsKey(id))
             {
-                //Dbgl($"loading cached texture for {id}");
+                logDump.Add($"loading cached texture for {id}");
                 return cachedTextures[id];
             }
 
@@ -222,10 +224,13 @@ namespace CustomTextures
 
             if (!customTextures.ContainsKey(id) && !layers.Any())
             {
-                if (needLayers)
+                if (needCustom)
                     return null;
                 return (Texture2D)vanilla;
             }
+
+            logDump.Add($"loading custom texture for {id} {layers.Count()} layers");
+
 
             if (vanilla == null)
             {
@@ -246,7 +251,7 @@ namespace CustomTextures
 
             if (customTextures.ContainsKey(id))
             {
-                //Dbgl($"loading custom texture file for {id}");
+                logDump.Add($"loading custom texture file for {id}");
                 byte[] imageData = File.ReadAllBytes(customTextures[id]);
                 tex.LoadImage(imageData);
             }
@@ -262,7 +267,7 @@ namespace CustomTextures
                                     tex.height,
                                     0,
                                     RenderTextureFormat.Default,
-                                    RenderTextureReadWrite.Linear);
+                                    isBump ? RenderTextureReadWrite.Linear : RenderTextureReadWrite.Default);
 
                 // Blit the pixels on texture to the RenderTexture
                 Graphics.Blit(vanilla, tmp);
@@ -274,7 +279,7 @@ namespace CustomTextures
                 RenderTexture.active = tmp;
 
                 // Create a new readable Texture2D to copy the pixels to it
-                Texture2D myTexture2D = new Texture2D(vanilla.width, vanilla.height);
+                Texture2D myTexture2D = new Texture2D(vanilla.width, vanilla.height, TextureFormat.RGBA32, true, isBump);
 
                 // Copy the pixels from the RenderTexture to the new Texture
                 myTexture2D.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
@@ -289,92 +294,129 @@ namespace CustomTextures
                 // "myTexture2D" now has the same pixels from "texture" and it's readable.
 
                 tex.SetPixels(myTexture2D.GetPixels());
+                tex.Apply();
             }
             if (layers.Any())
             {
                 //Dbgl($"texture {id} has {layers.Count()} layers");
-                foreach (var layer in layers.Skip(vanilla == null ? 1 : 0))
+                foreach (var layer in layers.Skip(vanilla == null && !customTextures.ContainsKey(id) ? 1 : 0))
                 {
 
                     Texture2D layerTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, isBump);
-                    layerTex.filterMode = FilterMode.Point;
+                    layerTex.filterMode = isSprite ? FilterMode.Bilinear : FilterMode.Point;
                     byte[] layerData = File.ReadAllBytes(layer.Value);
                     layerTex.LoadImage(layerData);
 
-                    //8x5, 2x2
+                    int layerx = 0;
+                    int layery = 0;
+                    int layerw = layerTex.width;
+                    int layerh = layerTex.height;
 
-                    float scaleX = tex.width / (float)layerTex.width; // 8 / 2 = 4 or 2 / 8 = 0.25
-                    float scaleY = tex.height / (float)layerTex.height; // 5 / 2 = 2.5 or 2 / 5 = 0.4
-
-                    int width = layerTex.width;
-                    int height = layerTex.width;
-
-                    if (scaleX * scaleY < 1) // layer is bigger
+                    if (isSprite)
                     {
-                        width = tex.width;
-                        height = tex.height;
+                        string[] coords = layer.Key.Substring(id.Length+1).Split('_');
+                        if (coords.Length != 4 || !int.TryParse(coords[0], out layerx) || !int.TryParse(coords[1], out layery) || !int.TryParse(coords[2], out layerw) || !int.TryParse(coords[3], out layerh))
+                        {
+                            logDump.Add($"Improper sprite layer format {layer.Key}");
+                            continue;
+                        }
+                        else
+                        {
+                            logDump.Add($"sprite coords {layerx},{layery}, layer sheet size {layerw},{layerh}");
+                        }
                     }
 
-                    Dbgl($"adding layer {layer.Key} to {id}, scale diff {scaleX},{scaleY}");
+                    //8x5, 2x2
 
+                    float scale = tex.width / (float)layerw; // 8 / 2 = 4 or 2 / 8 = 0.25
+                    float scaleY = tex.height / (float)layerh; // 5 / 2 = 2.5 or 2 / 5 = 0.4
 
-                    for (int x = 0; x < width; x++)
+                    if(scale != scaleY)
                     {
-                        for (int y = 0; y < height; y++)
+                        logDump.Add($"incompatible image ratios {tex.width},{tex.height} {layerw},{layerh}");
+                    }
+
+
+                    logDump.Add($"adding layer {layer.Key} to {id}, scale diff {scale}");
+
+                    int startx = 0;
+                    int starty = 0;
+                    int endx = layerTex.width;
+                    int endy = layerTex.height;
+
+
+                    if (isSprite)
+                    {
+
+                        startx = layerx;
+                        starty = layery;
+                        endx = layerx + layerTex.width;
+                        endy = layery + layerTex.height;
+                    }
+
+                    // scale
+
+                    if (scale < 1) // layer is bigger, increase tex size
+                    {
+                        logDump.Add($"scaling texture up");
+
+                        TextureScale.Bilinear(tex, (int)(tex.width / scale), (int)(tex.height / scale));
+                    }
+                    else if (scale > 1) // increase layer size
+                    {
+                        logDump.Add($"scaling layer up");
+
+                        TextureScale.Bilinear(layerTex, (int)(layerTex.width * scale), (int)(layerTex.height * scale));
+
+                        startx = (int)(layerx * scale);
+                        starty = (int)(layery * scale);
+                        endx = (int)((layerx + layerTex.width) * scale);
+                        endy = (int)((layery + layerTex.height) * scale);
+                    }
+
+                    logDump.Add($"startx {startx}, endx {endx}, starty {starty}, endy {endy}");
+
+                    List<string> coordsl = new List<string>();
+
+                    for(int x = startx; x < endx; x++)
+                    {
+                        for (int y = starty; y < endy; y++)
                         {
-                            if (scaleX == 1 && scaleY == 1)
+                            int lx = x - startx;
+                            int ly = y - starty;
+
+                            Color layerColor = layerTex.GetPixel(lx, ly);
+
+                            if (isSprite)
                             {
+                                layerColor = layerTex.GetPixel(lx, layerTex.height - ly);
+                                //coordsl.Add($"{x},{y} {lx},{ly} {layerColor}");
+                                tex.SetPixel(x, tex.height - y, layerColor);
+                            }
+                            else
+                            {
+                                if (layerColor.a == 0)
+                                    continue;
+                                //coordsl.Add($"{x},{y} {lx},{ly} {layerColor}");
                                 Color texColor = tex.GetPixel(x, y);
-                                Color layerColor = layerTex.GetPixel(x, y);
 
                                 Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
 
                                 tex.SetPixel(x, y, final_color);
-
-                            }
-                            else if (scaleX * scaleY < 1) // layer is bigger
-                            {
-
-                                for (int i = 0; i < (int)(1 / scaleX); i++) // < 4, so 0, 1, 2, 3 become layer x = 0
-                                {
-                                    for (int j = 0; j < (int)(1 / scaleY); j++) // < 2, so 0, 1 become layer y = 0
-                                    {
-                                        Color texColor = tex.GetPixel(x, y);
-                                        Color layerColor = layerTex.GetPixel((x * (int)(1 / scaleX)) + i, (y * (int)(1 / scaleY)) + j);
-
-                                        if (layerColor == Color.clear)
-                                            continue;
-
-                                        Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
-                                        final_color.a = 1f;
-
-                                        tex.SetPixel(x, y, final_color);
-                                    }
-                                }
-                            }
-                            else // tex is bigger, multiply layer
-                            {
-                                for (int i = 0; i < (int)scaleX; i++) // < 4, so 0, 1, 2, 3 become layer x = 0    2 so 0,1
-                                {
-                                    for (int j = 0; j < (int)scaleY; j++) // < 2, so 0, 1 become layer y = 0    2 so 0,1
-                                    {
-                                        Color texColor = tex.GetPixel((x * (int)scaleX) + i, (y * (int)scaleY) + j);
-                                        Color layerColor = layerTex.GetPixel(x, y);
-                                        if (layerColor == Color.clear)
-                                            continue;
-
-                                        Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
-                                        final_color.a = 1f;
-
-                                        tex.SetPixel((x * (int)scaleX) + i, (y * (int)scaleY) + j, final_color);
-                                    }
-                                }
                             }
                         }
                     }
+                    //Dbgl(string.Join("\n", coordsl));
+                    tex.Apply();
+                }
+                if (false)
+                {
+                    //Dbgl($"tex {tex.width},{tex.height}");
+                    //byte[] bytes = ImageConversion.EncodeToPNG(tex);
+                    //string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), id + "_test.png");
+                    //File.WriteAllBytes(path, bytes);
                 }
             }
-            tex.Apply();
 
             cachedTextures[id] = tex;
             return tex;

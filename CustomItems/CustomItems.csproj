@@ -84,6 +84,10 @@
     <Reference Include="UnityEngine.JSONSerializeModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\valheim_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
@@ -109,6 +113,8 @@
   <ItemGroup>
     <Compile Include="BepInExPlugin.cs" />
     <Compile Include="CustomItem.cs" />
+    <Compile Include="DontDestroy.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -79,6 +79,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JumpRunDodgeSneakWalk", "Ju
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmoteKeys", "EmoteKeys\EmoteKeys.csproj", "{D958DE95-7E2B-49B2-B2D9-866CC4F6D3F0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomLoadingScreens", "CustomLoadingScreens\CustomLoadingScreens.csproj", "{EFF3C72E-CA27-4290-9869-44308747E719}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -237,6 +239,10 @@ Global
 		{D958DE95-7E2B-49B2-B2D9-866CC4F6D3F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D958DE95-7E2B-49B2-B2D9-866CC4F6D3F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D958DE95-7E2B-49B2-B2D9-866CC4F6D3F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFF3C72E-CA27-4290-9869-44308747E719}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFF3C72E-CA27-4290-9869-44308747E719}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFF3C72E-CA27-4290-9869-44308747E719}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFF3C72E-CA27-4290-9869-44308747E719}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
@@ -10,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace HereFishy
 {
-    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.1.6")]
+    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -30,12 +31,11 @@ namespace HereFishy
         private static BepInExPlugin context;
         private static AudioClip fishyClip;
         private static AudioClip weeClip;
-        private static Fish currentFish;
-        private static Vector3 origPos;
-        private static Vector3 flatPos;
-        private static bool hereFishying;
-        private static AudioSource playerAudio;
         private static AudioSource fishAudio;
+        private static float lastHereFishy;
+
+
+        private static List<GameObject> hereFishyFishies = new List<GameObject>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -85,7 +85,7 @@ namespace HereFishy
                         //Dbgl($"got fishy at {fish.gameObject.transform.position}");
 
                         float distance = Vector3.Distance(Player.m_localPlayer.transform.position, fish.gameObject.transform.position);
-                        if (distance < closest)
+                        if (distance < closest && !hereFishyFishies.Contains(fish.gameObject))
                         {
                             //Dbgl($"closest fishy");
                             closest = distance;
@@ -97,49 +97,47 @@ namespace HereFishy
                 {
                     Dbgl($"got closest fishy at {closestFish.gameObject.transform.position}");
 
-                    currentFish = closestFish;
-                    hereFishying = true;
-                    if (playHereFishy.Value && fishyClip != null)
+                    lastHereFishy = Time.realtimeSinceStartup;
+                    ((ZSyncAnimation)typeof(Player).GetField("m_zanim", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Player.m_localPlayer)).SetTrigger("gpower");
+                    if (playHereFishy.Value)
                     {
-                        ((ZSyncAnimation)typeof(Player).GetField("m_zanim", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Player.m_localPlayer)).SetTrigger("gpower");
                         Destroy(Player.m_localPlayer.gameObject.GetComponent<AudioSource>());
-                        playerAudio = Player.m_localPlayer.gameObject.AddComponent<AudioSource>();
+                        AudioSource playerAudio = Player.m_localPlayer.gameObject.AddComponent<AudioSource>();
                         playerAudio.volume = Mathf.Clamp(hereFishyVolume.Value, 0.1f, 1f);
                         playerAudio.clip = fishyClip;
                         playerAudio.loop = false;
                         playerAudio.spatialBlend = 1f;
                         playerAudio.Play();
-
-                        Invoke("StartJump", fishyClip.length);
                     }
-                    else
-                    {
-                        Invoke("StartJump", 1);
-                    }
+                    StartCoroutine(FishJump(closestFish, fishyClip.length));
                 }
             }
         }
-        private void StartJump()
+
+        private static IEnumerator FishJump(Fish fish, float secs)
         {
+            Vector3 origPos = fish.gameObject.transform.position;
+            Vector3 flatPos = origPos;
+
+            if (fish == null)
+                yield break;
+
+            hereFishyFishies.Add(fish.gameObject);
+
+            yield return new WaitForSeconds(secs);
+
             Dbgl("starting fish jump");
-            Destroy(playerAudio);
-            hereFishying = false;
+
             if (playWeeee.Value)
             {
-                fishAudio = currentFish.gameObject.AddComponent<AudioSource>();
+                fishAudio = fish.gameObject.AddComponent<AudioSource>();
                 fishAudio.volume = Mathf.Clamp(weeVolume.Value, 0.1f, 1f);
                 fishAudio.clip = weeClip;
                 fishAudio.loop = false;
                 fishAudio.spatialBlend = 1f;
                 fishAudio.Play();
             }
-            origPos = currentFish.gameObject.transform.position;
-            flatPos = origPos;
-            context.StartCoroutine(FishJump());
-        }
 
-        private static IEnumerator FishJump()
-        {
             for (; ; )
             {
                 flatPos = Vector3.MoveTowards(flatPos, Player.m_localPlayer.transform.position, jumpSpeed.Value);
@@ -153,23 +151,24 @@ namespace HereFishy
 
                 try
                 {
-                    currentFish.gameObject.transform.position = new Vector3(flatPos.x, flatPos.y + height, flatPos.z);
+                    fish.gameObject.transform.position = new Vector3(flatPos.x, flatPos.y + height, flatPos.z);
                 }
                 catch
                 {
                     break;
                 }
 
-                if (Vector3.Distance(playerPos, currentFish.gameObject.transform.position) < jumpSpeed.Value * 20)
+                if (Vector3.Distance(playerPos, fish.gameObject.transform.position) < jumpSpeed.Value * 20)
                 {
                     
                 }
 
-                if (Vector3.Distance(playerPos, currentFish.gameObject.transform.position) < jumpSpeed.Value)
+                if (Vector3.Distance(playerPos, fish.gameObject.transform.position) < jumpSpeed.Value)
                 {
                     Dbgl("taking fish");
                     Destroy(fishAudio);
-                    currentFish.Pickup(Player.m_localPlayer);
+                    hereFishyFishies.Remove(fish.gameObject);
+                    fish.Pickup(Player.m_localPlayer);
                     break;
                 }
                 yield return null;
@@ -272,7 +271,7 @@ namespace HereFishy
         {
             static bool Prefix()
             {
-                return (!hereFishying);
+                return (Time.realtimeSinceStartup - lastHereFishy > fishyClip.length);
             }
         }
 

@@ -14,7 +14,7 @@ namespace CustomTextures
             logDump.Clear();
             ObjectDB objectDB = ObjectDB.instance;
 
-            Texture2D tex = LoadTexture("atlas_item_icons", objectDB.m_items[0]?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_icons[0]?.texture, false, true);
+            Texture2D tex = LoadTexture("atlas_item_icons", objectDB.m_items[0]?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_icons[0]?.texture, false, true, true);
             Dbgl($"Replacing textures for {objectDB.m_items.Count} objects...");
             foreach (GameObject go in objectDB.m_items)
             {
@@ -26,6 +26,7 @@ namespace CustomTextures
 
                 if (tex != null)
                 {
+                    //Dbgl($"sprite format {item.m_itemData.m_shared.m_icons[0].texture.format} {item.m_itemData.m_shared.m_icons[0].texture.graphicsFormat}");
                     //Dbgl($"Loading inventory icons for {go.name}, {item.m_itemData.m_shared.m_icons.Length} icons...");
                     for (int i = 0; i < item.m_itemData.m_shared.m_icons.Length; i++)
                     {
@@ -67,14 +68,13 @@ namespace CustomTextures
             }
         }
 
-        private static void SetBodyEquipmentTexture(VisEquipment instance, string itemName, SkinnedMeshRenderer smr, List<GameObject> itemInstances, string which, int hash)
+        private static void SetBodyEquipmentTexture(VisEquipment instance, string itemName, SkinnedMeshRenderer smr, List<GameObject> itemInstances)
         {
-            LoadOneTexture(smr.gameObject, itemName, "object");
-
-            foreach (GameObject go in itemInstances)
-            {
-                LoadOneTexture(go, itemName, "object");
-            }
+            if (smr != null)
+                LoadOneTexture(smr.gameObject, itemName, "object");
+            if (itemInstances != null)
+                foreach (GameObject go in itemInstances)
+                   LoadOneTexture(go, itemName, "object");
         }
     }
 }

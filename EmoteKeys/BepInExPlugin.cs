@@ -1,16 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
-using System.Collections;
-using System.IO;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace EmoteKeys
 {
-    [BepInPlugin("aedenthorn.EmoteKeys", "Emote Keys", "0.1.0")]
+    [BepInPlugin("aedenthorn.EmoteKeys", "Emote Keys", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -70,9 +66,11 @@ namespace EmoteKeys
         }
         public static bool CheckKeyHeld(string value, bool req)
         {
+            if (value == "")
+                return !req;
             try
             {
-                return Input.GetKeyDown(value.ToLower());
+                return Input.GetKey(value.ToLower());
             }
             catch
             {

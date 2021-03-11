@@ -3,10 +3,13 @@ using UnityEngine;
 
 namespace CustomItems
 {
+    [System.Serializable]
     public class CustomItem
     {
+        public GameObject gameObject;
         public string id;
         public string baseItemName;
+        public string name_key = "";
         public string name = "";
         public string dlc = "";
         public ItemDrop.ItemData.ItemType itemType = ItemDrop.ItemData.ItemType.Misc;
@@ -89,9 +92,9 @@ namespace CustomItems
         public StatusEffect consumeStatusEffect;
         public int recipe_amount;
         public int minStationLevel;
-        public List<RequirementData> requirements;
+        public List<string> requirements = new List<string>();
     }
-
+    [System.Serializable]
     public class RequirementData
     {
         public int amount;

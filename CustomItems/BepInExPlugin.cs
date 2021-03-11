@@ -3,12 +3,11 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
+using Object = UnityEngine.Object;
 
 namespace CustomItems
 {
@@ -23,7 +22,7 @@ namespace CustomItems
         private static BepInExPlugin context;
         public static ConfigEntry<bool> modEnabled;
 
-        public static void Dbgl(string str = "", bool pref = true)
+        public static void Dbgl(object str, bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
@@ -38,14 +37,33 @@ namespace CustomItems
             if (!modEnabled.Value)
                 return;
 
-            //LoadItems();
+            LoadItems();
 
-            //Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             return;
 
 
         }
 
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.U))
+            {
+                List<string> names = new List<string>();
+                var dict = Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>();
+                foreach (var kvp in dict)
+                {
+                    if(kvp.Value != null)
+                        names.Add(kvp.Value.name);
+                    else
+                        names.Add($"null {kvp.Key} {"NewShield".GetStableHashCode()}");
+                }
+                Dbgl($"all: {string.Join("\n", names)}");
+                Dbgl($"prefabs: {dict["NewShield".GetStableHashCode()]?.name}");
+                Dbgl($"db: {ObjectDB.instance.GetItemPrefab("NewShield")?.name}");
+            }
+        }
+        
         private static void LoadItems()
         {
             customItems.Clear();
@@ -67,9 +85,10 @@ namespace CustomItems
                     CustomItem item = JsonUtility.FromJson<CustomItem>(File.ReadAllText(file));
                     string json = JsonUtility.ToJson(item);
                     //File.WriteAllText(file+".out", json);
+                    Dbgl($"Adding custom item {item.id} {item.requirements.Count}");
                     customItems.Add(Path.GetFileNameWithoutExtension(file), item);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Dbgl($"Error loading json file {file}: \r\n{ex}");
                 }
@@ -82,7 +101,7 @@ namespace CustomItems
                     {
                         CustomItem item = JsonUtility.FromJson<CustomItem>(File.ReadAllText(file));
                         string json = JsonUtility.ToJson(item);
-                        
+
                         customItemsOutput.Add(Path.GetFileNameWithoutExtension(file), item);
                     }
                     catch (Exception ex)
@@ -92,161 +111,256 @@ namespace CustomItems
                 }
             }
         }
-        private static string GetPrefabName(string name)
+
+
+        private static RequirementData MakeReqData(string str)
         {
-            char[] anyOf = new char[] { '(', ' ' };
-            int num = name.IndexOfAny(anyOf);
-            string result;
-            if (num >= 0)
-                result = name.Substring(0, num);
-            else
-                result = name;
-            return result;
+            return JsonUtility.FromJson<RequirementData>(str);
         }
 
-        [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        public static class ZNetScene_Awake_Patch
+
+        [HarmonyPatch(typeof(InventoryGui), "DoCrafting")]
+        public static class DoCrafting_Patch
         {
-            public static void Postfix()
+            public static void Prefix(Recipe ___m_craftRecipe)
             {
-                return;
-                foreach (KeyValuePair<string, CustomItem> kvp in customItems)
+                string name = ___m_craftRecipe.m_item.gameObject.name;
+
+                if (ObjectDB.instance.GetItemPrefab(name) == null)
                 {
-                    CustomItem item = kvp.Value;
-                    GameObject customObject = Instantiate(ObjectDB.instance.GetItemPrefab(item.baseItemName));
-                    ItemDrop itemDrop = customObject.GetComponent<ItemDrop>();
-                    Recipe recipe = ObjectDB.instance.GetRecipe(itemDrop.m_itemData);
-                    customObject.name = item.id;
-                    itemDrop.m_itemData.m_shared.m_name = item.name;
-                    itemDrop.m_itemData.m_shared.m_dlc = item.dlc;
-                    itemDrop.m_itemData.m_shared.m_itemType = item.itemType;
-                    itemDrop.m_itemData.m_shared.m_attachOverride = item.attachOverride;
-                    itemDrop.m_itemData.m_shared.m_description = item.description;
-                    itemDrop.m_itemData.m_shared.m_maxStackSize = item.maxStackSize;
-                    itemDrop.m_itemData.m_shared.m_maxQuality = item.maxQuality;
-                    itemDrop.m_itemData.m_shared.m_weight = item.weight;
-                    itemDrop.m_itemData.m_shared.m_value = item.value;
-                    itemDrop.m_itemData.m_shared.m_teleportable = item.teleportable;
-                    itemDrop.m_itemData.m_shared.m_questItem = item.questItem;
-                    itemDrop.m_itemData.m_shared.m_equipDuration = item.equipDuration;
-                    itemDrop.m_itemData.m_shared.m_variants = item.variants;
-                    itemDrop.m_itemData.m_shared.m_trophyPos = item.trophyPos;
-                    itemDrop.m_itemData.m_shared.m_buildPieces = item.buildPieces;
-                    itemDrop.m_itemData.m_shared.m_centerCamera = item.centerCamera;
-                    itemDrop.m_itemData.m_shared.m_setName = item.setName;
-                    itemDrop.m_itemData.m_shared.m_setSize = item.setSize;
-                    itemDrop.m_itemData.m_shared.m_setStatusEffect = item.setStatusEffect;
-                    itemDrop.m_itemData.m_shared.m_equipStatusEffect = item.equipStatusEffect;
-                    itemDrop.m_itemData.m_shared.m_movementModifier = item.movementModifier;
-                    itemDrop.m_itemData.m_shared.m_food = item.food;
-                    itemDrop.m_itemData.m_shared.m_foodStamina = item.foodStamina;
-                    itemDrop.m_itemData.m_shared.m_foodBurnTime = item.foodBurnTime;
-                    itemDrop.m_itemData.m_shared.m_foodRegen = item.foodRegen;
-                    itemDrop.m_itemData.m_shared.m_foodColor = item.foodColor;
-                    itemDrop.m_itemData.m_shared.m_armorMaterial = item.armorMaterial;
-                    itemDrop.m_itemData.m_shared.m_helmetHideHair = item.helmetHideHair;
-                    itemDrop.m_itemData.m_shared.m_armor = item.armor;
-                    itemDrop.m_itemData.m_shared.m_armorPerLevel = item.armorPerLevel;
-                    itemDrop.m_itemData.m_shared.m_damageModifiers = item.damageModifiers;
-                    itemDrop.m_itemData.m_shared.m_blockPower = item.blockPower;
-                    itemDrop.m_itemData.m_shared.m_blockPowerPerLevel = item.blockPowerPerLevel;
-                    itemDrop.m_itemData.m_shared.m_deflectionForce = item.deflectionForce;
-                    itemDrop.m_itemData.m_shared.m_deflectionForcePerLevel = item.deflectionForcePerLevel;
-                    itemDrop.m_itemData.m_shared.m_timedBlockBonus = item.timedBlockBonus;
-                    itemDrop.m_itemData.m_shared.m_animationState = item.animationState;
-                    itemDrop.m_itemData.m_shared.m_skillType = item.skillType;
-                    itemDrop.m_itemData.m_shared.m_toolTier = item.toolTier;
-                    itemDrop.m_itemData.m_shared.m_damages = item.damages;
-                    itemDrop.m_itemData.m_shared.m_damagesPerLevel = item.damagesPerLevel;
-                    itemDrop.m_itemData.m_shared.m_attackForce = item.attackForce;
-                    itemDrop.m_itemData.m_shared.m_backstabBonus = item.backstabBonus;
-                    itemDrop.m_itemData.m_shared.m_dodgeable = item.dodgeable;
-                    itemDrop.m_itemData.m_shared.m_blockable = item.blockable;
-                    itemDrop.m_itemData.m_shared.m_attackStatusEffect = item.attackStatusEffect;
-                    itemDrop.m_itemData.m_shared.m_spawnOnHit = item.spawnOnHit;
-                    itemDrop.m_itemData.m_shared.m_spawnOnHitTerrain = item.spawnOnHitTerrain;
-                    itemDrop.m_itemData.m_shared.m_attack = item.attack;
-                    itemDrop.m_itemData.m_shared.m_secondaryAttack = item.secondaryAttack;
-                    itemDrop.m_itemData.m_shared.m_useDurability = item.useDurability;
-                    itemDrop.m_itemData.m_shared.m_destroyBroken = item.destroyBroken;
-                    itemDrop.m_itemData.m_shared.m_canBeReparied = item.canBeReparied;
-                    itemDrop.m_itemData.m_shared.m_maxDurability = item.maxDurability;
-                    itemDrop.m_itemData.m_shared.m_durabilityPerLevel = item.durabilityPerLevel;
-                    itemDrop.m_itemData.m_shared.m_useDurabilityDrain = item.useDurabilityDrain;
-                    itemDrop.m_itemData.m_shared.m_durabilityDrain = item.durabilityDrain;
-                    itemDrop.m_itemData.m_shared.m_holdDurationMin = item.holdDurationMin;
-                    itemDrop.m_itemData.m_shared.m_holdStaminaDrain = item.holdStaminaDrain;
-                    itemDrop.m_itemData.m_shared.m_holdAnimationState = item.holdAnimationState;
-                    itemDrop.m_itemData.m_shared.m_ammoType = item.ammoType;
-                    itemDrop.m_itemData.m_shared.m_aiAttackRange = item.aiAttackRange;
-                    itemDrop.m_itemData.m_shared.m_aiAttackRangeMin = item.aiAttackRangeMin;
-                    itemDrop.m_itemData.m_shared.m_aiAttackInterval = item.aiAttackInterval;
-                    itemDrop.m_itemData.m_shared.m_aiAttackMaxAngle = item.aiAttackMaxAngle;
-                    itemDrop.m_itemData.m_shared.m_aiWhenFlying = item.aiWhenFlying;
-                    itemDrop.m_itemData.m_shared.m_aiWhenWalking = item.aiWhenWalking;
-                    itemDrop.m_itemData.m_shared.m_aiWhenSwiming = item.aiWhenSwiming;
-                    itemDrop.m_itemData.m_shared.m_aiPrioritized = item.aiPrioritized;
-                    itemDrop.m_itemData.m_shared.m_aiTargetType = item.aiTargetType;
-                    itemDrop.m_itemData.m_shared.m_hitEffect = item.hitEffect;
-                    itemDrop.m_itemData.m_shared.m_hitTerrainEffect = item.hitTerrainEffect;
-                    itemDrop.m_itemData.m_shared.m_blockEffect = item.blockEffect;
-                    itemDrop.m_itemData.m_shared.m_startEffect = item.startEffect;
-                    itemDrop.m_itemData.m_shared.m_holdStartEffect = item.holdStartEffect;
-                    itemDrop.m_itemData.m_shared.m_triggerEffect = item.triggerEffect;
-                    itemDrop.m_itemData.m_shared.m_trailStartEffect = item.trailStartEffect;
-                    itemDrop.m_itemData.m_shared.m_consumeStatusEffect = item.consumeStatusEffect;
-
-                    recipe.m_item = itemDrop;
-                    recipe.m_amount = item.recipe_amount;
-                    recipe.m_minStationLevel = item.minStationLevel;
-                    List<Piece.Requirement> reqs = new List<Piece.Requirement>();
-                    foreach (RequirementData rd in item.requirements)
-                    {
-                        Piece.Requirement req = new Piece.Requirement();
-                        req.m_amount = rd.amount;
-                        req.m_amountPerLevel = rd.amountPerLevel;
-                        req.m_recover = rd.recover;
-                        req.m_resItem = ObjectDB.instance.GetItemPrefab(rd.name).GetComponent<ItemDrop>();
-                        reqs.Add(req);
-                    }
-                    recipe.m_resources = reqs.ToArray();
-
-                    if (ObjectDB.instance.GetItemPrefab(customObject.name) == null)
-                    {
-                        Dbgl($"Adding new item {customObject.name} to DB");
-                        ObjectDB.instance.m_items.Add(customObject);
-                        ((Dictionary<int, GameObject>)typeof(ObjectDB).GetField("m_itemByHash", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ObjectDB.instance)).Add(customObject.name.GetStableHashCode(), customObject);
-                    }
-
-                    if (ObjectDB.instance.GetRecipe(itemDrop.m_itemData) == null)
-                    {
-                        Dbgl($"Adding new recipe {customObject.name} to DB");
-                        ObjectDB.instance.m_recipes.Add(recipe);
-                    }
-
-                    Traverse.Create(Localization.instance).Method("AddWord", new object[] { item.description_key, item.description });
+                    Dbgl($"Readding item {name} to DB");
+                    ObjectDB.instance.m_items.Add(___m_craftRecipe.m_item.gameObject);
+                    ((Dictionary<int, GameObject>)typeof(ObjectDB).GetField("m_itemByHash", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ObjectDB.instance)).Add(___m_craftRecipe.m_item.gameObject.name.GetStableHashCode(), ___m_craftRecipe.m_item.gameObject);
+                    Dbgl($"in database: {ObjectDB.instance.GetItemPrefab(___m_craftRecipe.m_item.gameObject.name).name}");
                 }
             }
         }
-        [HarmonyPatch(typeof(FejdStartup), "SetupObjectDB")]
-        public static class ObjectDB_Awake_Patch
+
+        private static GameObject customObject;
+
+        [HarmonyPatch(typeof(FejdStartup), "LoadMainScene")]
+        public static class Game_Patch
         {
+            public static void Prefix()
+            {
+                Dbgl("LoadMainScene");
+            }
             public static void Postfix()
             {
-                Dbgl($"SetupObjectDB finished");
+                Dbgl("LoadMainScene done");
+            }
+
+        }
+        [HarmonyPatch(typeof(ZNetScene), "GetPrefab", new Type[] { typeof(string) })]
+        public static class GetPrefab_Patch
+        {
+            public static bool Prefix(string name, ref GameObject __result)
+            {
+                if (customItems.ContainsKey(name))
+                {
+                    __result = GetCustomGameObject(name, true);
+                    return false;
+                }
+                return true;
+            }
+
+        }
+        private static GameObject GetCustomGameObject(string name, bool ready = false)
+        {
+
+            CustomItem customItem = customItems[name];
+            GameObject baseObject = ObjectDB.instance.GetItemPrefab(customItem.baseItemName);
+            GameObject customObject;
+            ItemDrop itemDrop;
+            if (ready)
+            {
+                customObject = Instantiate(baseObject);
+                itemDrop = customObject.GetComponent<ItemDrop>();
+            }
+            else
+            {
+                customObject = new GameObject(name);
+                itemDrop = customObject.AddComponent<ItemDrop>();
+                customObject.AddComponent(baseObject.GetComponent<ZNetView>());
+                if (baseObject.transform.Find("attach"))
+                {
+                    Dbgl($"Has attach");
+                    Instantiate(baseObject.transform.Find("attach"), customObject.transform);
+                }
+                else if (baseObject.transform.Find("model"))
+                {
+                    Dbgl($"Has model");
+                    Instantiate(baseObject.transform.Find("model"), customObject.transform);
+                }
+            }
+            ItemDrop baseItemDrop = baseObject.GetComponent<ItemDrop>();
+            customObject.name = name;
+            customObject.name = ZNetView.GetPrefabName(customObject);
+
+            customObject.AddComponent<DontDestroy>();
+
+            Dbgl($"baseitemdrop {baseItemDrop?.name} data {baseItemDrop.m_itemData.m_shared.m_name} customObject {customObject?.name}");
+            
+            itemDrop.m_itemData = baseItemDrop.m_itemData.Clone();
+            itemDrop.m_itemData.m_dropPrefab = customObject;
+            itemDrop.enabled = true;
+
+            Dbgl($"itemdrop {itemDrop.m_itemData.m_dropPrefab.name} data {itemDrop.m_itemData.m_shared.m_name} gameobject {itemDrop.gameObject.name}");
+
+            itemDrop.m_itemData.m_shared = new ItemDrop.ItemData.SharedData
+            {
+                m_name = "$" + customItem.name_key,
+                m_dlc = customItem.dlc,
+                m_itemType = customItem.itemType,
+                m_attachOverride = customItem.attachOverride,
+                m_description = "$" + customItem.description_key,
+                m_maxStackSize = customItem.maxStackSize,
+                m_maxQuality = customItem.maxQuality,
+                m_weight = customItem.weight,
+                m_value = customItem.value,
+                m_teleportable = customItem.teleportable,
+                m_questItem = customItem.questItem,
+                m_equipDuration = customItem.equipDuration,
+                m_variants = customItem.variants,
+                m_trophyPos = customItem.trophyPos,
+                m_buildPieces = customItem.buildPieces,
+                m_centerCamera = customItem.centerCamera,
+                m_setName = customItem.setName,
+                m_setSize = customItem.setSize,
+                m_setStatusEffect = customItem.setStatusEffect,
+                m_equipStatusEffect = customItem.equipStatusEffect,
+                m_movementModifier = customItem.movementModifier,
+                m_food = customItem.food,
+                m_foodStamina = customItem.foodStamina,
+                m_foodBurnTime = customItem.foodBurnTime,
+                m_foodRegen = customItem.foodRegen,
+                m_foodColor = customItem.foodColor,
+                m_armorMaterial = customItem.armorMaterial,
+                m_helmetHideHair = customItem.helmetHideHair,
+                m_armor = customItem.armor,
+                m_armorPerLevel = customItem.armorPerLevel,
+                m_damageModifiers = customItem.damageModifiers,
+                m_blockPower = customItem.blockPower,
+                m_blockPowerPerLevel = customItem.blockPowerPerLevel,
+                m_deflectionForce = customItem.deflectionForce,
+                m_deflectionForcePerLevel = customItem.deflectionForcePerLevel,
+                m_timedBlockBonus = customItem.timedBlockBonus,
+                m_animationState = customItem.animationState,
+                m_skillType = customItem.skillType,
+                m_toolTier = customItem.toolTier,
+                m_damages = customItem.damages,
+                m_damagesPerLevel = customItem.damagesPerLevel,
+                m_attackForce = customItem.attackForce,
+                m_backstabBonus = customItem.backstabBonus,
+                m_dodgeable = customItem.dodgeable,
+                m_blockable = customItem.blockable,
+                m_attackStatusEffect = customItem.attackStatusEffect,
+                m_spawnOnHit = customItem.spawnOnHit,
+                m_spawnOnHitTerrain = customItem.spawnOnHitTerrain,
+                m_attack = customItem.attack,
+                m_secondaryAttack = customItem.secondaryAttack,
+                m_useDurability = customItem.useDurability,
+                m_destroyBroken = customItem.destroyBroken,
+                m_canBeReparied = customItem.canBeReparied,
+                m_maxDurability = customItem.maxDurability,
+                m_durabilityPerLevel = customItem.durabilityPerLevel,
+                m_useDurabilityDrain = customItem.useDurabilityDrain,
+                m_durabilityDrain = customItem.durabilityDrain,
+                m_holdDurationMin = customItem.holdDurationMin,
+                m_holdStaminaDrain = customItem.holdStaminaDrain,
+                m_holdAnimationState = customItem.holdAnimationState,
+                m_ammoType = customItem.ammoType,
+                m_aiAttackRange = customItem.aiAttackRange,
+                m_aiAttackRangeMin = customItem.aiAttackRangeMin,
+                m_aiAttackInterval = customItem.aiAttackInterval,
+                m_aiAttackMaxAngle = customItem.aiAttackMaxAngle,
+                m_aiWhenFlying = customItem.aiWhenFlying,
+                m_aiWhenWalking = customItem.aiWhenWalking,
+                m_aiWhenSwiming = customItem.aiWhenSwiming,
+                m_aiPrioritized = customItem.aiPrioritized,
+                m_aiTargetType = customItem.aiTargetType,
+                m_hitEffect = customItem.hitEffect,
+                m_hitTerrainEffect = customItem.hitTerrainEffect,
+                m_blockEffect = customItem.blockEffect,
+                m_startEffect = customItem.startEffect,
+                m_holdStartEffect = customItem.holdStartEffect,
+                m_triggerEffect = customItem.triggerEffect,
+                m_trailStartEffect = customItem.trailStartEffect,
+                m_consumeStatusEffect = customItem.consumeStatusEffect,
+
+                m_icons = baseItemDrop.m_itemData.m_shared.m_icons
+            };
+
+            Recipe origRecipe = ObjectDB.instance.GetRecipe(baseItemDrop.m_itemData);
+
+            Recipe recipe = (Recipe)ScriptableObject.CreateInstance("Recipe");
+            recipe.m_item = itemDrop;
+            recipe.m_amount = customItem.recipe_amount;
+            recipe.m_minStationLevel = customItem.minStationLevel;
+            recipe.m_craftingStation = origRecipe.m_craftingStation;
+            recipe.m_repairStation = origRecipe.m_repairStation;
+
+
+            //Dbgl($"custom reqs {customItem.requirements.Count}");
+
+
+            List<Piece.Requirement> reqs = new List<Piece.Requirement>();
+            foreach (string str in customItem.requirements)
+            {
+                RequirementData rd = MakeReqData(str);
+                if (rd == null)
+                    continue;
+                Piece.Requirement req = new Piece.Requirement
+                {
+                    m_amount = rd.amount,
+                    m_amountPerLevel = rd.amountPerLevel,
+                    m_recover = rd.recover,
+                    m_resItem = ObjectDB.instance.GetItemPrefab(rd.name)?.GetComponent<ItemDrop>()
+                };
+                // Dbgl($"adding rd {req.m_resItem?.m_itemData?.m_shared?.m_name}");
+                reqs.Add(req);
+            }
+
+            recipe.m_resources = reqs.ToArray();
+
+            if (ObjectDB.instance.GetItemPrefab(customObject.name) == null)
+            {
+                Dbgl($"Adding item {customObject.name} to DB");
+                ObjectDB.instance.m_items.Add(customObject);
+                ((Dictionary<int, GameObject>)typeof(ObjectDB).GetField("m_itemByHash", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ObjectDB.instance)).Add(customObject.name.GetStableHashCode(), customObject);
+                Dbgl($"Added new item {ObjectDB.instance.GetItemPrefab(customObject.name).name} to DB");
+
+            }
+
+            if (ObjectDB.instance.GetRecipe(itemDrop.m_itemData) == null)
+            {
+                Dbgl($"Adding recipe {customObject.name} to DB");
+                ObjectDB.instance.m_recipes.Add(recipe);
+            }
+            return customObject;
+
+        }
+        [HarmonyPatch(typeof(FejdStartup), "SetupObjectDB")]
+        public static class Fejd_SetupObjectDB_Patch
+        {
+
+            public static void Postfix()
+            {
+                Dbgl($"Started");
 
                 foreach (KeyValuePair<string, CustomItem> kvp in customItemsOutput)
                 {
                     CustomItem item = kvp.Value;
-                    GameObject customObject = ObjectDB.instance.GetItemPrefab(item.baseItemName);
+                    customObject = ObjectDB.instance.GetItemPrefab(item.baseItemName);
+                    DontDestroyOnLoad(customObject);
                     ItemDrop.ItemData itemData = customObject.GetComponent<ItemDrop>().m_itemData.Clone();
                     Recipe recipe = ObjectDB.instance.GetRecipe(customObject.GetComponent<ItemDrop>().m_itemData);
                     item.id = customObject.name;
-                    item.name = itemData.m_shared.m_name;
+                    item.name_key = itemData.m_shared.m_name.Substring(1);
                     item.dlc = itemData.m_shared.m_dlc;
                     item.itemType = itemData.m_shared.m_itemType;
                     item.attachOverride = itemData.m_shared.m_attachOverride;
-                    item.description = itemData.m_shared.m_description;
+                    item.description_key = itemData.m_shared.m_description.Substring(1);
                     item.maxStackSize = itemData.m_shared.m_maxStackSize;
                     item.maxQuality = itemData.m_shared.m_maxQuality;
                     item.weight = itemData.m_shared.m_weight;
@@ -321,9 +435,9 @@ namespace CustomItems
                     item.trailStartEffect = itemData.m_shared.m_trailStartEffect;
                     item.consumeStatusEffect = itemData.m_shared.m_consumeStatusEffect;
 
-                    if(recipe != null)
+                    if (recipe != null)
                     {
-                        List<RequirementData> reqs = new List<RequirementData>();
+                        List<string> reqs = new List<string>();
                         foreach (Piece.Requirement req in recipe.m_resources)
                         {
                             RequirementData rd = new RequirementData();
@@ -331,15 +445,29 @@ namespace CustomItems
                             rd.amountPerLevel = req.m_amountPerLevel;
                             rd.recover = req.m_recover;
                             rd.name = req.m_resItem.name;
-                            reqs.Add(rd);
+                            reqs.Add(JsonUtility.ToJson(rd));
                         }
                         item.requirements = reqs;
                     }
                     string file = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomItemsOutput", $"{kvp.Key}.json");
                     string json = JsonUtility.ToJson(item);
-                    
+
                     File.WriteAllText(file, json);
 
+                }
+                foreach (KeyValuePair<string, CustomItem> kvp in customItems)
+                {
+
+                    GetCustomGameObject(kvp.Key);
+                    
+                    Dbgl($"adding strings {kvp.Value.name_key} = {kvp.Value.name} and  {kvp.Value.description_key} = {kvp.Value.description}");
+
+                    Traverse.Create(Localization.instance).Field("m_translations").GetValue<Dictionary<string,string>>()[kvp.Value.name_key] = kvp.Value.name;
+                    Traverse.Create(Localization.instance).Field("m_translations").GetValue<Dictionary<string,string>>()[kvp.Value.description_key] = kvp.Value.description;
+
+                    //Dbgl($"adding {customObject.name} to prefabs; in db? {ObjectDB.instance.GetItemPrefab(kvp.Value.id).name}");
+                    //___m_prefabs.Add(customObject);
+                    //___m_namedPrefabs[customObject.name.GetStableHashCode()] = customObject;
                 }
             }
         }
