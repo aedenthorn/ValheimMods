@@ -43,15 +43,29 @@ namespace CustomTextures
                 if (logDump.Any())
                     Dbgl("\n" + string.Join("\n", logDump));
 
-                if (dumpSceneTextures.Value)
-                {
-                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
-                    Dbgl($"Writing {path}");
-                    File.WriteAllLines(path, outputDump);
-                }
             }
         }
 
+        [HarmonyPatch(typeof(ZoneSystem), "Awake")]
+        static class Heightmap_Awake_Patch
+        {
+            static void Prefix(ZoneSystem __instance)
+            {
+                outputDump.Clear();
+                LoadOneTexture(__instance.m_zonePrefab, __instance.name, "zone");
+
+                Material mat = __instance.m_zonePrefab.transform.Find("Terrain")?.GetComponent<Heightmap>()?.m_material;
+
+                Dbgl($"ZoneSystem awake {__instance.name} {__instance.m_zonePrefab.name}");
+
+                if(mat != null)
+                {
+                    outputDump.Add($"terrain {__instance.name}, prefab {__instance.m_zonePrefab}");
+                    ReplaceMaterialTextures(mat, __instance.name, "terrain", "Terrain", __instance.m_zonePrefab.name, logDump);
+                }
+            }
+        }
+        
         [HarmonyPatch(typeof(ClutterSystem), "Awake")]
         static class ClutterSystem_Awake_Patch
         {
@@ -69,7 +83,12 @@ namespace CustomTextures
 
                 if (logDump.Any())
                     Dbgl("\n" + string.Join("\n", logDump));
-
+                if (dumpSceneTextures.Value)
+                {
+                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
+                    Dbgl($"Writing {path}");
+                    File.WriteAllLines(path, outputDump);
+                }
             }
         }
 

@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace TreeRespawn
 {
-    [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.4.0")]
+    [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.5.0")]
     public class TreeRespawn : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -31,8 +31,12 @@ namespace TreeRespawn
         public static Dictionary<string, string> seedsDic = new Dictionary<string, string>
         {
             {"Beech_Stub", "Beech_Sapling" },
+            {"Beech1_Stub", "Beech_Sapling" },
             {"FirTree_Stub", "FirTree_Sapling" },
             {"Pinetree_01_Stub", "PineTree_Sapling" },
+            {"BirchStub", "Birch_Sapling" },
+            {"OakStub", "Oak_Sapling" },
+            {"SwampTree1_Stub", "Ancient_Sapling" }
         };
 
         private void Awake()
@@ -56,9 +60,10 @@ namespace TreeRespawn
                 Dbgl($"destroyed destructible {__instance.name}");
 
                 string name = seedsDic.FirstOrDefault(s => __instance.name.StartsWith(s.Key)).Value;
+
                 if (name != null)
                 {
-                    Dbgl($"destroyed trunk {__instance.name}");
+                    Dbgl($"destroyed trunk {__instance.name}, trying to spawn {name}");
                     GameObject prefab = ZNetScene.instance.GetPrefab(name);
                     if (prefab != null)
                     {

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace BuildingDamageMod
 {
-    [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.3.1")]
+    [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.3.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -68,7 +68,7 @@ namespace BuildingDamageMod
         {
             static bool Prefix(long peer, float health, ZNetView ___m_nview, Piece ___m_piece)
             {
-                Dbgl($"creator: {___m_piece.GetCreator()} peer {peer}");
+                //Dbgl($"creator: {___m_piece.GetCreator()} peer {peer}");
 
                 if (uncreatedDamageMult.Value == 0 && ___m_piece.GetCreator() == 0)
                     return false;

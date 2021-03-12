@@ -82,7 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TextureLoading.cs" />
-    <Compile Include="ReplaceTextures.cs" />
+    <Compile Include="ReplaceOneTexture.cs" />
     <Compile Include="TextureReplacement.cs" />
     <Compile Include="BepInExPlugin.cs" />
     <Compile Include="Patches.cs" />

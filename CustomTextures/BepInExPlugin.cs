@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.6.1")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.7.0")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
