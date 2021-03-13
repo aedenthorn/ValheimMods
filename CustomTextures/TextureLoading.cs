@@ -46,6 +46,9 @@ namespace CustomTextures
             logDump.Clear();
 
             LoadCustomTextures();
+
+            Dbgl($"textures to load \n\n{string.Join("\n", texturesToLoad)}");
+
             ReplaceObjectDBTextures();
 
             var zones = SceneManager.GetActiveScene().GetRootGameObjects().Where(go => go.name.StartsWith("_Zone"));
@@ -57,7 +60,8 @@ namespace CustomTextures
 
             ReplaceZoneSystemTextures((ZoneSystem)typeof(ZoneSystem).GetField("m_instance", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null));
             ReplaceHeightmapTextures();
-            Dbgl($"textures to load \n\n{string.Join("\n", texturesToLoad)}");
+
+            ReplaceEnvironmentTextures();
 
             List<GameObject> gos = new List<GameObject>();
 
@@ -81,6 +85,7 @@ namespace CustomTextures
             ReplaceSceneTextures(gos.ToArray());
 
             ReplaceSceneTextures(Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>().Values.ToArray());
+
 
             foreach (Player player in Player.GetAllPlayers())
             {

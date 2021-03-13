@@ -10,7 +10,7 @@ namespace CustomTextures
 {
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static void LoadOneTexture(GameObject gameObject, string thingName, string prefix)
+        private static void ReplaceOneGameObjectTextures(GameObject gameObject, string thingName, string prefix)
         {
             if (thingName.Contains("_frac"))
             {
@@ -22,6 +22,7 @@ namespace CustomTextures
             MeshRenderer[] mrs = gameObject.GetComponentsInChildren<MeshRenderer>(true);
             SkinnedMeshRenderer[] smrs = gameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true);
             InstanceRenderer[] irs = gameObject.GetComponentsInChildren<InstanceRenderer>(true);
+            ParticleSystemRenderer[] prs = gameObject.GetComponentsInChildren<ParticleSystemRenderer>(true);
 
 
             if (mrs?.Any() == true)
@@ -125,6 +126,33 @@ namespace CustomTextures
                     }
                 }
             }
+            if (prs?.Any() == true)
+            {
+                outputDump.Add($"{prefix} {thingName} has {prs.Length} ParticleSystemRenderers:");
+                foreach (ParticleSystemRenderer r in prs)
+                {
+                    if (r == null)
+                    {
+                        outputDump.Add($"\tnull");
+                        continue;
+                    }
+
+                    outputDump.Add($"\tParticleSystemRenderer name: {r.name}");
+                    foreach (Material m in r.materials)
+                    {
+                        try
+                        {
+                            outputDump.Add($"\t\t\t{m.name}:");
+
+                            ReplaceMaterialTextures(m, thingName, prefix, "ParticleSystemRenderer", r.name, logDump);
+                        }
+                        catch (Exception ex)
+                        {
+                            logDump.Add($"\t\t\tError loading {r.name}:\r\n{ex}");
+                        }
+                    }
+                }
+            }
 
             ItemDrop item = gameObject.GetComponent<ItemDrop>();
             if (item != null && item.m_itemData.m_shared.m_armorMaterial != null)
@@ -150,12 +178,13 @@ namespace CustomTextures
             {
                 outputDump.Add($"\t\t\t\t\t{property} {m.GetTexture(property)?.name}");
 
+                string matName = m.name;
                 string name = m.GetTexture(property)?.name;
 
                 if (name == null)
                     name = thingName;
 
-                List<string> strings = MakePrefixStrings(prefix, thingName, rendererName, name);
+                List<string> strings = MakePrefixStrings(prefix, thingName, rendererName, matName, name);
                 CheckSetMatTextures(m, prefix, thingName, rendererType, rendererName, name, property, strings, logDump);
 
             }
@@ -170,8 +199,6 @@ namespace CustomTextures
                     logDump.Add($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {str}{property}.png for {property}.");
                     if (m.HasProperty(property))
                     {
-                        logDump.Add($"replacing {property}");
-
                         Texture2D result = null;
                         if (ShouldLoadCustomTexture($"{str}{property}"))
                             result = LoadTexture($"{str}{property}", m.GetTexture(property));
@@ -185,6 +212,7 @@ namespace CustomTextures
 
                         if (result == null)
                             continue;
+                        logDump.Add($"replacing {property}");
 
                         m.SetTexture(property, result);
                         if (m.GetTexture(property) != null)
@@ -199,13 +227,18 @@ namespace CustomTextures
             }
         }
 
-        private static List<string> MakePrefixStrings(string prefix, string thingName, string rendererName, string name)
+        private static List<string> MakePrefixStrings(string prefix, string thingName, string rendererName, string matName, string name)
         {
             List<string> strings = new List<string>();
             strings.Add($"{prefix}_{thingName}");
             strings.Add($"{prefix}mesh_{thingName}_{rendererName}");
+            strings.Add($"{prefix}renderer_{thingName}_{rendererName}");
+            strings.Add($"{prefix}mat_{thingName}_{matName}");
+            strings.Add($"{prefix}renderermat_{thingName}_{rendererName}_{matName}");
             strings.Add($"{prefix}texture_{thingName}_{name}");
             strings.Add($"mesh_{rendererName}");
+            strings.Add($"renderer_{rendererName}");
+            strings.Add($"mat_{matName}");
             strings.Add($"texture_{name}");
             return strings;
         }

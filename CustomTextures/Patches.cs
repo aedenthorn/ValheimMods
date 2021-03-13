@@ -25,24 +25,14 @@ namespace CustomTextures
             }
         }
 
-        //[HarmonyPatch(typeof(ZNetScene), "Awake")]
+        [HarmonyPatch(typeof(ZNetScene), "Awake")]
         static class ZNetScene_Awake_Patch
         {
             static void Postfix(ZNetScene __instance, Dictionary<int, GameObject> ___m_namedPrefabs)
             {
                 Dbgl($"ZNetScene awake");
 
-                logDump.Clear();
-
-                Dbgl($"Checking {___m_namedPrefabs.Count} prefabs");
-                foreach (GameObject go in ___m_namedPrefabs.Values)
-                {
-                    LoadOneTexture(go, go.name, "object");
-                }
-
-                if (logDump.Any())
-                    Dbgl("\n" + string.Join("\n", logDump));
-
+                ReplaceEnvironmentTextures();
             }
         }
 
@@ -68,7 +58,7 @@ namespace CustomTextures
                 Dbgl($"Checking {__instance.m_clutter.Count} clutters");
                 foreach (ClutterSystem.Clutter clutter in __instance.m_clutter)
                 {
-                    LoadOneTexture(clutter.m_prefab, clutter.m_prefab.name, "object");
+                    ReplaceOneGameObjectTextures(clutter.m_prefab, clutter.m_prefab.name, "object");
                 }
 
                 if (logDump.Any())

@@ -140,12 +140,15 @@ namespace ConsoleTweaks
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             cheatsEnabled = Config.Bind<bool>("General", "CheatsEnabled", true, "Enable cheats by default");
-            debugEnabled = Config.Bind<bool>("General", "CheatsEnabled", true, "Enable debug mode by default");
+            //debugEnabled = Config.Bind<bool>("General", "DebugEnabled", false, "Enable debug mode by default");
             skEnabled = Config.Bind<bool>("General", "SkEnabled", true, "Enable SkToolbox command completion");
             nexusID = Config.Bind<int>("General", "NexusID", 464, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
+
+            //if (debugEnabled.Value)
+            //    Player.m_debugMode = true;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
@@ -270,6 +273,8 @@ namespace ConsoleTweaks
                 {
                     context.Config.Reload();
                     context.Config.Save();
+                    //if (debugEnabled.Value)
+                    //    Player.m_debugMode = true;
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { "config reloaded" }).GetValue();
                     return false;

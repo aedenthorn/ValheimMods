@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CustomTextures
 {
@@ -24,7 +25,7 @@ namespace CustomTextures
 
                 // object textures
 
-                LoadOneTexture(go, go.name, "object");
+                ReplaceOneGameObjectTextures(go, go.name, "object");
 
                 if (tex != null)
                 {
@@ -59,7 +60,7 @@ namespace CustomTextures
                 if (gameObject.name == "_NetSceneRoot")
                     continue;
 
-                LoadOneTexture(gameObject, gameObject.name, "object");
+                ReplaceOneGameObjectTextures(gameObject, gameObject.name, "object");
 
             }
 
@@ -75,7 +76,7 @@ namespace CustomTextures
 
         private static void ReplaceOneZoneTextures(string zoneSystem, GameObject prefab)
         {
-            LoadOneTexture(prefab, zoneSystem, "zone");
+            ReplaceOneGameObjectTextures(prefab, zoneSystem, "zone");
 
             Heightmap hm = prefab.transform.Find("Terrain")?.GetComponent<Heightmap>();
             Material mat = hm?.m_material;
@@ -123,11 +124,35 @@ namespace CustomTextures
             if (logDump.Any())
                 Dbgl("\n" + string.Join("\n", logDump));
         }
+        private static void ReplaceEnvironmentTextures()
+        {
+
+            Dbgl($"Reloading Environment textures");
+
+            GameObject env = GameObject.Find("_GameMain/environment");
+            if (env != null)
+            {
+                int count = env.transform.childCount;
+                Dbgl($"Reloading {count} Environment textures");
+
+                logDump.Clear();
+
+                for(int i = 0; i < count; i++)
+                {
+                    GameObject gameObject = env.transform.GetChild(i).gameObject;
+                    ReplaceOneGameObjectTextures(gameObject, gameObject.name, "environment");
+                }
+                if (logDump.Any())
+                    Dbgl("\n" + string.Join("\n", logDump));
+            }
+
+        }
+
         private static void SetEquipmentTexture(string itemName, GameObject item)
         {
             if (item != null && itemName != null && itemName.Length > 0)
             {
-                LoadOneTexture(item.gameObject, itemName, "object");
+                ReplaceOneGameObjectTextures(item.gameObject, itemName, "object");
             }
         }
 
@@ -148,10 +173,10 @@ namespace CustomTextures
         private static void SetBodyEquipmentTexture(VisEquipment instance, string itemName, SkinnedMeshRenderer smr, List<GameObject> itemInstances)
         {
             if (smr != null)
-                LoadOneTexture(smr.gameObject, itemName, "object");
+                ReplaceOneGameObjectTextures(smr.gameObject, itemName, "object");
             if (itemInstances != null)
                 foreach (GameObject go in itemInstances)
-                   LoadOneTexture(go, itemName, "object");
+                   ReplaceOneGameObjectTextures(go, itemName, "object");
         }
     }
 }

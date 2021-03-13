@@ -69,6 +69,10 @@
     <Reference Include="UnityEngine.InputModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.InputModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\valheim_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.TerrainModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\valheim_Data\Managed\UnityEngine.TerrainModule.dll</HintPath>
@@ -82,7 +86,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TextureLoading.cs" />
-    <Compile Include="ReplaceOneTexture.cs" />
+    <Compile Include="Replacement.cs" />
     <Compile Include="TextureReplacement.cs" />
     <Compile Include="BepInExPlugin.cs" />
     <Compile Include="Patches.cs" />
