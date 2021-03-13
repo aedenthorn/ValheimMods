@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{87660053-76CB-449E-9AB1-E750F55A0B4D}</ProjectGuid>
+    <ProjectGuid>{F67BE8BE-C23C-4F9B-A91D-7B77AD1E8D55}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AutoFuel</RootNamespace>
-    <AssemblyName>AutoFuel</AssemblyName>
+    <RootNamespace>HelmetHairToggle</RootNamespace>
+    <AssemblyName>HelmetHairToggle</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -37,8 +37,8 @@
     <Reference Include="assembly_googleanalytics">
       <HintPath>..\valheim_Data\Managed\assembly_googleanalytics.dll</HintPath>
     </Reference>
-    <Reference Include="assembly_guiutils">
-      <HintPath>..\valheim_Data\Managed\assembly_guiutils.dll</HintPath>
+    <Reference Include="assembly_steamworks">
+      <HintPath>..\valheim_Data\Managed\assembly_steamworks.dll</HintPath>
     </Reference>
     <Reference Include="assembly_utils">
       <HintPath>..\valheim_Data\Managed\assembly_utils.dll</HintPath>
@@ -72,6 +72,9 @@
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>..\valheim_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
@@ -84,8 +87,11 @@
     <Reference Include="UnityEngine.JSONSerializeModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>..\valheim_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+      <HintPath>..\valheim_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ScreenCaptureModule">
+      <HintPath>..\valheim_Data\Managed\UnityEngine.ScreenCaptureModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>

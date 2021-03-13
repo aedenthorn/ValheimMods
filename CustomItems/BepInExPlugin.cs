@@ -18,7 +18,9 @@ namespace CustomItems
 
         private static Dictionary<string, CustomItem> customItems = new Dictionary<string, CustomItem>();
         private static Dictionary<string, CustomItem> customItemsOutput = new Dictionary<string, CustomItem>();
+        private static Dictionary<string, GameObject> objectsToAdd = new Dictionary<string, GameObject>();
         public static ConfigEntry<int> nexusID;
+        private static bool creatingObject = false;
         private static BepInExPlugin context;
         public static ConfigEntry<bool> modEnabled;
 
@@ -138,7 +140,7 @@ namespace CustomItems
 
         private static GameObject customObject;
 
-        [HarmonyPatch(typeof(FejdStartup), "LoadMainScene")]
+        //[HarmonyPatch(typeof(FejdStartup), "LoadMainScene")]
         public static class Game_Patch
         {
             public static void Prefix()
@@ -151,12 +153,12 @@ namespace CustomItems
             }
 
         }
-        [HarmonyPatch(typeof(ZNetScene), "GetPrefab", new Type[] { typeof(string) })]
+        //[HarmonyPatch(typeof(ZNetScene), "GetPrefab", new Type[] { typeof(string) })]
         public static class GetPrefab_Patch
         {
             public static bool Prefix(string name, ref GameObject __result)
             {
-                if (customItems.ContainsKey(name))
+                if (false && customItems.ContainsKey(name))
                 {
                     __result = GetCustomGameObject(name, true);
                     return false;
@@ -172,6 +174,7 @@ namespace CustomItems
             GameObject baseObject = ObjectDB.instance.GetItemPrefab(customItem.baseItemName);
             GameObject customObject;
             ItemDrop itemDrop;
+            creatingObject = true;
             if (ready)
             {
                 customObject = Instantiate(baseObject);
@@ -193,16 +196,20 @@ namespace CustomItems
                     Instantiate(baseObject.transform.Find("model"), customObject.transform);
                 }
             }
+            creatingObject = false;
             ItemDrop baseItemDrop = baseObject.GetComponent<ItemDrop>();
             customObject.name = name;
             customObject.name = ZNetView.GetPrefabName(customObject);
-
+            objectsToAdd[customObject.name] = customObject;
             customObject.AddComponent<DontDestroy>();
+            customItems[name].gameObject = customObject;
+            DontDestroyOnLoad(customItems[name].gameObject);
+
 
             Dbgl($"baseitemdrop {baseItemDrop?.name} data {baseItemDrop.m_itemData.m_shared.m_name} customObject {customObject?.name}");
             
             itemDrop.m_itemData = baseItemDrop.m_itemData.Clone();
-            itemDrop.m_itemData.m_dropPrefab = customObject;
+            itemDrop.m_itemData.m_dropPrefab = Instantiate(objectsToAdd[customObject.name]);
             itemDrop.enabled = true;
 
             Dbgl($"itemdrop {itemDrop.m_itemData.m_dropPrefab.name} data {itemDrop.m_itemData.m_shared.m_name} gameobject {itemDrop.gameObject.name}");
@@ -326,8 +333,8 @@ namespace CustomItems
             if (ObjectDB.instance.GetItemPrefab(customObject.name) == null)
             {
                 Dbgl($"Adding item {customObject.name} to DB");
-                ObjectDB.instance.m_items.Add(customObject);
-                ((Dictionary<int, GameObject>)typeof(ObjectDB).GetField("m_itemByHash", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ObjectDB.instance)).Add(customObject.name.GetStableHashCode(), customObject);
+                ObjectDB.instance.m_items.Add(objectsToAdd[customObject.name]);
+                ((Dictionary<int, GameObject>)typeof(ObjectDB).GetField("m_itemByHash", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ObjectDB.instance)).Add(customObject.name.GetStableHashCode(), Instantiate(objectsToAdd[customObject.name]));
                 Dbgl($"Added new item {ObjectDB.instance.GetItemPrefab(customObject.name).name} to DB");
 
             }
@@ -340,13 +347,35 @@ namespace CustomItems
             return customObject;
 
         }
-        [HarmonyPatch(typeof(FejdStartup), "SetupObjectDB")]
-        public static class Fejd_SetupObjectDB_Patch
+
+        [HarmonyPatch(typeof(ZNetScene), "Awake")]
+        public static class ZNetScene_Awake_Patch
+        {
+
+            public static void Prefix(ZNetScene __instance)
+            {
+                foreach(GameObject go in objectsToAdd.Values)
+                {
+                    __instance.m_prefabs.Add(go);
+                }
+            }
+        }
+        [HarmonyPatch(typeof(ZNetView), "Awake")]
+        public static class ZNetView_Awake_Patch
+        {
+
+            public static bool Prefix()
+            {
+                return !creatingObject;
+            }
+        }
+        //[HarmonyPatch(typeof(ObjectDB), "CopyOtherDB")]
+        public static class CopyOtherDB_Patch
         {
 
             public static void Postfix()
             {
-                Dbgl($"Started");
+                Dbgl($"ZNetScene Awake");
 
                 foreach (KeyValuePair<string, CustomItem> kvp in customItemsOutput)
                 {

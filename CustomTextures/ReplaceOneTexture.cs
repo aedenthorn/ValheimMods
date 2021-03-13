@@ -165,7 +165,7 @@ namespace CustomTextures
         {
             foreach (string str in strings)
             {
-                if (ShouldLoadCustomTexture($"{str}{property}") || ShouldLoadCustomTexture($"{str}{property}") || (property == "_MainTex" && ShouldLoadCustomTexture($"{str}_texture")) || (property == "_BumpMap" && ShouldLoadCustomTexture($"{str}_bump")))
+                if (ShouldLoadCustomTexture($"{str}{property}") || ShouldLoadCustomTexture($"{str}{property}") || (property == "_MainTex" && ShouldLoadCustomTexture($"{str}_texture")) || (property == "_StyleTex" && ShouldLoadCustomTexture($"{str}_style")) || (property == "_BumpMap" && ShouldLoadCustomTexture($"{str}_bump")))
                 {
                     logDump.Add($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {str}{property}.png for {property}.");
                     if (m.HasProperty(property))
@@ -179,6 +179,8 @@ namespace CustomTextures
                             result = LoadTexture($"{str}_texture", m.GetTexture(property));
                         else if (property == "_BumpMap" && ShouldLoadCustomTexture($"{str}_bump"))
                             result = LoadTexture($"{str}_bump", m.GetTexture(property));
+                        else if (property == "_StyleTex" && ShouldLoadCustomTexture($"{str}_style"))
+                            result = LoadTexture($"{str}_style", m.GetTexture(property));
 
 
                         if (result == null)

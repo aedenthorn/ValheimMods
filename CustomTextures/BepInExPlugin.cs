@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.7.0")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.7.1")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -54,62 +54,8 @@ namespace CustomTextures
             {
                 Dbgl($"Pressed reload key.");
 
-                outputDump.Clear();
-                logDump.Clear();
+                ReloadTextures();
 
-                LoadCustomTextures();
-                ReplaceObjectDBTextures();
-
-                Dbgl($"textures to load \n\n{string.Join("\n", texturesToLoad)}");
-
-                List<GameObject> gos = new List<GameObject>();
-
-                GameObject root = (GameObject)typeof(ZNetScene).GetField("m_netSceneRoot", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ZNetScene.instance);
-
-                Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
-
-                foreach (Transform t in transforms)
-                {
-                    if (t.parent == root.transform)
-                        gos.Add(t.gameObject);
-                }
-
-                LoadSceneTextures(gos.ToArray());
-                LoadSceneTextures(((Dictionary<int, GameObject>)typeof(ZNetScene).GetField("m_namedPrefabs", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ZNetScene.instance)).Values.ToArray());
-
-                foreach (ClutterSystem.Clutter clutter in ClutterSystem.instance.m_clutter)
-                {
-                    gos.Add(clutter.m_prefab);
-                }
-                LoadSceneTextures(gos.ToArray());
-
-                LoadSceneTextures(Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>().Values.ToArray());
-
-                foreach (Player player in Player.GetAllPlayers())
-                {
-                    VisEquipment ve = (VisEquipment)typeof(Humanoid).GetField("m_visEquipment", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(player);
-                    if(ve != null)
-                    {
-                        SetEquipmentTexture(Traverse.Create(ve).Field("m_leftItem").GetValue<string>(), Traverse.Create(ve).Field("m_leftItemInstance").GetValue<GameObject>());
-                        SetEquipmentTexture(Traverse.Create(ve).Field("m_rightItem").GetValue<string>(), Traverse.Create(ve).Field("m_rightItemInstance").GetValue<GameObject>());
-                        SetEquipmentTexture(Traverse.Create(ve).Field("m_helmetItem").GetValue<string>(), Traverse.Create(ve).Field("m_helmetItemInstance").GetValue<GameObject>());
-                        SetEquipmentTexture(Traverse.Create(ve).Field("m_leftBackItem").GetValue<string>(), Traverse.Create(ve).Field("m_leftBackItemInstance").GetValue<GameObject>());
-                        SetEquipmentTexture(Traverse.Create(ve).Field("m_rightBackItem").GetValue<string>(), Traverse.Create(ve).Field("m_rightBackItemInstance").GetValue<GameObject>());
-                        SetEquipmentListTexture(Traverse.Create(ve).Field("m_shoulderItem").GetValue<string>(), Traverse.Create(ve).Field("m_shoulderItemInstances").GetValue<List<GameObject>>());
-                        SetEquipmentListTexture(Traverse.Create(ve).Field("m_utilityItem").GetValue<string>(), Traverse.Create(ve).Field("m_utilityItemInstances").GetValue<List<GameObject>>());
-                        SetBodyEquipmentTexture(ve, Traverse.Create(ve).Field("m_legItem").GetValue<string>(), ve.m_bodyModel, Traverse.Create(ve).Field("m_legItemInstances").GetValue<List<GameObject>>());
-                        SetBodyEquipmentTexture(ve, Traverse.Create(ve).Field("m_chestItem").GetValue<string>(), ve.m_bodyModel, Traverse.Create(ve).Field("m_chestItemInstances").GetValue<List<GameObject>>());
-                    }
-                }
-
-                if (logDump.Any())
-                    Dbgl("\n" + string.Join("\n", logDump));
-                if (dumpSceneTextures.Value)
-                {
-                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
-                    Dbgl($"Writing {path}");
-                    File.WriteAllLines(path, outputDump);
-                }
             }
 
         }
@@ -123,6 +69,15 @@ namespace CustomTextures
             {
                 return false;
             }
+        }
+
+        private static bool HasCustomTexture(string id)
+        {
+            return (customTextures.ContainsKey(id) || customTextures.Any(p => p.Key.StartsWith(id)));
+        }
+        private static bool ShouldLoadCustomTexture(string id)
+        {
+            return (texturesToLoad.Contains(id) || texturesToLoad.Any(p => p.StartsWith(id)));
         }
     }
 }

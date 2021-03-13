@@ -63,7 +63,7 @@ namespace CraftFromContainers
             nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
 
             m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from");
-            resourceString = Config.Bind<string>("General", "ResourceCostString", "{0}/{1}", "String used to show required and available resources. {0} is replaced by how much is available, and {1} is replaced by how much is required");
+            resourceString = Config.Bind<string>("General", "ResourceCostString", "{0}/{1}", "String used to show required and available resources. {0} is replaced by how much is available, and {1} is replaced by how much is required. Set to nothing to leave it as default.");
             flashColor = Config.Bind<Color>("General", "FlashColor", Color.yellow, "Resource amounts will flash to this colour when coming from containers");
             unFlashColor = Config.Bind<Color>("General", "UnFlashColor", Color.white, "Resource amounts will flash from this colour when coming from containers (set both colors to the same color for no flashing)");
             pulledMessage = Config.Bind<string>("General", "PulledMessage", "Pulled items to inventory", "Message to show after pulling items to player inventory");
@@ -539,7 +539,8 @@ namespace CraftFromContainers
                         if (invAmount >= amount)
                             component3.color = ((Mathf.Sin(Time.time * 10f) > 0f) ? flashColor.Value : unFlashColor.Value);
                     }
-                    component3.text = string.Format(resourceString.Value, invAmount, component3.text);
+                    if(resourceString.Value.Trim().Length > 0)
+                        component3.text = string.Format(resourceString.Value, invAmount, component3.text);
                 }
             }
         }

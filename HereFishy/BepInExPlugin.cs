@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace HereFishy
 {
-    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.2.0")]
+    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -74,7 +74,18 @@ namespace HereFishy
             if (AedenthornUtils.CheckKeyDown(hotKey.Value))
             {
                 Dbgl($"pressed hotkey");
-                Traverse.Create(Player.m_localPlayer).Field("m_guardianPowerCooldown").SetValue(0);
+                lastHereFishy = Time.realtimeSinceStartup;
+                ((ZSyncAnimation)typeof(Player).GetField("m_zanim", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Player.m_localPlayer)).SetTrigger("gpower");
+                if (playHereFishy.Value)
+                {
+                    Destroy(Player.m_localPlayer.gameObject.GetComponent<AudioSource>());
+                    AudioSource playerAudio = Player.m_localPlayer.gameObject.AddComponent<AudioSource>();
+                    playerAudio.volume = Mathf.Clamp(hereFishyVolume.Value, 0.1f, 1f);
+                    playerAudio.clip = fishyClip;
+                    playerAudio.loop = false;
+                    playerAudio.spatialBlend = 1f;
+                    playerAudio.Play();
+                }
                 float closest = maxFishyDistance.Value;
                 Fish closestFish = null;
                 foreach (Collider collider in Physics.OverlapSphere(Player.m_localPlayer.transform.position, maxFishyDistance.Value))
@@ -97,18 +108,6 @@ namespace HereFishy
                 {
                     Dbgl($"got closest fishy at {closestFish.gameObject.transform.position}");
 
-                    lastHereFishy = Time.realtimeSinceStartup;
-                    ((ZSyncAnimation)typeof(Player).GetField("m_zanim", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Player.m_localPlayer)).SetTrigger("gpower");
-                    if (playHereFishy.Value)
-                    {
-                        Destroy(Player.m_localPlayer.gameObject.GetComponent<AudioSource>());
-                        AudioSource playerAudio = Player.m_localPlayer.gameObject.AddComponent<AudioSource>();
-                        playerAudio.volume = Mathf.Clamp(hereFishyVolume.Value, 0.1f, 1f);
-                        playerAudio.clip = fishyClip;
-                        playerAudio.loop = false;
-                        playerAudio.spatialBlend = 1f;
-                        playerAudio.Play();
-                    }
                     StartCoroutine(FishJump(closestFish, fishyClip.length));
                 }
             }

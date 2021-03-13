@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.6.0")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.6.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = false;
@@ -41,7 +41,7 @@ namespace AutoFuel
             fuelDisallowTypes = Config.Bind<string>("General", "FuelDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as fuel (i.e. anything that is consumed), comma-separated.");
             oreDisallowTypes = Config.Bind<string>("General", "OreDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as ore (i.e. anything that is transformed), comma-separated).");
             toggleString = Config.Bind<string>("General", "ToggleString", "Auto Fuel: {0}", "Text to show on toggle. {0} is replaced with true/false");
-            toggleKey = Config.Bind<string>("General", "ToggleKey", "", "Key to toggle behaviour. Leave blank to disable the toggle key.");
+            toggleKey = Config.Bind<string>("General", "ToggleKey", "", "Key to toggle behaviour. Leave blank to disable the toggle key. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             refuelStandingTorches = Config.Bind<bool>("General", "RefuelStandingTorches", true, "Refuel standing torches");
             refuelWallTorches = Config.Bind<bool>("General", "RefuelWallTorches", true, "Refuel wall torches");
             refuelFirePits = Config.Bind<bool>("General", "RefuelFirePits", true, "Refuel fire pits");
@@ -57,9 +57,7 @@ namespace AutoFuel
 
         private void Update()
         {
-            if (ZNetScene.instance == null || Player.m_localPlayer == null || Console.IsVisible() || Chat.instance?.HasFocus() == true)
-                return;
-            if (CheckKeyDown(toggleKey.Value))
+            if (CheckKeyDown(toggleKey.Value) && !AedenthornUtils.IgnoreKeyPresses(true))
             {
                 isOn.Value = !isOn.Value;
                 Config.Save();

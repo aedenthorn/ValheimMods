@@ -25,7 +25,7 @@ namespace CustomTextures
             }
         }
 
-        [HarmonyPatch(typeof(ZNetScene), "Awake")]
+        //[HarmonyPatch(typeof(ZNetScene), "Awake")]
         static class ZNetScene_Awake_Patch
         {
             static void Postfix(ZNetScene __instance, Dictionary<int, GameObject> ___m_namedPrefabs)
@@ -47,22 +47,12 @@ namespace CustomTextures
         }
 
         [HarmonyPatch(typeof(ZoneSystem), "Awake")]
-        static class Heightmap_Awake_Patch
+        static class ZoneSystem_Awake_Patch
         {
             static void Prefix(ZoneSystem __instance)
             {
                 outputDump.Clear();
-                LoadOneTexture(__instance.m_zonePrefab, __instance.name, "zone");
-
-                Material mat = __instance.m_zonePrefab.transform.Find("Terrain")?.GetComponent<Heightmap>()?.m_material;
-
-                Dbgl($"ZoneSystem awake {__instance.name} {__instance.m_zonePrefab.name}");
-
-                if(mat != null)
-                {
-                    outputDump.Add($"terrain {__instance.name}, prefab {__instance.m_zonePrefab}");
-                    ReplaceMaterialTextures(mat, __instance.name, "terrain", "Terrain", __instance.m_zonePrefab.name, logDump);
-                }
+                ReplaceZoneSystemTextures(__instance);
             }
         }
         

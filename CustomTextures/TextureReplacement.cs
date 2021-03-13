@@ -1,7 +1,9 @@
 ﻿using BepInEx;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace CustomTextures
@@ -46,6 +48,81 @@ namespace CustomTextures
                 Dbgl("\n" + string.Join("\n", logDump));
         }
 
+        private static void ReplaceSceneTextures(GameObject[] gos)
+        {
+
+            Dbgl($"loading {gos.Length} scene textures");
+
+            foreach (GameObject gameObject in gos)
+            {
+
+                if (gameObject.name == "_NetSceneRoot")
+                    continue;
+
+                LoadOneTexture(gameObject, gameObject.name, "object");
+
+            }
+
+        }
+        private static void ReplaceZoneSystemTextures(ZoneSystem __instance)
+        {
+
+            Dbgl($"Reloading ZoneSystem textures {__instance.name} {__instance.m_zonePrefab.name}");
+
+            ReplaceOneZoneTextures(__instance.name, __instance.m_zonePrefab);
+
+        }
+
+        private static void ReplaceOneZoneTextures(string zoneSystem, GameObject prefab)
+        {
+            LoadOneTexture(prefab, zoneSystem, "zone");
+
+            Heightmap hm = prefab.transform.Find("Terrain")?.GetComponent<Heightmap>();
+            Material mat = hm?.m_material;
+
+            if (mat != null)
+            {
+                outputDump.Add($"terrain {zoneSystem}, prefab {prefab.name}");
+                ReplaceMaterialTextures(mat, zoneSystem, "terrain", "Terrain", prefab.name, logDump);
+                hm.Regenerate();
+            }
+        }
+
+        private static void ReplaceHeightmapTextures()
+        {
+
+            Dbgl($"Reloading Heightmap textures for {Heightmap.GetAllHeightmaps().Count} heightmaps");
+
+            ZoneSystem zoneSystem = (ZoneSystem)typeof(ZoneSystem).GetField("m_instance", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+
+            logDump.Clear();
+
+            Heightmap hm = (Heightmap)typeof(EnvMan).GetField("m_cachedHeightmap", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(EnvMan.instance);
+            if(hm != null)
+            {
+                Material mat = hm.m_material;
+
+                if (mat != null)
+                {
+                    outputDump.Add($"terrain {zoneSystem.name}, prefab {zoneSystem.m_zonePrefab}");
+                    ReplaceMaterialTextures(mat, zoneSystem.name, "terrain", "Terrain", zoneSystem.m_zonePrefab.name, logDump);
+                    hm.Regenerate();
+                }
+            }
+
+            foreach (Heightmap h in Heightmap.GetAllHeightmaps())
+            {
+                Material mat = h.m_material;
+
+                if (mat != null)
+                {
+                    outputDump.Add($"terrain {zoneSystem.name}, prefab {zoneSystem.m_zonePrefab}");
+                    ReplaceMaterialTextures(mat, zoneSystem.name, "terrain", "Terrain", zoneSystem.m_zonePrefab.name, logDump);
+                }
+            }
+            if (logDump.Any())
+                Dbgl("\n" + string.Join("\n", logDump));
+        }
         private static void SetEquipmentTexture(string itemName, GameObject item)
         {
             if (item != null && itemName != null && itemName.Length > 0)
