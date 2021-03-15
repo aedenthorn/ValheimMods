@@ -1,11 +1,9 @@
 ﻿using BepInEx;
 using HarmonyLib;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace CustomTextures
 {
@@ -17,14 +15,14 @@ namespace CustomTextures
             logDump.Clear();
             ObjectDB objectDB = ObjectDB.instance;
 
+
             Texture2D tex = LoadTexture("atlas_item_icons", objectDB.m_items[0]?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_icons[0]?.texture, false, true, true);
-            Dbgl($"Replacing textures for {objectDB.m_items.Count} objects...");
+            Dbgl($"Replacing textures for {objectDB.m_items.Count} objects");
             foreach (GameObject go in objectDB.m_items)
             {
                 ItemDrop item = go.GetComponent<ItemDrop>();
 
                 // object textures
-
                 ReplaceOneGameObjectTextures(go, go.name, "object");
 
                 if (tex != null)
@@ -49,6 +47,21 @@ namespace CustomTextures
                 Dbgl("\n" + string.Join("\n", logDump));
         }
 
+        private static void ReplaceZNetSceneTextures(Dictionary<int, GameObject> namedPrefabs)
+        {
+            Dbgl($"Checking {namedPrefabs.Count} prefabs");
+
+            logDump.Clear();
+
+            foreach (GameObject go in namedPrefabs.Values)
+            {
+                ReplaceOneGameObjectTextures(go, go.name, "object");
+            }
+
+            if (logDump.Any())
+                Dbgl("\n" + string.Join("\n", logDump));
+
+        }
         private static void ReplaceSceneTextures(GameObject[] gos)
         {
 
@@ -84,7 +97,7 @@ namespace CustomTextures
             if (mat != null)
             {
                 outputDump.Add($"terrain {zoneSystem}, prefab {prefab.name}");
-                ReplaceMaterialTextures(mat, zoneSystem, "terrain", "Terrain", prefab.name, logDump);
+                ReplaceMaterialTextures(prefab.name, mat, zoneSystem, "terrain", "Terrain", prefab.name);
                 hm.Regenerate();
             }
         }
@@ -106,7 +119,7 @@ namespace CustomTextures
                 if (mat != null)
                 {
                     outputDump.Add($"terrain {zoneSystem.name}, prefab {zoneSystem.m_zonePrefab}");
-                    ReplaceMaterialTextures(mat, zoneSystem.name, "terrain", "Terrain", zoneSystem.m_zonePrefab.name, logDump);
+                    ReplaceMaterialTextures(zoneSystem.m_zonePrefab.name, mat, zoneSystem.name, "terrain", "Terrain", zoneSystem.m_zonePrefab.name);
                     hm.Regenerate();
                 }
             }
@@ -118,7 +131,7 @@ namespace CustomTextures
                 if (mat != null)
                 {
                     outputDump.Add($"terrain {zoneSystem.name}, prefab {zoneSystem.m_zonePrefab}");
-                    ReplaceMaterialTextures(mat, zoneSystem.name, "terrain", "Terrain", zoneSystem.m_zonePrefab.name, logDump);
+                    ReplaceMaterialTextures(zoneSystem.m_zonePrefab.name, mat, zoneSystem.name, "terrain", "Terrain", zoneSystem.m_zonePrefab.name);
                 }
             }
             if (logDump.Any())

@@ -3,25 +3,30 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "1.8.0")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "2.0.1")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> dumpSceneTextures;
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<int> nexusID;
+
+        private static readonly bool isDebug = true;
+        private static Stopwatch stopwatch = new Stopwatch();
+
+        public static bool dumpOutput = false;
         public static Dictionary<string, string> customTextures = new Dictionary<string, string>();
         public static Dictionary<string, DateTime> fileWriteTimes = new Dictionary<string, DateTime>();
         public static List<string> texturesToLoad = new List<string>();
+        public static List<string> layersToLoad = new List<string>();
         public static Dictionary<string, Texture2D> cachedTextures = new Dictionary<string, Texture2D>();
         public static List<string> outputDump = new List<string>();
         public static List<string> logDump = new List<string>();
@@ -40,6 +45,8 @@ namespace CustomTextures
 
             if (!modEnabled.Value)
                 return;
+
+            dumpOutput = dumpSceneTextures.Value;
 
             LoadCustomTextures();
 
@@ -70,14 +77,26 @@ namespace CustomTextures
                 return false;
             }
         }
+        private static void LogStopwatch(string str)
+        {
+            stopwatch.Stop();
+            // Get the elapsed time as a TimeSpan value.
+            TimeSpan ts = stopwatch.Elapsed;
+
+            // Format and display the TimeSpan value.
+            string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                ts.Hours, ts.Minutes, ts.Seconds,
+                ts.Milliseconds / 10);
+            Dbgl($"{str} RunTime " + elapsedTime);
+        }
 
         private static bool HasCustomTexture(string id)
         {
-            return (customTextures.ContainsKey(id) || customTextures.Any(p => p.Key.StartsWith(id)));
+            return customTextures.ContainsKey(id) || customTextures.Keys.ToList().Exists(p => p.StartsWith(id));
         }
         private static bool ShouldLoadCustomTexture(string id)
         {
-            return (texturesToLoad.Contains(id) || texturesToLoad.Any(p => p.StartsWith(id)));
+            return texturesToLoad.Contains(id) || layersToLoad.Contains(id);
         }
     }
 }

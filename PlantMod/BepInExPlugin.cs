@@ -95,13 +95,13 @@ namespace PlantMod
                 "piece",
                 "piece_nonsolid"
             });
-            Collider[] array = Physics.OverlapSphere(plant.transform.position, plant.m_growRadius, spaceMask);
+            Collider[] array = Physics.OverlapSphere(plant.transform.position, plant.m_growRadius * 2, spaceMask);
             for (int i = 0; i < array.Length; i++)
             {
                 Plant component = array[i].GetComponent<Plant>();
                 if (Input.GetKey("left shift"))
                     Dbgl($"{Vector3.Distance(plant.transform.position, component.transform.position)} {Math.Max(component.m_growRadius, plant.m_growRadius)}");
-                if (component && component != plant)
+                if (component && component != plant && Vector3.Distance(plant.transform.GetComponent<Collider>().ClosestPoint(component.transform.position), component.transform.GetComponent<Collider>().ClosestPoint(plant.transform.position)) < Math.Max(component.m_growRadius, plant.m_growRadius))
                 {
                     return false;
                 }
@@ -226,6 +226,7 @@ namespace PlantMod
             }
             static void Postfix(Plant __instance, ref bool __result)
             {
+                return;
                 if (!__result)
                 {
                     var spaceMask = LayerMask.GetMask(new string[]
@@ -242,7 +243,7 @@ namespace PlantMod
                         Plant component = array[i].GetComponent<Plant>();
                         if (component && component != __instance)
                         {
-                            Dbgl($"{Vector3.Distance(__instance.transform.position, component.transform.position)} {component.m_growRadius} {__instance.m_growRadius}");
+                            //Dbgl($"{Vector3.Distance(__instance.transform.position, component.transform.position)} {component.m_growRadius} {__instance.m_growRadius}");
                         }
                     }
                 }

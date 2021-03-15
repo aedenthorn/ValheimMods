@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -22,18 +23,23 @@ namespace CustomTextures
                 Directory.CreateDirectory(path);
                 return;
             }
+
+
             texturesToLoad.Clear();
 
             foreach (string file in Directory.GetFiles(path, "*.png", SearchOption.AllDirectories))
             {
                 string fileName = Path.GetFileName(file);
                 string id = Path.GetFileNameWithoutExtension(fileName);
+
+
                 if (!fileWriteTimes.ContainsKey(id) || (cachedTextures.ContainsKey(id) && !DateTime.Equals(File.GetLastWriteTimeUtc(file), fileWriteTimes[id])))
                 {
                     cachedTextures.Remove(id);
                     texturesToLoad.Add(id);
+                    layersToLoad.Add(Regex.Replace(id, @"_[^_]+\.png", ".png"));
                     fileWriteTimes[id] = File.GetLastWriteTimeUtc(file);
-                    Dbgl($"adding new {fileName} custom texture.");
+                    //Dbgl($"adding new {fileName} custom texture.");
                 }
                 customTextures[id] = file;
             }

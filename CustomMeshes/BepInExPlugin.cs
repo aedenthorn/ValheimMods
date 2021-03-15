@@ -12,7 +12,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomMeshes
 {
-    [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.1.5")]
+    [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -114,12 +114,14 @@ namespace CustomMeshes
                                     if (renderer != null)
                                     {
                                         mesh = renderer.sharedMesh;
-                                        Dbgl($"Imported {file} asset bundle as player");
+                                        Dbgl($"Importing {file} asset bundle as player");
                                     }
                                     else
                                     {
                                         Dbgl($"No SkinnedMeshRenderer on {prefab}");
                                     }
+                                    if (mesh == null)
+                                        mesh = ab.LoadAsset<Mesh>("body");
                                 }
                                 else
                                 {
@@ -127,7 +129,7 @@ namespace CustomMeshes
 
                                     if (mesh != null)
                                     {
-                                        Dbgl($"Imported {file} asset bundle as mesh");
+                                        Dbgl($"Importing {file} asset bundle as mesh");
                                     }
                                     else
                                     {
@@ -153,9 +155,9 @@ namespace CustomMeshes
                                 if (mesh != null)
                                 {
                                     if (renderer != null)
-                                        Dbgl($"Imported {file} fbx as player");
+                                        Dbgl($"Importing {file} fbx as player");
                                     else
-                                        Dbgl($"Imported {file} fbx as mesh");
+                                        Dbgl($"Importing {file} fbx as mesh");
                                 }
                             }
                             else if (Path.GetExtension(file).ToLower() == ".obj")
@@ -165,7 +167,10 @@ namespace CustomMeshes
                                     Dbgl($"Imported {file} obj as mesh");
                             }
                             if (mesh != null)
+                            {
                                 customMeshes[dirName][subdirName].Add(name, new CustomMeshData(dirName, name, mesh, renderer));
+                                Dbgl($"Added mesh data to customMeshes[{dirName}][{subdirName}][{name}]");
+                            }
                         }
                         catch { }
                     }
@@ -271,11 +276,14 @@ namespace CustomMeshes
 
                 if (!__instance.m_isPlayer || __instance.m_models.Length == 0)
                     return;
+                Dbgl($"Checking for custom player models.");
 
                 if (customMeshes.ContainsKey("player"))
                 {
+                    Dbgl($"Has player.");
                     if (customMeshes["player"].ContainsKey("model"))
                     {
+                        Dbgl($"Has player model.");
                         SkinnedMeshRenderer renderer = null;
                         if (customMeshes["player"]["model"].ContainsKey("0"))
                         {
@@ -330,6 +338,7 @@ namespace CustomMeshes
         {
             static void Postfix(Player __instance)
             {
+                return;
                 Dbgl($"Player awake.");
                 /*
                 foreach (GameObject go in Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>().Values)

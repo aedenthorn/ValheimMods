@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace DiscardInventoryItem
 {
-    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.3.5")]
+    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.3.6")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -30,7 +30,7 @@ namespace DiscardInventoryItem
 
             m_hotkey = Config.Bind<string>("General", "DiscardHotkey", "delete", "The hotkey to discard an item");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            returnResources = Config.Bind<float>("General", "ReturnResources", 1f, "Fraction of resources to return");
+            returnResources = Config.Bind<float>("General", "ReturnResources", 0f, "Fraction of resources to return (0.0 - 1.0)");
             nexusID = Config.Bind<int>("General", "NexusID", 45, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)

@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace NexusUpdate
 {
-    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "1.1.0")]
+    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "1.1.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -198,7 +198,7 @@ namespace NexusUpdate
                             GUILayout.Height(buttonHeight.Value)
                         }))
                     {
-                        Application.OpenURL($"https://www.nexusmods.com/valheim/mods/{nexusUpdatables[i].id}/?tab=files");
+                        Application.OpenURL($"https://www.nexusmods.com/valheim/mods/{reverseNUL[i].id}/?tab=files");
                     }
                     if (showIgnoreButton.Value && !showAllManagedMods.Value)
                     {

@@ -11,13 +11,17 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.5.3")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> dumpInfo;
+        public static ConfigEntry<float> sfxVol;
+        public static ConfigEntry<float> musicVol;
+        public static ConfigEntry<float> ambientVol;
+
         public static Dictionary<string, AudioClip> customMusic = new Dictionary<string, AudioClip>();
         public static Dictionary<string, Dictionary<string, AudioClip>> customMusicList = new Dictionary<string, Dictionary<string,AudioClip>>();
         public static Dictionary<string, AudioClip> customAmbient = new Dictionary<string, AudioClip>();
@@ -40,6 +44,9 @@ namespace CustomAudio
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             dumpInfo = Config.Bind<bool>("General", "DumpInfo", true, "Dump audio info to the console");
+            musicVol = Config.Bind<float>("General", "MusicVol", 0.6f, "Music volume, 0.0 - 1.0");
+            //sfxVol = Config.Bind<float>("General", "SfxVol", 1f, "SFX volume");
+            ambientVol = Config.Bind<float>("General", "AmbientVol", 0.3f, "Ambient volume");
             nexusID = Config.Bind<int>("General", "NexusID", 90, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
@@ -198,7 +205,7 @@ namespace CustomAudio
         [HarmonyPatch(typeof(MusicMan), "Awake")]
         static class MusicMan_Awake_Patch
         {
-            static void Postfix(MusicMan __instance, List<MusicMan.NamedMusic> ___m_music)
+            static void Postfix(MusicMan __instance, List<MusicMan.NamedMusic> ___m_music, ref float ___m_musicVolume)
             {
                 List<string> dump = new List<string>();
 
@@ -230,7 +237,7 @@ namespace CustomAudio
         [HarmonyPatch(typeof(AudioMan), "Awake")] 
         static class AudioMan_Awake_Patch
         {
-            static void Postfix(MusicMan __instance, List<AudioMan.BiomeAmbients> ___m_randomAmbients)
+            static void Postfix(AudioMan __instance, List<AudioMan.BiomeAmbients> ___m_randomAmbients)
             {
                 List<string> dump = new List<string>();
 
@@ -247,7 +254,7 @@ namespace CustomAudio
                         if (customAmbient.ContainsKey(___m_randomAmbients[i].m_randomAmbientClips[j].name))
                         {
                             Dbgl($"replacing ambient: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClips[j].name}");
-                            ___m_randomAmbients[i].m_randomAmbientClips[j] = customMusic[___m_randomAmbients[i].m_randomAmbientClips[j].name];
+                            ___m_randomAmbients[i].m_randomAmbientClips[j] = customAmbient[___m_randomAmbients[i].m_randomAmbientClips[j].name];
                         }
                     }
                     dump.Add($"\tAmbient day tracks: (use {___m_randomAmbients[i].m_name}_day)");
@@ -259,7 +266,7 @@ namespace CustomAudio
                         if (customAmbient.ContainsKey(___m_randomAmbients[i].m_randomAmbientClipsDay[j].name))
                         {
                             Dbgl($"replacing ambient day: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClipsDay[j].name}");
-                            ___m_randomAmbients[i].m_randomAmbientClipsDay[j] = customMusic[___m_randomAmbients[i].m_randomAmbientClipsDay[j].name];
+                            ___m_randomAmbients[i].m_randomAmbientClipsDay[j] = customAmbient[___m_randomAmbients[i].m_randomAmbientClipsDay[j].name];
                         }
                     }
                     dump.Add($"\tAmbient night tracks: (use {___m_randomAmbients[i].m_name}_night)");
@@ -271,7 +278,7 @@ namespace CustomAudio
                         if (customAmbient.ContainsKey(___m_randomAmbients[i].m_randomAmbientClipsNight[j].name))
                         {
                             Dbgl($"replacing ambient night: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClipsNight[j].name}");
-                            ___m_randomAmbients[i].m_randomAmbientClipsNight[j] = customMusic[___m_randomAmbients[i].m_randomAmbientClipsNight[j].name];
+                            ___m_randomAmbients[i].m_randomAmbientClipsNight[j] = customAmbient[___m_randomAmbients[i].m_randomAmbientClipsNight[j].name];
                         }
                     }
                     if (customAmbientList.ContainsKey(___m_randomAmbients[i].m_name + "_day"))
@@ -316,8 +323,15 @@ namespace CustomAudio
         {
             private static MusicMan.NamedMusic lastMusic = null;
 
-            static void Prefix(ref MusicMan.NamedMusic ___m_currentMusic, ref MusicMan.NamedMusic ___m_queuedMusic, AudioSource ___m_musicSource, bool ___m_stopMusic)
+            static void Prefix(ref MusicMan.NamedMusic ___m_currentMusic, ref MusicMan.NamedMusic ___m_queuedMusic, AudioSource ___m_musicSource, bool ___m_stopMusic, ref float __state)
             {
+
+                if(___m_queuedMusic != null)
+                {
+                    ___m_queuedMusic.m_volume = musicVol.Value;
+
+                }
+
                 if (___m_musicSource?.clip != null && lastMusicName != ___m_musicSource.clip.name)
                 {
                     Dbgl($"Switching music from {lastMusicName} to {___m_musicSource.clip.name}");
@@ -341,10 +355,20 @@ namespace CustomAudio
                 {
                     //Dbgl($"queued {___m_queuedMusic.m_name}, setting loop to false {___m_queuedMusic.m_clips.Length}");
                     ___m_musicSource.loop = false;
+                    __state = ___m_musicSource.volume;
                 }
             }
-            static void Postfix(ref MusicMan.NamedMusic ___m_currentMusic, ref MusicMan.NamedMusic ___m_queuedMusic, AudioSource ___m_musicSource, bool ___m_stopMusic)
+        }
+
+        
+        [HarmonyPatch(typeof(AudioMan), "QueueAmbientLoop")]
+        static class QueueAmbientLoop_Patch
+        {
+            static void Prefix(ref float ___m_queuedAmbientVol, ref float ___m_ambientVol, ref float vol)
             {
+                vol = ambientVol.Value;
+                ___m_ambientVol = ambientVol.Value;
+                ___m_queuedAmbientVol = ambientVol.Value;
             }
         }
 

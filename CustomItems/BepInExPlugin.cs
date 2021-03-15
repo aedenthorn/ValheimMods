@@ -51,6 +51,7 @@ namespace CustomItems
         {
             if (Input.GetKeyDown(KeyCode.U))
             {
+                return;
                 List<string> names = new List<string>();
                 var dict = Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>();
                 foreach (var kvp in dict)
@@ -207,9 +208,11 @@ namespace CustomItems
 
 
             Dbgl($"baseitemdrop {baseItemDrop?.name} data {baseItemDrop.m_itemData.m_shared.m_name} customObject {customObject?.name}");
-            
+
+            GameObject prefab = Instantiate(objectsToAdd[customObject.name]);
+            DontDestroyOnLoad(prefab);
             itemDrop.m_itemData = baseItemDrop.m_itemData.Clone();
-            itemDrop.m_itemData.m_dropPrefab = Instantiate(objectsToAdd[customObject.name]);
+            itemDrop.m_itemData.m_dropPrefab = prefab;
             itemDrop.enabled = true;
 
             Dbgl($"itemdrop {itemDrop.m_itemData.m_dropPrefab.name} data {itemDrop.m_itemData.m_shared.m_name} gameobject {itemDrop.gameObject.name}");
@@ -334,7 +337,7 @@ namespace CustomItems
             {
                 Dbgl($"Adding item {customObject.name} to DB");
                 ObjectDB.instance.m_items.Add(objectsToAdd[customObject.name]);
-                ((Dictionary<int, GameObject>)typeof(ObjectDB).GetField("m_itemByHash", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ObjectDB.instance)).Add(customObject.name.GetStableHashCode(), Instantiate(objectsToAdd[customObject.name]));
+                ((Dictionary<int, GameObject>)typeof(ObjectDB).GetField("m_itemByHash", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ObjectDB.instance)).Add(customObject.name.GetStableHashCode(), objectsToAdd[customObject.name]);
                 Dbgl($"Added new item {ObjectDB.instance.GetItemPrefab(customObject.name).name} to DB");
 
             }

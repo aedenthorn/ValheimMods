@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
+using System.Reflection;
 using UnityEngine;
 
 namespace CustomContainerSizes
 {
-    [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.4.0")]
+    [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -35,18 +34,18 @@ namespace CustomContainerSizes
         private void Awake()
         {
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            chestWidth = Config.Bind<int>("Sizes", "ChestWidth", 8, "Number of items wide for chest containers");
-            chestHeight = Config.Bind<int>("Sizes", "ChestHeight", 4, "Number of items tall for chest containers");
-            karveChestWidth = Config.Bind<int>("Sizes", "KarveChestWidth", 6, "Number of items wide for Karve chest containers (max. 8)");
-            karveChestHeight = Config.Bind<int>("Sizes", "KarveChestHeight", 3, "Number of items tall for karve chest containers");
-            vikingShipChestWidth = Config.Bind<int>("Sizes", "VikingShipChestWidth", 8, "Number of items wide for longship chest containers (max. 8)");
-            vikingShipChestHeight = Config.Bind<int>("Sizes", "VikingShipChestHeight", 4, "Number of items tall for longship chest containers");
-            privateChestWidth = Config.Bind<int>("Sizes", "PrivateChestWidth", 6, "Number of items wide for private chest containers (max. 8)");
-            privateChestHeight = Config.Bind<int>("Sizes", "PrivateChestHeight", 3, "Number of items tall for private chest containers");
-            reinforcedChestWidth = Config.Bind<int>("Sizes", "ReinforcedChestWidth", 8, "Number of items wide for reinforced chest containers (max. 8)");
-            reinforcedChestHeight = Config.Bind<int>("Sizes", "ReinforcedChestHeight", 8, "Number of items tall for reinforced chest containers");
-            wagonWidth = Config.Bind<int>("Sizes", "WagonWidth", 8, "Number of items wide for chest containers (max. 8)");
-            wagonHeight = Config.Bind<int>("Sizes", "WagonHeight", 4, "Number of items tall for chest containers");
+            chestWidth = Config.Bind<int>("Sizes", "ChestWidth", 5, "Number of items wide for chest containers");
+            chestHeight = Config.Bind<int>("Sizes", "ChestHeight", 2, "Number of items tall for chest containers");
+            karveChestWidth = Config.Bind<int>("Sizes", "KarveChestWidth", 2, "Number of items wide for Karve chest containers (max. 8)");
+            karveChestHeight = Config.Bind<int>("Sizes", "KarveChestHeight", 2, "Number of items tall for karve chest containers");
+            vikingShipChestWidth = Config.Bind<int>("Sizes", "VikingShipChestWidth", 6, "Number of items wide for longship chest containers (max. 8)");
+            vikingShipChestHeight = Config.Bind<int>("Sizes", "VikingShipChestHeight", 3, "Number of items tall for longship chest containers");
+            privateChestWidth = Config.Bind<int>("Sizes", "PrivateChestWidth", 3, "Number of items wide for private chest containers (max. 8)");
+            privateChestHeight = Config.Bind<int>("Sizes", "PrivateChestHeight", 2, "Number of items tall for private chest containers");
+            reinforcedChestWidth = Config.Bind<int>("Sizes", "ReinforcedChestWidth", 6, "Number of items wide for reinforced chest containers (max. 8)");
+            reinforcedChestHeight = Config.Bind<int>("Sizes", "ReinforcedChestHeight", 3, "Number of items tall for reinforced chest containers");
+            wagonWidth = Config.Bind<int>("Sizes", "WagonWidth", 6, "Number of items wide for chest containers (max. 8)");
+            wagonHeight = Config.Bind<int>("Sizes", "WagonHeight", 3, "Number of items tall for chest containers");
             nexusID = Config.Bind<int>("General", "NexusID", 111, "Mod ID on the Nexus for update checks");
             
             nexusID.Value = 111;

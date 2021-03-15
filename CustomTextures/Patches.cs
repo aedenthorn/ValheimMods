@@ -17,12 +17,15 @@ namespace CustomTextures
             {
                 if (!modEnabled.Value)
                     return;
+                stopwatch.Restart();
                 outputDump.Clear();
 
                 Dbgl($"SetupObjectDB postfix");
 
                 ReplaceObjectDBTextures();
+                LogStopwatch("SetupObjectDB");
             }
+
         }
 
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
@@ -32,7 +35,22 @@ namespace CustomTextures
             {
                 Dbgl($"ZNetScene awake");
 
+                stopwatch.Restart();
+
+                ReplaceZNetSceneTextures(___m_namedPrefabs);
+
+                LogStopwatch("ZNetScene");
+                //stopwatch.Restart();
+
                 ReplaceEnvironmentTextures();
+
+                if (dumpSceneTextures.Value)
+                {
+                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
+                    Dbgl($"Writing {path}");
+                    File.WriteAllLines(path, outputDump);
+                }
+                //LogStopwatch("ZNetScene 2");
             }
         }
 
@@ -41,8 +59,8 @@ namespace CustomTextures
         {
             static void Prefix(ZoneSystem __instance)
             {
-                outputDump.Clear();
                 ReplaceZoneSystemTextures(__instance);
+
             }
         }
         
@@ -52,6 +70,8 @@ namespace CustomTextures
             static void Postfix(ClutterSystem __instance)
             {
                 Dbgl($"Clutter system awake");
+
+                //stopwatch.Restart();
 
                 logDump.Clear();
 
@@ -63,12 +83,9 @@ namespace CustomTextures
 
                 if (logDump.Any())
                     Dbgl("\n" + string.Join("\n", logDump));
-                if (dumpSceneTextures.Value)
-                {
-                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
-                    Dbgl($"Writing {path}");
-                    File.WriteAllLines(path, outputDump);
-                }
+
+                //LogStopwatch("Clutter System");
+
             }
         }
 
@@ -82,16 +99,16 @@ namespace CustomTextures
                     foreach(string property in __instance.m_models[i].m_baseMaterial.GetTexturePropertyNames())
                     {
 
-                        if (HasCustomTexture($"player_model_{i}{property}"))
+                        if (ShouldLoadCustomTexture($"player_model_{i}{property}"))
                         {
                             __instance.m_models[i].m_baseMaterial.SetTexture(property, LoadTexture($"player_model_{i}{property}", __instance.m_models[i].m_baseMaterial.GetTexture(property)));
                             Dbgl($"set player_model_{i}_texture custom texture.");
                         }
-                        else if (property == "_MainTex" && HasCustomTexture($"player_model_{i}_texture")) // legacy
+                        else if (property == "_MainTex" && ShouldLoadCustomTexture($"player_model_{i}_texture")) // legacy
                         {
                             __instance.m_models[i].m_baseMaterial.SetTexture(property, LoadTexture($"player_model_{i}_texture", __instance.m_models[i].m_baseMaterial.GetTexture(property)));
                         }
-                        else if (property == "_SkinBumpMap" && HasCustomTexture($"player_model_{i}_bump")) // legacy
+                        else if (property == "_SkinBumpMap" && ShouldLoadCustomTexture($"player_model_{i}_bump")) // legacy
                         {
                             __instance.m_models[i].m_baseMaterial.SetTexture(property, LoadTexture($"player_model_{i}_bump", __instance.m_models[i].m_baseMaterial.GetTexture(property)));
                         }

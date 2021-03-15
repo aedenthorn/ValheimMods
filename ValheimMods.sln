@@ -85,6 +85,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTweaks", "ConsoleTwe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelmetHairToggle", "HelmetHairToggle\HelmetHairToggle.csproj", "{F67BE8BE-C23C-4F9B-A91D-7B77AD1E8D55}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickCart", "QuickCart\QuickCart.csproj", "{7CA0E23D-7255-481D-966C-DD24AD9A85D0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -255,6 +257,10 @@ Global
 		{F67BE8BE-C23C-4F9B-A91D-7B77AD1E8D55}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F67BE8BE-C23C-4F9B-A91D-7B77AD1E8D55}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F67BE8BE-C23C-4F9B-A91D-7B77AD1E8D55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CA0E23D-7255-481D-966C-DD24AD9A85D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CA0E23D-7255-481D-966C-DD24AD9A85D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CA0E23D-7255-481D-966C-DD24AD9A85D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CA0E23D-7255-481D-966C-DD24AD9A85D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
