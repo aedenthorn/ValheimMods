@@ -75,6 +75,7 @@ namespace TimeMod
                 {
                     if (stopRenderingOnKeyPause.Value)
                     {
+                        Traverse.Create(GameCamera.instance).Field("m_mouseCapture").SetValue(false);
                         context.StartCoroutine(SnapPhoto(false));
                     }
                     else
@@ -86,6 +87,7 @@ namespace TimeMod
                 }
                 else
                 {
+                    Traverse.Create(GameCamera.instance).Field("m_mouseCapture").SetValue(true);
                     Destroy(image);
                     image = null;
                     GameCamera.instance.gameObject.GetComponent<Camera>().enabled = true;
@@ -244,6 +246,14 @@ namespace TimeMod
         }
 
         
+        [HarmonyPatch(typeof(PlayerController), "LateUpdate")]
+        static class PlayerController_LateUpdate_Patch
+        {
+            static bool Prefix()
+            {
+                return (Time.timeScale != 0 || !stopRenderingOnKeyPause.Value || Utils.GetMainCamera() != null);
+            }
+        }
         [HarmonyPatch(typeof(DamageText), "LateUpdate")]
         static class DamageText_LateUpdate_Patch
         {
@@ -289,6 +299,9 @@ namespace TimeMod
                 if (text.ToLower().Equals("timemod reset"))
                 {
                     context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "Time Mod config reloaded" }).GetValue();
                     return false;
                 }
                 return true;

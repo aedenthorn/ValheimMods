@@ -91,6 +91,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingDemolish", "Buildin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemolishRestrictions", "DemolishRestrictions\DemolishRestrictions.csproj", "{0B83356E-DF45-4FDE-A0A0-8BCF6C36EC85}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotbarSwitch", "HotbarSwitch\HotbarSwitch.csproj", "{56A9443B-6C54-4C7A-84E8-C5CBDBA0E6FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayerModelSwitch", "PlayerModelSwitch\PlayerModelSwitch.csproj", "{C3ADDFBA-2DAE-4AD4-B99F-EBC0990D5E7F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -273,6 +277,14 @@ Global
 		{0B83356E-DF45-4FDE-A0A0-8BCF6C36EC85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B83356E-DF45-4FDE-A0A0-8BCF6C36EC85}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B83356E-DF45-4FDE-A0A0-8BCF6C36EC85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56A9443B-6C54-4C7A-84E8-C5CBDBA0E6FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56A9443B-6C54-4C7A-84E8-C5CBDBA0E6FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56A9443B-6C54-4C7A-84E8-C5CBDBA0E6FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56A9443B-6C54-4C7A-84E8-C5CBDBA0E6FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3ADDFBA-2DAE-4AD4-B99F-EBC0990D5E7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3ADDFBA-2DAE-4AD4-B99F-EBC0990D5E7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3ADDFBA-2DAE-4AD4-B99F-EBC0990D5E7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3ADDFBA-2DAE-4AD4-B99F-EBC0990D5E7F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
