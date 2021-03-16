@@ -69,7 +69,7 @@ namespace AutoFuel
         {
             try
             {
-                return Input.GetKeyDown(value.ToLower());
+                return value?.Length > 0 && Input.GetKeyDown(value.ToLower());
             }
             catch
             {

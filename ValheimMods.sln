@@ -87,6 +87,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelmetHairToggle", "HelmetH
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickCart", "QuickCart\QuickCart.csproj", "{7CA0E23D-7255-481D-966C-DD24AD9A85D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingDemolish", "BuildingDemolish\BuildingDemolish.csproj", "{DA998B9B-ABEA-4389-82A8-1FCA3368ECE3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemolishRestrictions", "DemolishRestrictions\DemolishRestrictions.csproj", "{0B83356E-DF45-4FDE-A0A0-8BCF6C36EC85}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -261,6 +265,14 @@ Global
 		{7CA0E23D-7255-481D-966C-DD24AD9A85D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7CA0E23D-7255-481D-966C-DD24AD9A85D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7CA0E23D-7255-481D-966C-DD24AD9A85D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA998B9B-ABEA-4389-82A8-1FCA3368ECE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA998B9B-ABEA-4389-82A8-1FCA3368ECE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA998B9B-ABEA-4389-82A8-1FCA3368ECE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA998B9B-ABEA-4389-82A8-1FCA3368ECE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B83356E-DF45-4FDE-A0A0-8BCF6C36EC85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B83356E-DF45-4FDE-A0A0-8BCF6C36EC85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B83356E-DF45-4FDE-A0A0-8BCF6C36EC85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B83356E-DF45-4FDE-A0A0-8BCF6C36EC85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

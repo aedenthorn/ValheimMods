@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace TimeMod
 {
-    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.5.2")]
+    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -24,6 +24,7 @@ namespace TimeMod
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> pauseOnMenu;
         public static ConfigEntry<bool> stopRenderingOnMenuPause;
+        public static ConfigEntry<bool> stopRenderingOnKeyPause;
         public static ConfigEntry<bool> showMessages;
         public static ConfigEntry<bool> enableSpeedChangeStepMult;
         public static ConfigEntry<double> speedChangeStep;
@@ -47,6 +48,7 @@ namespace TimeMod
             m_resetKey = Config.Bind<string>("General", "ResetKey", "\\", "The hotkey to reset the game time");
             pauseOnMenu = Config.Bind<bool>("General", "PauseOnMenu", true, "Pause when opening the menu");
             stopRenderingOnMenuPause = Config.Bind<bool>("General", "StopRenderingOnMenuPause", true, "Stop rendering the game scene when you pause via the menu and show a snapshot instead (saves a lot of GPU usage)");
+            stopRenderingOnKeyPause = Config.Bind<bool>("General", "StopRenderingOnKeyPause", false, "Stop rendering the game scene when you pause via the pause hotkey and show a snapshot instead (saves a lot of GPU usage)");
             showMessages = Config.Bind<bool>("General", "ShowMessages", false, "Show hud messages on hotkey press");
             speedChangeStep = Config.Bind<double>("General", "SpeedChangeStep", 0.1, "Amount to change the time scale on each increment");
             enableSpeedChangeStepMult = Config.Bind<bool>("General", "EnableSpeedChangeStepMult", true, "Hold down shift to increment x10");
@@ -71,27 +73,47 @@ namespace TimeMod
                 Dbgl($"Pressed pause key, timeScale was {Math.Round(Time.timeScale, 1)}.");
                 if (Time.timeScale != 0)
                 {
-                    lastTime = Math.Round(Time.timeScale, 1);
-                    Time.timeScale = 0;
+                    if (stopRenderingOnKeyPause.Value)
+                    {
+                        context.StartCoroutine(SnapPhoto(false));
+                    }
+                    else
+                    {
+                        lastTime = Math.Round(Time.timeScale, 1);
+                        Time.timeScale = 0;
+                    }
                     outString = "You have stopped time.";
                 }
                 else
                 {
+                    Destroy(image);
+                    image = null;
+                    GameCamera.instance.gameObject.GetComponent<Camera>().enabled = true;
+
                     Time.timeScale = (float)lastTime;
                     outString = "You have allowed the flow of time to resume.";
                 }
             }
             else if (m_resetKey.Value.Length > 0 && CheckKeyDown(m_resetKey.Value))
             {
-                Dbgl($"Pressed reset key, timeScale was {Math.Round(Time.timeScale, 1)}.");
-                Time.timeScale = 1;
-                outString = "You have reset the speed of time to 1.";
+                if (Time.timeScale == 0)
+                {
+                    Dbgl($"Pressed reset key while paused, lastTime was {Math.Round(lastTime, 1)}.");
+                    lastTime = 1;
+                    outString = "You have reset the normal speed of time. Time is still paused.";
+                }
+                else
+                {
+                    Dbgl($"Pressed reset key, timeScale was {Math.Round(Time.timeScale, 1)}.");
+                    Time.timeScale = 1;
+                    outString = "You have reset the speed of time to 1.";
+                }
             }
             else if (m_speedUpKey.Value.Length > 0 && CheckKeyDown(m_speedUpKey.Value))
             {
                 if (Time.timeScale > 0)
                 {
-                    Time.timeScale = Time.timeScale + (float)speedChangeStep.Value * mult;
+                    Time.timeScale += (float)speedChangeStep.Value * mult;
                     Dbgl($"Pressed speedup key, timeScale is now  {Math.Round(Time.timeScale, 1)}.");
                     outString = $"You have increased the speed of time to {Math.Round(Time.timeScale, 1)}.";
                 }
@@ -166,7 +188,7 @@ namespace TimeMod
 
                     if (stopRenderingOnMenuPause.Value)
                     {
-                        context.StartCoroutine(SnapPhoto());
+                        context.StartCoroutine(SnapPhoto(true));
                     }
                     else
                     {
@@ -189,7 +211,7 @@ namespace TimeMod
             }
         }
 
-        private static IEnumerator SnapPhoto()
+        private static IEnumerator SnapPhoto(bool menuPause)
         {
             yield return new WaitForEndOfFrame();
 
@@ -216,7 +238,9 @@ namespace TimeMod
             Dbgl($"Created fake scene texture.");
             lastTime = Math.Round(Time.timeScale, 1);
             Time.timeScale = 0;
-            pausedMenu = true;
+            
+            if(menuPause)
+                pausedMenu = true;
         }
 
         

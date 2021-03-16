@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace ConsoleTweaks
 {
-    [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.2.0")]
+    [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.2.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -269,7 +269,7 @@ namespace ConsoleTweaks
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("reset"))
+                if (text.ToLower().Equals("consoletweaks reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();

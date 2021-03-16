@@ -20,7 +20,8 @@ namespace MiningMod
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<float> damageMult;
-        public static ConfigEntry<int> dropMult;
+        public static ConfigEntry<float> stoneDropMult;
+        public static ConfigEntry<float> oreDropMult;
         public static ConfigEntry<float> dropMinMult;
         public static ConfigEntry<float> dropMaxMult;
         public static ConfigEntry<float> dropChanceMult;
@@ -38,14 +39,15 @@ namespace MiningMod
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            dropChanceMult = Config.Bind<float>("General", "DropChanceMult", 1.5f, "Multiply the drop chance by this amount");
-            dropMult = Config.Bind<int>("General", "DropMult", 2, "Multiply the amount dropped by this amount (whole number)");
-            dropMinMult = Config.Bind<float>("General", "DropMinMult", 1.1f, "Multiply the minimum amount dropped (before multiplier) by this amount");
-            dropMaxMult = Config.Bind<float>("General", "DropMaxMult", 1.1f, "Multiply the maximum amount dropped (before multiplier) by this amount");
+            dropChanceMult = Config.Bind<float>("General", "DropChanceMult", 1f, "Multiply the drop chance by this amount");
+            stoneDropMult = Config.Bind<float>("General", "StoneDropMult", 1f, "Multiply the amount of stone dropped by this amount");
+            oreDropMult = Config.Bind<float>("General", "OreDropMult", 1f, "Multiply the amount of ore dropped by this amount");
+            dropMinMult = Config.Bind<float>("General", "DropMinMult", 1f, "Multiply the minimum amount dropped (before multiplier) by this amount");
+            dropMaxMult = Config.Bind<float>("General", "DropMaxMult", 1f, "Multiply the maximum amount dropped (before multiplier) by this amount");
             rubyDropChance = Config.Bind<float>("General", "RubyDropChance", 0.05f, "Chance of dropping a ruby");
             amberPearlDropChance = Config.Bind<float>("General", "AmberPearlDropChance", 0.1f, "Chance of dropping amber pearl");
             amberDropChance = Config.Bind<float>("General", "AmberDropChance", 0.2f, "Chance of dropping amber");
-            damageMult = Config.Bind<float>("General", "DamageMult", 2f, "Damage multiplier to mining rocks");
+            damageMult = Config.Bind<float>("General", "DamageMult", 1f, "Damage multiplier to mining rocks");
             nexusID = Config.Bind<int>("General", "NexusID", 206, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
@@ -109,17 +111,45 @@ namespace MiningMod
             {
                 if (Environment.StackTrace.Contains("MineRock") || (Environment.StackTrace.Contains("DropOnDestroyed") && dropTableObject.Contains("Rock")))
                 {
-                    if(dropMult.Value > 1)
+                    Dictionary<string, List<GameObject>> typeLootDict = new Dictionary<string, List<GameObject>>();
+                    foreach (GameObject go in __result)
                     {
-                        int count = __result.Count;
-                        for (int i = 0; i < count; i++)
+                        if (go == null)
+                            continue;
+                        if (!typeLootDict.ContainsKey(go.name))
+                            typeLootDict.Add(go.name, new List<GameObject>());
+                        typeLootDict[go.name].Add(go);
+                    }
+
+                    foreach(var kvp in typeLootDict)
+                    {
+                        string name = ZNetView.GetPrefabName(kvp.Value[0]);
+                        int count = kvp.Value.Count;
+                        if (kvp.Key == "Stone")
                         {
-                            for (int j = 0; j < dropMult.Value - 1; j++)
+                            count = Mathf.RoundToInt(count * stoneDropMult.Value);
+                        }
+                        else if (kvp.Key.EndsWith("Ore"))
+                        {
+                            count = Mathf.RoundToInt(count * oreDropMult.Value);
+                        }
+                        Dbgl($"loot drop had {kvp.Value.Count} {kvp.Value} - changed amount to {count}");
+                        if(kvp.Value.Count < count)
+                        {
+                            for (int i = kvp.Value.Count; i < count; i++)
                             {
-                                __result.Add(__result[i]);
+                                __result.Add(kvp.Value[0]);
+                            }
+                        }
+                        else if(count < kvp.Value.Count)
+                        {
+                            for (int i = count; i < kvp.Value.Count; i++)
+                            {
+                                __result.Remove(kvp.Value[i]);
                             }
                         }
                     }
+
                     if (UnityEngine.Random.value < rubyDropChance.Value)
                     {
                         GameObject go = ZNetScene.instance.GetPrefab("Ruby");
@@ -139,15 +169,15 @@ namespace MiningMod
 
             }
         }
-        [HarmonyPatch(typeof(DropTable), "GetDropList", new Type[] {typeof(int) })]
+        //[HarmonyPatch(typeof(DropTable), "GetDropList", new Type[] {typeof(int) })]
         static class DropTable_GetDropList_Patch2
         {
             static void Prefix(ref int amount)
             {
                 if (Environment.StackTrace.Contains("MineRock") || (Environment.StackTrace.Contains("DropOnDestroyed") && dropTableObject.Contains("Rock")))
                 {
-                    Dbgl($"Getting drops for {dropTableObject}");
-                    amount = Mathf.RoundToInt(dropMult.Value * amount);
+                    //Dbgl($"Getting drops for {dropTableObject}");
+                    //amount = Mathf.RoundToInt(dropMult.Value * amount);
                 }
             }
         }

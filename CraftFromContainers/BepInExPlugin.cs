@@ -249,8 +249,8 @@ namespace CraftFromContainers
                             Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking {amount}");
 
                             c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
-                            typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                            typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
+                            //typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
+                            //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
                             
                             if(__result)
                                 user.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$msg_fireadding", new string[]{__instance.m_fuelItem.m_itemData.m_shared.m_name}), 0, null);
@@ -301,8 +301,8 @@ namespace CraftFromContainers
                             Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
                             __result = item;
                             c.GetInventory().RemoveItem(itemConversion.m_from.m_itemData.m_shared.m_name, 1);
-                            typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                            typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
+                            //typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
+                            //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
                             return;
                         }
                     }
@@ -401,8 +401,8 @@ namespace CraftFromContainers
                             Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name}, taking {amount}");
 
                             c.GetInventory().RemoveItem(name, amount);
-                            typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                            typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
+                            //typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
+                            //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
 
                             for (int i = 0; i < amount; i++)
                                 ___m_nview.InvokeRPC("AddOre", new object[] { newItem.m_dropPrefab.name });
@@ -485,8 +485,8 @@ namespace CraftFromContainers
                         Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name}, taking {amount}");
 
                         c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
-                        typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                        typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
+                        //typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
+                        //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
 
                         for (int i = 0; i < amount; i++)
                             ___m_nview.InvokeRPC("AddFuel", new object[] { });
@@ -977,26 +977,6 @@ namespace CraftFromContainers
                     player.Message(MessageHud.MessageType.Center, pulledMessage.Value, 0, null);
             }
         }
-        [HarmonyPatch(typeof(Console), "InputText")]
-        static class InputText_Patch
-        {
-            static bool Prefix(Console __instance)
-            {
-                if (!modEnabled.Value)
-                    return true;
-                string text = __instance.m_input.text;
-                if (text.ToLower().Equals("craftfromcontainers reset"))
-                {
-                    context.Config.Reload();
-                    context.Config.Save();
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "Craft From Containers config reloaded" }).GetValue();
-                    return false;
-                }
-                return true;
-            }
-        }
-
         static public bool HaveRequiredItemCount(Player player, Piece piece, Player.RequirementMode mode, Inventory inventory, HashSet<string> knownMaterial)
         {
             List<Container> nearbyContainers = GetNearbyContainers(player.transform.position);
@@ -1188,5 +1168,26 @@ namespace CraftFromContainers
                 return codes;
             }
         }
+
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals("craftfromcontainers reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "Craft From Containers config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
+            }
+        }
+
     }
 }

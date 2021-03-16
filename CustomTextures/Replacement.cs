@@ -250,7 +250,7 @@ namespace CustomTextures
                         result.name = name;
 
                         m.SetTexture(propHash, result);
-                        if (result != null && property == "_MainTex")
+                        if (result != null)
                             m.SetColor(propHash, Color.white);
                         break;
                     }
