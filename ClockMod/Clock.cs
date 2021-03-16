@@ -2,6 +2,7 @@
 using HarmonyLib;
 using System;
 using UnityEngine;
+using System.IO;
 
 namespace ClockMod
 {
@@ -29,8 +30,9 @@ namespace ClockMod
         public static ConfigEntry<string> clockFormat;
         public static ConfigEntry<string> clockString;
         public static ConfigEntry<TextAnchor> clockTextAlignment;
-        public static ConfigEntry<string> clockFuzzyStrings;
+       //public static ConfigEntry<string> clockFuzzyStrings;
         public static ConfigEntry<int> nexusID;
+        private static ConfigEntry<string> clockFuzzyLang;
 
         private static Font clockFont;
         private static GUIStyle style;
@@ -69,7 +71,8 @@ namespace ClockMod
             clockFormat = Config.Bind<string>("General", "ClockFormat", "HH:mm", "Time format; set to 'fuzzy' for fuzzy time");
             clockString = Config.Bind<string>("General", "ClockString", "<b>{0}</b>", "Formatted clock string - {0} is replaced by the actual time string, and {1} is replaced by the fuzzy string");
             clockTextAlignment = Config.Bind<TextAnchor>("General", "ClockTextAlignment", TextAnchor.MiddleCenter, "Clock text alignment.");
-            clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Midnight,Early Morning,Early Morning,Before Dawn,Before Dawn,Dawn,Dawn,Morning,Morning,Late Morning,Late Morning,Midday,Midday,Early Afternoon,Early Afternoon,Afternoon,Afternoon,Evening,Evening,Night,Night,Late Night,Late Night,Midnight", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
+            clockFuzzyLang = Config.Bind<string>("General", "ClockFuzzyLang", "en", "Fuzzy string language. Avaiable: en (English),pt (Portuguese)");
+            //clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Midnight,Early Morning,Early Morning,Before Dawn,Before Dawn,Dawn,Dawn,Morning,Morning,Late Morning,Late Morning,Midday,Midday,Early Afternoon,Early Afternoon,Afternoon,Afternoon,Evening,Evening,Night,Night,Late Night,Late Night,Midnight", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
 
             newTimeString = GetCurrentTimeString(DateTime.Now, 0.5f);
             style = new GUIStyle
@@ -85,7 +88,9 @@ namespace ClockMod
                 alignment = clockTextAlignment.Value,
             };
 
-        }
+            
+            
+    }
         private void Update()
         {
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses() || toggleClockKeyOnPress.Value || !PressedToggleKey())
@@ -204,7 +209,20 @@ namespace ClockMod
             {
                 return string.Format(clockString.Value, theTime.ToString(clockFormat.Value));
             }
-            string[] fuzzyStringArray = clockFuzzyStrings.Value.Split(',');
+
+            string fuzzyLangFile = GetFuzzyFileName("en");
+
+            if (clockFuzzyLang.Value != "en")
+            {
+                var tempfilename = GetFuzzyFileName(clockFuzzyLang.Value);
+                if (File.Exists(tempfilename) || File.ReadAllText(tempfilename).Length == 0)
+                    fuzzyLangFile = tempfilename;
+                else
+                    Debug.LogWarning(string.Format("Language file {0} not found. Using language default (en).", tempfilename));                
+            }
+
+            string[] fuzzyStringArray = (File.ReadAllLines(fuzzyLangFile))[0].Split(',');
+
             int idx = Math.Min((int)(fuzzyStringArray.Length * fraction), fuzzyStringArray.Length - 1);
 
             if (clockFormat.Value == "fuzzy")
@@ -212,6 +230,12 @@ namespace ClockMod
 
             return string.Format(clockString.Value, theTime.ToString(clockFormat.Value), fuzzyStringArray[idx]);
         }
+
+        private static string GetFuzzyFileName(string lang)
+        {            
+            return context.Info.Location.Replace("ClockMod.dll","") + string.Format("clockmod.lang.{0}.cfg",lang);
+        }
+
         private static bool CheckKeyHeld(string value)
         {
             try
