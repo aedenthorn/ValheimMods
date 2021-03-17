@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace AutoStore
 {
-    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.4")]
+    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.5")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -204,7 +204,7 @@ namespace AutoStore
         {
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
-                if (!isOn.Value)
+                if (!isOn.Value || !__instance.IsOwner())
                     return;
 
                 Vector3 position = __instance.transform.position + Vector3.up;

@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace CustomServerLoadingScreen
 {
-    [BepInPlugin("aedenthorn.CustomServerLoadingScreen", "Custom Server Loading Screen", "0.1.0")]
+    [BepInPlugin("aedenthorn.CustomServerLoadingScreen", "Custom Server Loading Screen", "0.2.1")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -26,7 +26,7 @@ namespace CustomServerLoadingScreen
         private static ConfigEntry<int> maxWaitTime;
 
         private static ConfigEntry<string> serverLoadingScreen;
-        private static ConfigEntry<bool> differentSpawnScreen;
+        //private static ConfigEntry<bool> differentSpawnScreen;
         private static ConfigEntry<bool> removeVignette;
         private static ConfigEntry<Color> spawnColorMask;
         private static ConfigEntry<Color> tipTextColor;
@@ -34,7 +34,7 @@ namespace CustomServerLoadingScreen
         private static string loadingTip = "";
         private static Sprite loadingSprite = null;
         private static bool loadedSprite = true;
-        private static Sprite loadingSprite2 = null;
+        //private static Sprite loadingSprite2 = null;
         private static int secondsWaited = 0;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -48,12 +48,14 @@ namespace CustomServerLoadingScreen
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 553, "Nexus mod ID for updates");
-            
-            maxWaitTime = Config.Bind<int>("General", "MaxWaitTime", 20, "Maximum number of seconds to wait to load the URL");
-            differentSpawnScreen = Config.Bind<bool>("General", "DifferentSpawnScreen", true, "Use a different screen for the spawn part");
-            spawnColorMask = Config.Bind<Color>("General", "SpawnColorMask", new Color(0.532f,0.588f, 0.853f,1f), "Change the color mask of the spawn screen (set last number to 0 to disable)");
-            removeVignette = Config.Bind<bool>("General", "RemoveMask", true, "Remove dark edges for the spawn part");
-            serverLoadingScreen = Config.Bind<string>("General", "ServerLoadingScreen", "https://i.imgur.com/9WlYUlb.png^This is the MOTD!", "Custom loading screen URL and replacement text separated by a caret ^ (this is only for servers!)");
+            //differentSpawnScreen = Config.Bind<bool>("General", "DifferentSpawnScreen", true, "Use a different screen for the spawn part");
+
+            serverLoadingScreen = Config.Bind<string>("General", "ServerLoadingScreen", "https://i.imgur.com/9WlYUlb.png^This is the MOTD!", "Custom loading screen URL and replacement text separated by a caret ^ (server only)");
+
+            maxWaitTime = Config.Bind<int>("General", "MaxWaitTime", 20, "Maximum number of seconds to wait to load the URL (client only)");
+            spawnColorMask = Config.Bind<Color>("General", "SpawnColorMask", Color.white, "Change the color mask of the spawn screen  (client only)");
+            removeVignette = Config.Bind<bool>("General", "RemoveMask", true, "Remove dark edges for the spawn part (client only)");
+            tipTextColor = Config.Bind<Color>("General", "TipTextColor", Color.white, "Custom tip text color (client only)");
 
             loadedSprite = true;
 
@@ -102,15 +104,14 @@ namespace CustomServerLoadingScreen
 
                     var tex = DownloadHandlerTexture.GetContent(uwr);
                     loadingSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.zero, 1);
-
                     if (false && Hud.instance != null)
                     {
                         Dbgl($"setting sprite to menu background screen");
-                        
 
                         Hud.instance.m_loadingProgress.SetActive(true);
                         Hud.instance.m_loadingScreen.alpha = 1;
-                        Hud.instance.m_loadingImage.sprite = differentSpawnScreen.Value && loadingSprite2 != null ? loadingSprite2 : loadingSprite;
+                        //Hud.instance.m_loadingImage.sprite = differentSpawnScreen.Value && loadingSprite2 != null ? loadingSprite2 : loadingSprite;
+                        Hud.instance.m_loadingImage.sprite = loadingSprite;
                         Hud.instance.m_loadingImage.color = spawnColorMask.Value;
                         if (loadingTip.Any())
                         {
@@ -199,8 +200,9 @@ namespace CustomServerLoadingScreen
                 {
                     Dbgl($"UpdateBlackScreen setting sprite to loading screen");
 
-                    __instance.m_loadingImage.sprite = differentSpawnScreen.Value && loadingSprite2 != null ? loadingSprite2 : loadingSprite;
+                    __instance.m_loadingImage.sprite = loadingSprite;
                     __instance.m_loadingImage.color = spawnColorMask.Value;
+
                     if (loadingTip.Length > 0)
                     {
                         __instance.m_loadingTip.text = loadingTip;

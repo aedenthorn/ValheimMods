@@ -97,6 +97,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayerModelSwitch", "Player
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomServerLoadingScreen", "CustomServerLoadingScreen\CustomServerLoadingScreen.csproj", "{FD682840-FDBD-4548-84FB-0A1B153A82DA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DespawnTrader", "DespawnTrader\DespawnTrader.csproj", "{DFC06E5E-D824-4A04-A72D-1984C77AA300}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -291,6 +293,10 @@ Global
 		{FD682840-FDBD-4548-84FB-0A1B153A82DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD682840-FDBD-4548-84FB-0A1B153A82DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD682840-FDBD-4548-84FB-0A1B153A82DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFC06E5E-D824-4A04-A72D-1984C77AA300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFC06E5E-D824-4A04-A72D-1984C77AA300}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFC06E5E-D824-4A04-A72D-1984C77AA300}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFC06E5E-D824-4A04-A72D-1984C77AA300}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

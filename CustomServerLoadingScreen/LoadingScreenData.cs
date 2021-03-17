@@ -2,8 +2,8 @@
 {
     internal class LoadingScreenData
     {
-        public string screen;
-        public string tip;
+        public string screen = "";
+        public string tip = "";
 
         public LoadingScreenData(string data)
         {

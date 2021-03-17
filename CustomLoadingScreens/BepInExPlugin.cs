@@ -52,7 +52,7 @@ namespace CustomLoadingScreens
             nexusID = Config.Bind<int>("General", "NexusID", 0, "Nexus mod ID for updates");
             loadingText = Config.Bind<string>("General", "LoadingText", "Loading...", "Custom Loading... text");
             loadingTextColor = Config.Bind<Color>("General", "LoadingTextColor", new Color(1, 0.641f, 0, 1), "Custom Loading... text color");
-            tipTextColor = Config.Bind<Color>("General", "TipTextColor", Color.white, "Custom Loading... text color");
+            tipTextColor = Config.Bind<Color>("General", "TipTextColor", Color.white, "Custom tip text color");
 
             if (!modEnabled.Value)
                 return;
@@ -161,6 +161,7 @@ namespace CustomLoadingScreens
 
                     __instance.m_loadingImage.sprite = differentSpawnScreen.Value ? loadingSprite2 : loadingSprite;
                     __instance.m_loadingImage.color = spawnColorMask.Value;
+
                     if (loadingTips.Any())
                     {
                         __instance.m_loadingTip.text = loadingTips[UnityEngine.Random.Range(0, loadingTips.Length - 1)];
