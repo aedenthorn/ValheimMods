@@ -1,15 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace BuildingDemolish
 {
-    [BepInPlugin("aedenthorn.BuildingDemolish", "BuildingDemolish", "0.3.0")]
+    [BepInPlugin("aedenthorn.BuildingDemolish", "BuildingDemolish", "0.3.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -46,7 +43,7 @@ namespace BuildingDemolish
             destroyRadius = Config.Bind<float>("General", "DestroyRadius", 20, "Radius of destruction");
             allowDestroyUncreated = Config.Bind<bool>("General", "AllowDestroyUncreated", false, "Allow destroying buildings not created by any player");
             requireCraftingStation = Config.Bind<bool>("General", "RequireCraftingStation", true, "Require a nearby crafting station to destroy corresponding pieces (this is a vanilla requirement)");
-            hotKey = Config.Bind<string>("General", "HotKey", "b", "Hotkey to initiate destruction");
+            hotKey = Config.Bind<string>("General", "HotKey", ";", "Hotkey to initiate destruction");
 
             if (!modEnabled.Value)
                 return;
