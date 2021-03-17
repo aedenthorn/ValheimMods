@@ -95,6 +95,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotbarSwitch", "HotbarSwitc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayerModelSwitch", "PlayerModelSwitch\PlayerModelSwitch.csproj", "{C3ADDFBA-2DAE-4AD4-B99F-EBC0990D5E7F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomServerLoadingScreen", "CustomServerLoadingScreen\CustomServerLoadingScreen.csproj", "{FD682840-FDBD-4548-84FB-0A1B153A82DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -285,6 +287,10 @@ Global
 		{C3ADDFBA-2DAE-4AD4-B99F-EBC0990D5E7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3ADDFBA-2DAE-4AD4-B99F-EBC0990D5E7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3ADDFBA-2DAE-4AD4-B99F-EBC0990D5E7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD682840-FDBD-4548-84FB-0A1B153A82DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD682840-FDBD-4548-84FB-0A1B153A82DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD682840-FDBD-4548-84FB-0A1B153A82DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD682840-FDBD-4548-84FB-0A1B153A82DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
