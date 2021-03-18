@@ -95,17 +95,29 @@ namespace PlantMod
                 "piece",
                 "piece_nonsolid"
             });
-            Collider[] array = Physics.OverlapSphere(plant.transform.position, plant.m_growRadius * 2, spaceMask);
+            float plantMaxDist = plant.m_growRadius;
+            if (!plant.m_grownPrefabs[0].GetComponent<TreeBase>()) //Check if not tree as their m_grownPrefabs don't have colliders
+                plantMaxDist = plantMaxDist + Math.Abs(plant.GetComponent<CapsuleCollider>().radius - plant.m_grownPrefabs[0].GetComponent<CapsuleCollider>().radius);
+            Collider[] array = Physics.OverlapSphere(plant.transform.position, 2.5f, spaceMask);
             for (int i = 0; i < array.Length; i++)
             {
-                Plant component = array[i].GetComponent<Plant>();
-                if (Input.GetKey("left shift"))
-                    Dbgl($"{Vector3.Distance(plant.transform.position, component.transform.position)} {Math.Max(component.m_growRadius, plant.m_growRadius)}");
-                if (component && component != plant && Vector3.Distance(plant.transform.GetComponent<Collider>().ClosestPoint(component.transform.position), component.transform.GetComponent<Collider>().ClosestPoint(plant.transform.position)) < Math.Max(component.m_growRadius, plant.m_growRadius))
+                if (array[i].GetComponent<Plant>())
                 {
-                    return false;
+                    Plant collidingPlant = array[i].GetComponent<Plant>();
+                    if (collidingPlant != plant)
+                    {
+                        float collidingPlantMaxDist = collidingPlant.m_growRadius;
+                        if (!collidingPlant.m_grownPrefabs[0].GetComponent<TreeBase>()) //Check if not tree as their m_grownPrefabs don't have colliders
+                            collidingPlantMaxDist = collidingPlantMaxDist + Math.Abs(collidingPlant.GetComponent<CapsuleCollider>().radius - collidingPlant.m_grownPrefabs[0].GetComponent<CapsuleCollider>().radius);
+                        if (collidingPlant && collidingPlant != plant && Vector3.Distance(plant.transform.GetComponent<CapsuleCollider>().ClosestPoint(collidingPlant.transform.position), collidingPlant.transform.GetComponent<CapsuleCollider>().ClosestPoint(plant.transform.position)) < Math.Max(plantMaxDist, collidingPlantMaxDist))
+                            return false;
+                    }
                 }
+                else if (array[i] != plant && Vector3.Distance(plant.transform.GetComponent<CapsuleCollider>().ClosestPoint(array[i].transform.position), array[i].transform.GetComponent<Collider>().ClosestPoint(plant.transform.position)) < plant.m_growRadius)
+                    return false;
             }
+            if (plant.m_needCultivatedGround && !Heightmap.FindHeightmap(plant.transform.position).IsCultivated(plant.transform.position))
+                return false;
             return true;
         }
 
