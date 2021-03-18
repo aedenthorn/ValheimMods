@@ -103,6 +103,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomizableToolbar", "Cust
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RememberIP", "RememberIP\RememberIP.csproj", "{DEC85537-0690-45D5-BD02-8BC28F67443D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovableInventoryWindows", "MovableInventoryWindows\MovableInventoryWindows.csproj", "{080E3A8C-7284-45FE-865D-CBC07C4725CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -309,6 +311,10 @@ Global
 		{DEC85537-0690-45D5-BD02-8BC28F67443D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEC85537-0690-45D5-BD02-8BC28F67443D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DEC85537-0690-45D5-BD02-8BC28F67443D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{080E3A8C-7284-45FE-865D-CBC07C4725CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{080E3A8C-7284-45FE-865D-CBC07C4725CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{080E3A8C-7284-45FE-865D-CBC07C4725CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{080E3A8C-7284-45FE-865D-CBC07C4725CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.6.2")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.6.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = false;
@@ -117,7 +117,7 @@ namespace AutoFuel
         {
             static void Postfix(Fireplace __instance, ZNetView ___m_nview)
             {
-                if (!Player.m_localPlayer || !isOn.Value || (__instance.name.Contains("groundtorch") && !refuelStandingTorches.Value) || (__instance.name.Contains("walltorch") && !refuelWallTorches.Value) || (__instance.name.Contains("fire_pit") && !refuelFirePits.Value))
+                if (!Player.m_localPlayer || !isOn.Value || !___m_nview.IsOwner() || (__instance.name.Contains("groundtorch") && !refuelStandingTorches.Value) || (__instance.name.Contains("walltorch") && !refuelWallTorches.Value) || (__instance.name.Contains("fire_pit") && !refuelFirePits.Value))
                     return;
 
                 int maxFuel = (int)(__instance.m_maxFuel - Mathf.Ceil(___m_nview.GetZDO().GetFloat("fuel", 0f)));
@@ -204,7 +204,7 @@ namespace AutoFuel
         {
             static void Postfix(Smelter __instance, ZNetView ___m_nview)
             {
-                if (!Player.m_localPlayer || !isOn.Value)
+                if (!Player.m_localPlayer || !isOn.Value || !___m_nview.IsOwner())
                     return;
 
                 int maxOre = __instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>();

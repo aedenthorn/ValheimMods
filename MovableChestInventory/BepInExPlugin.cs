@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 
 namespace MovableChestInventory
 {
-    [BepInPlugin("aedenthorn.MovableChestInventory", "Movable Chest Inventory", "0.2.0")]
+    [BepInPlugin("aedenthorn.MovableChestInventory", "Movable Chest Inventory", "0.2.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -37,7 +37,7 @@ namespace MovableChestInventory
 
             if (!modEnabled.Value)
                 return;
-            harmony = new Harmony("aedenthorn.RealClockMod");
+            harmony = new Harmony(Info.Metadata.GUID);
             harmony.PatchAll();
         }
 
@@ -60,16 +60,7 @@ namespace MovableChestInventory
         }
 
         private static Vector3 lastMousePos;
-        private static Vector2 defaultPosition;
 
-        [HarmonyPatch(typeof(InventoryGui), "Awake")]
-        static class InventoryGui_Awake_Patch
-        {
-            static void Postfix(InventoryGui __instance)
-            {
-                defaultPosition = __instance.m_container.anchorMin;
-            }
-        }
         [HarmonyPatch(typeof(InventoryGui), "Update")]
         static class InventoryGui_Update_Patch
         {
@@ -113,7 +104,6 @@ namespace MovableChestInventory
 
                         if (rcr.gameObject.layer == LayerMask.NameToLayer("UI") && rcr.gameObject.name == "Bkg" && rcr.gameObject.transform.parent.name == "Container")
                         {
-                            //Dbgl($"UI gameobject {rcr.gameObject.name} {rcr.gameObject.transform.parent.name}");
                             chestInventoryX.Value += (mousePos.x - lastMousePos.x) / Screen.width;
                             chestInventoryY.Value += (mousePos.y - lastMousePos.y) / Screen.height;
                         }
@@ -134,8 +124,10 @@ namespace MovableChestInventory
                 string text = __instance.m_input.text;
                 if (text.ToLower().Equals("movablechestinventory reset"))
                 {
-                    chestInventoryX.Value = defaultPosition.x;
-                    chestInventoryY.Value = defaultPosition.y;
+                    context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "movable chest inventory config reloaded" }).GetValue();
                     return false;
                 }
                 return true;
