@@ -101,6 +101,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DespawnTrader", "DespawnTra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomizableToolbar", "CustomizableToolbar\CustomizableToolbar.csproj", "{5A03AFEC-CBFE-460E-B7DE-CEF3275C2D98}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RememberIP", "RememberIP\RememberIP.csproj", "{DEC85537-0690-45D5-BD02-8BC28F67443D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -303,6 +305,10 @@ Global
 		{5A03AFEC-CBFE-460E-B7DE-CEF3275C2D98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A03AFEC-CBFE-460E-B7DE-CEF3275C2D98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A03AFEC-CBFE-460E-B7DE-CEF3275C2D98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEC85537-0690-45D5-BD02-8BC28F67443D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEC85537-0690-45D5-BD02-8BC28F67443D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEC85537-0690-45D5-BD02-8BC28F67443D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEC85537-0690-45D5-BD02-8BC28F67443D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

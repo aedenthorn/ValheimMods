@@ -95,7 +95,7 @@ namespace CustomServerLoadingScreen
 
                 if (uwr.isNetworkError || uwr.isHttpError )
                 {
-                    Debug.Log(uwr.error);
+                    Dbgl(uwr.error);
                     loadedSprite = true;
                 }
                 else

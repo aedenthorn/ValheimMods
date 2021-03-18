@@ -1,13 +1,11 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace CustomizableToolbar
 {
-    [BepInPlugin("aedenthorn.CustomizableToolbar", "Customizable Toolbar", "0.1.0")]
+    [BepInPlugin("aedenthorn.CustomizableToolbar", "Customizable Toolbar", "0.1.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -17,10 +15,13 @@ namespace CustomizableToolbar
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<float> toolbarX;
         public static ConfigEntry<float> toolbarY;
+        public static ConfigEntry<float> itemScale;
         public static ConfigEntry<string> modKeyOne;
         public static ConfigEntry<string> modKeyTwo;
         public static ConfigEntry<int> itemsPerRow;
         public static ConfigEntry<int> nexusID;
+
+        public static int itemSize = 70;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -31,12 +32,15 @@ namespace CustomizableToolbar
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            itemsPerRow = Config.Bind<int>("General", "ItemsPerRow", 4, "Number of items per row in the toolbar");
-            toolbarX = Config.Bind<float>("General", "ToolbarX", -1, "Current X of chest");
-            toolbarY = Config.Bind<float>("General", "ToolbarY", -1, "Current Y of chest");
-            modKeyOne = Config.Bind<string>("General", "ModKeyOne", "mouse 0", "First modifier key. Use https://docs.unity3d.com/Manual/class-InputManager.html format.");
-            modKeyTwo = Config.Bind<string>("General", "ModKeyTwo", "left ctrl", "Second modifier key. Use https://docs.unity3d.com/Manual/class-InputManager.html format.");
-            nexusID = Config.Bind<int>("General", "NexusID", 0, "Nexus mod ID for updates");
+            itemsPerRow = Config.Bind<int>("General", "ItemsPerRow", 8, "Number of items per row in the toolbar");
+            toolbarX = Config.Bind<float>("General", "ToolbarX", -9999, "Current X of toolbar");
+            toolbarY = Config.Bind<float>("General", "ToolbarY", -9999, "Current Y of toolbar");
+            itemScale = Config.Bind<float>("General", "ItemScale", 1f, "Item scale");
+            modKeyOne = Config.Bind<string>("General", "ModKeyOne", "mouse 0", "First modifier key. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html format.");
+            modKeyTwo = Config.Bind<string>("General", "ModKeyTwo", "left ctrl", "Second modifier key. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html format.");
+            nexusID = Config.Bind<int>("General", "NexusID", 569, "Nexus mod ID for updates");
+
+            itemsPerRow.Value = Mathf.Clamp(itemsPerRow.Value, 1, 8);
 
             if (!modEnabled.Value)
                 return;
@@ -62,33 +66,14 @@ namespace CustomizableToolbar
             }
         }
 
-        private static bool started = false;
         private static Vector3 lastMousePos;
-        private static Vector2 defaultPosition;
 
         [HarmonyPatch(typeof(HotkeyBar), "UpdateIcons")]
         static class HotkeyBar_Update_Patch
         {
             static void Postfix(HotkeyBar __instance)
             {
-                if (!started)
-                {
-                    defaultPosition = __instance.gameObject.GetComponent<RectTransform>().anchoredPosition;
-                    int count = __instance.transform.childCount;
 
-                    if(count > 0)
-                        started = true;
-
-                    for (int i = 0; i < count; i++)
-                    {
-                        int x = i % itemsPerRow.Value;
-                        int y = i / itemsPerRow.Value;
-
-                        Transform t = __instance.transform.GetChild(i);
-                        t.GetComponent<RectTransform>().anchoredPosition = new Vector2(70 * x, -70 * y);
-                        Dbgl($"element {i}, position {t.GetComponent<RectTransform>().anchoredPosition}");
-                    }
-                }
                 Vector3 mousePos = Input.mousePosition;
 
                 if (!modEnabled.Value)
@@ -97,11 +82,24 @@ namespace CustomizableToolbar
                     return;
                 }
 
-                Vector2 position = __instance.gameObject.GetComponent<RectTransform>().anchoredPosition;
+                float scaledSize = itemSize * itemScale.Value;
 
-                if (toolbarX.Value < 0)
+                int count = __instance.transform.childCount;
+
+                for (int i = 0; i < count; i++)
+                {
+                    int x = i % itemsPerRow.Value;
+                    int y = i / itemsPerRow.Value;
+
+                    Transform t = __instance.transform.GetChild(i);
+                    t.GetComponent<RectTransform>().anchoredPosition = new Vector2(scaledSize * x, -scaledSize * y);
+                    t.GetComponent<RectTransform>().localScale = new Vector3(itemScale.Value, itemScale.Value, 1);
+                    //Dbgl($"element {i}, position {t.GetComponent<RectTransform>().anchoredPosition}");
+                }
+
+                if (toolbarX.Value == -9999)
                     toolbarX.Value = __instance.gameObject.GetComponent<RectTransform>().anchorMin.x * Screen.width;
-                if (toolbarY.Value < 0)
+                if (toolbarY.Value == -9999)
                     toolbarY.Value = __instance.gameObject.GetComponent<RectTransform>().anchorMax.y * Screen.height;
 
                 __instance.gameObject.GetComponent<RectTransform>().anchorMax = new Vector2(__instance.gameObject.GetComponent<RectTransform>().anchorMax.x, toolbarY.Value / Screen.height);
@@ -111,23 +109,15 @@ namespace CustomizableToolbar
                     lastMousePos = mousePos;
 
 
-                PointerEventData eventData = new PointerEventData(EventSystem.current)
-                {
-                    position = Input.mousePosition
-                };
-
                 if (CheckKeyHeld(modKeyOne.Value) && CheckKeyHeld(modKeyTwo.Value))
                 {
-                    Rect rect = new Rect(__instance.gameObject.GetComponent<RectTransform>().anchorMin.x * Screen.width + __instance.gameObject.GetComponent<RectTransform>().anchoredPosition.x + 5, 
-                        __instance.gameObject.GetComponent<RectTransform>().anchorMax.y * Screen.height - Mathf.CeilToInt(8f / itemsPerRow.Value) * 75 + __instance.gameObject.GetComponent<RectTransform>().anchoredPosition.y,
-                        itemsPerRow.Value * 75, 
-                        Mathf.CeilToInt(8f / itemsPerRow.Value) * 75 + __instance.gameObject.GetComponent<RectTransform>().anchoredPosition.y);
+                    Rect rect = new Rect(__instance.gameObject.GetComponent<RectTransform>().anchorMin.x * Screen.width + 47, 
+                        __instance.gameObject.GetComponent<RectTransform>().anchorMax.y * Screen.height - Mathf.CeilToInt(8f / itemsPerRow.Value) * scaledSize * 1.5f - 44,
+                        itemsPerRow.Value * scaledSize * 1.5f, 
+                        Mathf.CeilToInt(8f / itemsPerRow.Value) * scaledSize * 1.5f);
 
-                    Dbgl($"Rect {rect}, mouse {mousePos}");
-
-                    if (rect.Contains(mousePos))
+                    if (rect.Contains(lastMousePos))
                     {
-                        Dbgl($"dragging");
                         toolbarX.Value += mousePos.x - lastMousePos.x;
                         toolbarY.Value += mousePos.y - lastMousePos.y;
                     }
@@ -145,7 +135,7 @@ namespace CustomizableToolbar
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("customizabletoolbar reset"))
+                if (text.ToLower().Equals("customtoolbar reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
