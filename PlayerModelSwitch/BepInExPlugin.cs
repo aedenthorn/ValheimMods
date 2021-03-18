@@ -28,13 +28,12 @@ namespace PlayerModelSwitch
         }
         private void Awake()
         {
-            return;
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            nexusID = Config.Bind<int>("General", "NexusID", 273, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 0, "Nexus mod ID for updates");
 
-            femaleModelName = Config.Bind<string>("General", "FemaleModelName", "Greydwarf", "Switch the female player model to this. Should be a Humanoid (e.g. Skeleton, etc.).");
-            maleModelName = Config.Bind<string>("General", "MaleModelName", "", "Switch the male player model to this. Should be a Humanoid (e.g. Skeleton, etc.).");
+            femaleModelName = Config.Bind<string>("General", "FemaleModelName", "Skeleton", "Switch the female player model to this. Should be a Humanoid (e.g. Skeleton, etc.).");
+            maleModelName = Config.Bind<string>("General", "MaleModelName", "Skeleton", "Switch the male player model to this. Should be a Humanoid (e.g. Skeleton, etc.).");
 
             if (!modEnabled.Value)
                 return;

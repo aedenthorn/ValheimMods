@@ -33,7 +33,7 @@ namespace RememberIP
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            nexusID = Config.Bind<int>("General", "NexusID", 0, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 572, "Nexus mod ID for updates");
 
             rememberIP = Config.Bind<bool>("General", "RememberIP", true, "Remember IP address");
             rememberPort = Config.Bind<bool>("General", "RememberPort", true, "Remember port");
@@ -56,18 +56,39 @@ namespace RememberIP
                 if (!modEnabled.Value)
                     return;
 
+                __instance.m_joinIPAddress.onValueChanged.RemoveListener(SaveIPAddress);
+
+                string text = "";
                 if (rememberIP.Value)
                 {
-                    string text = lastIPAddress.Value;
-                    if (rememberPort.Value)
-                    {
-                        text += ":" + lastPort.Value;
-                    }
-                    __instance.m_joinIPAddress.text = text;
+                    text += lastIPAddress.Value;
                 }
-            }
-        }
+                if (rememberPort.Value && lastPort.Value.Length > 0)
+                {
+                    text += ":" + lastPort.Value;
+                }
+                __instance.m_joinIPAddress.text = text;
 
+                __instance.m_joinIPAddress.onValueChanged.AddListener(SaveIPAddress);
+            }
+
+        }
+        private static void SaveIPAddress(string text)
+        {
+            if (!modEnabled.Value)
+                return;
+
+            string[] splitText = text.Split(':');
+            if (rememberIP.Value)
+            {
+                lastIPAddress.Value = splitText[0];
+            }
+            if (rememberPort.Value && splitText.Length > 1)
+            {
+                lastPort.Value = splitText[1];
+            }
+            context.Config.Save();
+        }
 
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch
@@ -77,12 +98,12 @@ namespace RememberIP
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("playermodelswitch reset"))
+                if (text.ToLower().Equals("rememberip reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "player model switch config reloaded" }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "Remember IP config reloaded" }).GetValue();
                     return false;
                 }
                 return true;

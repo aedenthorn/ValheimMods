@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 
 namespace MovableChestInventory
 {
-    [BepInPlugin("aedenthorn.MovableChestInventory", "Movable Chest Inventory", "0.1.1")]
+    [BepInPlugin("aedenthorn.MovableChestInventory", "Movable Chest Inventory", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -98,7 +98,7 @@ namespace MovableChestInventory
 
                 PointerEventData eventData = new PointerEventData(EventSystem.current)
                 {
-                    position = Input.mousePosition
+                    position = lastMousePos
                 };
 
                 if (CheckKeyHeld(modKeyOne.Value) && CheckKeyHeld(modKeyTwo.Value))
