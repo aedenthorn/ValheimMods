@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace CustomServerLoadingScreen
 {
-    [BepInPlugin("aedenthorn.CustomServerLoadingScreen", "Custom Server Loading Screen", "0.2.1")]
+    [BepInPlugin("aedenthorn.CustomServerLoadingScreen", "Custom Server Loading Screen", "0.3.0")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -34,6 +34,7 @@ namespace CustomServerLoadingScreen
         private static string loadingTip = "";
         private static Sprite loadingSprite = null;
         private static bool loadedSprite = true;
+        private static bool sentURL = false;
         //private static Sprite loadingSprite2 = null;
         private static int secondsWaited = 0;
 
@@ -48,7 +49,6 @@ namespace CustomServerLoadingScreen
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 553, "Nexus mod ID for updates");
-            //differentSpawnScreen = Config.Bind<bool>("General", "DifferentSpawnScreen", true, "Use a different screen for the spawn part");
 
             serverLoadingScreen = Config.Bind<string>("General", "ServerLoadingScreen", "https://i.imgur.com/9WlYUlb.png^This is the MOTD!", "Custom loading screen URL and replacement text separated by a caret ^ (server only)");
 
@@ -65,9 +65,51 @@ namespace CustomServerLoadingScreen
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
+
+
+        [HarmonyPatch(typeof(ZNet), "OnNewConnection")]
+        public static class ZNet_OnNewConnection_Patch
+        {
+            public static void Postfix(ZNetPeer peer)
+            {
+                Dbgl("New connection");
+
+                peer.m_rpc.Register<string>("ShareLoadingScreen", new Action<ZRpc, string>(RPC_ShareLoadingScreen));
+            }
+        }
+
+        [HarmonyPatch(typeof(ZNet), "RPC_ServerHandshake")]
+        public static class ZNet_RPC_ServerHandshake_Patch
+        {
+            public static void Prefix(ZNet __instance, ZRpc rpc)
+            {
+                ZNetPeer peer = Traverse.Create(__instance).Method("GetPeer", new object[] { rpc }).GetValue<ZNetPeer>();
+
+                Dbgl("Server Handshake");
+
+                if (peer == null)
+                {
+                    Dbgl("peer is null");
+                    return;
+                }
+
+                Dbgl($"Sending loading screen {serverLoadingScreen.Value}");
+
+                if (!sentURL)
+                {
+                    sentURL = true;
+                    peer.m_rpc.Invoke("ShareLoadingScreen", new object[]
+                    {
+                        serverLoadingScreen.Value
+                    });
+                }
+            }
+        }
+
+
         private static void RPC_ShareLoadingScreen(ZRpc rpc, string screen)
         {
-            Dbgl($"RPC_ShareLoadingScreen connected");
+            Dbgl($"RPC_ShareLoadingScreen received");
             if (!ZNet.instance.IsServer())
             {
                 secondsWaited = 0;
@@ -79,7 +121,7 @@ namespace CustomServerLoadingScreen
             LoadingScreenData screenData = new LoadingScreenData(data);
             Dbgl($"data: {data}\n\tpath: {screenData.screen}\n\ttip: {screenData.tip}");
 
-            if(data == null || screenData.screen == null || screenData.screen.Length == 0)
+            if (data == null || screenData.screen == null || screenData.screen.Length == 0)
             {
                 Dbgl("malformed data");
                 loadedSprite = true;
@@ -93,7 +135,7 @@ namespace CustomServerLoadingScreen
             {
                 yield return uwr.SendWebRequest();
 
-                if (uwr.isNetworkError || uwr.isHttpError )
+                if (uwr.isNetworkError || uwr.isHttpError)
                 {
                     Dbgl(uwr.error);
                     loadedSprite = true;
@@ -132,11 +174,14 @@ namespace CustomServerLoadingScreen
             }
         }
 
-        [HarmonyPatch(typeof(ZNet), "RPC_PeerInfo")]
-        public static class ZNet_RPC_PeerInfo_Patch
+
+        [HarmonyPriority(Priority.First)]
+        [HarmonyPatch(typeof(ZNet), "RPC_ClientHandshake")]
+        public static class ZNet_RPC_ClientHandshake_Patch
         {
-            public static bool Prefix(ZNet __instance, ZRpc rpc, ZPackage pkg)
+            public static bool Prefix(ZNet __instance, ZRpc rpc, bool needPassword)
             {
+                Dbgl("RPC_ClientHandshake");
                 if (!__instance.IsServer() && !loadedSprite)
                 {
 
@@ -148,55 +193,65 @@ namespace CustomServerLoadingScreen
 
                     Dbgl($"Waiting for sprite to load, waited {secondsWaited++}");
 
-                    WaitForSpriteLoad(__instance, rpc, pkg);
+                    WaitForSpriteLoad(__instance, rpc, needPassword);
                     return false;
                 }
+
+                if (!__instance.IsServer())
+                {
+                    Image image = Instantiate(Hud.instance.transform.Find("LoadingBlack").Find("Bkg").GetComponent<Image>(), Hud.instance.transform.Find("LoadingBlack").transform);
+                    if (image == null)
+                    {
+                        Dbgl($"missed bkg");
+                        return true;
+                    }
+                    Dbgl($"setting sprite to loading screen");
+
+                    image.sprite = loadingSprite;
+                    image.color = spawnColorMask.Value;
+                    image.type = Image.Type.Simple;
+                    image.preserveAspect = true;
+
+                    if (loadingTip.Length > 0)
+                    {
+                        Transform sep = Instantiate(Hud.instance.m_loadingTip.transform.parent.Find("panel_separator"), Hud.instance.transform.Find("LoadingBlack").transform);
+                        Text text = Instantiate(Hud.instance.m_loadingTip.gameObject, Hud.instance.transform.Find("LoadingBlack").transform).GetComponent<Text>();
+                        if(text != null)
+                        {
+                            text.text = loadingTip;
+                            text.color = tipTextColor.Value;
+                        }
+                    }
+                }
+
                 return true;
             }
         }
 
-        private static async void WaitForSpriteLoad(ZNet __instance, ZRpc rpc, ZPackage pkg)
+        private static async void WaitForSpriteLoad(ZNet __instance, ZRpc rpc, bool needPassword)
         {
             await Task.Delay(1000);
-            Traverse.Create(__instance).Method("RPC_PeerInfo", new object[] { rpc, pkg }).GetValue();
+            Traverse.Create(__instance).Method("RPC_ClientHandshake", new object[] { rpc, needPassword }).GetValue();
         }
 
-
-        [HarmonyPatch(typeof(ZNet), "OnNewConnection")]
-        public static class ZNet_OnNewConnection_Patch
-        {
-            public static void Postfix(ZNetPeer peer)
-            {
-                peer.m_rpc.Register<string>("ShareLoadingScreen", new Action<ZRpc, string>(RPC_ShareLoadingScreen));
-            }
-        }
-        [HarmonyPatch(typeof(ZNet), "RPC_ServerHandshake")]
-        public static class ZNet_RPC_ServerHandshake_Patch
-        {
-            public static void Postfix(ZNet __instance, ZRpc rpc)
-            {
-                ZNetPeer peer = Traverse.Create(__instance).Method("GetPeer", new object[] { rpc }).GetValue<ZNetPeer>();
-
-                Dbgl($"Sending loading screen {serverLoadingScreen.Value}");
-
-
-                peer.m_rpc.Invoke("ShareLoadingScreen", new object[]
-                {
-                    serverLoadingScreen.Value
-                });
-            }
-        }
 
         [HarmonyPatch(typeof(Hud), "UpdateBlackScreen")]
         public static class UpdateBlackScreen_Patch
         {
-            public static void Prefix(Hud __instance, bool ___m_haveSetupLoadScreen, ref bool __state)
+            public static bool Prefix(Hud __instance, bool ___m_haveSetupLoadScreen, ref bool __state)
             {
-                __state = !___m_haveSetupLoadScreen;
+                if (!modEnabled.Value)
+                    return true;
+
+                __state = ___m_haveSetupLoadScreen;
+                return true;
             }
             public static void Postfix(Hud __instance, bool ___m_haveSetupLoadScreen, ref bool __state)
             {
-                if(__state && ___m_haveSetupLoadScreen && loadingSprite != null)
+                if (!modEnabled.Value)
+                    return;
+
+                if (!__state && ___m_haveSetupLoadScreen && loadingSprite != null)
                 {
                     Dbgl($"UpdateBlackScreen setting sprite to loading screen");
 

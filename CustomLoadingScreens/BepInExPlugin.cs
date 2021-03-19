@@ -145,6 +145,45 @@ namespace CustomLoadingScreens
                 __instance.m_loading.transform.Find("Text").gameObject.SetActive(false);
             }
         }
+        [HarmonyPriority(Priority.First)]
+        [HarmonyPatch(typeof(ZNet), "RPC_ClientHandshake")]
+        public static class ZNet_RPC_ClientHandshake_Patch
+        {
+            public static bool Prefix(ZNet __instance, ZRpc rpc, bool needPassword)
+            {
+                Dbgl("RPC_ClientHandshake");
+
+                if (!__instance.IsServer())
+                {
+                    Image image = Instantiate(Hud.instance.transform.Find("LoadingBlack").Find("Bkg").GetComponent<Image>(), Hud.instance.transform.Find("LoadingBlack").transform);
+                    if (image == null)
+                    {
+                        Dbgl($"missed bkg");
+                        return true;
+                    }
+                    Dbgl($"setting sprite to loading screen");
+
+                    image.sprite = loadingSprite;
+                    image.color = loadingColorMask.Value;
+                    image.type = Image.Type.Simple;
+                    image.preserveAspect = true;
+                    if (loadingTips.Any())
+                    {
+                        Transform sep = Instantiate(Hud.instance.m_loadingTip.transform.parent.Find("panel_separator"), Hud.instance.transform.Find("LoadingBlack").transform);
+                        Dbgl($"sep is null? {sep == null}");
+                        Text text = Instantiate(Hud.instance.m_loadingTip.gameObject, Hud.instance.transform.Find("LoadingBlack").transform).GetComponent<Text>();
+                        if (text != null)
+                        {
+                            text.text = loadingTips[0];
+                            text.color = tipTextColor.Value;
+                        }
+                    }
+
+                }
+
+                return true;
+            }
+        }
         [HarmonyPatch(typeof(Hud), "UpdateBlackScreen")]
         public static class UpdateBlackScreen_Patch
         {
