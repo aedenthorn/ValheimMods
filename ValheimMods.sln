@@ -105,6 +105,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RememberIP", "RememberIP\Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovableInventoryWindows", "MovableInventoryWindows\MovableInventoryWindows.csproj", "{080E3A8C-7284-45FE-865D-CBC07C4725CF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeleteThis", "DeleteThis\DeleteThis.csproj", "{EF6F8026-740F-4E17-A09F-3EEAC37319A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleSort", "SimpleSort\SimpleSort.csproj", "{612657EF-E3FD-4D61-98C2-66D191CCC1D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -315,6 +319,14 @@ Global
 		{080E3A8C-7284-45FE-865D-CBC07C4725CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{080E3A8C-7284-45FE-865D-CBC07C4725CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{080E3A8C-7284-45FE-865D-CBC07C4725CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF6F8026-740F-4E17-A09F-3EEAC37319A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF6F8026-740F-4E17-A09F-3EEAC37319A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF6F8026-740F-4E17-A09F-3EEAC37319A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF6F8026-740F-4E17-A09F-3EEAC37319A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{612657EF-E3FD-4D61-98C2-66D191CCC1D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{612657EF-E3FD-4D61-98C2-66D191CCC1D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{612657EF-E3FD-4D61-98C2-66D191CCC1D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{612657EF-E3FD-4D61-98C2-66D191CCC1D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

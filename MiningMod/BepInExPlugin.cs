@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace MiningMod
 {
-    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.4.2")]
+    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.5.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

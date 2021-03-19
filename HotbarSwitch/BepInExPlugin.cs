@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace HotbarSwitch
 {
-    [BepInPlugin("aedenthorn.HotbarSwitch", "Hotbar Switch", "0.1.0")]
+    [BepInPlugin("aedenthorn.HotbarSwitch", "Hotbar Switch", "0.1.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -43,7 +43,7 @@ namespace HotbarSwitch
         }
         private void Update()
         {
-            if (!AedenthornUtils.IgnoreKeyPresses(true) && AedenthornUtils.CheckKeyDown(hotKey.Value)) 
+            if (modEnabled.Value && !AedenthornUtils.IgnoreKeyPresses(true) && AedenthornUtils.CheckKeyDown(hotKey.Value)) 
             {
                 int gridHeight = Player.m_localPlayer.GetInventory().GetHeight();
                 int rows = Math.Max(1, Math.Min(gridHeight, rowsToSwitch.Value));

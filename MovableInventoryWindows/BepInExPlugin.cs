@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 
 namespace MovableInventoryWindows
 {
-    [BepInPlugin("aedenthorn.MovableInventoryWindows", "Movable Inventory Windows", "0.2.0")]
+    [BepInPlugin("aedenthorn.MovableInventoryWindows", "Movable Inventory Windows", "0.2.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -34,6 +34,7 @@ namespace MovableInventoryWindows
         }
         private void Awake()
         {
+            context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             inventoryPosition = Config.Bind<Vector2>("General", "InventoryPosition", new Vector2(-1,-1), "Current position of inventory");
             chestInventoryPosition = Config.Bind<Vector2>("General", "ChestInventoryPosition", new Vector2(-1,-1), "Current position of chest");
@@ -100,21 +101,21 @@ namespace MovableInventoryWindows
 
                 __instance.m_container.anchorMin = chestInventoryPosition.Value; 
                 __instance.m_container.anchorMax = chestInventoryPosition.Value;
-                __instance.m_container.localScale = new Vector3(inventoryScale.Value, inventoryScale.Value, 1);
+                __instance.m_container.localScale = new Vector3(chestInventoryScale.Value, chestInventoryScale.Value, 1);
 
                 if (craftingPanelPosition.Value.x == -1 || craftingPanelPosition.Value.y == -1)
                     craftingPanelPosition.Value = __instance.m_player.parent.Find("Crafting").GetComponent<RectTransform>().anchorMin;
 
                 __instance.m_player.parent.Find("Crafting").GetComponent<RectTransform>().anchorMin = craftingPanelPosition.Value; 
                 __instance.m_player.parent.Find("Crafting").GetComponent<RectTransform>().anchorMax = craftingPanelPosition.Value;
-                __instance.m_player.parent.Find("Crafting").GetComponent<RectTransform>().localScale = new Vector3(inventoryScale.Value, inventoryScale.Value, 1);
+                __instance.m_player.parent.Find("Crafting").GetComponent<RectTransform>().localScale = new Vector3(craftingPanelScale.Value, craftingPanelScale.Value, 1);
 
                 if (infoPanelPosition.Value.x == -1 || infoPanelPosition.Value.y == -1)
                     infoPanelPosition.Value = __instance.m_infoPanel.GetComponent<RectTransform>().anchorMin;
 
                 __instance.m_infoPanel.GetComponent<RectTransform>().anchorMin = infoPanelPosition.Value; 
                 __instance.m_infoPanel.GetComponent<RectTransform>().anchorMax = infoPanelPosition.Value;
-                __instance.m_infoPanel.GetComponent<RectTransform>().localScale = new Vector3(inventoryScale.Value, inventoryScale.Value, 1);
+                __instance.m_infoPanel.GetComponent<RectTransform>().localScale = new Vector3(infoPanelScale.Value, infoPanelScale.Value, 1);
 
                 if (lastMousePos == Vector3.zero)
                     lastMousePos = mousePos;
