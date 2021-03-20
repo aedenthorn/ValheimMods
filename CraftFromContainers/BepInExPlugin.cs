@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "1.9.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.0.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -25,6 +25,7 @@ namespace CraftFromContainers
         public static ConfigEntry<float> ghostConnectionStartOffset;
         public static ConfigEntry<float> ghostConnectionRemovalDelay;
 
+        public static ConfigEntry<bool> ignoreRangeInBuildArea;
         public static ConfigEntry<float> m_range;
         public static ConfigEntry<Color> flashColor;
         public static ConfigEntry<Color> unFlashColor;
@@ -63,6 +64,7 @@ namespace CraftFromContainers
             nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
 
             m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from");
+            ignoreRangeInBuildArea = Config.Bind<bool>("General", "IgnoreRangeInBuildArea", true, "Ignore range for building pieces when in build area.");
             resourceString = Config.Bind<string>("General", "ResourceCostString", "{0}/{1}", "String used to show required and available resources. {0} is replaced by how much is available, and {1} is replaced by how much is required. Set to nothing to leave it as default.");
             flashColor = Config.Bind<Color>("General", "FlashColor", Color.yellow, "Resource amounts will flash to this colour when coming from containers");
             unFlashColor = Config.Bind<Color>("General", "UnFlashColor", Color.white, "Resource amounts will flash from this colour when coming from containers (set both colors to the same color for no flashing)");
@@ -152,12 +154,12 @@ namespace CraftFromContainers
             return containers;
         }
         */
-        public static List<Container> GetNearbyContainers(Vector3 center)
+        public static List<Container> GetNearbyContainers(Vector3 center, bool ignoreRange = false)
         {
             List<Container> containers = new List<Container>();
             foreach (Container container in containerList)
             {
-                if (container != null && container.transform != null && container.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
+                if (container != null && container.transform != null && container.GetInventory() != null && (ignoreRange || m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
                 {
                     containers.Add(container);
                 }
@@ -583,6 +585,8 @@ namespace CraftFromContainers
                 if (__result || __instance?.transform?.position == null || !AllowByKey())
                     return;
 
+                bool ignoreRange = false;
+
                 if (piece.m_craftingStation)
                 {
                     if (mode == Player.RequirementMode.IsKnown || mode == Player.RequirementMode.CanAlmostBuild)
@@ -596,13 +600,15 @@ namespace CraftFromContainers
                     {
                         return;
                     }
+                    else
+                        ignoreRange = ignoreRangeInBuildArea.Value;
                 }
                 if (piece.m_dlc.Length > 0 && !DLCMan.instance.IsDLCInstalled(piece.m_dlc))
                 {
                     return;
                 }
 
-                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
+                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position, false);
 
                 foreach (Piece.Requirement requirement in piece.m_resources)
                 {
