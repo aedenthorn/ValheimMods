@@ -1,43 +1,34 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace TreeRespawn
 {
     [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.5.0")]
-    public class TreeRespawn : BaseUnityPlugin
+    public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
-                Debug.Log((pref ? typeof(TreeRespawn).Namespace + " " : "") + str);
+                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
 
-        private static TreeRespawn context;
+        private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
         public static ConfigEntry<float> respawnDelay;
 
-        public static Dictionary<string, string> seedsDic = new Dictionary<string, string>
-        {
-            {"Beech_Stub", "Beech_Sapling" },
-            {"Beech1_Stub", "Beech_Sapling" },
-            {"FirTree_Stub", "FirTree_Sapling" },
-            {"Pinetree_01_Stub", "PineTree_Sapling" },
-            {"BirchStub", "Birch_Sapling" },
-            {"OakStub", "Oak_Sapling" },
-            {"SwampTree1_Stub", "Ancient_Sapling" }
-        };
+        public static Dictionary<string, string> seedsDic = new Dictionary<string, string>();
 
         private void Awake()
         {
@@ -52,12 +43,41 @@ namespace TreeRespawn
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
+        private void Start()
+        {
+            string jsonFile = "tree_dict.json";
+            if (Chainloader.PluginInfos.ContainsKey("com.Defryder.Plant_all_trees"))
+                jsonFile = "tree_dict_Plant_all_trees.json";
+            else if (Chainloader.PluginInfos.ContainsKey("com.bkeyes93.PlantingPlus"))
+                jsonFile = "tree_dict_PlantingPlus.json";
+
+            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "TreeRespawn", jsonFile);
+
+
+            string json = File.ReadAllText(path);
+
+            SeedData seeds = JsonUtility.FromJson<SeedData>(json);
+
+            foreach (string seed in seeds.seeds)
+            {
+                string[] split = seed.Split(':');
+                seedsDic.Add(split[0], split[1]);
+            }
+
+            Dbgl($"Loaded {seedsDic.Count} seeds from {path}");
+        }
+
         [HarmonyPatch(typeof(Destructible), "Destroy")]
         static class Destroy_Patch
         {
             static void Prefix(Destructible __instance)
             {
                 Dbgl($"destroyed destructible {__instance.name}");
+
+                foreach(string key in seedsDic.Keys)
+                {
+                    Dbgl($"key: {key}");
+                }
 
                 string name = seedsDic.FirstOrDefault(s => __instance.name.StartsWith(s.Key)).Value;
 

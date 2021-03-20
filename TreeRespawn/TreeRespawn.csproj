@@ -66,6 +66,10 @@
     <Reference Include="UnityEngine.InputModule">
       <HintPath>..\valheim_Data\Managed\UnityEngine.InputModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\valheim_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>..\valheim_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
@@ -74,8 +78,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TreeRespawn.cs" />
+    <Compile Include="BepInExPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SeedData.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

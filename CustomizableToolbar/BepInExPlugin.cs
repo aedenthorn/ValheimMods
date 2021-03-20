@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace CustomizableToolbar
 {
-    [BepInPlugin("aedenthorn.CustomizableToolbar", "Customizable Toolbar", "0.1.2")]
+    [BepInPlugin("aedenthorn.CustomizableToolbar", "Customizable Toolbar", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -73,6 +73,13 @@ namespace CustomizableToolbar
         {
             static void Postfix(HotkeyBar __instance)
             {
+                if (!Player.m_localPlayer)
+                    return;
+
+                int count = __instance.transform.childCount;
+
+                if (count != Player.m_localPlayer.GetInventory().GetWidth())
+                    return;
 
                 Vector3 mousePos = Input.mousePosition;
 
@@ -83,8 +90,6 @@ namespace CustomizableToolbar
                 }
 
                 float scaledSize = itemSize * itemScale.Value;
-
-                int count = __instance.transform.childCount;
 
                 for (int i = 0; i < count; i++)
                 {

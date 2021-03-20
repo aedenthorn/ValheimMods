@@ -107,11 +107,6 @@ namespace AutoStore
             }
         }
 
-        private static bool IsInRange(Container container)
-        {
-            throw new NotImplementedException();
-        }
-
         private static bool DisallowItem(Container container, ItemDrop.ItemData item)
         {
             string name = item.m_dropPrefab.name;
@@ -166,8 +161,6 @@ namespace AutoStore
             }
             return true;
         }
-
-
 
         private static float ContainerRange(Container container)
         {

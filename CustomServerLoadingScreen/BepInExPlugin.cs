@@ -14,7 +14,7 @@ using UnityEngine.UI;
 
 namespace CustomServerLoadingScreen
 {
-    [BepInPlugin("aedenthorn.CustomServerLoadingScreen", "Custom Server Loading Screen", "0.3.0")]
+    [BepInPlugin("aedenthorn.CustomServerLoadingScreen", "Custom Server Loading Screen", "0.3.1")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -146,28 +146,33 @@ namespace CustomServerLoadingScreen
 
                     var tex = DownloadHandlerTexture.GetContent(uwr);
                     loadingSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.zero, 1);
-                    if (false && Hud.instance != null)
+                    if (Hud.instance != null)
                     {
                         Dbgl($"setting sprite to menu background screen");
 
-                        Hud.instance.m_loadingProgress.SetActive(true);
-                        Hud.instance.m_loadingScreen.alpha = 1;
-                        //Hud.instance.m_loadingImage.sprite = differentSpawnScreen.Value && loadingSprite2 != null ? loadingSprite2 : loadingSprite;
-                        Hud.instance.m_loadingImage.sprite = loadingSprite;
-                        Hud.instance.m_loadingImage.color = spawnColorMask.Value;
-                        if (loadingTip.Any())
+                        Image image = Instantiate(Hud.instance.transform.Find("LoadingBlack").Find("Bkg").GetComponent<Image>(), Hud.instance.transform.Find("LoadingBlack").transform);
+                        if (image == null)
                         {
-                            Hud.instance.m_loadingTip.text = loadingTip;
+                            Dbgl($"missed bkg");
+                            yield break;
                         }
-                        Hud.instance.m_loadingTip.color = tipTextColor.Value;
+                        Dbgl($"setting sprite to loading screen");
 
-                        if (removeVignette.Value)
+                        image.sprite = loadingSprite;
+                        image.color = spawnColorMask.Value;
+                        image.type = Image.Type.Simple;
+                        image.preserveAspect = true;
+
+                        if (loadingTip.Length > 0)
                         {
-                            Hud.instance.m_loadingProgress.transform.Find("TopFade").gameObject.SetActive(false);
-                            Hud.instance.m_loadingProgress.transform.Find("BottomFade").gameObject.SetActive(false);
-                            Hud.instance.m_loadingProgress.transform.Find("text_darken").gameObject.SetActive(false);
+                            Transform sep = Instantiate(Hud.instance.m_loadingTip.transform.parent.Find("panel_separator"), Hud.instance.transform.Find("LoadingBlack").transform);
+                            Text text = Instantiate(Hud.instance.m_loadingTip.gameObject, Hud.instance.transform.Find("LoadingBlack").transform).GetComponent<Text>();
+                            if (text != null)
+                            {
+                                text.text = loadingTip;
+                                text.color = tipTextColor.Value;
+                            }
                         }
-                        Traverse.Create(Hud.instance).Field("m_haveSetupLoadScreen").SetValue(true);
                     }
                     loadedSprite = true;
                 }
@@ -175,8 +180,8 @@ namespace CustomServerLoadingScreen
         }
 
 
-        [HarmonyPriority(Priority.First)]
-        [HarmonyPatch(typeof(ZNet), "RPC_ClientHandshake")]
+        //[HarmonyPriority(Priority.First)]
+        //[HarmonyPatch(typeof(ZNet), "RPC_ClientHandshake")]
         public static class ZNet_RPC_ClientHandshake_Patch
         {
             public static bool Prefix(ZNet __instance, ZRpc rpc, bool needPassword)
@@ -199,29 +204,7 @@ namespace CustomServerLoadingScreen
 
                 if (!__instance.IsServer())
                 {
-                    Image image = Instantiate(Hud.instance.transform.Find("LoadingBlack").Find("Bkg").GetComponent<Image>(), Hud.instance.transform.Find("LoadingBlack").transform);
-                    if (image == null)
-                    {
-                        Dbgl($"missed bkg");
-                        return true;
-                    }
-                    Dbgl($"setting sprite to loading screen");
 
-                    image.sprite = loadingSprite;
-                    image.color = spawnColorMask.Value;
-                    image.type = Image.Type.Simple;
-                    image.preserveAspect = true;
-
-                    if (loadingTip.Length > 0)
-                    {
-                        Transform sep = Instantiate(Hud.instance.m_loadingTip.transform.parent.Find("panel_separator"), Hud.instance.transform.Find("LoadingBlack").transform);
-                        Text text = Instantiate(Hud.instance.m_loadingTip.gameObject, Hud.instance.transform.Find("LoadingBlack").transform).GetComponent<Text>();
-                        if(text != null)
-                        {
-                            text.text = loadingTip;
-                            text.color = tipTextColor.Value;
-                        }
-                    }
                 }
 
                 return true;

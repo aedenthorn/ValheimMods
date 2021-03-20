@@ -6,14 +6,17 @@ using UnityEngine;
 
 namespace DeleteThis
 {
-    [BepInPlugin("aedenthorn.DeleteThis", "Delete This", "0.1.0")]
+    [BepInPlugin("aedenthorn.DeleteThis", "Delete This", "0.1.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
         private static BepInExPlugin context;
         private static ConfigEntry<bool> modEnabled;
         private static ConfigEntry<string> modKey;
+        private static ConfigEntry<string> layerMaskString;
+        private static ConfigEntry<string> checkKey;
         private static ConfigEntry<string> deleteKey;
+        private static ConfigEntry<string> checkMessage;
         private static ConfigEntry<string> deletedMessage;
         private static ConfigEntry<int> maxDeleteDistance;
         private static ConfigEntry<int> nexusID;
@@ -27,39 +30,78 @@ namespace DeleteThis
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            modKey = Config.Bind<string>("General", "ModKey", "left alt", "Modifier key required to allow deletion");
-            deleteKey = Config.Bind<string>("General", "ModKey", "delete", "Key used to delete stuff");
-            deletedMessage = Config.Bind<string>("General", "DeletedMessage", "Deleted {0}", "Message to display after deleting.");
+            layerMaskString = Config.Bind<string>("General", "LayerMask", "item,piece,piece_nonsolid,Default,static_solid,Default_small,character,character_net,vehicle", "List of types of things to delete, comma-separated");
+            modKey = Config.Bind<string>("General", "ModKey", "left alt", "Modifier key required to allow check and deletion");
+            checkKey = Config.Bind<string>("General", "CheckKey", "home", "Key used to check what will be deleted");
+            deleteKey = Config.Bind<string>("General", "DeleteKey", "delete", "Key used to delete stuff");
+            checkMessage = Config.Bind<string>("General", "CheckMessage", "Will delete {0}, distance {1}", "Message to display when checking.");
+            deletedMessage = Config.Bind<string>("General", "DeletedMessage", "Deleted {0}, distance {1}", "Message to display after deleting.");
             maxDeleteDistance = Config.Bind<int>("General", "MaxDeleteDistance", 50, "Mod ID on the Nexus for update checks");
             nexusID = Config.Bind<int>("General", "NexusID", 0, "Mod ID on the Nexus for update checks");
-
-            Config.Save();
 
             if (!modEnabled.Value)
                 return;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-
+        
         private void Update()
         {
-            if(AedenthornUtils.CheckKeyHeld(modKey.Value, false) && AedenthornUtils.CheckKeyDown(deleteKey.Value))
+            if(modEnabled.Value && Player.m_localPlayer != null && AedenthornUtils.CheckKeyHeld(modKey.Value, true) && (AedenthornUtils.CheckKeyDown(deleteKey.Value) || AedenthornUtils.CheckKeyDown(checkKey.Value)))
             {
+                Dbgl($"modkey {AedenthornUtils.CheckKeyHeld(modKey.Value, true)}, del key {AedenthornUtils.CheckKeyDown(deleteKey.Value)}, check key {AedenthornUtils.CheckKeyDown(checkKey.Value)}");
+
+                LayerMask layerMask = LayerMask.GetMask(layerMaskString.Value.Split(','));
+
                 RaycastHit raycastHit;
                 if (Physics.Raycast(GameCamera.instance.transform.position, GameCamera.instance.transform.forward, out raycastHit, maxDeleteDistance.Value)
                     && Vector3.Distance(raycastHit.point, Player.m_localPlayer.m_eye.position) < maxDeleteDistance.Value)
                 {
 
-                    GameObject go = raycastHit.collider.gameObject;
-                    if (go.GetComponent<ZNetView>())
+                    Transform t = raycastHit.collider.transform;
+
+                    while (t.parent.parent && t.parent.name != "_NetSceneRoot" && !t.name.Contains("(Clone)"))
                     {
-                        go.GetComponent<ZNetView>().Destroy();
+                        Dbgl($"name: {t.name}, parent name: {t.parent.name}");
+                        t = t.parent;
+                    }
+
+                    string name = ZNetView.GetPrefabName(t.gameObject);
+
+                    if (AedenthornUtils.CheckKeyDown(checkKey.Value))
+                    {
+                        Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(checkMessage.Value, name, Vector3.Distance(raycastHit.point, Player.m_localPlayer.m_eye.position)));
+                        return;
+                    }
+                    else if (t.GetComponent<ZNetView>())
+                    {
+                        t.GetComponent<ZNetView>().Destroy();
                     }
                     else
-                        Destroy(go);
+                        Destroy(t.gameObject);
+                    Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(deletedMessage.Value, name, Vector3.Distance(raycastHit.point, Player.m_localPlayer.m_eye.position)));
                 }
             }
         }
 
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
+            }
+        }
     }
 }

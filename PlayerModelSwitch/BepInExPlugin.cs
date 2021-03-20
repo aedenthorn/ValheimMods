@@ -1,14 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
 using System.Reflection;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace PlayerModelSwitch
 {
-    [BepInPlugin("aedenthorn.PlayerModelSwitch", "Player Model Switch", "0.1.0")]
+    [BepInPlugin("aedenthorn.PlayerModelSwitch", "Player Model Switch", "0.1.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -30,12 +28,12 @@ namespace PlayerModelSwitch
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            nexusID = Config.Bind<int>("General", "NexusID", 0, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 592, "Nexus mod ID for updates");
 
             femaleModelName = Config.Bind<string>("General", "FemaleModelName", "Skeleton", "Switch the female player model to this. Should be a Humanoid (e.g. Skeleton, etc.).");
             maleModelName = Config.Bind<string>("General", "MaleModelName", "Skeleton", "Switch the male player model to this. Should be a Humanoid (e.g. Skeleton, etc.).");
 
-            if (!modEnabled.Value)
+            if (!modEnabled.Value) 
                 return;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
@@ -68,9 +66,10 @@ namespace PlayerModelSwitch
 
                         foreach (SkinnedMeshRenderer smr in smrs)
                         {
-                            Dbgl($"smr name {smr.name}.");
+                            Dbgl($"switching female model to {smr.name}.");
                             if (smr.name.ToLower() == femaleModelName.Value.ToLower())
                             {
+                                Dbgl("switching female model");
                                 Mesh mesh = smr.sharedMesh;
                                 __instance.m_models[1].m_mesh = mesh;
                                 break;
@@ -85,7 +84,7 @@ namespace PlayerModelSwitch
                     SkinnedMeshRenderer[] smrs = go.GetComponentsInChildren<SkinnedMeshRenderer>();
                     if (smrs.Length == 1)
                     {
-                        Dbgl($"smr name {smrs[0].name}.");
+                        Dbgl($"switching male model to {smrs[0].name}.");
                         Mesh mesh = smrs[0].sharedMesh;
                         __instance.m_models[0].m_mesh = mesh;
                     }
@@ -96,6 +95,7 @@ namespace PlayerModelSwitch
                             Dbgl($"smr name {smr.name}.");
                             if (smr.name.ToLower() == maleModelName.Value.ToLower())
                             {
+                                Dbgl("switching male model");
                                 Mesh mesh = smr.sharedMesh;
                                 __instance.m_models[0].m_mesh = mesh;
                                 break;

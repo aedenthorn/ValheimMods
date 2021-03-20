@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 
 namespace SimpleSort
 {
-    [BepInPlugin("aedenthorn.SimpleSort", "Simple Sort", "0.4.0")]
+    [BepInPlugin("aedenthorn.SimpleSort", "Simple Sort", "0.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -18,6 +18,12 @@ namespace SimpleSort
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> useGamePad;
         public static ConfigEntry<bool> allowPlayerInventorySort;
+        public static ConfigEntry<bool> playerStickySort;
+        public static ConfigEntry<bool> containerStickySort;
+        public static ConfigEntry<SortType> playerSortType;
+        public static ConfigEntry<SortType> containerSortType;
+        public static ConfigEntry<bool> playerSortAsc;
+        public static ConfigEntry<bool> containerSortAsc;
         public static ConfigEntry<string> ascModKey;
         public static ConfigEntry<string> descModKey;
         public static ConfigEntry<string> sortByNameKey;
@@ -45,6 +51,12 @@ namespace SimpleSort
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             useGamePad = Config.Bind<bool>("General", "useGamePad", false, "Allow sorting with gamepad?");
             allowPlayerInventorySort = Config.Bind<bool>("General", "AllowPlayerInventorySort", true, "Allow player inventory sorting?");
+            playerStickySort = Config.Bind<bool>("General", "PlayerStickySort", true, "Automatically apply last sort type to player inventory on open");
+            containerStickySort = Config.Bind<bool>("General", "ContainerStickySort", true, "Automatically apply last sort type to container inventory on open");
+            playerSortAsc = Config.Bind<bool>("General", "playerSortAsc", true, "Current player sort method (changes automatically for sticky sorting)");
+            containerSortAsc = Config.Bind<bool>("General", "containerSortAsc", true, "Current container sort method (changes automatically for sticky sorting)");
+            playerSortType = Config.Bind<SortType>("General", "PlayerSortType", SortType.Name, "Current player sort type (changes automatically for sticky sorting)");
+            containerSortType = Config.Bind<SortType>("General", "ContainerSortType", SortType.Name, "Current container sort type (changes automatically for sticky sorting)");
             sortByValueKey = Config.Bind<string>("General", "SortByValueKey", "v", "Sort by value key. Use https://docs.unity3d.com/Manual/class-InputManager.html format.");
             sortByWeightKey = Config.Bind<string>("General", "SortByWeightKey", "h", "Sort by weight key. Use https://docs.unity3d.com/Manual/class-InputManager.html format.");
             sortByNameKey = Config.Bind<string>("General", "SortByNameKey", "n", "Sort by name key. Use https://docs.unity3d.com/Manual/class-InputManager.html format.");
@@ -64,6 +76,24 @@ namespace SimpleSort
         {
             Dbgl("Destroying plugin");
             harmony.UnpatchAll();
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), "Show")]
+        static class InventoryGui_Show_Patch
+        {
+            static void Postfix(Container ___m_currentContainer)
+            {
+                if (!modEnabled.Value)
+                    return;
+                if(Player.m_localPlayer && playerStickySort.Value && allowPlayerInventorySort.Value)
+                {
+                    SortByType(playerSortType.Value, Player.m_localPlayer.GetInventory(), playerSortAsc.Value, true);
+                }
+                if(containerStickySort.Value && ___m_currentContainer?.GetInventory() != null)
+                {
+                    SortByType(containerSortType.Value, ___m_currentContainer.GetInventory(), containerSortAsc.Value, false);
+                }
+            }
         }
 
         [HarmonyPatch(typeof(InventoryGui), "Update")]
@@ -112,7 +142,7 @@ namespace SimpleSort
                             else if (AedenthornUtils.CheckKeyDown(sortByValueKey.Value))
                             {
                                 name = rcr.gameObject.transform.parent.name;
-                                type = SortType.Weight;
+                                type = SortType.Value;
                                 break;
                             }
                             return;
@@ -138,7 +168,7 @@ namespace SimpleSort
                             else if (AedenthornUtils.CheckKeyDown(sortByValueKey.Value))
                             {
                                 name = ___m_activeGroup == 0 ? "Container" : "Player";
-                                type = SortType.Weight;
+                                type = SortType.Value;
                             }
                         }
                     }
@@ -146,41 +176,57 @@ namespace SimpleSort
                     if (name == "" || (name == "Player" && !allowPlayerInventorySort.Value))
                         return;
 
-                    Dbgl($"Sorting {name} inventory by name {(asc ? "asc" : "desc")}");
+                    Dbgl($"Sorting {name} inventory by {type} {(asc ? "asc" : "desc")}");
                     if (name == "Player")
                     {
-                        switch (type)
-                        {
-                            case SortType.Name:
-                                SortByName(Player.m_localPlayer.GetInventory(), asc, true);
-                                break;
-                            case SortType.Weight:
-                                SortByWeight(Player.m_localPlayer.GetInventory(), asc, true);
-                                break;
-                            case SortType.Value:
-                                SortByValue(Player.m_localPlayer.GetInventory(), asc, true);
-                                break;
-
-                        }
+                        playerSortType.Value = type;
+                        playerSortAsc.Value = asc;
+                        context.Config.Save();
+                        SortByType(type, Player.m_localPlayer.GetInventory(), asc, true);
                     }
                     else if (name == "Container")
                     {
-                        switch (type)
-                        {
-                            case SortType.Name:
-                                SortByName(___m_currentContainer.GetInventory(), asc, false);
-                                break;
-                            case SortType.Weight:
-                                SortByWeight(___m_currentContainer.GetInventory(), asc, false);
-                                break;
-                            case SortType.Value:
-                                SortByValue(___m_currentContainer.GetInventory(), asc, false);
-                                break;
-
-                        }
+                        containerSortType.Value = type;
+                        containerSortAsc.Value = asc;
+                        context.Config.Save();
+                        SortByType(type, ___m_currentContainer.GetInventory(), asc, false);
                     }
                 }
             }
+        }
+
+        private static void SortByType(SortType type, Inventory inventory, bool asc, bool player)
+        {
+            // combine
+            SortByName(inventory, asc, player);
+
+            var items = inventory.GetAllItems();
+            for (int i = items.Count - 1; i >= 0; i--)
+            {
+                if (player && ((playerSortStartRow.Value > 1 && items[i].m_gridPos.y < playerSortStartRow.Value - 1) || (playerSortEndRow.Value > 0 && items[i].m_gridPos.y >= playerSortEndRow.Value)))
+                    continue;
+
+                if (i > 0 && items[i - 1].m_stack < items[i - 1].m_shared.m_maxStackSize && items[i - 1].m_shared.m_name == items[i].m_shared.m_name)
+                {
+                    int amount = Mathf.Min(items[i - 1].m_shared.m_maxStackSize - items[i - 1].m_stack, items[i].m_stack);
+                    items[i - 1].m_stack += amount;
+                    if (amount == items[i].m_stack)
+                        items.RemoveAt(i);
+                    else
+                        items[i].m_stack -= amount;
+                }
+            }
+
+            switch (type)
+            {
+                case SortType.Weight:
+                    SortByWeight(inventory, asc, player);
+                    break;
+                case SortType.Value:
+                    SortByValue(inventory, asc, player);
+                    break;
+            }
+            SortToGrid(inventory, player);
         }
 
         private static void SortByName(Inventory inventory, bool asc, bool player)
@@ -188,19 +234,14 @@ namespace SimpleSort
             var items = inventory.GetAllItems();
             int width = Traverse.Create(inventory).Field("m_width").GetValue<int>();
             int height = Traverse.Create(inventory).Field("m_width").GetValue<int>();
-            items.Sort(delegate(ItemDrop.ItemData a, ItemDrop.ItemData b) { return CompareStrings(Localization.instance.Localize(a.m_shared.m_name), Localization.instance.Localize(b.m_shared.m_name), asc); });
-            int idx = 0;
-            for (int i = 0; i < items.Count; i++)
-            {
-                if (player && ((playerSortStartRow.Value > 1 && items[i].m_gridPos.y < playerSortStartRow.Value - 1) || (playerSortEndRow.Value > 0 && items[i].m_gridPos.y >= playerSortEndRow.Value)))
-                    continue;
+            items.Sort(delegate(ItemDrop.ItemData a, ItemDrop.ItemData b) {
 
-                int x = idx % width;
-                int y = idx / width + (player ? playerSortStartRow.Value - 1 : 0);
-                items[i].m_gridPos = new Vector2i(x, y);
-                idx++;
-            }
-            Traverse.Create(inventory).Method("Changed").GetValue();
+                if (a.m_shared.m_name == b.m_shared.m_name)
+                {
+                    return CompareInts(a.m_stack, b.m_stack, false);
+                }
+                return CompareStrings(Localization.instance.Localize(a.m_shared.m_name), Localization.instance.Localize(b.m_shared.m_name), asc); 
+            });
         }
         private static void SortByWeight(Inventory inventory, bool asc, bool player)
         {
@@ -210,38 +251,31 @@ namespace SimpleSort
                 if(a.m_shared.m_weight == b.m_shared.m_weight)
                 {
                     if (a.m_shared.m_name == b.m_shared.m_name)
-                        return CompareInts(b.m_stack, a.m_stack, asc);
+                        return CompareInts(a.m_stack, b.m_stack, false);
                     return CompareStrings(Localization.instance.Localize(a.m_shared.m_name), Localization.instance.Localize(b.m_shared.m_name), asc);
                 }
                 return CompareFloats(a.m_shared.m_weight, b.m_shared.m_weight, asc); 
             });
-            int idx = 0;
-            for (int i = 0; i < items.Count; i++)
-            {
-                if (player && ((playerSortStartRow.Value > 1 && items[i].m_gridPos.y < playerSortStartRow.Value - 1) || (playerSortEndRow.Value > 0 && items[i].m_gridPos.y >= playerSortEndRow.Value)))
-                    continue;
-
-
-                int x = idx % width;
-                int y = idx / width + (player ? playerSortStartRow.Value - 1 : 0);
-                items[i].m_gridPos = new Vector2i(x, y);
-                idx++;
-            }
-            Traverse.Create(inventory).Method("Changed").GetValue();
         }
         private static void SortByValue(Inventory inventory, bool asc, bool player)
         {
             var items = inventory.GetAllItems();
-            int width = Traverse.Create(inventory).Field("m_width").GetValue<int>();
             items.Sort(delegate (ItemDrop.ItemData a, ItemDrop.ItemData b) {
                 if (a.m_shared.m_value == b.m_shared.m_value)
                 {
                     if (a.m_shared.m_name == b.m_shared.m_name)
-                        return CompareInts(b.m_stack, a.m_stack, asc);
+                        return CompareInts(a.m_stack, b.m_stack, false);
                     return CompareStrings(Localization.instance.Localize(a.m_shared.m_name), Localization.instance.Localize(b.m_shared.m_name), asc);
                 }
                 return CompareInts(a.m_shared.m_value, b.m_shared.m_value, asc); 
             });
+        }
+
+        public static void SortToGrid(Inventory inventory, bool player)
+        {
+            List<ItemDrop.ItemData> items = inventory.GetAllItems();
+            int width = Traverse.Create(inventory).Field("m_width").GetValue<int>();
+
             int idx = 0;
             for (int i = 0; i < items.Count; i++)
             {

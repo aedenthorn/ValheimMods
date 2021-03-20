@@ -11,10 +11,10 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.7.0")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.7.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static ConfigEntry<bool> isDebug;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> dumpInfo;
@@ -36,13 +36,14 @@ namespace CustomAudio
 
         public static void Dbgl(string str = "", bool pref = true)
         {
-            if (isDebug)
+            if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
         private void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Show debug log messages in the console");
             dumpInfo = Config.Bind<bool>("General", "DumpInfo", true, "Dump audio info to the console");
             musicVol = Config.Bind<float>("General", "MusicVol", 0.6f, "Music volume, 0.0 - 1.0");
             //sfxVol = Config.Bind<float>("General", "SfxVol", 1f, "SFX volume");
@@ -186,7 +187,8 @@ namespace CustomAudio
                     Dbgl($"Checking SFX: {name}");
                 if (customSFXList.ContainsKey(name))
                 {
-                    Dbgl($"replacing SFX list by name: {name}");
+                    if (dumpInfo.Value)
+                        Dbgl($"replacing SFX list by name: {name}");
                     __instance.m_audioClips = customSFXList[name].Values.ToArray();
                     return;
                 }
@@ -196,7 +198,8 @@ namespace CustomAudio
                         Dbgl($"checking SFX: {name}, clip: {__instance.m_audioClips[i].name}");
                     if (customSFX.ContainsKey(__instance.m_audioClips[i].name))
                     {
-                        Dbgl($"replacing SFX: {name}, clip: {__instance.m_audioClips[i].name}");
+                        if (dumpInfo.Value)
+                            Dbgl($"replacing SFX: {name}, clip: {__instance.m_audioClips[i].name}");
                         __instance.m_audioClips[i] = customSFX[__instance.m_audioClips[i].name];
                     }
                 }
@@ -334,7 +337,8 @@ namespace CustomAudio
 
                 if (___m_musicSource?.clip != null && lastMusicName != ___m_musicSource.clip.name)
                 {
-                    Dbgl($"Switching music from {lastMusicName} to {___m_musicSource.clip.name}");
+                    if(dumpInfo.Value)
+                        Dbgl($"Switching music from {lastMusicName} to {___m_musicSource.clip.name}");
                     lastMusicName = ___m_musicSource.clip.name;
                 }
                 if (___m_queuedMusic == null && !___m_musicSource.isPlaying && PlayerPrefs.GetInt("ContinousMusic", 1) == 1)
