@@ -161,6 +161,7 @@ namespace CraftFromContainers
             {
                 if (container != null && container.transform != null && container.GetInventory() != null && (ignoreRange || m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
                 {
+                    Traverse.Create(container).Method("Load").GetValue();
                     containers.Add(container);
                 }
             }

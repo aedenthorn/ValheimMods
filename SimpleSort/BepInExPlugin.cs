@@ -216,7 +216,6 @@ namespace SimpleSort
                         items[i].m_stack -= amount;
                 }
             }
-
             switch (type)
             {
                 case SortType.Weight:

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace CustomizableToolbar
 {
-    [BepInPlugin("aedenthorn.CustomizableToolbar", "Customizable Toolbar", "0.2.0")]
+    [BepInPlugin("aedenthorn.CustomizableToolbar", "Customizable Toolbar", "0.2.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -44,7 +44,7 @@ namespace CustomizableToolbar
 
             if (!modEnabled.Value)
                 return;
-            harmony = new Harmony("aedenthorn.RealClockMod");
+            harmony = new Harmony(Info.Metadata.GUID);
             harmony.PatchAll();
         }
 
@@ -116,9 +116,9 @@ namespace CustomizableToolbar
 
                 if (CheckKeyHeld(modKeyOne.Value) && CheckKeyHeld(modKeyTwo.Value))
                 {
-                    Rect rect = new Rect(__instance.gameObject.GetComponent<RectTransform>().anchorMin.x * Screen.width + 47, 
+                    Rect rect = new Rect(__instance.gameObject.GetComponent<RectTransform>().anchorMin.x * Screen.width + 47,
                         __instance.gameObject.GetComponent<RectTransform>().anchorMax.y * Screen.height - Mathf.CeilToInt(8f / itemsPerRow.Value) * scaledSize * 1.5f - 44,
-                        itemsPerRow.Value * scaledSize * 1.5f, 
+                        itemsPerRow.Value * scaledSize * 1.5f,
                         Mathf.CeilToInt(8f / itemsPerRow.Value) * scaledSize * 1.5f);
 
                     if (rect.Contains(lastMousePos))
@@ -140,12 +140,12 @@ namespace CustomizableToolbar
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("customtoolbar reset"))
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "customizable toolbar config reloaded" }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
                 }
                 return true;

@@ -1,0 +1,346 @@
+﻿using BepInEx;
+using BepInEx.Configuration;
+using HarmonyLib;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+
+namespace CustomUI
+{
+    [BepInPlugin("aedenthorn.CustomUI", "Custom UI", "0.1.0")]
+    public class BepInExPlugin : BaseUnityPlugin
+    {
+        private static readonly bool isDebug = true;
+        private static BepInExPlugin context;
+        private Harmony harmony;
+
+        public static ConfigEntry<bool> modEnabled;
+
+        public static ConfigEntry<float> toolbarX;
+        public static ConfigEntry<float> toolbarY;
+        public static ConfigEntry<float> toolbarItemScale;
+        public static ConfigEntry<int> toolbarItemsPerRow;
+        public static ConfigEntry<int> healthbarRotation;
+
+        public static ConfigEntry<float> healthbarX;
+        public static ConfigEntry<float> healthbarY;
+        public static ConfigEntry<float> healthbarScale;
+
+        public static ConfigEntry<float> guardianX;
+        public static ConfigEntry<float> guardianY;
+        public static ConfigEntry<float> guardianScale;
+
+        public static ConfigEntry<float> mapX;
+        public static ConfigEntry<float> mapY;
+        public static ConfigEntry<float> mapScale;
+
+        public static ConfigEntry<float> statusX;
+        public static ConfigEntry<float> statusY;
+        public static ConfigEntry<float> statusScale;
+
+        public static ConfigEntry<string> modKeyOne;
+        public static ConfigEntry<string> modKeyTwo;
+        public static ConfigEntry<int> nexusID;
+
+        public static int itemSize = 48;
+
+        public static void Dbgl(string str = "", bool pref = true)
+        {
+            if (isDebug)
+                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
+        }
+        private void Awake()
+        {
+            context = this;
+            nexusID = Config.Bind<int>("General", "NexusID", 625, "Nexus mod ID for updates");
+            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            modKeyOne = Config.Bind<string>("General", "ModKeyOne", "mouse 0", "First modifier key. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html format.");
+            modKeyTwo = Config.Bind<string>("General", "ModKeyTwo", "left ctrl", "Second modifier key. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html format.");
+            toolbarItemsPerRow = Config.Bind<int>("General", "ToolbarItemsPerRow", 8, "Number of items per row in the toolbar");
+            toolbarItemsPerRow = Config.Bind<int>("General", "ToolbarItemsPerRow", 8, "Number of items per row in the toolbar");
+            healthbarRotation = Config.Bind<int>("General", "HealthbarRotation", 0, "Rotation of healthbar. Must be a multiple of 90.");
+
+            toolbarItemScale = Config.Bind<float>("Scale", "ToolbarItemScale", 1f, "Toolbar item scale");
+            healthbarScale = Config.Bind<float>("Scale", "HealthbarScale", 1f, "Healthbar scale");
+            guardianScale = Config.Bind<float>("Scale", "GuardianScale", 1f, "Guardian power scale");
+            mapScale = Config.Bind<float>("Scale", "MapScale", 1f, "map scale");
+            statusScale = Config.Bind<float>("Scale", "StatusScale", 1f, "status scale");
+            
+            toolbarX = Config.Bind<float>("ZCurrentPositions", "ToolbarX", 9999, "Current X of toolbar");
+            toolbarY = Config.Bind<float>("ZCurrentPositions", "ToolbarY", 9999, "Current Y of toolbar");
+
+            healthbarX = Config.Bind<float>("ZCurrentPositions", "HealthbarX", 9999, "Current X of healthbar");
+            healthbarY = Config.Bind<float>("ZCurrentPositions", "HealthbarY", 9999, "Current Y of healthbar");
+
+            guardianX = Config.Bind<float>("ZCurrentPositions", "GuardianX", 9999, "Current X of guardian power");
+            guardianY = Config.Bind<float>("ZCurrentPositions", "GuardianY", 9999, "Current Y of guardian power");
+
+            mapX = Config.Bind<float>("ZCurrentPositions", "MapX", 9999, "Current X of map");
+            mapY = Config.Bind<float>("ZCurrentPositions", "MapY", 9999, "Current Y of map");
+
+            statusX = Config.Bind<float>("ZCurrentPositions", "StatusX", 9999, "Current X of status");
+            statusY = Config.Bind<float>("ZCurrentPositions", "StatusY", 9999, "Current Y of status");
+
+            toolbarItemsPerRow.Value = Mathf.Clamp(toolbarItemsPerRow.Value, 1, 8);
+
+            if (!modEnabled.Value)
+                return;
+            harmony = new Harmony(Info.Metadata.GUID);
+            harmony.PatchAll();
+        }
+
+        private void OnDestroy()
+        {
+            Dbgl("Destroying plugin");
+            harmony.UnpatchAll();
+        }
+
+        private static bool CheckKeyHeld(string value)
+        {
+            try
+            {
+                return Input.GetKey(value.ToLower());
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static Vector3 lastMousePos;
+        private static string currentlyDragging;
+
+        [HarmonyPatch(typeof(HotkeyBar), "UpdateIcons")]
+        static class HotkeyBar_UpdateIcons_Patch
+        {
+            static void Postfix(HotkeyBar __instance)
+            {
+                if (!modEnabled.Value || Player.m_localPlayer == null || __instance.name != "HotKeyBar")
+                    return;
+
+                int count = __instance.transform.childCount;
+
+                float scaledSize = __instance.m_elementSpace * toolbarItemScale.Value;
+
+                for (int i = 0; i < count; i++)
+                {
+                    int x = i % toolbarItemsPerRow.Value;
+                    int y = i / toolbarItemsPerRow.Value;
+
+                    Transform t = __instance.transform.GetChild(i);
+                    t.GetComponent<RectTransform>().anchoredPosition = new Vector2(scaledSize * x, -scaledSize * y);
+                    t.GetComponent<RectTransform>().localScale = new Vector3(toolbarItemScale.Value, toolbarItemScale.Value, 1);
+                    //Dbgl($"element {i}, position {t.GetComponent<RectTransform>().anchoredPosition}");
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Hud), "Update")]
+        static class Hud_Update_Patch
+        {
+            static void Postfix(Hud __instance)
+            {
+                if (!modEnabled.Value || Player.m_localPlayer == null || InventoryGui.IsVisible() == true)
+                    return;
+
+                float gameScale = GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;
+                int healthRot = 90 - (healthbarRotation.Value / 90 % 4 * 90);
+
+                Vector3 mousePos = Input.mousePosition;
+
+                if (!modEnabled.Value)
+                {
+                    lastMousePos = mousePos;
+                    return;
+                }
+
+                Transform hudRoot = __instance.gameObject.transform.Find("hudroot");
+
+                if (toolbarX.Value == 9999)
+                    toolbarX.Value = hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMin.x * Screen.width;
+                if (toolbarY.Value == 9999)
+                    toolbarY.Value = hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMax.y * Screen.height;
+                
+                if (healthbarX.Value == 9999)
+                    healthbarX.Value = hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x;
+                if (healthbarY.Value == 9999)
+                    healthbarY.Value = hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y;
+
+                if (guardianX.Value == 9999)
+                    guardianX.Value = hudRoot.Find("GuardianPower").GetComponent<RectTransform>().anchoredPosition.x;
+                if (guardianY.Value == 9999)
+                    guardianY.Value = hudRoot.Find("GuardianPower").GetComponent<RectTransform>().anchoredPosition.y;
+
+                if (statusX.Value == 9999)
+                    statusX.Value = hudRoot.Find("StatusEffects").GetComponent<RectTransform>().anchoredPosition.x;
+                if (statusY.Value == 9999)
+                    statusY.Value = hudRoot.Find("StatusEffects").GetComponent<RectTransform>().anchoredPosition.y;
+
+                if (mapX.Value == 9999)
+                    mapX.Value = hudRoot.Find("MiniMap").Find("small").GetComponent<RectTransform>().anchoredPosition.x;
+                if (mapY.Value == 9999)
+                    mapY.Value = hudRoot.Find("MiniMap").Find("small").GetComponent<RectTransform>().anchoredPosition.y;
+
+                hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMax = new Vector2(hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMax.x, toolbarY.Value / Screen.height);
+                hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMin = new Vector2(toolbarX.Value / Screen.width, hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMin.y);
+
+                hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition = new Vector2(healthbarX.Value, healthbarY.Value);
+                hudRoot.Find("healthpanel").GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0, healthRot);
+                hudRoot.Find("healthpanel").Find("Health").Find("fast").Find("bar").Find("HealthText").GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0 , -healthRot);
+                hudRoot.Find("healthpanel").Find("food0").GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0 , -healthRot);
+                hudRoot.Find("healthpanel").Find("food1").GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0 , -healthRot);
+                hudRoot.Find("healthpanel").Find("food2").GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0 , -healthRot);
+
+                hudRoot.Find("GuardianPower").GetComponent<RectTransform>().anchoredPosition = new Vector2(guardianX.Value, guardianY.Value);
+
+                hudRoot.Find("StatusEffects").GetComponent<RectTransform>().anchoredPosition = new Vector2(statusX.Value, statusY.Value);
+
+                hudRoot.Find("MiniMap").Find("small").GetComponent<RectTransform>().anchoredPosition = new Vector2(mapX.Value, mapY.Value);
+
+                hudRoot.Find("healthpanel").GetComponent<RectTransform>().localScale = new Vector3(healthbarScale.Value, healthbarScale.Value, 1);
+                hudRoot.Find("GuardianPower").GetComponent<RectTransform>().localScale = new Vector3(guardianScale.Value, guardianScale.Value, 1);
+                hudRoot.Find("StatusEffects").GetComponent<RectTransform>().localScale = new Vector3(statusScale.Value, statusScale.Value, 1);
+                hudRoot.Find("MiniMap").Find("small").GetComponent<RectTransform>().localScale = new Vector3(mapScale.Value, mapScale.Value, 1);
+
+
+                if (lastMousePos == Vector3.zero)
+                    lastMousePos = mousePos;
+
+
+                if (CheckKeyHeld(modKeyOne.Value) && CheckKeyHeld(modKeyTwo.Value))
+                {
+
+                    Rect hotkeyRect = new Rect(
+                        hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMin.x * Screen.width + hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchoredPosition.x * gameScale,
+                        hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMax.y * Screen.height + hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchoredPosition.y * gameScale - hudRoot.Find("HotKeyBar").GetComponent<HotkeyBar>().m_elementSpace * gameScale * toolbarItemScale.Value * (7 / toolbarItemsPerRow.Value + 1),
+                        hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().sizeDelta.x * gameScale * toolbarItemScale.Value * (toolbarItemsPerRow.Value / 8f),
+                        hudRoot.Find("HotKeyBar").GetComponent<HotkeyBar>().m_elementSpace * gameScale * toolbarItemScale.Value * (7 / toolbarItemsPerRow.Value + 1)
+                    );
+
+                    Rect healthRect = Rect.zero;
+                    switch (healthRot)
+                    {
+                        case 90: // 0 - good
+                            healthRect = new Rect(
+                                (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x) * gameScale,
+                                (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y) * gameScale,
+                                hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value,
+                                hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value
+                            );
+                            break;
+                        case 0: // 90 - good
+                            healthRect = new Rect(
+                                (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x) * gameScale,
+                                (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y) * gameScale - hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value,
+                                hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value,
+                                hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value
+                            );
+                            break;
+                        case -90: // 180
+                            healthRect = new Rect(
+                                (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x) * gameScale - hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value,
+                                (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y) * gameScale - hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value,
+                                hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value,
+                                hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value
+                            );
+                            break;
+                        case -180: // 270
+                            healthRect = new Rect(
+                                (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x) * gameScale - hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value,
+                                (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y) * gameScale,
+                                hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value,
+                                hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value
+                            );
+                            break;
+                    }
+
+                    Rect guardianRect = new Rect(
+                        (hudRoot.Find("GuardianPower").GetComponent<RectTransform>().anchoredPosition.x + hudRoot.Find("GuardianPower").GetComponent<RectTransform>().rect.x * guardianScale.Value)* gameScale,
+                        (hudRoot.Find("GuardianPower").GetComponent<RectTransform>().anchoredPosition.y + hudRoot.Find("GuardianPower").GetComponent<RectTransform>().rect.y * guardianScale.Value) * gameScale,
+                        hudRoot.Find("GuardianPower").GetComponent<RectTransform>().sizeDelta.x * gameScale * guardianScale.Value,
+                        hudRoot.Find("GuardianPower").GetComponent<RectTransform>().sizeDelta.y * gameScale * guardianScale.Value
+                    );
+                    Rect statusRect = new Rect(
+                        Screen.width + (hudRoot.Find("StatusEffects").GetComponent<RectTransform>().anchoredPosition.x + hudRoot.Find("StatusEffects").GetComponent<RectTransform>().rect.x * statusScale.Value) * gameScale,
+                        Screen.height + (hudRoot.Find("StatusEffects").GetComponent<RectTransform>().anchoredPosition.y + hudRoot.Find("StatusEffects").GetComponent<RectTransform>().rect.y * statusScale.Value) * gameScale,
+                        hudRoot.Find("StatusEffects").GetComponent<RectTransform>().sizeDelta.x * gameScale * statusScale.Value,
+                        hudRoot.Find("StatusEffects").GetComponent<RectTransform>().sizeDelta.y * gameScale * statusScale.Value
+                    );
+                    Rect mapRect = new Rect(
+                        (hudRoot.Find("MiniMap").Find("small").GetComponent<RectTransform>().anchoredPosition.x - hudRoot.Find("MiniMap").Find("small").GetComponent<RectTransform>().sizeDelta.x * mapScale.Value) * gameScale + Screen.width,
+                        (hudRoot.Find("MiniMap").Find("small").GetComponent<RectTransform>().anchoredPosition.y - hudRoot.Find("MiniMap").Find("small").GetComponent<RectTransform>().sizeDelta.y * mapScale.Value) * gameScale + Screen.height,
+                        hudRoot.Find("MiniMap").Find("small").GetComponent<RectTransform>().sizeDelta.x * gameScale * mapScale.Value,
+                        hudRoot.Find("MiniMap").Find("small").GetComponent<RectTransform>().sizeDelta.y * gameScale * mapScale.Value
+                    );
+
+                    if (hotkeyRect.Contains(lastMousePos) && (currentlyDragging == "" || currentlyDragging == "HotKeyBar"))
+                    {
+                        //Dbgl("in hotkeybar");
+                        toolbarX.Value += mousePos.x - lastMousePos.x;
+                        toolbarY.Value += mousePos.y - lastMousePos.y;
+                        currentlyDragging = "HotKeyBar";
+                    }
+                    else if (healthRect.Contains(lastMousePos) && (currentlyDragging == "" || currentlyDragging == "healthpanel"))
+                    {
+                        //Dbgl("in healthpanel");
+                        healthbarX.Value += (mousePos.x - lastMousePos.x) / gameScale;
+                        healthbarY.Value += (mousePos.y - lastMousePos.y) / gameScale;
+                        currentlyDragging = "healthpanel";
+                    }
+                    else if (guardianRect.Contains(lastMousePos) && (currentlyDragging == "" || currentlyDragging == "GuardianPower"))
+                    {
+                        //Dbgl("in guardianPower");
+                        guardianX.Value += (mousePos.x - lastMousePos.x) / gameScale;
+                        guardianY.Value += (mousePos.y - lastMousePos.y) / gameScale;
+                        currentlyDragging = "GuardianPower";
+                    }
+                    else if (mapRect.Contains(lastMousePos) && (currentlyDragging == "" || currentlyDragging == "MiniMap"))
+                    {
+                        //Dbgl("in MiniMap");
+                        mapX.Value += (mousePos.x - lastMousePos.x) / gameScale;
+                        mapY.Value += (mousePos.y - lastMousePos.y) / gameScale;
+                        currentlyDragging = "MiniMap";
+                    }
+                    else if (statusRect.Contains(lastMousePos) && (currentlyDragging == "" || currentlyDragging == "StatusEffects"))
+                    {
+                        //Dbgl("in StatusEffects");
+                        statusX.Value += (mousePos.x - lastMousePos.x) / gameScale;
+                        statusY.Value += (mousePos.y - lastMousePos.y) / gameScale;
+                        currentlyDragging = "StatusEffects";
+                    }
+                    else
+                    {
+                        //Dbgl($"mouse {mousePos}, hotkey rect {hotkeyRect}, health rect {healthRect}, guardian rect {guardianRect}, map rect {mapRect}");
+                        //Dbgl($"mouse {mousePos} health rect {healthRect}, status rect {statusRect}");
+                        currentlyDragging = "";
+                    }
+                }
+                else
+                    currentlyDragging = "";
+
+                lastMousePos = mousePos;
+            }
+        }
+
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
+            }
+        }
+    }
+}
