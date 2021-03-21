@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace PlantMod
 {
-    [BepInPlugin("aedenthorn.PlantMod", "Plant Mod", "0.3.0")]
+    [BepInPlugin("aedenthorn.PlantMod", "Plant Mod", "0.3.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -149,7 +149,7 @@ namespace PlantMod
                 double timeSincePlanted = Traverse.Create(__instance).Method("TimeSincePlanted").GetValue<double>();
                 float growTime = Traverse.Create(__instance).Method("GetGrowTime").GetValue<float>();
                 if(timeSincePlanted < growTime)
-                    __result += $"\n{Mathf.RoundToInt((float)timeSincePlanted)}/{Mathf.RoundToInt(growTime)}";
+                    __result += "\n"+Mathf.RoundToInt((float)timeSincePlanted)+"/"+Mathf.RoundToInt(growTime);
             }
         }
         
@@ -177,7 +177,7 @@ namespace PlantMod
 
                     __instance.m_biome = biome;
                 }
-                if (__instance.name.ToLower().Contains("tree"))
+                if (__instance.m_grownPrefabs[0].GetComponent<TreeBase>())
                 {
                     __instance.m_growTime *= growthTimeMultTree.Value;
                     __instance.m_growTimeMax *= growthTimeMultTree.Value;
@@ -205,7 +205,7 @@ namespace PlantMod
             {
                 if (modEnabled.Value)
                 {
-                    __result *= (__instance.name.ToLower().Contains("tree") ? growthTimeMultTree.Value : growthTimeMultPlant.Value);
+                    __result *= (__instance.m_grownPrefabs[0].GetComponent<TreeBase>() ? growthTimeMultTree.Value : growthTimeMultPlant.Value);
                 }
             }
         }               
@@ -229,7 +229,7 @@ namespace PlantMod
             {
                 //Dbgl($"checking too close?");
 
-                if (modEnabled.Value && ((__instance.name.ToLower().Contains("tree") && growRadiusMultTree.Value == 0) ||(!__instance.name.ToLower().Contains("tree") && growRadiusMultPlant.Value == 0)))
+                if (modEnabled.Value && ((__instance.m_grownPrefabs[0].GetComponent<TreeBase>() && growRadiusMultTree.Value == 0) ||(!__instance.name.ToLower().Contains("tree") && growRadiusMultPlant.Value == 0)))
                 {
                     __result = true;
                     return false;

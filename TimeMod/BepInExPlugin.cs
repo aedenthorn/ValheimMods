@@ -251,7 +251,7 @@ namespace TimeMod
         {
             static bool Prefix()
             {
-                return (Time.timeScale != 0 || !stopRenderingOnKeyPause.Value || Utils.GetMainCamera() != null);
+                return (!modEnabled.Value || Time.timeScale != 0 || !stopRenderingOnKeyPause.Value || Utils.GetMainCamera() != null);
             }
         }
         [HarmonyPatch(typeof(DamageText), "LateUpdate")]
@@ -296,12 +296,12 @@ namespace TimeMod
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("timemod reset"))
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "Time Mod config reloaded" }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
                 }
                 return true;
