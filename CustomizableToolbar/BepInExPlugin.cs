@@ -50,6 +50,9 @@ namespace CustomizableToolbar
 
         private void OnDestroy()
         {
+            if (!modEnabled.Value)
+                return;
+
             Dbgl("Destroying plugin");
             harmony.UnpatchAll();
         }

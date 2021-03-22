@@ -111,6 +111,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleSort", "SimpleSort\Si
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomUI", "CustomUI\CustomUI.csproj", "{6ABC7498-9885-4913-865C-017090A58FEE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharacterEdit", "CharacterEdit\CharacterEdit.csproj", "{E9436D85-5A2A-4D51-9E1D-31AAABAB4160}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -333,6 +335,10 @@ Global
 		{6ABC7498-9885-4913-865C-017090A58FEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6ABC7498-9885-4913-865C-017090A58FEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6ABC7498-9885-4913-865C-017090A58FEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9436D85-5A2A-4D51-9E1D-31AAABAB4160}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9436D85-5A2A-4D51-9E1D-31AAABAB4160}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9436D85-5A2A-4D51-9E1D-31AAABAB4160}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9436D85-5A2A-4D51-9E1D-31AAABAB4160}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

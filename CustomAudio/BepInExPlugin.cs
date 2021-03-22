@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.7.1")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.8.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -240,7 +240,7 @@ namespace CustomAudio
         [HarmonyPatch(typeof(AudioMan), "Awake")] 
         static class AudioMan_Awake_Patch
         {
-            static void Postfix(AudioMan __instance, List<AudioMan.BiomeAmbients> ___m_randomAmbients)
+            static void Postfix(AudioMan __instance, List<AudioMan.BiomeAmbients> ___m_randomAmbients, AudioSource ___m_oceanAmbientSource, AudioSource ___m_windLoopSource)
             {
                 List<string> dump = new List<string>();
 
@@ -302,6 +302,12 @@ namespace CustomAudio
                 }
                 if (dumpInfo.Value)
                     Dbgl(string.Join("\n", dump));
+
+                if (customAmbient.ContainsKey("ocean"))
+                    ___m_oceanAmbientSource.clip = customAmbient["ocean"];
+                if (customAmbient.ContainsKey("wind"))
+                    ___m_windLoopSource.clip = customAmbient["wind"];
+
             }
 
         }

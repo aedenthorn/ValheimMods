@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace PlantMod
 {
-    [BepInPlugin("aedenthorn.PlantMod", "Plant Mod", "0.3.1")]
+    [BepInPlugin("aedenthorn.PlantMod", "Plant Mod", "0.4.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
