@@ -53,7 +53,7 @@ namespace Regeneration
             dodgeStaminaLoss = Config.Bind<float>("Stamina", "DodgeStaminaLoss", 10f, "Stamina loss for dodging.");
             jumpStaminaLoss = Config.Bind<float>("Stamina", "JumpStaminaLoss", 10f, "Stamina loss for jumping.");
             blockStaminaLoss = Config.Bind<float>("Stamina", "BlockStaminaLoss", 25f, "Stamina loss for blocking.");
-            sneakStaminaLoss = Config.Bind<float>("Stamina", "SneakStaminaLoss", 5f, "Stamina loss for running.");
+            sneakStaminaLoss = Config.Bind<float>("Stamina", "SneakStaminaLoss", 5f, "Stamina loss for sneaking.");
             runStaminaLoss = Config.Bind<float>("Stamina", "RunStaminaLoss", 10f, "Stamina loss for running.");
 
             weightStaminaFactor = Config.Bind<float>("Stamina", "WeightStaminaFactor", 0.1f, "Stamina loss weight factor.");
