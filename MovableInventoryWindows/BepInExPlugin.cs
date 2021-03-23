@@ -36,17 +36,19 @@ namespace MovableInventoryWindows
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            inventoryPosition = Config.Bind<Vector2>("General", "InventoryPosition", new Vector2(-1,-1), "Current position of inventory");
-            chestInventoryPosition = Config.Bind<Vector2>("General", "ChestInventoryPosition", new Vector2(-1,-1), "Current position of chest");
-            craftingPanelPosition = Config.Bind<Vector2>("General", "CraftingPanelPosition", new Vector2(-1,-1), "Current position of crafting panel");
-            infoPanelPosition = Config.Bind<Vector2>("General", "InfoPanelPosition", new Vector2(-1,-1), "Current position of crafting panel");
+            nexusID = Config.Bind<int>("General", "NexusID", 577, "Nexus mod ID for updates");
+
             inventoryScale = Config.Bind<float>("General", "InventoryScale", 1f, "Scale of inventory");
             chestInventoryScale = Config.Bind<float>("General", "ChestInventoryScale", 1f, "Scale of chest");
             craftingPanelScale = Config.Bind<float>("General", "CraftingPanelScale", 1f, "Scale of crafting panel");
             infoPanelScale = Config.Bind<float>("General", "InfoPanelScale", 1f, "Scale of crafting panel");
             modKeyOne = Config.Bind<string>("General", "ModKeyOne", "mouse 0", "First modifier key. Use https://docs.unity3d.com/Manual/class-InputManager.html format.");
             modKeyTwo = Config.Bind<string>("General", "ModKeyTwo", "left ctrl", "Second modifier key. Use https://docs.unity3d.com/Manual/class-InputManager.html format.");
-            nexusID = Config.Bind<int>("General", "NexusID", 577, "Nexus mod ID for updates");
+
+            inventoryPosition = Config.Bind<Vector2>("ZPositions", "InventoryPosition", new Vector2(9999,9999), "Current position of inventory");
+            chestInventoryPosition = Config.Bind<Vector2>("ZPositions", "ChestInventoryPosition", new Vector2(9999,9999), "Current position of chest");
+            craftingPanelPosition = Config.Bind<Vector2>("ZPositions", "CraftingPanelPosition", new Vector2(9999,9999), "Current position of crafting panel");
+            infoPanelPosition = Config.Bind<Vector2>("ZPositions", "InfoPanelPosition", new Vector2(9999,9999), "Current position of crafting panel");
 
             if (!modEnabled.Value)
                 return;
@@ -89,28 +91,28 @@ namespace MovableInventoryWindows
                 }
 
 
-                if (inventoryPosition.Value.x == -1 ||inventoryPosition.Value.y == -1)
+                if (inventoryPosition.Value.x == 9999 && inventoryPosition.Value.y == 9999)
                     inventoryPosition.Value = __instance.m_player.anchorMin;
 
                 __instance.m_player.anchorMin = inventoryPosition.Value; 
                 __instance.m_player.anchorMax = inventoryPosition.Value;
                 __instance.m_player.localScale = new Vector3(inventoryScale.Value, inventoryScale.Value, 1);
 
-                if (chestInventoryPosition.Value.x == -1 || chestInventoryPosition.Value.y == -1)
+                if (chestInventoryPosition.Value.x == 9999 || chestInventoryPosition.Value.y == 9999)
                     chestInventoryPosition.Value = __instance.m_container.anchorMin;
 
                 __instance.m_container.anchorMin = chestInventoryPosition.Value; 
                 __instance.m_container.anchorMax = chestInventoryPosition.Value;
                 __instance.m_container.localScale = new Vector3(chestInventoryScale.Value, chestInventoryScale.Value, 1);
 
-                if (craftingPanelPosition.Value.x == -1 || craftingPanelPosition.Value.y == -1)
+                if (craftingPanelPosition.Value.x == 9999 || craftingPanelPosition.Value.y == 9999)
                     craftingPanelPosition.Value = __instance.m_player.parent.Find("Crafting").GetComponent<RectTransform>().anchorMin;
 
                 __instance.m_player.parent.Find("Crafting").GetComponent<RectTransform>().anchorMin = craftingPanelPosition.Value; 
                 __instance.m_player.parent.Find("Crafting").GetComponent<RectTransform>().anchorMax = craftingPanelPosition.Value;
                 __instance.m_player.parent.Find("Crafting").GetComponent<RectTransform>().localScale = new Vector3(craftingPanelScale.Value, craftingPanelScale.Value, 1);
 
-                if (infoPanelPosition.Value.x == -1 || infoPanelPosition.Value.y == -1)
+                if (infoPanelPosition.Value.x == 9999 || infoPanelPosition.Value.y == 9999)
                     infoPanelPosition.Value = __instance.m_infoPanel.GetComponent<RectTransform>().anchorMin;
 
                 __instance.m_infoPanel.GetComponent<RectTransform>().anchorMin = infoPanelPosition.Value; 
@@ -126,7 +128,7 @@ namespace MovableInventoryWindows
                     position = lastMousePos
                 };
 
-                if (CheckKeyHeld(modKeyOne.Value) && CheckKeyHeld(modKeyTwo.Value))
+                if (CheckKeyHeld(modKeyOne.Value) && CheckKeyHeld(modKeyTwo.Value) && lastMousePos != mousePos)
                 {
                     List<RaycastResult> raycastResults = new List<RaycastResult>();
                     EventSystem.current.RaycastAll(eventData, raycastResults);

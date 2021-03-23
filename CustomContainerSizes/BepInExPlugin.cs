@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace CustomContainerSizes
 {
-    [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.5.0")]
+    [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.5.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -43,7 +43,7 @@ namespace CustomContainerSizes
             privateChestWidth = Config.Bind<int>("Sizes", "PrivateChestWidth", 3, "Number of items wide for private chest containers (max. 8)");
             privateChestHeight = Config.Bind<int>("Sizes", "PrivateChestHeight", 2, "Number of items tall for private chest containers");
             reinforcedChestWidth = Config.Bind<int>("Sizes", "ReinforcedChestWidth", 6, "Number of items wide for reinforced chest containers (max. 8)");
-            reinforcedChestHeight = Config.Bind<int>("Sizes", "ReinforcedChestHeight", 3, "Number of items tall for reinforced chest containers");
+            reinforcedChestHeight = Config.Bind<int>("Sizes", "ReinforcedChestHeight", 4, "Number of items tall for reinforced chest containers");
             wagonWidth = Config.Bind<int>("Sizes", "WagonWidth", 6, "Number of items wide for chest containers (max. 8)");
             wagonHeight = Config.Bind<int>("Sizes", "WagonHeight", 3, "Number of items tall for chest containers");
             nexusID = Config.Bind<int>("General", "NexusID", 111, "Mod ID on the Nexus for update checks");

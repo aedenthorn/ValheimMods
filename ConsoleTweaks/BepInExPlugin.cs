@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace ConsoleTweaks
 {
-    [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.2.1")]
+    [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.2.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -44,7 +44,7 @@ namespace ConsoleTweaks
             "/give",
             "/god",
             "/heal",
-            "/imacheater",
+            "/devcommands",
             "/infstam",
             "/killall",
             "/listitems",
@@ -89,7 +89,8 @@ namespace ConsoleTweaks
             "banned",
             "ping",
             "lodbias",
-            "info"
+            "info",
+            "devcommands"
         };
         public static List<string> cheatCommandStrings = new List<string>()
         {
@@ -140,15 +141,15 @@ namespace ConsoleTweaks
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             cheatsEnabled = Config.Bind<bool>("General", "CheatsEnabled", true, "Enable cheats by default");
-            //debugEnabled = Config.Bind<bool>("General", "DebugEnabled", false, "Enable debug mode by default");
+            debugEnabled = Config.Bind<bool>("General", "DebugEnabled", false, "Enable debug mode by default");
             skEnabled = Config.Bind<bool>("General", "SkEnabled", true, "Enable SkToolbox command completion");
             nexusID = Config.Bind<int>("General", "NexusID", 464, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
 
-            //if (debugEnabled.Value)
-            //    Player.m_debugMode = true;
+            if (debugEnabled.Value)
+                Player.m_debugMode = true;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
@@ -169,6 +170,18 @@ namespace ConsoleTweaks
                     commandStrings.AddRange(cheatCommandStrings);
 
                 LoadSpawnStrings();
+            }
+        }
+
+        [HarmonyPatch(typeof(FejdStartup), "Start")]
+        static class FejdStartup_Start_Patch
+        {
+            static void Postfix()
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                Console.SetConsoleEnabled(true);
             }
         }
 
@@ -273,10 +286,10 @@ namespace ConsoleTweaks
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    //if (debugEnabled.Value)
-                    //    Player.m_debugMode = true;
+                    if (debugEnabled.Value)
+                        Player.m_debugMode = true;
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "config reloaded" }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { "console tweaks config reloaded" }).GetValue();
                     return false;
                 }
                 return true;

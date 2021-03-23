@@ -2,12 +2,13 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace CharacterEdit
 {
-    [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.1.0")]
+    [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -16,8 +17,10 @@ namespace CharacterEdit
         private Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<string> titleText;
         public static ConfigEntry<string> buttonText;
         public static ConfigEntry<int> nexusID;
+        private static Transform title;
 
         public static int itemSize = 70;
 
@@ -31,6 +34,7 @@ namespace CharacterEdit
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             buttonText = Config.Bind<string>("General", "ButtonText", "Edit", "Button text");
+            titleText = Config.Bind<string>("General", "TitleText", "Edit Character", "Title text");
             nexusID = Config.Bind<int>("General", "NexusID", 650, "Nexus mod ID for updates");
 
 
@@ -49,6 +53,7 @@ namespace CharacterEdit
         [HarmonyPatch(typeof(FejdStartup), "Awake")]
         static class FejdStartup_Awake_Patch
         {
+
             static void Postfix(FejdStartup __instance)
             {
                 if (!modEnabled.Value)
@@ -62,31 +67,60 @@ namespace CharacterEdit
                 edit.GetComponent<Button>().onClick.RemoveAllListeners();
                 edit.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
                 edit.GetComponent<Button>().onClick.AddListener(StartCharacterEdit);
+
+                title = Instantiate(FejdStartup.instance.m_newCharacterPanel.transform.Find("Topic"));
+                title.name = "EditTitle";
+                title.parent = FejdStartup.instance.m_newCharacterPanel.transform;
+                title.GetComponent<Text>().text = titleText.Value;
+                title.GetComponent<RectTransform>().anchoredPosition = FejdStartup.instance.m_newCharacterPanel.transform.Find("Topic").GetComponent<RectTransform>().anchoredPosition;
+                title.gameObject.SetActive(false);
             }
         }
         [HarmonyPatch(typeof(FejdStartup), "OnNewCharacterDone")]
         static class FejdStartup_OnNewCharacterDone_Patch
         {
-            static bool Prefix(FejdStartup __instance)
+            static bool Prefix(FejdStartup __instance, ref List<PlayerProfile> ___m_profiles)
             {
                 Dbgl($"New character done, editing {editingCharacter}");
                 if (!editingCharacter)
                     return true;
 
+                title.gameObject.SetActive(false);
+                FejdStartup.instance.m_newCharacterPanel.transform.Find("Topic").gameObject.SetActive(true);
+
                 editingCharacter = false;
 
                 string text = __instance.m_csNewCharacterName.text;
+                string text2 = text.ToLower();
 
                 PlayerProfile playerProfile = Traverse.Create(FejdStartup.instance).Field("m_profiles").GetValue<List<PlayerProfile>>()[Traverse.Create(FejdStartup.instance).Field("m_profileIndex").GetValue<int>()];
-
-                Player component = Traverse.Create(FejdStartup.instance).Field("m_playerInstance").GetValue<GameObject>().GetComponent<Player>();
-
+                Player currentPlayerInstance = Traverse.Create(FejdStartup.instance).Field("m_playerInstance").GetValue<GameObject>().GetComponent<Player>();
+                playerProfile.SavePlayerData(currentPlayerInstance);
                 playerProfile.SetName(text);
-                playerProfile.SavePlayerData(component);
+
+                var fileNameRef = Traverse.Create(playerProfile).Field("m_filename");
+                string fileName = fileNameRef.GetValue<string>();
+
+                if(fileName != text2)
+                {
+                    string path = Path.Combine(Utils.GetSaveDataPath(), "characters");
+                    
+                    if(File.Exists(Path.Combine(path, fileName + ".fch")))
+                        File.Move(Path.Combine(path, fileName + ".fch"), Path.Combine(path, text2 + ".fch"));
+                    if (File.Exists(Path.Combine(path, fileName + ".fch.old")))
+                        File.Move(Path.Combine(path, fileName + ".fch.old"), Path.Combine(path, text2 + ".fch.old"));
+                    if (File.Exists(Path.Combine(path, fileName + ".fch.new")))
+                        File.Move(Path.Combine(path, fileName + ".fch.new"), Path.Combine(path, text2 + ".fch.new"));
+
+                    fileNameRef.SetValue(text2);
+                }
+
                 playerProfile.Save();
+
                 __instance.m_selectCharacterPanel.SetActive(true);
                 __instance.m_newCharacterPanel.SetActive(false);
-
+                ___m_profiles = null;
+                Traverse.Create(__instance).Method("SetSelectedProfile", new object[]{ text2 }).GetValue();
                 return false;
             }
         }
@@ -96,6 +130,9 @@ namespace CharacterEdit
             static void Postfix(FejdStartup __instance)
             {
                 Dbgl($"New character cancel, editing {editingCharacter}");
+
+                title.gameObject.SetActive(false);
+                FejdStartup.instance.m_newCharacterPanel.transform.Find("Topic").gameObject.SetActive(true);
 
                 editingCharacter = false;
             }
@@ -138,6 +175,10 @@ namespace CharacterEdit
             Dbgl($"Start editing character");
 
             editingCharacter = true;
+
+            title.gameObject.SetActive(true);
+            FejdStartup.instance.m_newCharacterPanel.transform.Find("Topic").gameObject.SetActive(false);
+
             PlayerProfile playerProfile = Traverse.Create(FejdStartup.instance).Field("m_profiles").GetValue<List<PlayerProfile>>()[Traverse.Create(FejdStartup.instance).Field("m_profileIndex").GetValue<int>()];
             FejdStartup.instance.m_newCharacterPanel.SetActive(true);
             FejdStartup.instance.m_selectCharacterPanel.SetActive(false);

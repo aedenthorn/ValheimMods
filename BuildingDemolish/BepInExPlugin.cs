@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BuildingDemolish
 {
-    [BepInPlugin("aedenthorn.BuildingDemolish", "BuildingDemolish", "0.3.1")]
+    [BepInPlugin("aedenthorn.BuildingDemolish", "BuildingDemolish", "0.3.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -77,7 +77,7 @@ namespace BuildingDemolish
                         {
                             continue;
                         }
-                        if (!PrivateArea.CheckAccess(piece.transform.position, 0f, true))
+                        if (!PrivateArea.CheckAccess(piece.transform.position, 0f, true, false))
                         {
                             continue;
                         }

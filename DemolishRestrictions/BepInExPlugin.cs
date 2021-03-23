@@ -28,7 +28,7 @@ namespace DemolishRestrictions
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            nexusID = Config.Bind<int>("General", "NexusID", 516, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", , "Nexus mod ID for updates");
             restrictToCreator = Config.Bind<bool>("General", "RestrictToOwner", true, "Restrict destruction to creator only.");
 
             if (!modEnabled.Value)
