@@ -3,9 +3,6 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -14,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CustomServerLoadingScreen
 {
-    [BepInPlugin("aedenthorn.CustomServerLoadingScreen", "Custom Server Loading Screen", "0.3.1")]
+    [BepInPlugin("aedenthorn.CustomServerLoadingScreen", "Custom Server Loading Screen", "0.3.2")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -34,7 +31,6 @@ namespace CustomServerLoadingScreen
         private static string loadingTip = "";
         private static Sprite loadingSprite = null;
         private static bool loadedSprite = true;
-        private static bool sentURL = false;
         //private static Sprite loadingSprite2 = null;
         private static int secondsWaited = 0;
 
@@ -70,7 +66,7 @@ namespace CustomServerLoadingScreen
         [HarmonyPatch(typeof(ZNet), "OnNewConnection")]
         public static class ZNet_OnNewConnection_Patch
         {
-            public static void Postfix(ZNetPeer peer)
+            public static void Postfix(ZNet __instance, ZNetPeer peer)
             {
                 Dbgl("New connection");
 
@@ -95,14 +91,10 @@ namespace CustomServerLoadingScreen
 
                 Dbgl($"Sending loading screen {serverLoadingScreen.Value}");
 
-                if (!sentURL)
+                peer.m_rpc.Invoke("ShareLoadingScreen", new object[]
                 {
-                    sentURL = true;
-                    peer.m_rpc.Invoke("ShareLoadingScreen", new object[]
-                    {
-                        serverLoadingScreen.Value
-                    });
-                }
+                    serverLoadingScreen.Value
+                });
             }
         }
 
