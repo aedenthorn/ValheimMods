@@ -1,3 +1,3 @@
 This entire repository's contents, as far as legally possible and unless a project specifies otherwise, are released into the public domain. 
 
-The creator of this file disavows any copyright over any content in this repository, and material licensed from other sources is clearly labeled as such.
+The creator of this file disavows any copyright over any content in this repository, and content licensed from other sources is clearly labeled as such.
