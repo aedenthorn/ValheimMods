@@ -7,10 +7,12 @@ using UnityEngine;
 
 namespace CustomContainerSizes
 {
-    [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.5.1")]
+    [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.5.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
+        private static BepInExPlugin context;
+
         private static ConfigEntry<bool> modEnabled;
         private static ConfigEntry<int> chestWidth;
         private static ConfigEntry<int> chestHeight;
@@ -33,6 +35,8 @@ namespace CustomContainerSizes
         }
         private void Awake()
         {
+            context = this;
+
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             chestWidth = Config.Bind<int>("Sizes", "ChestWidth", 5, "Number of items wide for chest containers");
             chestHeight = Config.Bind<int>("Sizes", "ChestHeight", 2, "Number of items tall for chest containers");
@@ -119,6 +123,26 @@ namespace CustomContainerSizes
                     typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, reinforcedChestWidth.Value);
                     typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, reinforcedChestHeight.Value);
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
             }
         }
     }

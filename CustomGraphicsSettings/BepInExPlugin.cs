@@ -13,7 +13,7 @@ using UnityEngine.Networking;
 
 namespace CustomGraphicsSettings
 {
-    [BepInPlugin("aedenthorn.CustomGraphicsSettings", "Custom Graphics Settings", "0.1.0")]
+    [BepInPlugin("aedenthorn.CustomGraphicsSettings", "Custom Graphics Settings", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -54,7 +54,7 @@ namespace CustomGraphicsSettings
         public static ConfigEntry<int> vSyncCount;
 
         private static string[] audioFiles;
-        private static BepInExPlugin instance;
+        private static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -63,7 +63,7 @@ namespace CustomGraphicsSettings
         }
         private void Awake()
         {
-            instance = this;
+            context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 169, "Nexus mod ID for updates");
             anisotropicFiltering = Config.Bind<int>("QualitySettings", "anisotropicFiltering", 2, "Global anisotropic filtering mode.");
@@ -103,7 +103,6 @@ namespace CustomGraphicsSettings
                 return;
 
             SetGraphicsSettings();
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
         }
 
@@ -161,35 +160,26 @@ namespace CustomGraphicsSettings
                 __instance.m_distance = 1000;
             }
         }
-        //[HarmonyPatch(typeof(TerrainLod), "Awake")]
-        static class TerrainLod_Patch
-        {
-            static void Prefix(TerrainLod __instance)
-            {
-                __instance.m_updateStepDistance = 10000;
-            }
-        }
 
-        //[HarmonyPatch(typeof(LodFadeInOut), "Awake")]
-        static class Ragdoll_Awake_Patch
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
         {
-            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            static bool Prefix(Console __instance)
             {
-                Dbgl($"Transpiling LodFadeInOut!");
-
-                var codes = new List<CodeInstruction>(instructions);
-                for (int i = 0; i < codes.Count; i++)
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
-                    if (codes[i].opcode == OpCodes.Call && codes[i + 1].opcode == OpCodes.Ldc_R4 && (float)codes[i + 1].operand == 20f)
-                    {
-                        Dbgl($"got 20"); 
-                        codes[i + 1] = new CodeInstruction(OpCodes.Ldc_R4, 2000f);
-                        break;
-                    }
+                    context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    return false;
                 }
-
-                return codes.AsEnumerable();
+                return true;
             }
         }
+
     }
 }

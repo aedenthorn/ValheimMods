@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
@@ -19,6 +20,7 @@ namespace ConsoleTweaks
         public static ConfigEntry<bool> cheatsEnabled;
         public static ConfigEntry<bool> debugEnabled;
         public static ConfigEntry<bool> skEnabled;
+        public static ConfigEntry<bool> aedenthornEnabled;
         public static ConfigEntry<int> nexusID;
 
         public static string spawnString = "";
@@ -130,6 +132,8 @@ namespace ConsoleTweaks
             "dpsdebug"
         };
         public static List<string> commandStrings = new List<string>();
+        
+        private static List<string> resetPlugins = new List<string>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -143,6 +147,7 @@ namespace ConsoleTweaks
             cheatsEnabled = Config.Bind<bool>("General", "CheatsEnabled", true, "Enable cheats by default");
             debugEnabled = Config.Bind<bool>("General", "DebugEnabled", false, "Enable debug mode by default");
             skEnabled = Config.Bind<bool>("General", "SkEnabled", true, "Enable SkToolbox command completion");
+            aedenthornEnabled = Config.Bind<bool>("General", "AedenthornEnabled", true, "Enable aedenthorn mod reset completion");
             nexusID = Config.Bind<int>("General", "NexusID", 464, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
@@ -153,6 +158,16 @@ namespace ConsoleTweaks
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
+        private void Start()
+        {
+            foreach(var plugin in Chainloader.PluginInfos)
+            {
+                if (plugin.Key.StartsWith("aedenthorn."))
+                {
+                    resetPlugins.Add(plugin.Key.Substring("aedenthorn.".Length));
+                }
+            }
+        }
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.F5) && Console.instance.m_chatWindow.gameObject.activeSelf) 
@@ -162,6 +177,9 @@ namespace ConsoleTweaks
                 commandStrings = new List<string>(basicCommandStrings);
                 if (skEnabled.Value)
                     commandStrings.AddRange(skCommandStrings);
+
+                if (aedenthornEnabled.Value)
+                    commandStrings.AddRange(resetPlugins);
 
                 if (cheatsEnabled.Value)
                     Traverse.Create(Console.instance).Field("m_cheat").SetValue(true);
@@ -239,6 +257,8 @@ namespace ConsoleTweaks
                                 if (commandSuffix.Length > 0)
                                 {
                                     words[0] = partial;
+                                    if (resetPlugins.Contains(words[0]) && words.Length < 3)
+                                        words = new string[] { partial, "reset" };
                                 }
                             }
                         }

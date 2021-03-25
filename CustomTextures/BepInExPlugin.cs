@@ -20,6 +20,7 @@ namespace CustomTextures
         public static ConfigEntry<int> nexusID;
 
         private static readonly bool isDebug = true;
+        private static BepInExPlugin context;
         private static Stopwatch stopwatch = new Stopwatch();
 
         public static bool dumpOutput = false;
@@ -38,6 +39,7 @@ namespace CustomTextures
         }
         private void Awake()
         {
+            context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             hotKey = Config.Bind<string>("General", "HotKey", "page down", "Key to reload textures");
             dumpSceneTextures = Config.Bind<bool>("General", "DumpSceneTextures", false, "Dump scene textures to BepInEx/plugins/CustomTextures/scene_dump.txt");
@@ -97,6 +99,26 @@ namespace CustomTextures
         private static bool ShouldLoadCustomTexture(string id)
         {
             return texturesToLoad.Contains(id) || layersToLoad.Contains(id);
+        }
+
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
+            }
         }
     }
 }

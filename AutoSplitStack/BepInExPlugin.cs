@@ -11,6 +11,7 @@ namespace AutoSplitStack
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
+        private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -24,6 +25,7 @@ namespace AutoSplitStack
         }
         private void Awake()
         {
+            context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 76, "Nexus mod ID for updates");
             modKey = Config.Bind<string>("General", "ModKey", "left shift", "Modifier key to split stack");
@@ -55,7 +57,7 @@ namespace AutoSplitStack
                     if(item != null && item.m_stack > 1 && Player.m_localPlayer)
                     {
                         int amount = ___m_dragAmount > 0 ? (item.m_stack - ___m_dragAmount) / 2 + ___m_dragAmount : item.m_stack / 2;
-                        Dbgl($"auto stacking: {amount}/{ item.m_stack } {item?.m_shared.m_name}");
+                        //Dbgl($"auto stacking: {amount}/{ item.m_stack } {item?.m_shared.m_name}");
                         __instance.GetType().GetMethod("SetupDragItem", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { item, grid.GetInventory(), amount });
                         autoSplitting = true;
                     }
@@ -87,6 +89,25 @@ namespace AutoSplitStack
             {
                 if (!Input.GetMouseButton(1))
                     autoSplitting = false;
+            }
+        }
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
             }
         }
     }

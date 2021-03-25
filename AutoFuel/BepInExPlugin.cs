@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.6.3")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.6.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = false;
@@ -204,7 +204,7 @@ namespace AutoFuel
         {
             static void Postfix(Smelter __instance, ZNetView ___m_nview)
             {
-                if (!Player.m_localPlayer || !isOn.Value || !___m_nview.IsOwner())
+                if (!Player.m_localPlayer || !isOn.Value || ___m_nview == null || !___m_nview.IsOwner())
                     return;
 
                 int maxOre = __instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>();
@@ -349,13 +349,12 @@ namespace AutoFuel
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("autofuel reset"))
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
-
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "AutoFuel config reloaded" }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
                 }
                 return true;

@@ -9,11 +9,12 @@ using UnityEngine.UI;
 
 namespace CustomToolbarHotkeys
 {
-    [BepInPlugin("aedenthorn.CustomToolbarHotkeys", "Custom Toolbar Hotkeys", "0.1.0")]
+    [BepInPlugin("aedenthorn.CustomToolbarHotkeys", "Custom Toolbar Hotkeys", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
         private static BepInExPlugin context;
+        private static bool usingHotkey = false;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -92,35 +93,32 @@ namespace CustomToolbarHotkeys
         [HarmonyPatch(typeof(Player), "Update")]
         static class Player_Update_Patch
         {
-            static void Postfix(Player __instance)
+            static bool Prefix(Player __instance)
             {
                 if (!modEnabled.Value)
-                    return;
+                    return true;
 
                 if (Input.GetKeyDown(hotKey1.Value))
                     __instance.UseHotbarItem(1);
-
-                if (Input.GetKeyDown(hotKey2.Value))
+                else if (Input.GetKeyDown(hotKey2.Value))
                     __instance.UseHotbarItem(2);
-
-                if (Input.GetKeyDown(hotKey3.Value))
+                else if (Input.GetKeyDown(hotKey3.Value))
                     __instance.UseHotbarItem(3);
-
-                if (Input.GetKeyDown(hotKey4.Value))
+                else if (Input.GetKeyDown(hotKey4.Value))
                     __instance.UseHotbarItem(4);
-
-                if (Input.GetKeyDown(hotKey5.Value))
+                else if (Input.GetKeyDown(hotKey5.Value))
                     __instance.UseHotbarItem(5);
-
-                if (Input.GetKeyDown(hotKey6.Value))
+                else if (Input.GetKeyDown(hotKey6.Value))
                     __instance.UseHotbarItem(6);
-
-                if (Input.GetKeyDown(hotKey7.Value))
+                else if (Input.GetKeyDown(hotKey7.Value))
                     __instance.UseHotbarItem(7);
-
-                if (Input.GetKeyDown(hotKey8.Value))
+                else if (Input.GetKeyDown(hotKey8.Value))
                     __instance.UseHotbarItem(8);
+                else return true;
 
+                usingHotkey = true;
+
+                return false;
             }
         }
         
@@ -132,31 +130,31 @@ namespace CustomToolbarHotkeys
                 if (!modEnabled.Value)
                     return true;
 
-                if (index == 1 && Input.GetKeyDown(KeyCode.Alpha1) && hotKey1.Value != "1")
+                if (!usingHotkey)
                     return false;
 
-                if (index == 2 && Input.GetKeyDown(KeyCode.Alpha2) && hotKey2.Value != "2")
-                    return false;
-
-                if (index == 3 && Input.GetKeyDown(KeyCode.Alpha3) && hotKey3.Value != "3")
-                    return false;
-
-                if (index == 4 && Input.GetKeyDown(KeyCode.Alpha4) && hotKey4.Value != "4")
-                    return false;
-
-                if (index == 5 && Input.GetKeyDown(KeyCode.Alpha5) && hotKey5.Value != "5")
-                    return false;
-
-                if (index == 6 && Input.GetKeyDown(KeyCode.Alpha6) && hotKey6.Value != "6")
-                    return false;
-
-                if (index == 7 && Input.GetKeyDown(KeyCode.Alpha7) && hotKey7.Value != "7")
-                    return false;
-
-                if (index == 8 && Input.GetKeyDown(KeyCode.Alpha8) && hotKey8.Value != "8")
-                    return false;
+                usingHotkey = false;
 
                 return true;
+            }
+        }
+
+                
+        [HarmonyPatch(typeof(InventoryGui), "Update")]
+        static class InventoryGui_Update_Patch
+        {
+            static void Postfix(InventoryGrid ___m_playerGrid, Animator ___m_animator)
+            {
+                if (!modEnabled.Value || !hideNumbers.Value || !___m_animator.GetBool("visible"))
+                    return;
+
+                List<object> elements = typeof(InventoryGrid).GetField("m_elements", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(___m_playerGrid) as List<object>;
+                for(int i = 0; i < 8; i++)
+                {
+                    if(___m_playerGrid.m_gridRoot.transform.GetChild(i).Find("binding"))
+                        ___m_playerGrid.m_gridRoot.transform.GetChild(i).Find("binding").GetComponent<Text>().text = showHotkeys.Value ? hotkeys[i].Value : "";
+                }
+
             }
         }
 
