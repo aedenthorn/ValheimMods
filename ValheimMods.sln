@@ -122,6 +122,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		LICENSE.txt = LICENSE.txt
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigurationManager", "ConfigurationManager\ConfigurationManager.csproj", "{104215E5-C277-4D43-A52C-B31467312299}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -356,6 +358,10 @@ Global
 		{348B29C1-CBCE-41BA-A524-60B9FBC49757}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{348B29C1-CBCE-41BA-A524-60B9FBC49757}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{348B29C1-CBCE-41BA-A524-60B9FBC49757}.Release|Any CPU.Build.0 = Release|Any CPU
+		{104215E5-C277-4D43-A52C-B31467312299}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{104215E5-C277-4D43-A52C-B31467312299}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{104215E5-C277-4D43-A52C-B31467312299}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{104215E5-C277-4D43-A52C-B31467312299}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

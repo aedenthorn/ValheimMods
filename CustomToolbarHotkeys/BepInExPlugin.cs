@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace CustomToolbarHotkeys
 {
-    [BepInPlugin("aedenthorn.CustomToolbarHotkeys", "Custom Toolbar Hotkeys", "0.2.0")]
+    [BepInPlugin("aedenthorn.CustomToolbarHotkeys", "Custom Toolbar Hotkeys", "0.2.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -95,24 +95,24 @@ namespace CustomToolbarHotkeys
         {
             static bool Prefix(Player __instance)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses())
                     return true;
 
-                if (Input.GetKeyDown(hotKey1.Value))
+                if (AedenthornUtils.CheckKeyDown(hotKey1.Value))
                     __instance.UseHotbarItem(1);
-                else if (Input.GetKeyDown(hotKey2.Value))
+                else if (AedenthornUtils.CheckKeyDown(hotKey2.Value))
                     __instance.UseHotbarItem(2);
-                else if (Input.GetKeyDown(hotKey3.Value))
+                else if (AedenthornUtils.CheckKeyDown(hotKey3.Value))
                     __instance.UseHotbarItem(3);
-                else if (Input.GetKeyDown(hotKey4.Value))
+                else if (AedenthornUtils.CheckKeyDown(hotKey4.Value))
                     __instance.UseHotbarItem(4);
-                else if (Input.GetKeyDown(hotKey5.Value))
+                else if (AedenthornUtils.CheckKeyDown(hotKey5.Value))
                     __instance.UseHotbarItem(5);
-                else if (Input.GetKeyDown(hotKey6.Value))
+                else if (AedenthornUtils.CheckKeyDown(hotKey6.Value))
                     __instance.UseHotbarItem(6);
-                else if (Input.GetKeyDown(hotKey7.Value))
+                else if (AedenthornUtils.CheckKeyDown(hotKey7.Value))
                     __instance.UseHotbarItem(7);
-                else if (Input.GetKeyDown(hotKey8.Value))
+                else if (AedenthornUtils.CheckKeyDown(hotKey8.Value))
                     __instance.UseHotbarItem(8);
                 else return true;
 

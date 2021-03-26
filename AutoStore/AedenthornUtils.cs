@@ -19,4 +19,15 @@ public class AedenthornUtils
             return false;
         }
     }
+    public static bool CheckKeyHeld(string value, bool req = true)
+    {
+        try
+        {
+            return Input.GetKey(value.ToLower());
+        }
+        catch
+        {
+            return !req;
+        }
+    }
 }
