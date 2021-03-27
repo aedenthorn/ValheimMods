@@ -184,7 +184,7 @@ namespace CraftFromContainers
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
 
-                if ((__instance.name.StartsWith("piece_chest") || __instance.name.StartsWith("Container")) && __instance.GetInventory() != null)
+                if (__instance.GetInventory() != null)
                 {
                     containerList.Add(__instance);
                 }
