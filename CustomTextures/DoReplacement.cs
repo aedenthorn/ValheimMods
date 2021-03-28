@@ -233,16 +233,18 @@ namespace CustomTextures
                         Texture vanilla = m.GetTexture(propHash);
 
                         Texture2D result = null;
+
+                        bool isBump = property.Contains("Bump") || property.Contains("Normal");
+
+
                         if (ShouldLoadCustomTexture(str + property))
-                            result = LoadTexture(str+property, vanilla);
+                            result = LoadTexture(str+property, vanilla, isBump);
                         else if (property == "_MainTex" && ShouldLoadCustomTexture(str + "_texture"))
-                            result = LoadTexture(str + "_texture", vanilla);
+                            result = LoadTexture(str + "_texture", vanilla, isBump);
                         else if (property == "_BumpMap" && ShouldLoadCustomTexture(str + "_bump"))
-                            result = LoadTexture(str + "_bump", vanilla);
+                            result = LoadTexture(str + "_bump", vanilla, isBump);
                         else if (property == "_StyleTex" && ShouldLoadCustomTexture(str + "_style"))
-                            result = LoadTexture(str + "_style", vanilla);
-
-
+                            result = LoadTexture(str + "_style", vanilla, isBump);
 
                         if (result == null)
                             continue;
@@ -250,7 +252,7 @@ namespace CustomTextures
                         result.name = name;
 
                         m.SetTexture(propHash, result);
-                        if (result != null)
+                        if (result != null && property == "_MainTex")
                             m.SetColor(propHash, Color.white);
                         break;
                     }
@@ -276,15 +278,13 @@ namespace CustomTextures
         }
 
 
-        private static Texture2D LoadTexture(string id, Texture vanilla, bool point = true, bool needCustom = false, bool isSprite = false)
+        private static Texture2D LoadTexture(string id, Texture vanilla, bool isBump, bool point = true, bool needCustom = false, bool isSprite = false)
         {
             if (cachedTextures.ContainsKey(id))
             {
                 logDump.Add($"loading cached texture for {id}");
                 return cachedTextures[id];
             }
-
-            bool isBump = id.EndsWith("_bump") || id.EndsWith("BumpMap");
 
             Texture2D tex;
             var layers = customTextures.Where(p => p.Key.StartsWith(id+"_"));

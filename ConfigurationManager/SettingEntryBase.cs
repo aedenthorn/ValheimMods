@@ -175,7 +175,7 @@ namespace ConfigurationManager
                                 }
                                 catch (Exception ex)
                                 {
-                                    ConfigurationManager.Logger.LogWarning($"Failed to copy value {propertyPair.my.Name} from provided tag object {attrType.FullName} - " + ex.Message);
+                                    BepInExPlugin.Logger.LogWarning($"Failed to copy value {propertyPair.my.Name} from provided tag object {attrType.FullName} - " + ex.Message);
                                 }
                             }
                             break;

@@ -1,6 +1,7 @@
 ﻿// Based on code made by MarC0 / ManlyMarco
 // Copyright 2018 GNU General Public License v3.0
 
+using BepInEx.Configuration;
 using ConfigurationManager.Utilities;
 using System;
 using System.Collections;
@@ -21,7 +22,7 @@ namespace ConfigurationManager
         private static readonly Dictionary<SettingEntryBase, ComboBox> _comboBoxCache = new Dictionary<SettingEntryBase, ComboBox>();
         private static readonly Dictionary<SettingEntryBase, ColorCacheEntry> _colorCache = new Dictionary<SettingEntryBase, ColorCacheEntry>();
 
-        private readonly ConfigurationManager _instance;
+        private readonly BepInExPlugin _instance;
 
         private static SettingEntryBase _currentKeyboardShortcutToSet;
         public static bool SettingKeyboardShortcut => _currentKeyboardShortcutToSet != null;
@@ -32,6 +33,7 @@ namespace ConfigurationManager
             {
                 {typeof(bool), DrawBoolField},
                 {typeof(BepInEx.Configuration.KeyboardShortcut), DrawKeyboardShortcut},
+                {typeof(KeyCode), DrawKeyboardShortcut},
                 {typeof(Color), DrawColor },
                 {typeof(Vector2), DrawVector2 },
                 {typeof(Vector3), DrawVector3 },
@@ -40,14 +42,14 @@ namespace ConfigurationManager
             };
         }
 
-        public SettingFieldDrawer(ConfigurationManager instance)
+        public SettingFieldDrawer(BepInExPlugin instance)
         {
             _instance = instance;
         }
 
         public void DrawSettingValue(SettingEntryBase setting)
         {
-            GUI.backgroundColor = ConfigurationManager._widgetBackgroundColor.Value;
+            GUI.backgroundColor = BepInExPlugin._widgetBackgroundColor.Value;
 
             if (setting.CustomDrawer != null)
                 setting.CustomDrawer(setting is ConfigSettingEntry newSetting ? newSetting.Entry : null);
@@ -79,21 +81,21 @@ namespace ConfigurationManager
         {
             GUILayout.BeginHorizontal(options);
             GUILayout.FlexibleSpace();
-            GUILayout.Label(text, ConfigurationManager.labelStyle);
+            GUILayout.Label(text, BepInExPlugin.labelStyle);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
 
         public static void DrawCategoryHeader(string text)
         {
-            GUILayout.Label(text, ConfigurationManager.categoryHeaderSkin);
+            GUILayout.Label(text, BepInExPlugin.categoryHeaderSkin);
         }
 
         public static bool DrawPluginHeader(GUIContent content, bool isCollapsed)
         {
 
             //if (isCollapsed) content.text += "\n...";
-            return GUILayout.Button(content, ConfigurationManager.pluginHeaderSkin, GUILayout.ExpandWidth(true));
+            return GUILayout.Button(content, BepInExPlugin.pluginHeaderSkin, GUILayout.ExpandWidth(true));
         }
 
         public static bool DrawCurrentDropdown()
@@ -129,9 +131,9 @@ namespace ConfigurationManager
 
         private static void DrawBoolField(SettingEntryBase setting)
         {
-            GUI.backgroundColor = ConfigurationManager._widgetBackgroundColor.Value;
+            GUI.backgroundColor = BepInExPlugin._widgetBackgroundColor.Value;
             var boolVal = (bool)setting.Get();
-            var result = GUILayout.Toggle(boolVal, boolVal ? "Enabled" : "Disabled", ConfigurationManager.toggleStyle, GUILayout.ExpandWidth(true));
+            var result = GUILayout.Toggle(boolVal, boolVal ? "Enabled" : "Disabled", BepInExPlugin.toggleStyle, GUILayout.ExpandWidth(true));
             if (result != boolVal)
                 setting.Set(result);
         }
@@ -165,7 +167,7 @@ namespace ConfigurationManager
                                 GUI.changed = false;
 
 
-                                var newVal = GUILayout.Toggle((currentValue & value.val) == value.val, value.name, ConfigurationManager.toggleStyle,
+                                var newVal = GUILayout.Toggle((currentValue & value.val) == value.val, value.name, BepInExPlugin.toggleStyle,
                                     GUILayout.ExpandWidth(false));
                                 if (GUI.changed)
                                 {
@@ -192,7 +194,7 @@ namespace ConfigurationManager
 
             if (!_comboBoxCache.TryGetValue(setting, out var box))
             {
-                box = new ComboBox(dispRect, buttonText, list.Cast<object>().Select(ObjectToGuiContent).ToArray(), ConfigurationManager.boxStyle, windowYmax);
+                box = new ComboBox(dispRect, buttonText, list.Cast<object>().Select(ObjectToGuiContent).ToArray(), BepInExPlugin.boxStyle, windowYmax);
                 _comboBoxCache[setting] = box;
             }
             else
@@ -229,7 +231,7 @@ namespace ConfigurationManager
             var leftValue = (float)Convert.ToDouble(setting.AcceptableValueRange.Key, CultureInfo.InvariantCulture);
             var rightValue = (float)Convert.ToDouble(setting.AcceptableValueRange.Value, CultureInfo.InvariantCulture);
 
-            var result = GUILayout.HorizontalSlider(converted, leftValue, rightValue, ConfigurationManager.sliderStyle, ConfigurationManager.thumbStyle, GUILayout.ExpandWidth(true));
+            var result = GUILayout.HorizontalSlider(converted, leftValue, rightValue, BepInExPlugin.sliderStyle, BepInExPlugin.thumbStyle, GUILayout.ExpandWidth(true));
             if (Math.Abs(result - converted) > Mathf.Abs(rightValue - leftValue) / 1000)
             {
                 var newValue = Convert.ChangeType(result, setting.SettingType, CultureInfo.InvariantCulture);
@@ -268,7 +270,7 @@ namespace ConfigurationManager
             if (setting.ObjToStr != null && setting.StrToObj != null)
             {
                 var text = setting.ObjToStr(setting.Get()).AppendZeroIfFloat(setting.SettingType);
-                var result = GUILayout.TextField(text, ConfigurationManager.buttonStyle, GUILayout.MaxWidth(rightColumnWidth));
+                var result = GUILayout.TextField(text, BepInExPlugin.textStyle, GUILayout.MaxWidth(rightColumnWidth));
                 if (result != text)
                     setting.Set(setting.StrToObj(result));
             }
@@ -279,13 +281,13 @@ namespace ConfigurationManager
                 var value = rawValue == null ? "NULL" : rawValue.ToString().AppendZeroIfFloat(setting.SettingType);
                 if (CanCovert(value, setting.SettingType))
                 {
-                    var result = GUILayout.TextField(value, ConfigurationManager.buttonStyle, GUILayout.MaxWidth(rightColumnWidth));
+                    var result = GUILayout.TextField(value, BepInExPlugin.textStyle, GUILayout.MaxWidth(rightColumnWidth));
                     if (result != value)
                         setting.Set(Convert.ChangeType(result, setting.SettingType, CultureInfo.InvariantCulture));
                 }
                 else
                 {
-                    GUILayout.TextArea(value, ConfigurationManager.buttonStyle, GUILayout.MaxWidth(rightColumnWidth));
+                    GUILayout.TextArea(value, BepInExPlugin.textStyle, GUILayout.MaxWidth(rightColumnWidth));
                 }
             }
 
@@ -314,12 +316,14 @@ namespace ConfigurationManager
 
         private static void DrawKeyboardShortcut(SettingEntryBase setting)
         {
-#pragma warning disable 618 // Disable obsolete warning
             var value = setting.Get();
+            if (value.GetType() == typeof(KeyCode)){
+                value = new KeyboardShortcut((KeyCode)value);
+            }
 
             if (_currentKeyboardShortcutToSet == setting)
             {
-                GUILayout.Label("Press any key combination", ConfigurationManager.labelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Label("Press any key combination", BepInExPlugin.labelStyle, GUILayout.ExpandWidth(true));
                 GUIUtility.keyboardControl = -1;
 
                 foreach (var key in _keysToCheck)
@@ -332,7 +336,7 @@ namespace ConfigurationManager
                     }
                 }
 
-                if (GUILayout.Button("Cancel", ConfigurationManager.buttonStyle, GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button("Cancel", BepInExPlugin.buttonStyle, GUILayout.ExpandWidth(false)))
                     _currentKeyboardShortcutToSet = null;
             }
             else
@@ -340,13 +344,12 @@ namespace ConfigurationManager
                 if (GUILayout.Button(value.ToString(), GUILayout.ExpandWidth(true)))
                     _currentKeyboardShortcutToSet = setting;
 
-                if (GUILayout.Button("Clear", ConfigurationManager.buttonStyle, GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button("Clear", BepInExPlugin.buttonStyle, GUILayout.ExpandWidth(false)))
                 {
                     setting.Set(BepInEx.Configuration.KeyboardShortcut.Empty);
                     _currentKeyboardShortcutToSet = null;
                 }
             }
-#pragma warning restore 618
         }
 
         private static void DrawVector2(SettingEntryBase obj)
@@ -392,7 +395,7 @@ namespace ConfigurationManager
 
         private static float DrawSingleVectorSlider(float setting, string label)
         {
-            GUILayout.Label(label, ConfigurationManager.labelStyle, GUILayout.ExpandWidth(false));
+            GUILayout.Label(label, BepInExPlugin.labelStyle, GUILayout.ExpandWidth(false));
             float.TryParse(GUILayout.TextField(setting.ToString("F", CultureInfo.InvariantCulture), GUILayout.ExpandWidth(true)), NumberStyles.Any, CultureInfo.InvariantCulture, out var x);
             return x;
         }
@@ -408,13 +411,13 @@ namespace ConfigurationManager
                 _colorCache[obj] = cacheEntry;
             }
 
-            GUILayout.Label("R", ConfigurationManager.labelStyle, GUILayout.ExpandWidth(false));
+            GUILayout.Label("R", BepInExPlugin.labelStyle, GUILayout.ExpandWidth(false));
             setting.r = GUILayout.HorizontalSlider(setting.r, 0f, 1f, GUILayout.ExpandWidth(true));
-            GUILayout.Label("G", ConfigurationManager.labelStyle, GUILayout.ExpandWidth(false));
+            GUILayout.Label("G", BepInExPlugin.labelStyle, GUILayout.ExpandWidth(false));
             setting.g = GUILayout.HorizontalSlider(setting.g, 0f, 1f, GUILayout.ExpandWidth(true));
-            GUILayout.Label("B", ConfigurationManager.labelStyle, GUILayout.ExpandWidth(false));
+            GUILayout.Label("B", BepInExPlugin.labelStyle, GUILayout.ExpandWidth(false));
             setting.b = GUILayout.HorizontalSlider(setting.b, 0f, 1f, GUILayout.ExpandWidth(true));
-            GUILayout.Label("A", ConfigurationManager.labelStyle, GUILayout.ExpandWidth(false));
+            GUILayout.Label("A", BepInExPlugin.labelStyle, GUILayout.ExpandWidth(false));
             setting.a = GUILayout.HorizontalSlider(setting.a, 0f, 1f, GUILayout.ExpandWidth(true));
 
             GUILayout.Space(4);
@@ -426,7 +429,7 @@ namespace ConfigurationManager
                 cacheEntry.Last = setting;
             }
 
-            GUILayout.Label(cacheEntry.Tex, ConfigurationManager.labelStyle, GUILayout.ExpandWidth(false));
+            GUILayout.Label(cacheEntry.Tex, BepInExPlugin.labelStyle, GUILayout.ExpandWidth(false));
         }
 
         private sealed class ColorCacheEntry

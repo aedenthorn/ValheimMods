@@ -115,7 +115,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>call $(SolutionDir)copyDll.bat $(ProjectName)</PostBuildEvent>
   </PropertyGroup>
 </Project>

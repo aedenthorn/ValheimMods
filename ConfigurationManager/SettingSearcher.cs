@@ -33,11 +33,16 @@ namespace ConfigurationManager
             catch (Exception ex)
             {
                 results = Enumerable.Empty<SettingEntryBase>();
-                ConfigurationManager.Logger.LogError(ex);
+                BepInExPlugin.Logger.LogError(ex);
             }
 
             foreach (var plugin in Utils.FindPlugins())
             {
+                if (plugin.Info.Metadata.GUID == "com.bepis.bepinex.configurationmanager" || plugin.enabled == false)
+                {
+                    BepInExPlugin.Dbgl($"plugin: {plugin.Info.Metadata.Name} enabled {plugin.enabled}");
+                }
+
                 var type = plugin.GetType();
 
                 var pluginInfo = plugin.Info.Metadata;

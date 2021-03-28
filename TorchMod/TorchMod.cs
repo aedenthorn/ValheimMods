@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace TorchMod
 {
-    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.5.3")]
+    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.6.0")]
 
-    public class TorchMod: BaseUnityPlugin
+    public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
-        private static TorchMod context;
+        private static BepInExPlugin  context;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
@@ -62,10 +62,42 @@ namespace TorchMod
         public static ConfigEntry<float> firePitShadowStrengthHigh;
         public static ConfigEntry<bool> firePitUseColorTemperatureHigh;
         public static ConfigEntry<float> firePitColorTemperatureHigh;
+
+        public static ConfigEntry<Color> bonfireColorLow;
+        public static ConfigEntry<float> bonfireRangeLow;
+        public static ConfigEntry<float> bonfireIntensityLow;
+        public static ConfigEntry<float> bonfireBounceIntensityLow;
+        public static ConfigEntry<float> bonfireShadowStrengthLow;
+        public static ConfigEntry<bool> bonfireUseColorTemperatureLow;
+        public static ConfigEntry<float> bonfireColorTemperatureLow;
+
+        public static ConfigEntry<Color> bonfireColorHigh;
+        public static ConfigEntry<float> bonfireRangeHigh;
+        public static ConfigEntry<float> bonfireIntensityHigh;
+        public static ConfigEntry<float> bonfireBounceIntensityHigh;
+        public static ConfigEntry<float> bonfireShadowStrengthHigh;
+        public static ConfigEntry<bool> bonfireUseColorTemperatureHigh;
+        public static ConfigEntry<float> bonfireColorTemperatureHigh;
+
+        public static ConfigEntry<Color> hearthColorLow;
+        public static ConfigEntry<float> hearthRangeLow;
+        public static ConfigEntry<float> hearthIntensityLow;
+        public static ConfigEntry<float> hearthBounceIntensityLow;
+        public static ConfigEntry<float> hearthShadowStrengthLow;
+        public static ConfigEntry<bool> hearthUseColorTemperatureLow;
+        public static ConfigEntry<float> hearthColorTemperatureLow;
+
+        public static ConfigEntry<Color> hearthColorHigh;
+        public static ConfigEntry<float> hearthRangeHigh;
+        public static ConfigEntry<float> hearthIntensityHigh;
+        public static ConfigEntry<float> hearthBounceIntensityHigh;
+        public static ConfigEntry<float> hearthShadowStrengthHigh;
+        public static ConfigEntry<bool> hearthUseColorTemperatureHigh;
+        public static ConfigEntry<float> hearthColorTemperatureHigh;
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
-                Debug.Log((pref ? typeof(TorchMod).Namespace + " " : "") + str);
+                Debug.Log((pref ? typeof(BepInExPlugin ).Namespace + " " : "") + str);
         }
         private void Awake()
         {
@@ -121,6 +153,38 @@ namespace TorchMod
             firePitShadowStrengthHigh = Config.Bind("Fire Pits", "FirePitShadowStrengthHigh", 1f, "Strength of light's shadows. (float)");
             firePitUseColorTemperatureHigh = Config.Bind("Fire Pits", "FirePitUseColorTemperatureHigh", false, "Set to true to use the color temperature.");
             firePitColorTemperatureHigh = Config.Bind("Fire Pits", "FirePitColorTemperatureHigh", 6570f, "The color temperature of the light. (float)");
+
+            bonfireColorLow = Config.Bind("Bonfires", "BonfireColorLow", new Color(0.838f, 0.504f, 0.324f, 1f), "The color of the light.");
+            bonfireRangeLow = Config.Bind("Bonfires", "BonfireRangeLow", 20f, "The range of the light. (float)");
+            bonfireIntensityLow = Config.Bind("Bonfires", "BonfireIntensityLow", 1.75f, "The Intensity of a light is multiplied with the Light color. (float 0-8)");
+            bonfireBounceIntensityLow = Config.Bind("Bonfires", "BonfireBounceIntensityLow", 1f, "The multiplier that defines the strength of the bounce lighting. (float 0+)");
+            bonfireShadowStrengthLow = Config.Bind("Bonfires", "BonfireShadowStrengthLow", 1f, "Strength of light's shadows. (float)");
+            bonfireUseColorTemperatureLow = Config.Bind("Bonfires", "BonfireUseColorTemperatureLow", false, "Set to true to use the color temperature.");
+            bonfireColorTemperatureLow = Config.Bind("Bonfires", "BonfireColorTemperatureLow", 6570f, "The color temperature of the light. (float)");
+
+            bonfireColorHigh = Config.Bind("Bonfires", "BonfireColorHigh", new Color(1f, 0.504f, 0.324f, 1f), "The color of the light.");
+            bonfireRangeHigh = Config.Bind("Bonfires", "BonfireRangeHigh", 20f, "The range of the light. (float)");
+            bonfireIntensityHigh = Config.Bind("Bonfires", "BonfireIntensityHigh", 1.894302f, "The Intensity of a light is multiplied with the Light color. (float 0-8)");
+            bonfireBounceIntensityHigh = Config.Bind("Bonfires", "BonfireBounceIntensityHigh", 1f, "The multiplier that defines the strength of the bounce lighting. (float 0+)");
+            bonfireShadowStrengthHigh = Config.Bind("Bonfires", "BonfireShadowStrengthHigh", 1f, "Strength of light's shadows. (float)");
+            bonfireUseColorTemperatureHigh = Config.Bind("Bonfires", "BonfireUseColorTemperatureHigh", false, "Set to true to use the color temperature.");
+            bonfireColorTemperatureHigh = Config.Bind("Bonfires", "BonfireColorTemperatureHigh", 6570f, "The color temperature of the light. (float)");
+
+            hearthColorLow = Config.Bind("Hearths", "HearthColorLow", new Color(0.838f, 0.527f, 0.413f, 1f), "The color of the light.");
+            hearthRangeLow = Config.Bind("Hearths", "HearthRangeLow", 3f, "The range of the light. (float)");
+            hearthIntensityLow = Config.Bind("Hearths", "HearthIntensityLow", 1.5f, "The Intensity of a light is multiplied with the Light color. (float 0-8)");
+            hearthBounceIntensityLow = Config.Bind("Hearths", "HearthBounceIntensityLow", 1f, "The multiplier that defines the strength of the bounce lighting. (float 0+)");
+            hearthShadowStrengthLow = Config.Bind("Hearths", "HearthShadowStrengthLow", 1f, "Strength of light's shadows. (float)");
+            hearthUseColorTemperatureLow = Config.Bind("Hearths", "HearthUseColorTemperatureLow", false, "Set to true to use the color temperature.");
+            hearthColorTemperatureLow = Config.Bind("Hearths", "HearthColorTemperatureLow", 6570f, "The color temperature of the light. (float)");
+
+            hearthColorHigh = Config.Bind("Hearths", "HearthColorHigh", new Color(1f, 0.621f, 0.482f, 1f), "The color of the light.");
+            hearthRangeHigh = Config.Bind("Hearths", "HearthRangeHigh", 13f, "The range of the light. (float)");
+            hearthIntensityHigh = Config.Bind("Hearths", "HearthIntensityHigh", 2.145109f, "The Intensity of a light is multiplied with the Light color. (float 0-8)");
+            hearthBounceIntensityHigh = Config.Bind("Hearths", "HearthBounceIntensityHigh", 1f, "The multiplier that defines the strength of the bounce lighting. (float 0+)");
+            hearthShadowStrengthHigh = Config.Bind("Hearths", "HearthShadowStrengthHigh", 1f, "Strength of light's shadows. (float)");
+            hearthUseColorTemperatureHigh = Config.Bind("Hearths", "HearthUseColorTemperatureHigh", false, "Set to true to use the color temperature.");
+            hearthColorTemperatureHigh = Config.Bind("Hearths", "HearthColorTemperatureHigh", 6570f, "The color temperature of the light. (float)");
 
             if (!modEnabled.Value)
                 return;
@@ -266,8 +330,6 @@ namespace TorchMod
                     LightFlicker lf2 = __instance.m_enabledObjectHigh.GetComponentInChildren<LightFlicker>();
                     Light light2 = lf2.GetComponent<Light>();
 
-
-
                     light2.color = firePitColorHigh.Value;
                     light2.range = firePitRangeHigh.Value;
                     light2.bounceIntensity = firePitBounceIntensityHigh.Value;
@@ -276,9 +338,77 @@ namespace TorchMod
                     light2.shadowStrength = firePitShadowStrengthHigh.Value;
                     lfi.SetValue(lf2, firePitIntensityHigh.Value);
                 }
+                else if (name.Contains("bonfire"))
+                {
+                    LightFlicker lf = __instance.m_enabledObjectLow.GetComponentInChildren<LightFlicker>();
+                    Light light = lf.GetComponent<Light>();
 
+                    light.color = bonfireColorLow.Value;
+                    light.range = bonfireRangeLow.Value;
+                    light.bounceIntensity = bonfireBounceIntensityLow.Value;
+                    light.useColorTemperature = bonfireUseColorTemperatureLow.Value;
+                    light.colorTemperature = bonfireColorTemperatureLow.Value;
+                    light.shadowStrength = bonfireShadowStrengthLow.Value;
+                    lfi.SetValue(lf, bonfireIntensityLow.Value);
+
+                    LightFlicker lf2 = __instance.m_enabledObjectHigh.GetComponentInChildren<LightFlicker>();
+                    Light light2 = lf2.GetComponent<Light>();
+
+                    light2.color = bonfireColorHigh.Value;
+                    light2.range = bonfireRangeHigh.Value;
+                    light2.bounceIntensity = bonfireBounceIntensityHigh.Value;
+                    light2.useColorTemperature = bonfireUseColorTemperatureHigh.Value;
+                    light2.colorTemperature = bonfireColorTemperatureHigh.Value;
+                    light2.shadowStrength = bonfireShadowStrengthHigh.Value;
+                    lfi.SetValue(lf2, bonfireIntensityHigh.Value);
+                }
+                else if (name.Contains("hearth"))
+                {
+                    LightFlicker lf = __instance.m_enabledObjectLow.GetComponentInChildren<LightFlicker>();
+                    Light light = lf.GetComponent<Light>();
+
+                    light.color = hearthColorLow.Value;
+                    light.range = hearthRangeLow.Value;
+                    light.bounceIntensity = hearthBounceIntensityLow.Value;
+                    light.useColorTemperature = hearthUseColorTemperatureLow.Value;
+                    light.colorTemperature = hearthColorTemperatureLow.Value;
+                    light.shadowStrength = hearthShadowStrengthLow.Value;
+                    lfi.SetValue(lf, hearthIntensityLow.Value);
+
+                    LightFlicker lf2 = __instance.m_enabledObjectHigh.GetComponentInChildren<LightFlicker>();
+                    Light light2 = lf2.GetComponent<Light>();
+
+                    light2.color = hearthColorHigh.Value;
+                    light2.range = hearthRangeHigh.Value;
+                    light2.bounceIntensity = hearthBounceIntensityHigh.Value;
+                    light2.useColorTemperature = hearthUseColorTemperatureHigh.Value;
+                    light2.colorTemperature = hearthColorTemperatureHigh.Value;
+                    light2.shadowStrength = hearthShadowStrengthHigh.Value;
+                    lfi.SetValue(lf2, hearthIntensityHigh.Value);
+                }
             }
         }
 
+
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
+
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
+            }
+        }
     }
 }

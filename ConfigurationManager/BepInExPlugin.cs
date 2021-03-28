@@ -1,26 +1,25 @@
 ﻿// Based on code made by MarC0 / ManlyMarco
 // Copyright 2018 GNU General Public License v3.0
 
+using BepInEx;
+using BepInEx.Bootstrap;
+using BepInEx.Configuration;
+using BepInEx.Logging;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using BepInEx;
-using BepInEx.Logging;
 using UnityEngine;
-using BepInEx.Configuration;
-using HarmonyLib;
 
 namespace ConfigurationManager
 {
     /// <summary>
     /// An easy way to let user configure how a plugin behaves without the need to make your own GUI. The user can change any of the settings you expose, even keyboard shortcuts.
-    /// https://github.com/ManlyMarco/BepInEx.ConfigurationManager
     /// </summary>
-    [BepInPlugin(GUID, "Valheim Configuration Manager", Version)]
-    public class ConfigurationManager : BaseUnityPlugin
+    [BepInPlugin(GUID, "Valheim Configuration Manager", "0.3.3")]
+    public class BepInExPlugin : BaseUnityPlugin
     {
         /// <summary>
         /// GUID of this plugin
@@ -30,13 +29,10 @@ namespace ConfigurationManager
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
-                Debug.Log((pref ? typeof(ConfigurationManager).Namespace + " " : "") + str);
+                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        /// <summary>
-        /// Version constant
-        /// </summary>
-        public const string Version = "0.1.0";
-        private static ConfigurationManager context;
+
+        private static BepInExPlugin context;
         internal static new ManualLogSource Logger;
         private static SettingFieldDrawer _fieldDrawer;
 
@@ -91,6 +87,20 @@ namespace ConfigurationManager
         public static ConfigEntry<bool> _pluginConfigCollapsedDefault;
         public static ConfigEntry<Vector2> _windowPosition;
         public static ConfigEntry<Vector2> _windowSize;
+        
+        public static ConfigEntry<string> _windowTitle;
+        public static ConfigEntry<string> _normalText;
+        public static ConfigEntry<string> _shortcutsText;
+        public static ConfigEntry<string> _advancedText;
+        public static ConfigEntry<string> _searchText;
+        public static ConfigEntry<string> _reloadText;
+        public static ConfigEntry<string> _resetText;
+        public static ConfigEntry<string> _resetSettingText;
+        public static ConfigEntry<string> _expandText;
+        public static ConfigEntry<string> _collapseText;
+        public static ConfigEntry<string> _tipText;
+        public static ConfigEntry<string> _clearText;
+
         public static ConfigEntry<int> _textSize;
         public static ConfigEntry<Color> _windowBackgroundColor;
         public static ConfigEntry<Color> _entryBackgroundColor;
@@ -103,6 +113,7 @@ namespace ConfigurationManager
         public static GUIStyle headerStyle;
         public static GUIStyle entryStyle;
         public static GUIStyle labelStyle;
+        public static GUIStyle textStyle;
         public static GUIStyle toggleStyle;
         public static GUIStyle buttonStyle;
         public static GUIStyle boxStyle;
@@ -113,7 +124,7 @@ namespace ConfigurationManager
         public static int fontSize = 14;
 
         /// <inheritdoc />
-        public ConfigurationManager()
+        public BepInExPlugin()
         {
             context = this;
             Logger = base.Logger;
@@ -129,20 +140,34 @@ namespace ConfigurationManager
             _showKeybinds = Config.Bind("Filtering", "Show keybinds", true);
             _showSettings = Config.Bind("Filtering", "Show settings", true);
             _hideSingleSection = Config.Bind("General", "Hide single sections", false, new ConfigDescription("Show section title for plugins with only one section"));
+
+            _windowTitle = Config.Bind("Text", "WindowTitle", "Configuration Manager", new ConfigDescription("Window title text"));
+            _normalText = Config.Bind("Text", "NormalText", "Normal", new ConfigDescription("Normal settings toggle text"));
+            _shortcutsText = Config.Bind("Text", "ShortcutsText", "Keybinds", new ConfigDescription("Shortcut key settings toggle text"));
+            _advancedText = Config.Bind("Text", "AdvancedText", "Advanced", new ConfigDescription("Advanced settings toggle text"));
+            _searchText = Config.Bind("Text", "SearchText", "Search Settings: ", new ConfigDescription("Search label text"));
+            _reloadText = Config.Bind("Text", "ReloadText", "Reload From File", new ConfigDescription("Reload mod config from file text"));
+            _resetText = Config.Bind("Text", "ResetText", "Reset To Default", new ConfigDescription("Reset mod config to default text"));
+            _resetSettingText = Config.Bind("Text", "ResetSettingText", "Reset", new ConfigDescription("Reset setting text"));
+            _expandText = Config.Bind("Text", "ExpandText", "Expand", new ConfigDescription("Expand button text"));
+            _collapseText = Config.Bind("Text", "CollapseText", "Collapse", new ConfigDescription("Collapse button text"));
+            _tipText = Config.Bind("Text", "TipText", "Tip: Click plugin names to expand. Click setting and group names to see their descriptions.", new ConfigDescription("Tip text"));
+            _clearText = Config.Bind("Text", "ClearText", "Clear", new ConfigDescription("Clear search text"));
+
             _pluginConfigCollapsedDefault = Config.Bind("General", "Plugin collapsed default", true, new ConfigDescription("If set to true plugins will be collapsed when opening the configuration manager window"));
             _windowPosition = Config.Bind("General", "WindowPosition", new Vector2(55,35), "Window position");
             _windowSize = Config.Bind("General", "WindowSize", DefaultWindowRect.size, "Window size");
             _textSize = Config.Bind("General", "FontSize", 14, "Font Size");
             _windowBackgroundColor = Config.Bind("Colors", "WindowBackgroundColor", new Color(0,0,0,1), "Window background color");
-            _entryBackgroundColor = Config.Bind("Colors", "EntryBackgroundColor", new Color(0.557f, 0.502f, 0.502f, 0.871f), "Etnry background color");
+            _entryBackgroundColor = Config.Bind("Colors", "EntryBackgroundColor", new Color(0.557f, 0.502f, 0.502f, 0.871f), "Entry background color");
             _fontColor = Config.Bind("Colors", "FontColor", new Color(1, 0.714f, 0.361f, 1), "Font color");
             _widgetBackgroundColor = Config.Bind("Colors", "WidgetColor", new Color(0.882f, 0.463f, 0, 0.749f), "Widget color");
 
             currentWindowRect = new Rect(_windowPosition.Value, _windowSize.Value);
+            
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
         }
-
 
         private void OnGUI()
         {
@@ -164,10 +189,14 @@ namespace ConfigurationManager
                 GUI.Box(currentWindowRect, GUIContent.none, new GUIStyle());
                 GUI.backgroundColor = _windowBackgroundColor.Value;
 
-                if(_windowSize.Value.x > 100 && _windowSize.Value.x < Screen.width && _windowSize.Value.y > 100 && _windowSize.Value.y < Screen.height)
+                if(_windowSize.Value.x > 200 && _windowSize.Value.x < Screen.width && _windowSize.Value.y > 200 && _windowSize.Value.y < Screen.height)
                     currentWindowRect.size = _windowSize.Value;
 
-                currentWindowRect = GUILayout.Window(WindowId, currentWindowRect, SettingsWindow, "Plugin / mod settings", windowStyle);
+                RightColumnWidth = Mathf.RoundToInt(currentWindowRect.width / 2.5f * fontSize / 12f);
+                LeftColumnWidth = Mathf.RoundToInt(currentWindowRect.width - RightColumnWidth - 115);
+
+
+                currentWindowRect = GUILayout.Window(WindowId, currentWindowRect, SettingsWindow, _windowTitle.Value, windowStyle);
 
                 if (!SettingFieldDrawer.SettingKeyboardShortcut)
                     Input.ResetInputAxes();
@@ -183,7 +212,7 @@ namespace ConfigurationManager
         private void SettingsWindow(int id)
         {
             GUI.DragWindow(new Rect(0, 0, currentWindowRect.width, 20));
-            //DrawWindowHeader();
+            DrawWindowHeader();
 
             _settingWindowScrollPos = GUILayout.BeginScrollView(_settingWindowScrollPos, false, true);
 
@@ -257,13 +286,13 @@ namespace ConfigurationManager
         {
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label("Tip: Click plugin names to expand. Click setting and group names to see their descriptions.", labelStyle);
+                GUILayout.Label(_tipText.Value, labelStyle);
 
                 GUILayout.FlexibleSpace();
 
                 Color color = GUI.backgroundColor;
                 GUI.backgroundColor = _widgetBackgroundColor.Value;
-                if (GUILayout.Button(_pluginConfigCollapsedDefault.Value ? "Expand" : "Collapse", buttonStyle, GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(_pluginConfigCollapsedDefault.Value ? _expandText.Value : _collapseText.Value, buttonStyle, GUILayout.ExpandWidth(false)))
                 {
                     var newValue = !_pluginConfigCollapsedDefault.Value;
                     _pluginConfigCollapsedDefault.Value = newValue;
@@ -280,25 +309,23 @@ namespace ConfigurationManager
             GUI.backgroundColor = _entryBackgroundColor.Value;
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label("Show: ", labelStyle, GUILayout.ExpandWidth(false));
-
                 GUI.enabled = SearchString == string.Empty;
 
-                var newVal = GUILayout.Toggle(_showSettings.Value, "Normal settings", toggleStyle);
+                var newVal = GUILayout.Toggle(_showSettings.Value, _normalText.Value, toggleStyle);
                 if (_showSettings.Value != newVal)
                 {
                     _showSettings.Value = newVal;
                     BuildFilteredSettingList();
                 }
 
-                newVal = GUILayout.Toggle(_showKeybinds.Value, "Keyboard shortcuts", toggleStyle);
+                newVal = GUILayout.Toggle(_showKeybinds.Value, _shortcutsText.Value, toggleStyle);
                 if (_showKeybinds.Value != newVal)
                 {
                     _showKeybinds.Value = newVal;
                     BuildFilteredSettingList();
                 }
 
-                newVal = GUILayout.Toggle(_showAdvanced.Value, "Advanced settings", toggleStyle);
+                newVal = GUILayout.Toggle(_showAdvanced.Value, _advancedText.Value, toggleStyle);
                 if (_showAdvanced.Value != newVal)
                 {
                     _showAdvanced.Value = newVal;
@@ -321,10 +348,9 @@ namespace ConfigurationManager
                 }
             }
             GUILayout.EndHorizontal();
-
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label("Search settings: ", labelStyle, GUILayout.ExpandWidth(false));
+                GUILayout.Label(_searchText.Value, labelStyle, GUILayout.ExpandWidth(false));
 
                 GUI.SetNextControlName(SearchBoxName);
                 SearchString = GUILayout.TextField(SearchString, GUILayout.ExpandWidth(true));
@@ -337,7 +363,7 @@ namespace ConfigurationManager
                 }
                 Color color = GUI.backgroundColor;
                 GUI.backgroundColor = _widgetBackgroundColor.Value;
-                if (GUILayout.Button("Clear", buttonStyle, GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(_clearText.Value, buttonStyle, GUILayout.ExpandWidth(false)))
                     SearchString = string.Empty;
                 GUI.backgroundColor = color;
             }
@@ -380,6 +406,35 @@ namespace ConfigurationManager
                         GUILayout.Space(2);
                     }
                 }
+                GUILayout.BeginHorizontal();
+                var color = GUI.backgroundColor;
+                GUI.backgroundColor = _widgetBackgroundColor.Value;
+                if (GUILayout.Button(_reloadText.Value, buttonStyle, GUILayout.ExpandWidth(true)))
+                {
+                    foreach (var category in plugin.Categories)
+                    {
+                        foreach (var setting in category.Settings)
+                        {
+                            setting.PluginInstance.Config.Reload();
+                            break;
+                        }
+                        break;
+                    }
+                    BuildFilteredSettingList();
+                }
+                if (GUILayout.Button(_resetText.Value, buttonStyle, GUILayout.ExpandWidth(true)))
+                {
+                    foreach (var category in plugin.Categories)
+                    {
+                        foreach (var setting in category.Settings)
+                        {
+                            setting.Set(setting.DefaultValue);
+                        }
+                    }
+                    BuildFilteredSettingList();
+                }
+                GUI.backgroundColor = color;
+                GUILayout.EndHorizontal();
             }
 
             GUILayout.EndVertical();
@@ -423,7 +478,7 @@ namespace ConfigurationManager
             bool DrawDefaultButton()
             {
                 GUILayout.Space(5);
-                return GUILayout.Button("Reset", buttonStyle, GUILayout.ExpandWidth(false));
+                return GUILayout.Button(_resetSettingText.Value, buttonStyle, GUILayout.ExpandWidth(false));
             }
 
             if (setting.DefaultValue != null)
@@ -548,8 +603,7 @@ namespace ConfigurationManager
                         .OrderBy(x => string.Equals(x.Key, shortcutsCatName, StringComparison.Ordinal))
                         .ThenBy(x => x.Key)
                         .Select(x => new PluginSettingsData.PluginSettingsGroupData { Name = x.Key, Settings = x.OrderByDescending(set => set.Order).ThenBy(set => set.DispName).ToList() });
-
-                    return new PluginSettingsData { Info = pluginSettings.Key, Categories = categories.ToList(), Collapsed = nonDefaultCollpasingStateByPluginName.Contains(pluginSettings.Key.Name) ? !settingsAreCollapsed : settingsAreCollapsed };
+                    return new PluginSettingsData {Info = pluginSettings.Key, Categories = categories.ToList(), Collapsed = nonDefaultCollpasingStateByPluginName.Contains(pluginSettings.Key.Name) ? !settingsAreCollapsed : settingsAreCollapsed };
                 })
                 .OrderBy(x => x.Info.Name)
                 .ToList();
@@ -557,7 +611,7 @@ namespace ConfigurationManager
 
         private static bool IsKeyboardShortcut(SettingEntryBase x)
         {
-            return x.SettingType == typeof(BepInEx.Configuration.KeyboardShortcut);
+            return x.SettingType == typeof(KeyboardShortcut);
         }
 
         private static bool ContainsSearchString(SettingEntryBase setting, string[] searchStrings)
@@ -576,7 +630,7 @@ namespace ConfigurationManager
         private void CalculateDefaultWindowRect()
         {
             var width = Mathf.Min(Screen.width, 650);
-            var height = Screen.height < 560 ? Screen.height : Screen.height - 100;
+            var height = Screen.height < 800 ? Screen.height : 800;
             var offsetX = Mathf.RoundToInt((Screen.width - width) / 2f);
             var offsetY = Mathf.RoundToInt((Screen.height - height) / 2f);
             DefaultWindowRect = new Rect(offsetX, offsetY, width, height);
@@ -639,6 +693,20 @@ namespace ConfigurationManager
 
         private void Start()
         {
+
+            try
+            {
+                Dbgl("Searching for vanilla Config Manager.");
+                var vanilla = Chainloader.PluginInfos.First(p => p.Key == "com.bepis.bepinex.configurationmanager");
+                vanilla.Value.Instance.enabled = false;
+                Dbgl("Disabled Vanilla Config Manager");
+            }
+            catch
+            {
+                Dbgl("Vanilla Config Manager not found.");
+            }
+
+
             // Use reflection to keep compatibility with unity 4.x since it doesn't have Cursor
             var tCursor = typeof(Cursor);
             _curLockState = tCursor.GetProperty("lockState", BindingFlags.Static | BindingFlags.Public);
@@ -682,6 +750,10 @@ namespace ConfigurationManager
             labelStyle = new GUIStyle(GUI.skin.label);
             labelStyle.normal.textColor = _fontColor.Value;
             labelStyle.fontSize = fontSize;
+
+            textStyle = new GUIStyle(GUI.skin.textArea);
+            textStyle.normal.textColor = _fontColor.Value;
+            textStyle.fontSize = fontSize;
 
             buttonStyle = new GUIStyle(GUI.skin.button);
             buttonStyle.normal.textColor = _fontColor.Value;
@@ -774,7 +846,7 @@ namespace ConfigurationManager
             static bool Prefix(Console __instance)
             {
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals($"{typeof(ConfigurationManager).Namespace.ToLower()} reset"))
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();

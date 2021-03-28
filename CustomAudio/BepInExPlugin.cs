@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.8.0")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.9.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -382,6 +382,38 @@ namespace CustomAudio
             }
         }
 
+        [HarmonyPatch(typeof(Fireplace), "Start")]
+        static class Fireplace_Start_Patch
+        {
+            static void Postfix(Fireplace __instance)
+            {
+                if (__instance.name.Contains("groundtorch") && customSFX.ContainsKey("groundtorch"))
+                {
+                    Dbgl("Replacing ground torch audio");
+                    __instance.m_enabledObjectHigh.GetComponentInChildren<AudioSource>().clip = customSFX["groundtorch"];
+                }
+                else if(__instance.name.Contains("walltorch") && customSFX.ContainsKey("walltorch"))
+                {
+                    Dbgl("Replacing walltorch audio");
+                    __instance.m_enabledObjectHigh.GetComponentInChildren<AudioSource>().clip = customSFX["walltorch"];
+                }
+                else if (__instance.name.Contains("fire_pit") && customSFX.ContainsKey("fire_pit"))
+                {
+                    Dbgl("Replacing fire_pit audio");
+                    __instance.m_enabledObjectHigh.GetComponentInChildren<AudioSource>().clip = customSFX["fire_pit"];
+                }
+                else if (__instance.name.Contains("bonfire") && customSFX.ContainsKey("bonfire"))
+                {
+                    Dbgl("Replacing bonfire audio");
+                    __instance.m_enabledObjectHigh.GetComponentInChildren<AudioSource>().clip = customSFX["bonfire"];
+                }
+                else if (__instance.name.Contains("hearth") && customSFX.ContainsKey("hearth"))
+                {
+                    Dbgl("Replacing hearth audio");
+                    __instance.m_enabledObjectHigh.GetComponentInChildren<AudioSource>().clip = customSFX["hearth"];
+                }
+            }
+        }
 
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch

@@ -44,12 +44,6 @@ namespace CustomTextures
 
                 ReplaceEnvironmentTextures();
 
-                if (dumpSceneTextures.Value)
-                {
-                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
-                    Dbgl($"Writing {path}");
-                    File.WriteAllLines(path, outputDump);
-                }
                 //LogStopwatch("ZNetScene 2");
             }
         }
@@ -60,7 +54,6 @@ namespace CustomTextures
             static void Prefix(ZoneSystem __instance)
             {
                 ReplaceZoneSystemTextures(__instance);
-
             }
         }
         
@@ -84,6 +77,13 @@ namespace CustomTextures
                 if (logDump.Any())
                     Dbgl("\n" + string.Join("\n", logDump));
 
+                if (ZNetScene.instance && dumpSceneTextures.Value)
+                {
+                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
+                    Dbgl($"Writing {path}");
+                    File.WriteAllLines(path, outputDump);
+                }
+
                 //LogStopwatch("Clutter System");
 
             }
@@ -101,16 +101,16 @@ namespace CustomTextures
 
                         if (ShouldLoadCustomTexture($"player_model_{i}{property}"))
                         {
-                            __instance.m_models[i].m_baseMaterial.SetTexture(property, LoadTexture($"player_model_{i}{property}", __instance.m_models[i].m_baseMaterial.GetTexture(property)));
+                            __instance.m_models[i].m_baseMaterial.SetTexture(property, LoadTexture($"player_model_{i}{property}", __instance.m_models[i].m_baseMaterial.GetTexture(property), false));
                             Dbgl($"set player_model_{i}_texture custom texture.");
                         }
                         else if (property == "_MainTex" && ShouldLoadCustomTexture($"player_model_{i}_texture")) // legacy
                         {
-                            __instance.m_models[i].m_baseMaterial.SetTexture(property, LoadTexture($"player_model_{i}_texture", __instance.m_models[i].m_baseMaterial.GetTexture(property)));
+                            __instance.m_models[i].m_baseMaterial.SetTexture(property, LoadTexture($"player_model_{i}_texture", __instance.m_models[i].m_baseMaterial.GetTexture(property), false));
                         }
                         else if (property == "_SkinBumpMap" && ShouldLoadCustomTexture($"player_model_{i}_bump")) // legacy
                         {
-                            __instance.m_models[i].m_baseMaterial.SetTexture(property, LoadTexture($"player_model_{i}_bump", __instance.m_models[i].m_baseMaterial.GetTexture(property)));
+                            __instance.m_models[i].m_baseMaterial.SetTexture(property, LoadTexture($"player_model_{i}_bump", __instance.m_models[i].m_baseMaterial.GetTexture(property), true));
                         }
                     }
                 }

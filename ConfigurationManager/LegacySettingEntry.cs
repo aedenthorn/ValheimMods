@@ -46,7 +46,7 @@ namespace ConfigurationManager
 
                 if (wrapper == null)
                 {
-                    ConfigurationManager.Logger.Log(LogLevel.Debug, $"Skipping ConfigWrapper entry because it's null : {instance} | {settingProp.Name} | {pluginInfo?.Name}");
+                    BepInExPlugin.Logger.Log(LogLevel.Debug, $"Skipping ConfigWrapper entry because it's null : {instance} | {settingProp.Name} | {pluginInfo?.Name}");
                     return null;
                 }
 
@@ -57,7 +57,7 @@ namespace ConfigurationManager
 
                 if (innerProp == null)
                 {
-                    ConfigurationManager.Logger.Log(LogLevel.Error, "Failed to find property Value of ConfigWrapper");
+                    BepInExPlugin.Logger.Log(LogLevel.Error, "Failed to find property Value of ConfigWrapper");
                     return null;
                 }
 
@@ -106,7 +106,7 @@ namespace ConfigurationManager
             }
             catch (SystemException ex)
             {
-                ConfigurationManager.Logger.Log(LogLevel.Error,
+                BepInExPlugin.Logger.Log(LogLevel.Error,
                     $"Failed to create ConfigWrapper entry : {instance} | {settingProp?.Name} | {pluginInfo?.Name} | Error: {ex.Message}");
                 return null;
             }

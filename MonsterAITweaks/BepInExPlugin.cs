@@ -1,0 +1,241 @@
+﻿using BepInEx;
+using BepInEx.Configuration;
+using HarmonyLib;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+namespace MonsterAITweaks
+{
+    [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.2.1")]
+    public class BepInExPlugin: BaseUnityPlugin
+    {
+        private static readonly bool isDebug = true;
+        private static BepInExPlugin context;
+        private Harmony harmony;
+
+        public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<int> nexusID;
+
+        public static ConfigEntry<bool> noMonstersTargetPlayers;
+        public static ConfigEntry<bool> noMonstersAlerted;
+        public static ConfigEntry<bool> allMonstersTame;
+        public static ConfigEntry<bool> noBuildingTargeting;
+        public static ConfigEntry<bool> allMonstersFearFire;
+        public static ConfigEntry<bool> allMonstersAvoidFire;
+
+        public static ConfigEntry<string> neverTargetPlayersListString;
+        public static ConfigEntry<string> neverAlertedListString;
+        public static ConfigEntry<string> defaultTamedListString;
+        public static ConfigEntry<string> noBuildingTargetListString;
+        public static ConfigEntry<string> fearFireListString;
+        public static ConfigEntry<string> avoidFireListString;
+        
+        public static ConfigEntry<float> viewRangeMult;
+        public static ConfigEntry<float> viewAngleMult;
+        public static ConfigEntry<float> hearRangeMult;
+
+        private static string[] neverTargetPlayersList;
+        private static string[] neverAlertedList;
+        private static string[] defaultTamedList;
+        private static string[] noBuildingTargetList;
+        private static string[] fearFireList;
+        private static string[] avoidFireList;
+
+        public static void Dbgl(string str = "", bool pref = true)
+        {
+            if (isDebug)
+                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
+        }
+        private void Awake()
+        {
+            context = this;
+
+            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            //nexusID = Config.Bind<int>("General", "NexusID", , "Nexus mod ID for updates");
+
+            noMonstersTargetPlayers = Config.Bind<bool>("Global", "NoMonstersTargetPlayers", false, "No monsters target players.");
+            noMonstersAlerted = Config.Bind<bool>("Global", "NoMonstersAlerted", false, "No monsters become alerted.");
+            allMonstersTame = Config.Bind<bool>("Global", "NoMonstersAlerted", false, "All monsters tamed by default.");
+            noBuildingTargeting = Config.Bind<bool>("Global", "NoBuildingTargeting", false, "No monsters target buildings.");
+            allMonstersFearFire = Config.Bind<bool>("Global", "AllMonstersFearFire", false, "All monsters fear fire.");
+            allMonstersAvoidFire = Config.Bind<bool>("Global", "AllMonstersAvoidFire", false, "All monsters avoid fire.");
+
+            neverTargetPlayersListString = Config.Bind<string>("Lists", "NeverTargetPlayersList", "", "List of monsters that will never target players (comma-separated).");
+            neverAlertedListString = Config.Bind<string>("Lists", "NeverAlertedList", "", "List of monsters that will never be alerted (comma-separated).");
+            defaultTamedListString = Config.Bind<string>("Lists", "DefaultTamedList", "", "List of monsters that are tamed by default (comma-separated).");
+            noBuildingTargetListString = Config.Bind<string>("Lists", "NoBuildingTargetList", "", "List of monsters that do not target buildings (comma-separated).");
+            fearFireListString = Config.Bind<string>("Lists", "FearFireListString", "", "List of monsters that fear fire (comma-separated).");
+            avoidFireListString = Config.Bind<string>("Lists", "AvoidFireListString", "", "List of monsters that avoid fire (comma-separated).");
+            
+            viewRangeMult = Config.Bind<float>("Variables", "ViewRangeMult", 1f, "Monster view range multiplier.");
+            viewAngleMult = Config.Bind<float>("Variables", "ViewAngleMult", 1f, "Monster view angle multiplier.");
+            hearRangeMult = Config.Bind<float>("Variables", "HearRangeMult", 1f, "Monster hear range multiplier.");
+
+            if (!modEnabled.Value)
+                return;
+
+            neverTargetPlayersList = neverTargetPlayersListString.Value.Split(',');
+            neverAlertedList = neverAlertedListString.Value.Split(',');
+            defaultTamedList = defaultTamedListString.Value.Split(',');
+            noBuildingTargetList = noBuildingTargetListString.Value.Split(',');
+            fearFireList = fearFireListString.Value.Split(',');
+            avoidFireList = avoidFireListString.Value.Split(',');
+
+            harmony = new Harmony(Info.Metadata.GUID);
+            harmony.PatchAll();
+        }
+
+        [HarmonyPatch(typeof(MonsterAI), "Awake")]
+        static class MonsterAI_Awake_Patch
+        {
+            static void Postfix(MonsterAI __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                if (allMonstersTame.Value || defaultTamedList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                    __instance.MakeTame();
+                if (allMonstersAvoidFire.Value || avoidFireList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                    __instance.m_avoidFire = true;
+                if (allMonstersFearFire.Value || fearFireList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                    __instance.m_afraidOfFire = true;
+
+            }
+        }
+        
+        [HarmonyPatch(typeof(BaseAI), "Awake")]
+        static class BaseAI_Awake_Patch
+        {
+            static void Postfix(BaseAI __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+
+
+                __instance.m_viewRange *= viewRangeMult.Value;
+                __instance.m_viewAngle *= viewAngleMult.Value;
+
+            }
+        }
+        
+        [HarmonyPatch(typeof(MonsterAI), "SetTarget", new Type[] { typeof(Character) })]
+        static class MonsterAI_SetTarget_Patch
+        {
+            static bool Prefix(MonsterAI __instance, Character attacker)
+            {
+                if (!modEnabled.Value)
+                    return true;
+
+                //Dbgl($"{__instance.name} setting target player {attacker.IsPlayer()} cancel {noMonstersTargetPlayers.Value}");
+
+                if (attacker?.IsPlayer() == true && (noMonstersTargetPlayers.Value || neverTargetPlayersList.Contains(ZNetView.GetPrefabName(__instance.gameObject))))
+                    return false;
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(BaseAI), "FindEnemy")]
+        static class BaseAI_FindEnemy_Patch
+        {
+            static void Postfix(BaseAI __instance, ref Character __result)
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                //Dbgl($"{__instance.name} finding target player {__result?.IsPlayer()} cancel {noMonstersTargetPlayers.Value}");
+
+                if (__result?.IsPlayer() == true && (noMonstersTargetPlayers.Value || neverTargetPlayersList.Contains(ZNetView.GetPrefabName(__instance.gameObject))))
+                {
+                    __result = null;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(BaseAI), "Alert")]
+        static class BaseAI_Alert_Patch
+        {
+            static bool Prefix(BaseAI __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+
+                if (noMonstersAlerted.Value || neverAlertedList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+        [HarmonyPatch(typeof(BaseAI), "FindClosestStaticPriorityTarget")]
+        static class BaseAI_FindClosestStaticPriorityTarget_Patch
+        {
+            static bool Prefix(BaseAI __instance, ref StaticTarget __result)
+            {
+                if (!modEnabled.Value)
+                    return true;
+
+                if (noBuildingTargeting.Value || noBuildingTargetList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                {
+                    __result = null;
+                    return false;
+                }
+                return true;
+            }
+        }
+        [HarmonyPatch(typeof(BaseAI), "FindRandomStaticTarget")]
+        static class BaseAI_FindRandomStaticTarget_Patch
+        {
+            static bool Prefix(BaseAI __instance, ref StaticTarget __result)
+            {
+                if (!modEnabled.Value)
+                    return true;
+
+                if (noBuildingTargeting.Value || noBuildingTargetList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                {
+                    __result = null;
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(MonsterAI), "SetAlerted")]
+        static class MonsterAI_SetAlerted_Patch
+        {
+            static bool Prefix(MonsterAI __instance, bool alert)
+            {
+                if (!modEnabled.Value || !alert)
+                    return true;
+
+                if (noMonstersAlerted.Value || neverAlertedList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(Console), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Console __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
+            }
+        }
+    }
+}

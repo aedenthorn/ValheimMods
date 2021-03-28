@@ -215,7 +215,7 @@ namespace AutoStore
                             continue;
 
                         Dbgl($"auto storing {item.m_itemData.m_dropPrefab.name} from ground");
-
+                        item.GetComponent<ZNetView>().ClaimOwnership();
 
                         while (item.m_itemData.m_stack > 1 && __instance.GetInventory().CanAddItem(item.m_itemData, 1))
                         {

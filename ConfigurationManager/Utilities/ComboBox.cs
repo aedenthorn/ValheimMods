@@ -112,7 +112,7 @@ namespace ConfigurationManager.Utilities
                     var outerRectLocal = new Rect(scrpos.x, scrpos.y, outerRectScreen.width, outerRectScreen.height);
 
                     GUI.Box(outerRectLocal, GUIContent.none,
-                        new GUIStyle { normal = new GUIStyleState { background = ConfigurationManager.WindowBackground } });
+                        new GUIStyle { normal = new GUIStyleState { background = BepInExPlugin.WindowBackground } });
 
                     _scrollPosition = GUI.BeginScrollView(outerRectLocal, _scrollPosition, innerRect, false, false);
                     {
