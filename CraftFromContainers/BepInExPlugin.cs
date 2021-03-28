@@ -183,7 +183,7 @@ namespace CraftFromContainers
         {
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
-	    	var piece = __instance.GetComponentInParent<Piece>();
+                var piece = __instance.GetComponentInParent<Piece>();
 
                 if (__instance.GetInventory() != null && piece != null && piece.IsPlacedByPlayer())
                 {
