@@ -25,7 +25,7 @@ namespace CraftFromContainers
         public static ConfigEntry<float> ghostConnectionStartOffset;
         public static ConfigEntry<float> ghostConnectionRemovalDelay;
 
-        public static ConfigEntry<bool> ignoreRangeInBuildArea;
+        //public static ConfigEntry<bool> ignoreRangeInBuildArea;
         public static ConfigEntry<float> m_range;
         public static ConfigEntry<Color> flashColor;
         public static ConfigEntry<Color> unFlashColor;
@@ -64,7 +64,7 @@ namespace CraftFromContainers
             nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
 
             m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from");
-            ignoreRangeInBuildArea = Config.Bind<bool>("General", "IgnoreRangeInBuildArea", true, "Ignore range for building pieces when in build area.");
+            //ignoreRangeInBuildArea = Config.Bind<bool>("General", "IgnoreRangeInBuildArea", true, "Ignore range for building pieces when in build area.");
             resourceString = Config.Bind<string>("General", "ResourceCostString", "{0}/{1}", "String used to show required and available resources. {0} is replaced by how much is available, and {1} is replaced by how much is required. Set to nothing to leave it as default.");
             flashColor = Config.Bind<Color>("General", "FlashColor", Color.yellow, "Resource amounts will flash to this colour when coming from containers");
             unFlashColor = Config.Bind<Color>("General", "UnFlashColor", Color.white, "Resource amounts will flash from this colour when coming from containers (set both colors to the same color for no flashing)");
@@ -162,6 +162,7 @@ namespace CraftFromContainers
                 if (container != null && container.transform != null && container.GetInventory() != null && (ignoreRange || m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
                 {
                     Traverse.Create(container).Method("Load").GetValue();
+                    container.GetComponent<ZNetView>().ClaimOwnership();
                     containers.Add(container);
                 }
             }
@@ -183,10 +184,10 @@ namespace CraftFromContainers
         {
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
-                var piece = __instance.GetComponentInParent<Piece>();
-
-                if (__instance.GetInventory() != null && piece != null && piece.IsPlacedByPlayer())
+                //Dbgl($"Checking {__instance.name} {___m_nview != null} {___m_nview?.GetZDO() != null} {___m_nview?.GetZDO()?.GetLong("creator".GetStableHashCode(), 0L)}");
+                if (__instance.GetInventory() != null && ___m_nview?.GetZDO()?.GetLong("creator".GetStableHashCode(), 0L) != 0)
                 {
+                    //Dbgl($"Adding {__instance.name}");
                     containerList.Add(__instance);
                 }
             }
@@ -587,7 +588,7 @@ namespace CraftFromContainers
                 if (__result || __instance?.transform?.position == null || !AllowByKey())
                     return;
 
-                bool ignoreRange = false;
+                //bool ignoreRange = false;
 
                 if (piece.m_craftingStation)
                 {
@@ -602,8 +603,8 @@ namespace CraftFromContainers
                     {
                         return;
                     }
-                    else
-                        ignoreRange = ignoreRangeInBuildArea.Value;
+                    //else
+                    //    ignoreRange = ignoreRangeInBuildArea.Value;
                 }
                 if (piece.m_dlc.Length > 0 && !DLCMan.instance.IsDLCInstalled(piece.m_dlc))
                 {
