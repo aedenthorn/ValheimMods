@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.0.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.0.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -154,15 +154,15 @@ namespace CraftFromContainers
             return containers;
         }
         */
-        public static List<Container> GetNearbyContainers(Vector3 center, bool ignoreRange = false)
+        public static List<Container> GetNearbyContainers(Vector3 center)
         {
             List<Container> containers = new List<Container>();
             foreach (Container container in containerList)
             {
-                if (container != null && container.transform != null && container.GetInventory() != null && (ignoreRange || m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
+                if (container != null && container.GetComponentInParent<Piece>() != null && Player.m_localPlayer != null && container?.transform != null && container.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
                 {
                     Traverse.Create(container).Method("Load").GetValue();
-                    container.GetComponent<ZNetView>().ClaimOwnership();
+                    container.GetComponent<ZNetView>()?.ClaimOwnership();
                     containers.Add(container);
                 }
             }
@@ -611,7 +611,7 @@ namespace CraftFromContainers
                     return;
                 }
 
-                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position, false);
+                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
 
                 foreach (Piece.Requirement requirement in piece.m_resources)
                 {
