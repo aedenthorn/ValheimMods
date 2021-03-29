@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace DayCycle
 {
-    [BepInPlugin("aedenthorn.DayCycle", "DayCycle", "0.6.0")]
+    [BepInPlugin("aedenthorn.DayCycle", "DayCycle", "0.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -22,9 +22,6 @@ namespace DayCycle
 
         private static long vanillaDayLengthSec;
 
-        private static bool firstSet = true;
-        private static int dayPeriod = 0;
-        
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
@@ -35,10 +32,9 @@ namespace DayCycle
             context = this;
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            //dayStart = Config.Bind<float>("General", "DayStart", 0.25f, "Fraction of the 24 hours when the day begins");
-            //nightStart = Config.Bind<float>("General", "NightStart", 0.75f, "Fraction of the 24 hours when the night begins");
+            dayStart = Config.Bind<float>("General", "DayStart", 0.25f, "Fraction of the 24 hours when the day begins");
+            nightStart = Config.Bind<float>("General", "NightStart", 0.75f, "Fraction of the 24 hours when the night begins");
             dayRate = Config.Bind<float>("General", "DayRate", 0.5f, "Rate at which the day progresses (0.5 = half speed, etc)");
-            //nightRate = Config.Bind<float>("General", "NightRate", 1f, "Rate at which the night progresses (0.5 = half speed, etc)");
             nexusID = Config.Bind<int>("General", "NexusID", 98, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
@@ -67,8 +63,63 @@ namespace DayCycle
 
             static void Postfix(ref long ___m_dayLengthSec)
             {
+                if (!modEnabled.Value)
+                    return;
                 vanillaDayLengthSec = ___m_dayLengthSec;
                 ___m_dayLengthSec = (long)(Mathf.Round(vanillaDayLengthSec / dayRate.Value));
+            }
+        }
+
+        [HarmonyPatch(typeof(EnvMan), "IsDay")]
+        static class EnvMan_IsDay_Patch
+        {
+            static bool Prefix(float ___m_smoothDayFraction, ref bool __result)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                __result = ___m_smoothDayFraction >= dayStart.Value && ___m_smoothDayFraction <= nightStart.Value;
+                return false;
+            }
+        }
+        [HarmonyPatch(typeof(EnvMan), "IsAfternoon")]
+        static class EnvMan_IsAfternoon_Patch
+        {
+            static bool Prefix(float ___m_smoothDayFraction, ref bool __result)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                __result = ___m_smoothDayFraction >= 0.5f && ___m_smoothDayFraction < nightStart.Value;
+                return false;
+            }
+        }
+        [HarmonyPatch(typeof(EnvMan), "IsNight")]
+        static class EnvMan_IsNight_Patch
+        {
+            static bool Prefix(float ___m_smoothDayFraction, ref bool __result)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                __result = ___m_smoothDayFraction <= dayStart.Value || ___m_smoothDayFraction >= nightStart.Value;
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(EnvMan), "SetEnv")]
+        static class EnvMan_SetEnv_Patch
+        {
+            static void Prefix(EnvMan __instance, ref float dayInt, ref float nightInt, ref float morningInt, ref float eveningInt, float ___m_smoothDayFraction)
+            {
+                if (!modEnabled.Value)
+                    return;
+                nightInt = Mathf.Pow(Mathf.Max(1f - Mathf.Clamp01(___m_smoothDayFraction / dayStart.Value), Mathf.Clamp01((___m_smoothDayFraction - nightStart.Value) / dayStart.Value)), 0.5f);
+                dayInt = Mathf.Pow(Mathf.Clamp01(1f - Mathf.Abs(___m_smoothDayFraction - 0.5f) / dayStart.Value), 0.5f);
+                morningInt = Mathf.Min(Mathf.Clamp01(1f - (___m_smoothDayFraction - (dayStart.Value + 0.01f)) / -__instance.m_sunHorizonTransitionL), Mathf.Clamp01(1f - (___m_smoothDayFraction - (dayStart.Value + 0.01f)) / __instance.m_sunHorizonTransitionH));
+                eveningInt = Mathf.Min(Mathf.Clamp01(1f - (___m_smoothDayFraction - (nightStart.Value - 0.01f)) / -__instance.m_sunHorizonTransitionH), Mathf.Clamp01(1f - (___m_smoothDayFraction - (nightStart.Value - 0.01f)) / __instance.m_sunHorizonTransitionL));
+                float num9 = 1f / (nightInt + dayInt + morningInt + eveningInt);
+                nightInt *= num9;
+                dayInt *= num9;
+                morningInt *= num9;
+                eveningInt *= num9;
             }
         }
 

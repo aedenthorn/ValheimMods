@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 
 namespace SimpleSort
 {
-    [BepInPlugin("aedenthorn.SimpleSort", "Simple Sort", "0.6.0")]
+    [BepInPlugin("aedenthorn.SimpleSort", "Simple Sort", "0.6.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -201,19 +201,21 @@ namespace SimpleSort
             SortByName(inventory, asc, player);
 
             var items = inventory.GetAllItems();
-            for (int i = items.Count - 1; i >= 0; i--)
+            for (int i = 0; i < items.Count; i++)
             {
                 if (player && ((playerSortStartRow.Value > 1 && items[i].m_gridPos.y < playerSortStartRow.Value - 1) || (playerSortEndRow.Value > 0 && items[i].m_gridPos.y >= playerSortEndRow.Value)))
                     continue;
 
-                if (i > 0 && items[i - 1].m_stack < items[i - 1].m_shared.m_maxStackSize && items[i - 1].m_shared.m_name == items[i].m_shared.m_name)
+                while (i < items.Count - 1 && items[i].m_stack < items[i].m_shared.m_maxStackSize && items[i + 1].m_shared.m_name == items[i].m_shared.m_name)
                 {
-                    int amount = Mathf.Min(items[i - 1].m_shared.m_maxStackSize - items[i - 1].m_stack, items[i].m_stack);
-                    items[i - 1].m_stack += amount;
-                    if (amount == items[i].m_stack)
-                        items.RemoveAt(i);
+                    int amount = Mathf.Min(items[i].m_shared.m_maxStackSize - items[i].m_stack, items[i + 1].m_stack);
+                    items[i].m_stack += amount;
+                    if (amount == items[i + 1].m_stack)
+                    {
+                        items.RemoveAt(i + 1);
+                    }
                     else
-                        items[i].m_stack -= amount;
+                        items[i + 1].m_stack -= amount;
                 }
             }
             switch (type)

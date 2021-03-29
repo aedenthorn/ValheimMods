@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.0.4")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.0.6")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -169,29 +170,36 @@ namespace CraftFromContainers
             return containers;
         }
 
-        [HarmonyPatch(typeof(InventoryGui), "Update")]
-        static class InventoryGui_Update_Patch
-        {
-            static void Prefix(InventoryGui __instance)
-            {
-                if (wasAllowed != AllowByKey())
-                    Traverse.Create(__instance).Method("UpdateCraftingPanel", new object[] { false }).GetValue();
-            }
-        }
-
         [HarmonyPatch(typeof(Container), "Awake")]
         static class Container_Awake_Patch
         {
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
-                //Dbgl($"Checking {__instance.name} {___m_nview != null} {___m_nview?.GetZDO() != null} {___m_nview?.GetZDO()?.GetLong("creator".GetStableHashCode(), 0L)}");
-                if (__instance.GetInventory() != null && ___m_nview?.GetZDO()?.GetLong("creator".GetStableHashCode(), 0L) != 0)
+                context.StartCoroutine(AddContainer(__instance, ___m_nview));
+            }
+
+        }
+
+        public static IEnumerator AddContainer(Container container, ZNetView nview)
+        {
+            yield return null;
+            try
+            {
+                Dbgl($"Checking {container.name} {nview != null} {nview?.GetZDO() != null} {nview?.GetZDO()?.GetLong("creator".GetStableHashCode(), 0L)}");
+                if (container.GetInventory() != null && (container.name.StartsWith("piece_") || container.name.StartsWith("Container") || nview?.GetZDO()?.GetLong("creator".GetStableHashCode(), 0L) != 0))
                 {
-                    //Dbgl($"Adding {__instance.name}");
-                    containerList.Add(__instance);
+                    Dbgl($"Adding {container.name}");
+                    containerList.Add(container);
                 }
             }
+            catch
+            {
+
+            }
+            yield break;
         }
+
+
         [HarmonyPatch(typeof(Container), "OnDestroyed")]
         static class Container_OnDestroyed_Patch
         {
@@ -202,6 +210,16 @@ namespace CraftFromContainers
             }
         }
 
+
+        [HarmonyPatch(typeof(InventoryGui), "Update")]
+        static class InventoryGui_Update_Patch
+        {
+            static void Prefix(InventoryGui __instance)
+            {
+                if (wasAllowed != AllowByKey())
+                    Traverse.Create(__instance).Method("UpdateCraftingPanel", new object[] { false }).GetValue();
+            }
+        }
 
         [HarmonyPatch(typeof(Fireplace), "Interact")]
         static class Fireplace_Interact_Patch

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace BuildingHealthDisplay
 {
-    [BepInPlugin("aedenthorn.BuildingHealthDisplay", "Building Health Display", "0.1.0")]
+    [BepInPlugin("aedenthorn.BuildingHealthDisplay", "Building Health Display", "0.2.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -30,6 +30,9 @@ namespace BuildingHealthDisplay
 
         public static ConfigEntry<Vector2> healthTextPosition;
         public static ConfigEntry<Vector2> integrityTextPosition;
+
+        public static ConfigEntry<int> healthTextSize;
+        public static ConfigEntry<int> integrityTextSize;
 
         public static ConfigEntry<Color> lowColor;
         public static ConfigEntry<Color> midColor;
@@ -65,9 +68,11 @@ namespace BuildingHealthDisplay
             midIntegrityColor = Config.Bind<Color>("General", "MidIntegrityColor", Color.yellow, "Color used for mid integrity.");
             highIntegrityColor = Config.Bind<Color>("General", "HighIntegrityColor", Color.green, "Color used for high integrity.");
             healthText = Config.Bind<string>("General", "HealthText", "{0}/{1} ({2}%)", "Health text. {0} is replaced by current health. {1} is replaced by max health. {2} is replaced by percentage health.");
-            integrityText = Config.Bind<string>("General", "IntegrityText", "{0}/{1} ({2}%)", "Health text. {0} is replaced by current health. {1} is replaced by max health. {2} is replaced by percentage health.");
+            integrityText = Config.Bind<string>("General", "IntegrityText", "{0}/{1} ({2}%)", "Integrity text. {0} is replaced by current integrity. {1} is replaced by max integrity. {2} is replaced by percentage integrity.");
+            healthTextSize = Config.Bind<int>("General", "HealthTextSize", 18, "Health text size.");
+            integrityTextSize = Config.Bind<int>("General", "IntegrityTextSize", 18, "Integrity text size.");
             healthTextPosition = Config.Bind<Vector2>("General", "HealthTextPosition", new Vector2(0, 40), "Health text position offset.");
-            integrityTextPosition = Config.Bind<Vector2>("General", "IntegrityText", new Vector2(0, -50), "Integrity text position offset.");
+            integrityTextPosition = Config.Bind<Vector2>("General", "IntegrityTextPosition", new Vector2(0, -40), "Integrity text position offset.");
 
             if (!modEnabled.Value)
                 return;
@@ -103,18 +108,22 @@ namespace BuildingHealthDisplay
                         {
                             __instance.m_pieceHealthBar.SetValue(wnt.GetHealthPercentage());
                             if(healthPercent < 0.5)
-                                __instance.m_pieceHealthBar.SetColor(Color.Lerp(lowColor.Value, midColor.Value, healthPercent));
+                                __instance.m_pieceHealthBar.SetColor(Color.Lerp(lowColor.Value, midColor.Value, healthPercent * 2));
                             else
-                                __instance.m_pieceHealthBar.SetColor(Color.Lerp(midColor.Value, highColor.Value, healthPercent - 0.5f));
+                                __instance.m_pieceHealthBar.SetColor(Color.Lerp(midColor.Value, highColor.Value, (healthPercent - 0.5f) * 2));
                         }
                         if (showHealthText.Value)
                         {
                             Transform t = __instance.m_pieceHealthRoot.Find("_HealthText");
                             if (t == null)
+                            {
                                 t = Instantiate(__instance.m_healthText, __instance.m_pieceHealthRoot.transform).transform;
+                                t.GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0, -90);
+                            }
                             t.name = "_HealthText";
 
-                            t.GetComponent<Text>().text = string.Format(healthText.Value, Mathf.RoundToInt(znv.GetZDO().GetFloat("health", wnt.m_health)), Mathf.RoundToInt(wnt.m_health), Mathf.FloorToInt(healthPercent*100));
+                            t.GetComponent<Text>().text = string.Format(healthText.Value, Mathf.RoundToInt(znv.GetZDO().GetFloat("health", wnt.m_health)), Mathf.RoundToInt(wnt.m_health), Mathf.RoundToInt(healthPercent*100));
+                            t.GetComponent<Text>().fontSize = healthTextSize.Value;
                             t.GetComponent<Text>().resizeTextMaxSize = t.GetComponent<Text>().text.Length;
                             t.GetComponent<RectTransform>().anchoredPosition = new Vector2(healthTextPosition.Value.y, healthTextPosition.Value.x);
                         }
@@ -124,10 +133,14 @@ namespace BuildingHealthDisplay
                         {
                             Transform t = __instance.m_pieceHealthRoot.Find("_IntegrityText");
                             if (t == null)
+                            {
                                 t = Instantiate(__instance.m_healthText, __instance.m_pieceHealthRoot.transform).transform;
+                                t.GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0, -90);
+                            }
                             t.name = "_IntegrityText";
 
-                            t.GetComponent<Text>().text = string.Format(healthText.Value, Mathf.RoundToInt(support), Mathf.RoundToInt(maxSupport), Mathf.FloorToInt(support/maxSupport*100));
+                            t.GetComponent<Text>().text = string.Format(integrityText.Value, Mathf.RoundToInt(support), Mathf.RoundToInt(maxSupport), Mathf.RoundToInt(support/maxSupport*100));
+                            t.GetComponent<Text>().fontSize = integrityTextSize.Value;
                             t.GetComponent<Text>().resizeTextMaxSize = t.GetComponent<Text>().text.Length;
                             t.GetComponent<RectTransform>().anchoredPosition = new Vector2(integrityTextPosition.Value.y, integrityTextPosition.Value.x);
                         }
@@ -144,23 +157,15 @@ namespace BuildingHealthDisplay
                 if (!modEnabled.Value || !customIntegrityColors.Value)
                     return;
 
-                float supportColorValue = Traverse.Create(__instance).Method("GetSupportColorValue").GetValue<float>();
-                Color color = new Color(0.6f, 0.8f, 1f);
-                if (supportColorValue >= 0f)
-                {
-                    if (supportColorValue >= 0.5f)
-                        color = Color.Lerp(midIntegrityColor.Value, highIntegrityColor.Value, supportColorValue - 0.5f);
-                    else
-                        color = Color.Lerp(lowIntegrityColor.Value, midIntegrityColor.Value, supportColorValue);
-
-                    float h;
-                    float s;
-                    float v;
-                    Color.RGBToHSV(color, out h, out s, out v);
-                    s = Mathf.Lerp(1f, 0.5f, supportColorValue);
-                    v = Mathf.Lerp(1.2f, 0.9f, supportColorValue);
-                    color = Color.HSVToRGB(h, s, v);
-                }
+                float support = Traverse.Create(__instance).Method("GetSupport").GetValue<float>();
+                float maxSupport = Traverse.Create(__instance).Method("GetMaxSupport").GetValue<float>();
+                if (support < 0 || maxSupport < support)
+                    return;
+                Color color;
+                if (support / maxSupport >= 0.5f)
+                    color = Color.Lerp(midIntegrityColor.Value, highIntegrityColor.Value, (support / maxSupport - 0.5f) * 2);
+                else
+                    color = Color.Lerp(lowIntegrityColor.Value, midIntegrityColor.Value, support / maxSupport * 2);
 
                 foreach (Renderer renderer in Traverse.Create(__instance).Method("GetHighlightRenderers").GetValue<List<Renderer>>())
                 {

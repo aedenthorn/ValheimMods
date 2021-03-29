@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace CustomToolbarHotkeys
 {
-    [BepInPlugin("aedenthorn.CustomToolbarHotkeys", "Custom Toolbar Hotkeys", "0.2.2")]
+    [BepInPlugin("aedenthorn.CustomToolbarHotkeys", "Custom Toolbar Hotkeys", "0.2.3")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -98,26 +98,27 @@ namespace CustomToolbarHotkeys
                 if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses())
                     return true;
 
+                int which;
                 if (AedenthornUtils.CheckKeyDown(hotKey1.Value))
-                    __instance.UseHotbarItem(1);
+                    which = 1;
                 else if (AedenthornUtils.CheckKeyDown(hotKey2.Value))
-                    __instance.UseHotbarItem(2);
+                    which = 2;
                 else if (AedenthornUtils.CheckKeyDown(hotKey3.Value))
-                    __instance.UseHotbarItem(3);
+                    which = 3;
                 else if (AedenthornUtils.CheckKeyDown(hotKey4.Value))
-                    __instance.UseHotbarItem(4);
+                    which = 4;
                 else if (AedenthornUtils.CheckKeyDown(hotKey5.Value))
-                    __instance.UseHotbarItem(5);
+                    which = 5;
                 else if (AedenthornUtils.CheckKeyDown(hotKey6.Value))
-                    __instance.UseHotbarItem(6);
+                    which = 6;
                 else if (AedenthornUtils.CheckKeyDown(hotKey7.Value))
-                    __instance.UseHotbarItem(7);
+                    which = 7;
                 else if (AedenthornUtils.CheckKeyDown(hotKey8.Value))
-                    __instance.UseHotbarItem(8);
+                    which = 8;
                 else return true;
 
                 usingHotkey = true;
-
+                __instance.UseHotbarItem(which);
                 return false;
             }
         }
@@ -127,10 +128,7 @@ namespace CustomToolbarHotkeys
         {
             static bool Prefix(int index)
             {
-                if (!modEnabled.Value)
-                    return true;
-
-                if (!usingHotkey)
+                if (!modEnabled.Value || !usingHotkey)
                     return false;
 
                 usingHotkey = false;

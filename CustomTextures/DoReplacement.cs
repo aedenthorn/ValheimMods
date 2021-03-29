@@ -280,13 +280,31 @@ namespace CustomTextures
 
         private static Texture2D LoadTexture(string id, Texture vanilla, bool isBump, bool point = true, bool needCustom = false, bool isSprite = false)
         {
+            Texture2D texture;
             if (cachedTextures.ContainsKey(id))
             {
                 logDump.Add($"loading cached texture for {id}");
-                return cachedTextures[id];
+                texture = cachedTextures[id];
+                if (customTextures.ContainsKey(id))
+                {
+                    if (customTextures[id].Contains("bilinear"))
+                    {
+                        texture.filterMode = FilterMode.Bilinear;
+                    }
+                    else if (customTextures[id].Contains("trilinear"))
+                    {
+                        texture.filterMode = FilterMode.Trilinear;
+                    }
+                    else if (customTextures[id].Contains($"{Path.DirectorySeparatorChar}point{Path.DirectorySeparatorChar}"))
+                    {
+                        texture.filterMode = FilterMode.Trilinear;
+                    }
+                    else if (point)
+                        texture.filterMode = FilterMode.Point;
+                }
+                return texture;
             }
 
-            Texture2D tex;
             var layers = customTextures.Where(p => p.Key.StartsWith(id+"_"));
 
             if (!customTextures.ContainsKey(id) && layers.Count() == 0)
@@ -301,26 +319,41 @@ namespace CustomTextures
 
             if (vanilla == null)
             {
-                tex = new Texture2D(2, 2, TextureFormat.RGBA32, true, isBump);
-                if (point)
-                    tex.filterMode = FilterMode.Point;
+                texture = new Texture2D(2, 2, TextureFormat.RGBA32, true, isBump);
                 if (!customTextures.ContainsKey(id))
                 {
                     byte[] layerData = File.ReadAllBytes(layers.First().Value);
-                    tex.LoadImage(layerData);
+                    texture.LoadImage(layerData);
                 }
             }
             else
-                tex = new Texture2D(vanilla.width, vanilla.height, TextureFormat.RGBA32, true, isBump);
+                texture = new Texture2D(vanilla.width, vanilla.height, TextureFormat.RGBA32, true, isBump);
 
-            if (point)
-                tex.filterMode = FilterMode.Point;
+            if (customTextures.ContainsKey(id))
+            {
+                if (customTextures[id].Contains($"{Path.DirectorySeparatorChar}bilinear{Path.DirectorySeparatorChar}"))
+                {
+                    texture.filterMode = FilterMode.Bilinear;
+                }
+                else if (customTextures[id].Contains($"{Path.DirectorySeparatorChar}trilinear{Path.DirectorySeparatorChar}"))
+                {
+                    texture.filterMode = FilterMode.Trilinear;
+                }
+                else if (customTextures[id].Contains($"{Path.DirectorySeparatorChar}point{Path.DirectorySeparatorChar}"))
+                {
+                    texture.filterMode = FilterMode.Trilinear;
+                }
+                else if (point)
+                    texture.filterMode = FilterMode.Point;
+            }
+            else if (point)
+                texture.filterMode = FilterMode.Point;
 
             if (customTextures.ContainsKey(id))
             {
                 logDump.Add($"loading custom texture file for {id}");
                 byte[] imageData = File.ReadAllBytes(customTextures[id]);
-                tex.LoadImage(imageData);
+                texture.LoadImage(imageData);
             }
             else if (vanilla != null)
             {
@@ -330,8 +363,8 @@ namespace CustomTextures
 
                 // Create a temporary RenderTexture of the same size as the texture
                 RenderTexture tmp = RenderTexture.GetTemporary(
-                                    tex.width,
-                                    tex.height,
+                                    texture.width,
+                                    texture.height,
                                     0,
                                     RenderTextureFormat.Default,
                                     isBump ? RenderTextureReadWrite.Linear : RenderTextureReadWrite.Default);
@@ -360,8 +393,8 @@ namespace CustomTextures
 
                 // "myTexture2D" now has the same pixels from "texture" and it's readable.
 
-                tex.SetPixels(myTexture2D.GetPixels());
-                tex.Apply();
+                texture.SetPixels(myTexture2D.GetPixels());
+                texture.Apply();
             }
             if (layers.Count() > 0)
             {
@@ -395,8 +428,8 @@ namespace CustomTextures
 
                     //8x5, 2x2
 
-                    float scale = tex.width / (float)layerw; // 8 / 2 = 4 or 2 / 8 = 0.25
-                    float scaleY = tex.height / (float)layerh; // 5 / 2 = 2.5 or 2 / 5 = 0.4
+                    float scale = texture.width / (float)layerw; // 8 / 2 = 4 or 2 / 8 = 0.25
+                    float scaleY = texture.height / (float)layerh; // 5 / 2 = 2.5 or 2 / 5 = 0.4
 
                     if(scale != scaleY)
                     {
@@ -428,7 +461,7 @@ namespace CustomTextures
                     {
                         //logDump.Add($"scaling texture up");
 
-                        TextureScale.Bilinear(tex, (int)(tex.width / scale), (int)(tex.height / scale));
+                        TextureScale.Bilinear(texture, (int)(texture.width / scale), (int)(texture.height / scale));
                     }
                     else if (scale > 1) // increase layer size
                     {
@@ -459,23 +492,23 @@ namespace CustomTextures
                             {
                                 layerColor = layerTex.GetPixel(lx, layerTex.height - ly);
                                 //coordsl.Add($"{x},{y} {lx},{ly} {layerColor}");
-                                tex.SetPixel(x, tex.height - y, layerColor);
+                                texture.SetPixel(x, texture.height - y, layerColor);
                             }
                             else
                             {
                                 if (layerColor.a == 0)
                                     continue;
                                 //coordsl.Add($"{x},{y} {lx},{ly} {layerColor}");
-                                Color texColor = tex.GetPixel(x, y);
+                                Color texColor = texture.GetPixel(x, y);
 
                                 Color final_color = Color.Lerp(texColor, layerColor, layerColor.a / 1.0f);
 
-                                tex.SetPixel(x, y, final_color);
+                                texture.SetPixel(x, y, final_color);
                             }
                         }
                     }
                     //Dbgl(string.Join("\n", coordsl));
-                    tex.Apply();
+                    texture.Apply();
                 }
                 if (false)
                 {
@@ -486,8 +519,8 @@ namespace CustomTextures
                 }
             }
 
-            cachedTextures[id] = tex;
-            return tex;
+            cachedTextures[id] = texture;
+            return texture;
         }
     }
 }
