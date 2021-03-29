@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace ContainersAnywhere
 {
-    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.3.7")]
+    [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.3.8")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

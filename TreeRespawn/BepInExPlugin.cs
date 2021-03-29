@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace TreeRespawn
 {
-    [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.5.0")]
+    [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.6.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -74,10 +74,6 @@ namespace TreeRespawn
             {
                 Dbgl($"destroyed destructible {__instance.name}");
 
-                foreach(string key in seedsDic.Keys)
-                {
-                    Dbgl($"key: {key}");
-                }
 
                 string name = seedsDic.FirstOrDefault(s => __instance.name.StartsWith(s.Key)).Value;
 

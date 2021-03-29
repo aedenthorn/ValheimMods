@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.0.2")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.0.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -161,8 +161,8 @@ namespace CraftFromContainers
             {
                 if (container != null && container.GetComponentInParent<Piece>() != null && Player.m_localPlayer != null && container?.transform != null && container.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
                 {
+                    //container.GetComponent<ZNetView>()?.ClaimOwnership();
                     Traverse.Create(container).Method("Load").GetValue();
-                    container.GetComponent<ZNetView>()?.ClaimOwnership();
                     containers.Add(container);
                 }
             }
@@ -525,7 +525,6 @@ namespace CraftFromContainers
             {
                 if (!AllowByKey())
                     return;
-                Text component3 = elementRoot.transform.Find("res_amount").GetComponent<Text>();
                 if (req.m_resItem != null)
                 {
                     int invAmount = player.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name);
@@ -534,7 +533,7 @@ namespace CraftFromContainers
                     {
                         return;
                     }
-                    component3.text = amount.ToString();
+                    Text text = elementRoot.transform.Find("res_amount").GetComponent<Text>();
                     if (invAmount < amount)
                     {
                         List<Container> nearbyContainers = GetNearbyContainers(Player.m_localPlayer.transform.position);
@@ -542,10 +541,25 @@ namespace CraftFromContainers
                             invAmount += c.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name);
 
                         if (invAmount >= amount)
-                            component3.color = ((Mathf.Sin(Time.time * 10f) > 0f) ? flashColor.Value : unFlashColor.Value);
+                            text.color = ((Mathf.Sin(Time.time * 10f) > 0f) ? flashColor.Value : unFlashColor.Value);
                     }
-                    if(resourceString.Value.Trim().Length > 0)
-                        component3.text = string.Format(resourceString.Value, invAmount, component3.text);
+                    if (resourceString.Value.Trim().Length > 0)
+                        text.text = string.Format(resourceString.Value, invAmount, amount);
+                    else
+                        text.text = amount.ToString();
+                }
+            }
+        }
+
+        //[HarmonyPatch(typeof(InventoryGui), "UpdateRecipeList")]
+        static class InventoryGui_UpdateRecipeList_Patch
+        {
+            static void Postfix(InventoryGui __instance, List<GameObject> ___m_recipeList)
+            {
+                if (!AllowByKey() || ___m_recipeList.Count == 0)
+                    return;
+                foreach(GameObject go in ___m_recipeList)
+                {
                 }
             }
         }

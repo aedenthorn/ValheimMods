@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace AutoStore
 {
-    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.5")]
+    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.6")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -215,7 +215,7 @@ namespace AutoStore
                             continue;
 
                         Dbgl($"auto storing {item.m_itemData.m_dropPrefab.name} from ground");
-                        item.GetComponent<ZNetView>().ClaimOwnership();
+                        item.GetComponent<ZNetView>()?.ClaimOwnership();
 
                         while (item.m_itemData.m_stack > 1 && __instance.GetInventory().CanAddItem(item.m_itemData, 1))
                         {
