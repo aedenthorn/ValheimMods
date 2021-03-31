@@ -26,6 +26,7 @@ namespace AutoFuel
         public static ConfigEntry<bool> refuelStandingTorches;
         public static ConfigEntry<bool> refuelWallTorches;
         public static ConfigEntry<bool> refuelFirePits;
+        public static ConfigEntry<bool> allowCargoCrates;
         public static ConfigEntry<bool> leaveLastItem;
         public static ConfigEntry<bool> isOn;
         public static ConfigEntry<bool> modEnabled;
@@ -55,6 +56,7 @@ namespace AutoFuel
             refuelStandingTorches = Config.Bind<bool>("General", "RefuelStandingTorches", true, "Refuel standing torches");
             refuelWallTorches = Config.Bind<bool>("General", "RefuelWallTorches", true, "Refuel wall torches");
             refuelFirePits = Config.Bind<bool>("General", "RefuelFirePits", true, "Refuel fire pits");
+            allowCargoCrates = Config.Bind<bool>("General", "AllowCargoCrates", false, "Treat dropped cargo crates as containers");
             isOn = Config.Bind<bool>("General", "IsOn", true, "Behaviour is currently on or not");
             leaveLastItem = Config.Bind<bool>("General", "LeaveLastItem", false, "Don't use last of item in chest");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -93,12 +95,33 @@ namespace AutoFuel
             try { 
                 List<Container> containers = new List<Container>();
 
-                foreach (Collider collider in Physics.OverlapSphere(center, Mathf.Max(range, 0), LayerMask.GetMask(new string[] { "piece" })))
+                foreach (Collider collider in Physics.OverlapSphere(center, Mathf.Max(range, 0), LayerMask.GetMask(new string[] { "piece", "Default" })))
                 {
-                    Container container = collider.transform.parent?.parent?.gameObject?.GetComponent<Container>();
+                    Container container = null;
+
+                    // Handle 'piece' layer (chests)
+                    if (LayerMask.LayerToName(collider.transform.gameObject.layer) == "piece")
+                    {
+                        // Method to find iron/wood/private chest containers
+                        if (collider.transform.gameObject.name.EndsWith("chest"))
+                        {
+                            if (collider.transform.parent.parent.gameObject.name.StartsWith("piece_chest"))
+                                container = collider.transform.parent.parent.gameObject.GetComponent<Container>();
+                        }
+                    }
+                    // Handle 'Default' layer (cargo crates)
+                    else if (LayerMask.LayerToName(collider.transform.gameObject.layer) == "Default")
+                    {
+                        // Method to find cargo crates
+                        if (collider.transform.gameObject.name.StartsWith("default"))
+                        {
+                            if (collider.transform.parent.gameObject.name.StartsWith("CargoCrate") && allowCargoCrates.Value)
+                                container = collider.transform.parent.gameObject.GetComponent<Container>();
+                        }
+                    }
                     if (container?.GetComponent<ZNetView>()?.IsValid() != true)
                         continue;
-                    if (container?.transform?.position != null && (container.name.StartsWith("piece_chest") || container.name.StartsWith("Container")) && container.GetInventory() != null)
+                    if (container?.transform?.position != null && container.GetInventory() != null)
                     {
                         containers.Add(container);
                     }
