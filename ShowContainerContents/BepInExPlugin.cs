@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ShowContainerContents
 {
-    [BepInPlugin("aedenthorn.ShowContainerContents", "Show Container Contents", "0.1.1")]
+    [BepInPlugin("aedenthorn.ShowContainerContents", "Show Container Contents", "0.1.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -26,6 +26,7 @@ namespace ShowContainerContents
         {
             Name,
             Weight,
+            Amount,
             Value
         }
 
@@ -75,7 +76,7 @@ namespace ShowContainerContents
                 int entries = 0;
                 int amount = 0;
                 string name = "";
-                foreach(ItemDrop.ItemData item in items)
+                for(int i = 0; i < items.Count; i++)
                 {
                     if (maxEntries.Value >= 0 && entries >= maxEntries.Value)
                     {
@@ -83,19 +84,23 @@ namespace ShowContainerContents
                             __result += "\n"+overFlowText.Value;
                         break;
                     }
-                    if (item.m_shared.m_name == name)
+                    ItemDrop.ItemData item = items[i];
+
+                    if (item.m_shared.m_name == name || name == "")
                     {
                         amount += item.m_stack;
                     }
                     else
                     {
-                        if(name != "" && amount != 0)
-                        {
-                            __result += "\n" + string.Format(entryString.Value, amount, Localization.instance.Localize(name));
-                            entries++;
-                        }
+                        __result += "\n" + string.Format(entryString.Value, amount, Localization.instance.Localize(name));
+                        entries++;
+
                         amount = item.m_stack;
-                        name = item.m_shared.m_name;
+                    }
+                    name = item.m_shared.m_name;
+                    if (i == items.Count - 1)
+                    {
+                        __result += "\n" + string.Format(entryString.Value, amount, Localization.instance.Localize(name));
                     }
                 }
             }

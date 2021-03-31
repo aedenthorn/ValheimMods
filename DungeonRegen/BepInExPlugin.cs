@@ -1,13 +1,14 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace DungeonRegen
 {
-    [BepInPlugin("aedenthorn.DungeonRegen", "Dungeon Regen", "0.2.0")]
+    [BepInPlugin("aedenthorn.DungeonRegen", "Dungeon Regen", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -21,11 +22,12 @@ namespace DungeonRegen
         public static ConfigEntry<bool> regenOnReload;
         public static ConfigEntry<bool> regenRandomly;
         public static ConfigEntry<int> daysToRegen;
-        public static ConfigEntry<int> lastRegenDate;
         public static ConfigEntry<string> keywordRequirements;
         public static ConfigEntry<string> manualRegenKey;
         public static ConfigEntry<string> regenText;
 
+        public static ConfigEntry<int> lastRegenDate;
+        public static ConfigEntry<string> regeneratedLocations;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -36,17 +38,18 @@ namespace DungeonRegen
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            
-            regenOnReload = Config.Bind<bool>("Regen", "RegenOnReload", true, "Enable dungeon regen when the dungeon reloads, either from loading the game or entering the area around the dungeon.");
-            regenRandomly = Config.Bind<bool>("Regen", "RegenRandomly", true, "Enable random dungeon layout on regeneration.");
             nexusID = Config.Bind<int>("General", "NexusID", 827, "Nexus mod ID for updates");
-
-            //daysToRegen = Config.Bind<int>("Regen", "DaysToRegen", 7, "Number of days between regen");
+            
+            //regenOnReload = Config.Bind<bool>("Regen", "RegenOnReload", true, "Enable dungeon regen when the dungeon reloads, either from loading the game or entering the area around the dungeon.");
+            regenRandomly = Config.Bind<bool>("Regen", "RegenRandomly", true, "Enable random dungeon layout on regeneration.");
+            daysToRegen = Config.Bind<int>("Regen", "DaysToRegen", 7, "Number of days between regen");
             keywordRequirements = Config.Bind<string>("Regen", "KeywordRequirements", "Crypt", "Dungeon name must have one of these words in it to be regenerated (Comma-separated).");
             manualRegenKey = Config.Bind<string>("Regen", "ManualRegenKey", "f6", "Key to manually initiate dungeon regen. Leave blank to disable. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             regenText = Config.Bind<string>("Regen", "RegenText", "Dungeons Have Regenerated", "Text to show when dungeons have been regenerated. Leave blank to disable.");
 
-            //lastRegenDate = Config.Bind<int>("ZAuto", "LastRegenDate", 0, "Last regen date (auto updated)");
+            lastRegenDate = Config.Bind<int>("ZAuto", "LastRegenDate", 0, "Last regen date (auto updated)");
+            regeneratedLocations = Config.Bind<string>("ZAuto", "RegeneratedLocations", "", "Locations already regenerated (auto updated)");
+            
             if (!modEnabled.Value)
                 return;
 
@@ -66,10 +69,10 @@ namespace DungeonRegen
             if (!modEnabled.Value || Player.m_localPlayer == null || Player.m_localPlayer.InInterior() || AedenthornUtils.IgnoreKeyPresses() || !AedenthornUtils.CheckKeyDown(manualRegenKey.Value))
                 return;
 
-            RegenDungeons();
+            RegenDungeons(true);
         }
 
-        private static void RegenDungeons()
+        private static void RegenDungeons(bool force)
         {
             GameObject root = Traverse.Create(ZNetScene.instance).Field("m_netSceneRoot").GetValue<GameObject>();
 
@@ -87,21 +90,26 @@ namespace DungeonRegen
 
             var reqs = keywordRequirements.Value.Split(',');
 
-            var dict = Traverse.Create(ZoneSystem.instance).Field("m_locationInstances").GetValue<Dictionary<Vector2i, ZoneSystem.LocationInstance>>();
-            foreach(ZoneSystem.LocationInstance li in dict.Values)
+            List<string> op = new List<string>();
+            List<string> reloaded = regeneratedLocations.Value.Trim() == "" ? new List<string>() : regeneratedLocations.Value.Split('^').ToList();
+            var dict = Traverse.Create(ZoneSystem.instance).Field("m_locations").GetValue<List<ZoneSystem.ZoneLocation>>();
+            foreach (ZoneSystem.ZoneLocation location in dict)
             {
-                foreach (ZNetView znetView in li.m_location.m_netViews)
+                foreach (ZNetView znetView in location.m_netViews)
                 {
                     if (znetView.gameObject.activeSelf)
                     {
                         DungeonGenerator dg = znetView.gameObject.GetComponent<DungeonGenerator>();
-                        if (dg && reqs.FirstOrDefault(s => dg.name.Contains(s)) != null)
+                        if (dg && (force || !reloaded.Contains(dg.transform.position.ToString())) && reqs.FirstOrDefault(s => dg.name.Contains(s)) != null)
                         {
+                            //op.Add(dg.name);
                             dungeons[dg.transform] = dg;
                         }
                     }
                 }
             }
+            Dbgl($"Got {dungeons.Count} dungeons");
+            //Dbgl($"Got {op.Count} dungeons\n" + string.Join("\n", op));
 
             if (regenRandomly.Value)
                 seed = World.GenerateSeed().GetStableHashCode();
@@ -109,12 +117,12 @@ namespace DungeonRegen
                 seed = WorldGenerator.instance.GetSeed();
             foreach (DungeonGenerator dg in dungeons.Values)
             {
+                Dbgl($"Regenerating dungeon {dg.name}");
                 try
                 {
-                    Dbgl($"Regenerating dungeon {dg.name}");
                     Bounds bounds = new Bounds(dg.transform.position, dg.m_zoneSize);
                     //Dbgl($"position {bounds.center} size {bounds.size}");
-                    List<string> op = new List<string>();
+                    op = new List<string>();
                     foreach (Transform t in ts)
                     {
                         //Dbgl($"name {t.name} position {t.position}");
@@ -136,9 +144,17 @@ namespace DungeonRegen
 
                     dg.Generate(seed, ZoneSystem.SpawnMode.Full);
                 }
-                catch { }
+                catch(Exception ex)
+                {
+                    Dbgl($"Error regenerating dungeon {dg.name}\n{ex}");
+                }
+
+                if(!reloaded.Contains(dg.transform.position.ToString()))
+                    reloaded.Add(dg.transform.position.ToString());
+
             }
-            
+            regeneratedLocations.Value = string.Join("^", reloaded);
+
             Player.m_localPlayer.Message(MessageHud.MessageType.Center, regenText.Value);
         }
 
@@ -197,9 +213,15 @@ namespace DungeonRegen
                 if (!modEnabled.Value)
                     return;
                 Dbgl($"Loading dungeon {__instance.name}");
-                
-                if(regenOnReload.Value)
+
+                var reqs = keywordRequirements.Value.Split(',');
+                List<string> reloaded = regeneratedLocations.Value.Trim() == "" ? new List<string>() : regeneratedLocations.Value.Split('^').ToList();
+                if ((daysToRegen.Value < 1 || !reloaded.Contains(__instance.transform.position.ToString())) && reqs.FirstOrDefault(s => __instance.name.Contains(s)) != null)
+                {
+                    reloaded.Add(__instance.transform.position.ToString());
+                    regeneratedLocations.Value = string.Join("^", reloaded);
                     RegenDungeon(__instance);
+                }
             }
         }
         //[HarmonyPatch(typeof(ZNetScene), "Awake")]
@@ -211,18 +233,21 @@ namespace DungeonRegen
                     return;
             }
         }
-        //[HarmonyPatch(typeof(EnvMan), "OnMorning")]
+        [HarmonyPatch(typeof(EnvMan), "OnMorning")]
         static class OnMorning_Patch
         {
-            static void Prefix(EnvMan __instance)
+            static void Postfix(EnvMan __instance)
             {
                 if (!modEnabled.Value)
                     return;
                 int day = Traverse.Create(__instance).Method("GetCurrentDay").GetValue<int>();
+                Dbgl($"Day {day} begins.");
                 if (day - lastRegenDate.Value >= daysToRegen.Value)
                 {
+                    Dbgl("Reloading dungeons on new day.");
                     lastRegenDate.Value = day;
-                    RegenDungeons();
+                    regeneratedLocations.Value = "";
+                    RegenDungeons(false);
                 }
             }
         }

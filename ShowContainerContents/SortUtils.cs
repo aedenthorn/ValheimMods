@@ -34,6 +34,9 @@ public class SortUtils
             case BepInExPlugin.SortType.Value:
                 SortByValue(items, asc);
                 break;
+            case BepInExPlugin.SortType.Amount:
+                SortByAmount(items, asc);
+                break;
         }
     }
 
@@ -70,6 +73,17 @@ public class SortUtils
                 return CompareStrings(Localization.instance.Localize(a.m_shared.m_name), Localization.instance.Localize(b.m_shared.m_name), true);
             }
             return CompareInts(a.m_shared.m_value, b.m_shared.m_value, asc);
+        });
+    }
+
+    public static void SortByAmount(List<ItemDrop.ItemData> items, bool asc)
+    {
+        items.Sort(delegate (ItemDrop.ItemData a, ItemDrop.ItemData b) {
+            if (a.m_stack == b.m_stack)
+            {
+                return CompareStrings(Localization.instance.Localize(a.m_shared.m_name), Localization.instance.Localize(b.m_shared.m_name), true);
+            }
+            return CompareInts(a.m_stack, b.m_stack, asc);
         });
     }
 

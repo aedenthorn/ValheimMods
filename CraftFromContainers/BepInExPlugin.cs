@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.0.9")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.1.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -160,7 +160,15 @@ namespace CraftFromContainers
             List<Container> containers = new List<Container>();
             foreach (Container container in containerList)
             {
-                if (container != null && container.GetComponentInParent<Piece>() != null && Player.m_localPlayer != null && container?.transform != null && container.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && (!container.m_checkGuardStone || PrivateArea.CheckAccess(container.transform.position, 0f, false, false)) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
+                if (container != null 
+                    && container.GetComponentInParent<Piece>() != null 
+                    && Player.m_localPlayer != null 
+                    && container?.transform != null 
+                    && container.GetInventory() != null 
+                    && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) 
+                    && (!PrivateArea.CheckInPrivateArea(container.transform.position) || PrivateArea.CheckAccess(container.transform.position, 0f, true))
+                    && (!container.m_checkGuardStone || PrivateArea.CheckAccess(container.transform.position, 0f, false, false)) 
+                    && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
                 {
                     //container.GetComponent<ZNetView>()?.ClaimOwnership();
                     //Traverse.Create(container).Method("Load").GetValue();

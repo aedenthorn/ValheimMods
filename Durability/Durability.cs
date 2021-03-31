@@ -40,9 +40,8 @@ namespace Durability
         private void Awake()
         {
             torchDurabilityDrain = Config.Bind<float>("Durability", "TorchDurabilityDrain", 0.033f, "Torch durability drain over time.");
-            weaponDurabilityLoss = Config.Bind<float>("Durability", "WeaponDurabilityLoss", 1f, "Weapon durability loss per use.");
-
             torchDurabilityLoss = Config.Bind<float>("Durability", "TorchDurabilityLoss", 1f, "Torch durability loss when used to attack.");
+            weaponDurabilityLoss = Config.Bind<float>("Durability", "WeaponDurabilityLoss", 1f, "Weapon durability loss per use.");
             bowDurabilityLoss = Config.Bind<float>("Durability", "BowDurabilityLoss", 1f, "Bow durability loss per use.");
             hammerDurabilityLoss = Config.Bind<float>("Durability", "HammerDurabilityLoss", 1f, "Hammer durability loss per use.");
             hoeDurabilityLoss = Config.Bind<float>("Durability", "HoeDurabilityLoss", 1f, "Hoe durability loss per use.");
