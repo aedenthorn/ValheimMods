@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 
 namespace SimpleSort
 {
-    [BepInPlugin("aedenthorn.SimpleSort", "Simple Sort", "0.6.1")]
+    [BepInPlugin("aedenthorn.SimpleSort", "Simple Sort", "0.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -198,9 +198,9 @@ namespace SimpleSort
         private static void SortByType(SortType type, Inventory inventory, bool asc, bool player)
         {
             // combine
-            SortByName(inventory, asc, player);
-
             var items = inventory.GetAllItems();
+            SortUtils.SortByName(items, true, player);
+
             for (int i = 0; i < items.Count; i++)
             {
                 if (player && ((playerSortStartRow.Value > 1 && items[i].m_gridPos.y < playerSortStartRow.Value - 1) || (playerSortEndRow.Value > 0 && items[i].m_gridPos.y >= playerSortEndRow.Value)))
@@ -220,58 +220,18 @@ namespace SimpleSort
             }
             switch (type)
             {
+                case SortType.Name:
+                    SortUtils.SortByName(items, asc, player);
+                    break;
                 case SortType.Weight:
-                    SortByWeight(inventory, asc, player);
+                    SortUtils.SortByWeight(items, asc, player);
                     break;
                 case SortType.Value:
-                    SortByValue(inventory, asc, player);
+                    SortUtils.SortByValue(items, asc, player);
                     break;
             }
             SortToGrid(inventory, player);
         }
-
-        private static void SortByName(Inventory inventory, bool asc, bool player)
-        {
-            var items = inventory.GetAllItems();
-            int width = Traverse.Create(inventory).Field("m_width").GetValue<int>();
-            int height = Traverse.Create(inventory).Field("m_width").GetValue<int>();
-            items.Sort(delegate(ItemDrop.ItemData a, ItemDrop.ItemData b) {
-
-                if (a.m_shared.m_name == b.m_shared.m_name)
-                {
-                    return CompareInts(a.m_stack, b.m_stack, false);
-                }
-                return CompareStrings(Localization.instance.Localize(a.m_shared.m_name), Localization.instance.Localize(b.m_shared.m_name), asc); 
-            });
-        }
-        private static void SortByWeight(Inventory inventory, bool asc, bool player)
-        {
-            var items = inventory.GetAllItems();
-            int width = Traverse.Create(inventory).Field("m_width").GetValue<int>();
-            items.Sort(delegate (ItemDrop.ItemData a, ItemDrop.ItemData b) {
-                if(a.m_shared.m_weight == b.m_shared.m_weight)
-                {
-                    if (a.m_shared.m_name == b.m_shared.m_name)
-                        return CompareInts(a.m_stack, b.m_stack, false);
-                    return CompareStrings(Localization.instance.Localize(a.m_shared.m_name), Localization.instance.Localize(b.m_shared.m_name), asc);
-                }
-                return CompareFloats(a.m_shared.m_weight, b.m_shared.m_weight, asc); 
-            });
-        }
-        private static void SortByValue(Inventory inventory, bool asc, bool player)
-        {
-            var items = inventory.GetAllItems();
-            items.Sort(delegate (ItemDrop.ItemData a, ItemDrop.ItemData b) {
-                if (a.m_shared.m_value == b.m_shared.m_value)
-                {
-                    if (a.m_shared.m_name == b.m_shared.m_name)
-                        return CompareInts(a.m_stack, b.m_stack, false);
-                    return CompareStrings(Localization.instance.Localize(a.m_shared.m_name), Localization.instance.Localize(b.m_shared.m_name), asc);
-                }
-                return CompareInts(a.m_shared.m_value, b.m_shared.m_value, asc); 
-            });
-        }
-
         public static void SortToGrid(Inventory inventory, bool player)
         {
             List<ItemDrop.ItemData> items = inventory.GetAllItems();
@@ -291,29 +251,6 @@ namespace SimpleSort
             Traverse.Create(inventory).Method("Changed").GetValue();
         }
 
-        public static int CompareStrings(string a, string b, bool asc)
-        {
-            if(asc)
-                return a.CompareTo(b);
-            else
-                return b.CompareTo(a);
-        }
-
-        public static int CompareFloats(float a, float b, bool asc)
-        {
-            if (asc)
-                return a.CompareTo(b);
-            else
-                return b.CompareTo(a);
-        }
-
-        public static int CompareInts(float a, float b, bool asc)
-        {
-            if (asc)
-                return a.CompareTo(b);
-            else
-                return b.CompareTo(a);
-        }
 
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch

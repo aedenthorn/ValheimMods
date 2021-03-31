@@ -84,7 +84,6 @@ namespace CustomTextures
             Dbgl($"Reloading ZoneSystem textures {__instance.name} {__instance.m_zonePrefab.name}");
 
             ReplaceOneZoneTextures(__instance.name, __instance.m_zonePrefab);
-
         }
 
         private static void ReplaceOneZoneTextures(string zoneSystem, GameObject prefab)

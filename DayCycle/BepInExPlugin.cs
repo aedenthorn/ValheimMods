@@ -111,15 +111,15 @@ namespace DayCycle
             {
                 if (!modEnabled.Value)
                     return;
-                nightInt = Mathf.Pow(Mathf.Max(1f - Mathf.Clamp01(___m_smoothDayFraction / dayStart.Value), Mathf.Clamp01((___m_smoothDayFraction - nightStart.Value) / dayStart.Value)), 0.5f);
-                dayInt = Mathf.Pow(Mathf.Clamp01(1f - Mathf.Abs(___m_smoothDayFraction - 0.5f) / dayStart.Value), 0.5f);
-                morningInt = Mathf.Min(Mathf.Clamp01(1f - (___m_smoothDayFraction - (dayStart.Value + 0.01f)) / -__instance.m_sunHorizonTransitionL), Mathf.Clamp01(1f - (___m_smoothDayFraction - (dayStart.Value + 0.01f)) / __instance.m_sunHorizonTransitionH));
-                eveningInt = Mathf.Min(Mathf.Clamp01(1f - (___m_smoothDayFraction - (nightStart.Value - 0.01f)) / -__instance.m_sunHorizonTransitionH), Mathf.Clamp01(1f - (___m_smoothDayFraction - (nightStart.Value - 0.01f)) / __instance.m_sunHorizonTransitionL));
+                nightInt = Mathf.Pow(Mathf.Max(1f - Mathf.Clamp01(___m_smoothDayFraction / dayStart.Value), Mathf.Clamp01((___m_smoothDayFraction - nightStart.Value) / (1 - nightStart.Value))), 0.5f);
+                dayInt = Mathf.Pow(Mathf.Clamp01(1f - Mathf.Abs(___m_smoothDayFraction - (dayStart.Value + (nightStart.Value - dayStart.Value) / 2)) / ((nightStart.Value - dayStart.Value) / 2)), 0.5f);
+                //morningInt = Mathf.Min(Mathf.Clamp01(1f - (___m_smoothDayFraction - (dayStart.Value + 0.01f)) / -__instance.m_sunHorizonTransitionL), Mathf.Clamp01(1f - (___m_smoothDayFraction - (dayStart.Value + 0.01f)) / __instance.m_sunHorizonTransitionH));
+                //eveningInt = Mathf.Min(Mathf.Clamp01(1f - (___m_smoothDayFraction - (nightStart.Value - 0.01f)) / -__instance.m_sunHorizonTransitionH), Mathf.Clamp01(1f - (___m_smoothDayFraction - (nightStart.Value - 0.01f)) / __instance.m_sunHorizonTransitionL));
                 float num9 = 1f / (nightInt + dayInt + morningInt + eveningInt);
                 nightInt *= num9;
                 dayInt *= num9;
-                morningInt *= num9;
-                eveningInt *= num9;
+                //morningInt *= num9;
+                //eveningInt *= num9;
             }
         }
 

@@ -157,7 +157,7 @@ namespace CustomServerLoadingScreen
 
                         if (loadingTip.Length > 0)
                         {
-                            Transform sep = Instantiate(Hud.instance.m_loadingTip.transform.parent.Find("panel_separator"), Hud.instance.transform.Find("LoadingBlack").transform);
+                            Instantiate(Hud.instance.m_loadingTip.transform.parent.Find("panel_separator"), Hud.instance.transform.Find("LoadingBlack").transform);
                             Text text = Instantiate(Hud.instance.m_loadingTip.gameObject, Hud.instance.transform.Find("LoadingBlack").transform).GetComponent<Text>();
                             if (text != null)
                             {
@@ -248,6 +248,7 @@ namespace CustomServerLoadingScreen
                 }
             }
         }
+
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch
         {
@@ -256,14 +257,12 @@ namespace CustomServerLoadingScreen
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("serverloadingscreen reset"))
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    //LoadCustomLoadingScreens();
-                    //GetRandomLoadingScreen();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "Reloaded custom server loading screen" }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
                 }
                 return true;

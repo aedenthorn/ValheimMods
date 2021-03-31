@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CustomLoadingScreens
 {
-    [BepInPlugin("aedenthorn.CustomLoadingScreens", "CustomLoadingScreens Textures", "0.2.0")]
+    [BepInPlugin("aedenthorn.CustomLoadingScreens", "Custom Loading Screens", "0.3.1")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -20,6 +20,8 @@ namespace CustomLoadingScreens
         public static ConfigEntry<int> nexusID;
         public static ConfigEntry<string> loadingText;
         public static ConfigEntry<bool> differentSpawnScreen;
+        public static ConfigEntry<bool> differentSpawnTip;
+        public static ConfigEntry<bool> showTipsOnLoadingScreen;
         public static ConfigEntry<bool> removeVignette;
         public static ConfigEntry<Color> spawnColorMask;
         public static ConfigEntry<Color> loadingColorMask;
@@ -32,8 +34,11 @@ namespace CustomLoadingScreens
         public static List<string> screensToLoad = new List<string>();
         public static string[] loadingTips = new string[0];
         public static Dictionary<string, Texture2D> cachedScreens = new Dictionary<string, Texture2D>();
+
         private static Sprite loadingSprite;
         private static Sprite loadingSprite2;
+        private static string loadingTip;
+        private static string loadingTip2;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -46,6 +51,8 @@ namespace CustomLoadingScreens
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             differentSpawnScreen = Config.Bind<bool>("General", "DifferentSpawnScreen", true, "Use a different screen for the spawn part");
+            differentSpawnTip = Config.Bind<bool>("General", "DifferentSpawnTip", true, "Use a different tip for the spawn part");
+            showTipsOnLoadingScreen = Config.Bind<bool>("General", "ShowTipsOnLoadingScreen", true, "Show tips on loading screen.");
             spawnColorMask = Config.Bind<Color>("General", "SpawnColorMask", new Color(0.532f,0.588f, 0.853f,1f), "Change the color mask of the spawn screen (set last number to 0 to disable)");
             loadingColorMask = Config.Bind<Color>("General", "LoadingColorMask", Color.white, "Change the color mask of the initial loading screen (set to white to disable)");
             removeVignette = Config.Bind<bool>("General", "RemoveMask", true, "Remove dark edges for the spawn part");
@@ -101,7 +108,7 @@ namespace CustomLoadingScreens
                 return null;
 
             Texture2D tex = new Texture2D(2, 2);
-            byte[] imageData = File.ReadAllBytes(loadingScreens[UnityEngine.Random.Range(0,loadingScreens.Count-1)]);
+            byte[] imageData = File.ReadAllBytes(loadingScreens[UnityEngine.Random.Range(0,loadingScreens.Count)]);
             tex.LoadImage(imageData);
             return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.zero, 1);
         }
@@ -112,11 +119,6 @@ namespace CustomLoadingScreens
 
             public static void Prefix(FejdStartup __instance)
             {
-                Dbgl($"getting new random images");
-
-                loadingSprite = GetRandomLoadingScreen();
-                if(differentSpawnScreen.Value)
-                    loadingSprite2 = GetRandomLoadingScreen();
             }
         }
         [HarmonyPatch(typeof(FejdStartup), "LoadMainScene")]
@@ -126,6 +128,21 @@ namespace CustomLoadingScreens
             public static void Prefix(FejdStartup __instance)
             {
                 Dbgl($"loading main scene");
+                Dbgl($"getting new random images");
+
+                loadingSprite = GetRandomLoadingScreen();
+                if (differentSpawnScreen.Value)
+                    loadingSprite2 = GetRandomLoadingScreen();
+
+                Dbgl($"getting new random images");
+
+                if (loadingTips.Any())
+                {
+                    loadingTip = loadingTips[UnityEngine.Random.Range(0, loadingTips.Length)];
+                    if (differentSpawnTip.Value)
+                        loadingTip2 = loadingTips[UnityEngine.Random.Range(0, loadingTips.Length)];
+                }
+
 
                 Image image = Instantiate(__instance.m_loading.transform.Find("Bkg").GetComponent<Image>(), __instance.m_loading.transform);
                 if(image == null)
@@ -139,9 +156,24 @@ namespace CustomLoadingScreens
                 image.color = loadingColorMask.Value;
                 image.type = Image.Type.Simple;
                 image.preserveAspect = true;
-                Text text = Instantiate(__instance.m_loading.transform.Find("Text").GetComponent<Text>(), __instance.m_loading.transform);
-                text.text = loadingText.Value;
-                text.color = loadingTextColor.Value;
+
+                if (loadingTips.Any() && showTipsOnLoadingScreen.Value)
+                {
+                    GameObject hud = Resources.FindObjectsOfTypeAll<GameObject>().First(g => g.name == "HUD");
+                    Instantiate(hud.transform.Find("LoadingBlack/Loading/panel_separator").gameObject, __instance.m_loading.transform);
+                    Text text = Instantiate(hud.transform.Find("LoadingBlack/Loading/Tip").gameObject, __instance.m_loading.transform).GetComponent<Text>();
+                    if (text != null)
+                    {
+                        text.text = loadingTip;
+                        text.color = tipTextColor.Value;
+                    }
+                }
+                else
+                {
+                    Text text = Instantiate(__instance.m_loading.transform.Find("Text").GetComponent<Text>(), __instance.m_loading.transform);
+                    text.text = loadingText.Value;
+                    text.color = loadingTextColor.Value;
+                }
                 __instance.m_loading.transform.Find("Text").gameObject.SetActive(false);
             }
         }
@@ -169,12 +201,11 @@ namespace CustomLoadingScreens
                     image.preserveAspect = true;
                     if (loadingTips.Any())
                     {
-                        Transform sep = Instantiate(Hud.instance.m_loadingTip.transform.parent.Find("panel_separator"), Hud.instance.transform.Find("LoadingBlack").transform);
-                        Dbgl($"sep is null? {sep == null}");
+                        Instantiate(Hud.instance.m_loadingTip.transform.parent.Find("panel_separator"), Hud.instance.transform.Find("LoadingBlack").transform);
                         Text text = Instantiate(Hud.instance.m_loadingTip.gameObject, Hud.instance.transform.Find("LoadingBlack").transform).GetComponent<Text>();
                         if (text != null)
                         {
-                            text.text = loadingTips[0];
+                            text.text = loadingTip;
                             text.color = tipTextColor.Value;
                         }
                     }
@@ -203,7 +234,7 @@ namespace CustomLoadingScreens
 
                     if (loadingTips.Any())
                     {
-                        __instance.m_loadingTip.text = loadingTips[UnityEngine.Random.Range(0, loadingTips.Length - 1)];
+                        __instance.m_loadingTip.text = differentSpawnTip.Value ? loadingTip2 : loadingTip;
                     }
                     __instance.m_loadingTip.color = tipTextColor.Value;
                     
@@ -216,6 +247,7 @@ namespace CustomLoadingScreens
                 }
             }
         }
+
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch
         {
@@ -224,14 +256,12 @@ namespace CustomLoadingScreens
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("loadingscreens reset"))
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    LoadCustomLoadingScreens();
-                    GetRandomLoadingScreen();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "Reloaded custom loading screens" }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
                 }
                 return true;

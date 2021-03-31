@@ -58,6 +58,7 @@ namespace CustomTextures
             ReplaceObjectDBTextures();
 
             var zones = SceneManager.GetActiveScene().GetRootGameObjects().Where(go => go.name.StartsWith("_Zone"));
+
             Dbgl($"Replacing textures for {zones.Count()} zones");
             foreach (var go in zones)
             {
@@ -65,33 +66,30 @@ namespace CustomTextures
             }
 
             ReplaceZoneSystemTextures((ZoneSystem)typeof(ZoneSystem).GetField("m_instance", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null));
+
             ReplaceHeightmapTextures();
 
             ReplaceEnvironmentTextures();
 
             List<GameObject> gos = new List<GameObject>();
 
-            GameObject root = (GameObject)typeof(ZNetScene).GetField("m_netSceneRoot", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ZNetScene.instance);
+            GameObject root = Traverse.Create(ZNetScene.instance).Field("m_netSceneRoot").GetValue<GameObject>();
 
-            Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
-
-            foreach (Transform t in transforms)
+            int count = root.transform.childCount;
+            for (int i = 0; i < count; i++)
             {
-                if (t.parent == root.transform)
-                    gos.Add(t.gameObject);
+                gos.Add(root.transform.GetChild(i).gameObject);
             }
 
-            ReplaceSceneTextures(gos.ToArray());
-            ReplaceSceneTextures(((Dictionary<int, GameObject>)typeof(ZNetScene).GetField("m_namedPrefabs", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(ZNetScene.instance)).Values.ToArray());
 
             foreach (ClutterSystem.Clutter clutter in ClutterSystem.instance.m_clutter)
             {
                 gos.Add(clutter.m_prefab);
             }
+
+            gos.AddRange(Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>().Values);
+
             ReplaceSceneTextures(gos.ToArray());
-
-            ReplaceSceneTextures(Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>().Values.ToArray());
-
 
             foreach (Player player in Player.GetAllPlayers())
             {

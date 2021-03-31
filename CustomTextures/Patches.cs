@@ -28,6 +28,17 @@ namespace CustomTextures
 
         }
 
+        [HarmonyPatch(typeof(ZoneSystem), "Awake")]
+        static class ZoneSystem_Awake_Patch
+        {
+            static void Prefix(ZoneSystem __instance)
+            {
+                outputDump.Clear();
+                ReplaceZoneSystemTextures(__instance);
+
+            }
+        }
+
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
         static class ZNetScene_Awake_Patch
         {
@@ -48,14 +59,8 @@ namespace CustomTextures
             }
         }
 
-        [HarmonyPatch(typeof(ZoneSystem), "Awake")]
-        static class ZoneSystem_Awake_Patch
-        {
-            static void Prefix(ZoneSystem __instance)
-            {
-                ReplaceZoneSystemTextures(__instance);
-            }
-        }
+
+        
         
         [HarmonyPatch(typeof(ClutterSystem), "Awake")]
         static class ClutterSystem_Awake_Patch
@@ -64,7 +69,7 @@ namespace CustomTextures
             {
                 Dbgl($"Clutter system awake");
 
-                //stopwatch.Restart();
+                stopwatch.Restart();
 
                 logDump.Clear();
 
@@ -77,18 +82,44 @@ namespace CustomTextures
                 if (logDump.Any())
                     Dbgl("\n" + string.Join("\n", logDump));
 
+                LogStopwatch("Clutter System");
+
+            }
+        }
+
+        [HarmonyPatch(typeof(ZoneSystem), "Start")]
+        static class ZoneSystem_Start_Patch
+        {
+            static void Prefix(ZoneSystem __instance)
+            {
+                Dbgl($"Starting ZoneSystem Location prefab replacement");
+                stopwatch.Restart();
+                GameObject[] array = Resources.FindObjectsOfTypeAll<GameObject>();
+                foreach (GameObject gameObject in array)
+                {
+                    if (gameObject.name == "_Locations")
+                    {
+
+                        Location[] locations = gameObject.GetComponentsInChildren<Location>(true);
+                        Dbgl($"Checking {locations.Length} locations");
+                        foreach (Location location in locations)
+                        {
+                            ReplaceOneGameObjectTextures(location.gameObject, location.gameObject.name, "object");
+                        }
+                        break;
+                    }
+                }
+                LogStopwatch("ZoneSystem Locations");
+
                 if (ZNetScene.instance && dumpSceneTextures.Value)
                 {
                     string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
                     Dbgl($"Writing {path}");
                     File.WriteAllLines(path, outputDump);
+                    dumpSceneTextures.Value = false;
                 }
-
-                //LogStopwatch("Clutter System");
-
             }
         }
-
         [HarmonyPatch(typeof(VisEquipment), "Awake")]
         static class VisEquipment_Awake_Patch
         {

@@ -197,7 +197,7 @@ namespace AutoStore
         {
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
-                if (!isOn.Value || !__instance.IsOwner())
+                if (!isOn.Value || ___m_nview == null || ___m_nview.GetZDO() == null || !__instance.IsOwner())
                     return;
 
                 Vector3 position = __instance.transform.position + Vector3.up;

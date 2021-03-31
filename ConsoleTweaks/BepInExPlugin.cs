@@ -4,6 +4,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
@@ -237,6 +238,14 @@ namespace ConsoleTweaks
                     __instance.m_input.caretPosition += space;
                 }
 
+                if (words.Length > 1 && !resetPlugins.Contains(words[0]) && words[words.Length - 1] == "reset")
+                {
+                    words = words.Take(words.Length - 1).ToArray();
+                    str = string.Join(" ", words);
+                    __instance.m_input.text = str;
+                    commandString = "";
+                }
+
                 string strToCaret = str.Substring(0, __instance.m_input.caretPosition);
                 string[] wordsToCaret = strToCaret.Split(' ');
                 string suffix = str.Substring(__instance.m_input.caretPosition).Split(' ')[0];
@@ -259,6 +268,7 @@ namespace ConsoleTweaks
                                     words[0] = partial;
                                     if (resetPlugins.Contains(words[0]) && words.Length < 3)
                                         words = new string[] { partial, "reset" };
+                                    
                                 }
                             }
                         }
@@ -291,6 +301,8 @@ namespace ConsoleTweaks
                         spawnString = prefix;
                     }
                 }
+                else
+                    commandString = "";
             }
         }
 

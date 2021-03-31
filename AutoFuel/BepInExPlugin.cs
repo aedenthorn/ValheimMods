@@ -57,24 +57,13 @@ namespace AutoFuel
 
         private void Update()
         {
-            if (CheckKeyDown(toggleKey.Value) && !AedenthornUtils.IgnoreKeyPresses(true))
+            if (AedenthornUtils.CheckKeyDown(toggleKey.Value) && !AedenthornUtils.IgnoreKeyPresses(true))
             {
                 isOn.Value = !isOn.Value;
                 Config.Save();
                 Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(toggleString.Value, isOn.Value), 0, null);
             }
 
-        }
-        private static bool CheckKeyDown(string value)
-        {
-            try
-            {
-                return value?.Length > 0 && Input.GetKeyDown(value.ToLower());
-            }
-            catch
-            {
-                return false;
-            }
         }
         private static string GetPrefabName(string name)
         {

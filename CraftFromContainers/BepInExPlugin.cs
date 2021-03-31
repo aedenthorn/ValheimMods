@@ -12,11 +12,9 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.0.6")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.0.9")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-
         private static bool wasAllowed;
 
         private static List<ConnectionParams> containerConnections = new List<ConnectionParams>();
@@ -41,6 +39,7 @@ namespace CraftFromContainers
         public static ConfigEntry<bool> switchPrevent;
 
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
 
         public static List<Container> containerList = new List<Container>();
@@ -54,7 +53,7 @@ namespace CraftFromContainers
 
         public static void Dbgl(string str = "", bool pref = true)
         {
-            if (isDebug)
+            if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
         private void Awake()
@@ -62,6 +61,7 @@ namespace CraftFromContainers
 			context = this;
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Show debug messages in log");
             nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
 
             m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from");
@@ -160,10 +160,10 @@ namespace CraftFromContainers
             List<Container> containers = new List<Container>();
             foreach (Container container in containerList)
             {
-                if (container != null && container.GetComponentInParent<Piece>() != null && Player.m_localPlayer != null && container?.transform != null && container.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
+                if (container != null && container.GetComponentInParent<Piece>() != null && Player.m_localPlayer != null && container?.transform != null && container.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) && (!container.m_checkGuardStone || PrivateArea.CheckAccess(container.transform.position, 0f, false, false)) && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
                 {
                     //container.GetComponent<ZNetView>()?.ClaimOwnership();
-                    Traverse.Create(container).Method("Load").GetValue();
+                    //Traverse.Create(container).Method("Load").GetValue();
                     containers.Add(container);
                 }
             }
@@ -185,10 +185,10 @@ namespace CraftFromContainers
             yield return null;
             try
             {
-                Dbgl($"Checking {container.name} {nview != null} {nview?.GetZDO() != null} {nview?.GetZDO()?.GetLong("creator".GetStableHashCode(), 0L)}");
-                if (container.GetInventory() != null && (container.name.StartsWith("piece_") || container.name.StartsWith("Container") || nview?.GetZDO()?.GetLong("creator".GetStableHashCode(), 0L) != 0))
+                //Dbgl($"Checking {container.name} {nview != null} {nview?.GetZDO() != null} {nview?.GetZDO()?.GetLong("creator".GetStableHashCode(), 0L)}");
+                if (container.GetInventory() != null && nview?.GetZDO() != null && (container.name.StartsWith("piece_") || container.name.StartsWith("Container") || nview.GetZDO().GetLong("creator".GetStableHashCode(), 0L) != 0))
                 {
-                    Dbgl($"Adding {container.name}");
+                    //Dbgl($"Adding {container.name}");
                     containerList.Add(container);
                 }
             }
@@ -334,7 +334,7 @@ namespace CraftFromContainers
 
         }
         [HarmonyPatch(typeof(Smelter), "UpdateHoverTexts")]
-        static class Bed_GetHoverText_Patch
+        static class Smelter_UpdateHoverTexts_Patch
         {
             static void Postfix(Smelter __instance)
             {
@@ -565,6 +565,7 @@ namespace CraftFromContainers
                         text.text = string.Format(resourceString.Value, invAmount, amount);
                     else
                         text.text = amount.ToString();
+                    text.resizeTextForBestFit = true;
                 }
             }
         }
