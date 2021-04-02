@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "0.1.0")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -26,11 +26,14 @@ namespace Compass
         public static ConfigEntry<string> compassFile;
         public static ConfigEntry<string> maskFile;
         public static ConfigEntry<Color> compassColor;
+        public static ConfigEntry<Color> markerColor;
         public static ConfigEntry<float> compassYOffset;
         public static ConfigEntry<float> compassScale;
+        public static ConfigEntry<float> maxMarkerDistance;
         
 
         public static GameObject compassObject;
+        public static GameObject pinsObject;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -43,11 +46,16 @@ namespace Compass
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 851, "Nexus mod ID for updates");
 
-            compassFile = Config.Bind<string>("General", "CompassFile", "compass.png", "Compass file to use in Compass folder");
-            maskFile = Config.Bind<string>("General", "MaskFile", "mask.png", "Mask file to use in Compass folder");
-            compassColor = Config.Bind<Color>("General", "CompassColor", Color.white, "Compass color");
             compassScale = Config.Bind<float>("General", "CompassScale", 0.75f, "Compass scale");
             compassYOffset = Config.Bind<float>("General", "CompassYOffset", 0, "Compass offset from top of screen in pixels");
+            maxMarkerDistance = Config.Bind<float>("General", "MaxMarkerDistance", 100, "Max marker distance to show on map in metres");
+
+            compassFile = Config.Bind<string>("Files", "CompassFile", "compass.png", "Compass file to use in Compass folder");
+            maskFile = Config.Bind<string>("Files", "MaskFile", "mask.png", "Mask file to use in Compass folder");
+            compassColor = Config.Bind<Color>("Colors", "CompassColor", Color.white, "Compass color");
+            markerColor = Config.Bind<Color>("Colors", "MarkerColor", Color.white, "Marker color");
+
+
 
             if (!modEnabled.Value)
                 return;
@@ -117,6 +125,17 @@ namespace Compass
                 image.sprite = sprite;
                 image.preserveAspect = true;
 
+                // Pins object
+
+                pinsObject = new GameObject();
+                pinsObject.name = "Pins";
+                rt = pinsObject.AddComponent<RectTransform>();
+                rt.SetParent(parent.transform);
+                rt.localScale = Vector3.one;
+                rt.anchoredPosition = Vector2.zero;
+                rt.sizeDelta = new Vector2(halfWidth, texture.height);
+
+
                 Dbgl("Added compass to hud");
             }
         }
@@ -140,11 +159,82 @@ namespace Compass
                 // and ranges -pi...pi for objects to the left/right.
                 float angle = Mathf.Atan2(offset.x, offset.z);
 
-                compassObject.GetComponent<RectTransform>().localPosition = Vector3.right * (compassObject.GetComponent<Image>().sprite.rect.width / 2) * angle / (2f * Mathf.PI) - new Vector3(compassObject.GetComponent<Image>().sprite.rect.width * 0.125f, 0, 0);
+                Rect rect = compassObject.GetComponent<Image>().sprite.rect;
+
+                compassObject.GetComponent<RectTransform>().localPosition = Vector3.right * (rect.width / 2) * angle / (2f * Mathf.PI) - new Vector3(rect.width * 0.125f, 0, 0);
 
                 compassObject.GetComponent<Image>().color = compassColor.Value;
                 compassObject.transform.parent.GetComponent<RectTransform>().localScale = Vector3.one * compassScale.Value;
-                compassObject.transform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, (Screen.height / (Screen.width / (compassObject.GetComponent<Image>().sprite.rect.width / 2)) - compassObject.GetComponent<Image>().sprite.rect.height) / 2) - Vector2.up * compassYOffset.Value;
+                compassObject.transform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, (Screen.height / (Screen.width / (rect.width / 2)) - rect.height) / 2) - Vector2.up * compassYOffset.Value;
+
+                int count = pinsObject.transform.childCount;
+                List<string> oldPins = new List<string>();
+                for (int i = 0; i < count; i++)
+                    oldPins.Add(pinsObject.transform.GetChild(i).name);
+
+                var pinList = new List<Minimap.PinData>(AccessTools.DeclaredField(typeof(Minimap), "m_pins").GetValue(Minimap.instance) as List<Minimap.PinData>);
+
+                pinList.AddRange((AccessTools.DeclaredField(typeof(Minimap), "m_locationPins").GetValue(Minimap.instance) as Dictionary<Vector3, Minimap.PinData>).Values);
+
+                Minimap.PinData deathPin = AccessTools.DeclaredField(typeof(Minimap), "m_deathPin").GetValue(Minimap.instance) as Minimap.PinData;
+
+                if(deathPin != null)
+                {
+                    pinList.Add(deathPin);
+                }
+
+                foreach (Minimap.PinData pin in pinList)
+                {
+                    string name = pin.m_pos.ToString();
+                    oldPins.Remove(name);
+
+                    var t = pinsObject.transform.Find(name);
+
+                    if (Vector3.Distance(Player.m_localPlayer.transform.position, pin.m_pos) > maxMarkerDistance.Value)
+                    {
+                        if(t)
+                            t.gameObject.SetActive(false);
+                        continue;
+                    }
+                    if (t)
+                        t.gameObject.SetActive(true);
+
+                    offset = GameCamera.instance.transform.InverseTransformPoint(pin.m_pos);
+                    angle = Mathf.Atan2(offset.x, offset.z);
+
+                    GameObject po;
+                    RectTransform rt;
+                    Image i;
+
+                    if (!t)
+                    {
+                        po = new GameObject();
+                        po.name = pin.m_pos.ToString();
+                        rt = po.AddComponent<RectTransform>();
+                        rt.SetParent(pinsObject.transform);
+                        rt.anchoredPosition = Vector2.zero;
+                        i = po.AddComponent<Image>();
+                    }
+                    else
+                    {
+                        po = t.gameObject;
+                        rt = po.GetComponent<RectTransform>();
+                        i = po.GetComponent<Image>();
+                    }
+                    rt.localScale = Vector3.one * (maxMarkerDistance.Value - Vector3.Distance(Player.m_localPlayer.transform.position, pin.m_pos)) / maxMarkerDistance.Value;
+                    i.color = markerColor.Value;
+                    i.sprite = pin.m_icon;
+                    rt.localPosition = Vector3.right * (rect.width / 2) * angle / (2f * Mathf.PI);
+                }
+                foreach (string name in oldPins)
+                    Destroy(pinsObject.transform.Find(name).gameObject);
+
+
+                return;
+                foreach(var kvp in AccessTools.DeclaredField(typeof(Minimap), "m_locationPins").GetValue(Minimap.instance) as Dictionary<Vector3, Minimap.PinData>)
+                {
+                    //offset = GameCamera.instance.transform.InverseTransformPoint(Vector3.forward);
+                }
             }
         }
 
