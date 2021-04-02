@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "0.2.0")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "0.2.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -150,7 +150,7 @@ namespace Compass
                 if (!modEnabled.Value || !Player.m_localPlayer)
                     return;
 
-                //https://gamedev.stackexchange.com/a/149355
+                //DMGregory https://gamedev.stackexchange.com/a/149355  cc by-sa
 
                 // Get an arrow pointing to the marked object in the player's local frame of reference
                 Vector3 offset = GameCamera.instance.transform.InverseTransformPoint(Vector3.forward);
@@ -229,12 +229,6 @@ namespace Compass
                 foreach (string name in oldPins)
                     Destroy(pinsObject.transform.Find(name).gameObject);
 
-
-                return;
-                foreach(var kvp in AccessTools.DeclaredField(typeof(Minimap), "m_locationPins").GetValue(Minimap.instance) as Dictionary<Vector3, Minimap.PinData>)
-                {
-                    //offset = GameCamera.instance.transform.InverseTransformPoint(Vector3.forward);
-                }
             }
         }
 

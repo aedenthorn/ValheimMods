@@ -151,7 +151,7 @@ namespace ConfigurationManager
             _resetSettingText = Config.Bind("Text", "ResetSettingText", "Reset", new ConfigDescription("Reset setting text"));
             _expandText = Config.Bind("Text", "ExpandText", "Expand", new ConfigDescription("Expand button text"));
             _collapseText = Config.Bind("Text", "CollapseText", "Collapse", new ConfigDescription("Collapse button text"));
-            _tipText = Config.Bind("Text", "TipText", "Tip: Click plugin names to expand. Click setting and group names to see their descriptions.", new ConfigDescription("Tip text"));
+            _tipText = Config.Bind("Text", "TipText", "Tip: Click plugin names to expand. Hover over setting names to see their descriptions.", new ConfigDescription("Tip text"));
             _clearText = Config.Bind("Text", "ClearText", "Clear", new ConfigDescription("Clear search text"));
 
             _pluginConfigCollapsedDefault = Config.Bind("General", "Plugin collapsed default", true, new ConfigDescription("If set to true plugins will be collapsed when opening the configuration manager window"));
