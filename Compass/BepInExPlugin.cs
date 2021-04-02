@@ -29,6 +29,7 @@ namespace Compass
         public static ConfigEntry<Color> markerColor;
         public static ConfigEntry<float> compassYOffset;
         public static ConfigEntry<float> compassScale;
+        public static ConfigEntry<float> markerScale;
         public static ConfigEntry<float> maxMarkerDistance;
         
 
@@ -47,6 +48,7 @@ namespace Compass
             nexusID = Config.Bind<int>("General", "NexusID", 851, "Nexus mod ID for updates");
 
             compassScale = Config.Bind<float>("General", "CompassScale", 0.75f, "Compass scale");
+            markerScale = Config.Bind<float>("General", "MarkerScale", 1f, "Marker scale");
             compassYOffset = Config.Bind<float>("General", "CompassYOffset", 0, "Compass offset from top of screen in pixels");
             maxMarkerDistance = Config.Bind<float>("General", "MaxMarkerDistance", 100, "Max marker distance to show on map in metres");
 
@@ -204,7 +206,7 @@ namespace Compass
 
                     GameObject po;
                     RectTransform rt;
-                    Image i;
+                    Image img;
 
                     if (!t)
                     {
@@ -213,17 +215,17 @@ namespace Compass
                         rt = po.AddComponent<RectTransform>();
                         rt.SetParent(pinsObject.transform);
                         rt.anchoredPosition = Vector2.zero;
-                        i = po.AddComponent<Image>();
+                        img = po.AddComponent<Image>();
                     }
                     else
                     {
                         po = t.gameObject;
-                        rt = po.GetComponent<RectTransform>();
-                        i = po.GetComponent<Image>();
+                        rt = t.GetComponent<RectTransform>();
+                        img = t.GetComponent<Image>();
                     }
-                    rt.localScale = Vector3.one * (maxMarkerDistance.Value - Vector3.Distance(Player.m_localPlayer.transform.position, pin.m_pos)) / maxMarkerDistance.Value;
-                    i.color = markerColor.Value;
-                    i.sprite = pin.m_icon;
+                    rt.localScale = Vector3.one * (maxMarkerDistance.Value - Vector3.Distance(Player.m_localPlayer.transform.position, pin.m_pos)) / maxMarkerDistance.Value * markerScale.Value;
+                    img.color = markerColor.Value;
+                    img.sprite = pin.m_icon;
                     rt.localPosition = Vector3.right * (rect.width / 2) * angle / (2f * Mathf.PI);
                 }
                 foreach (string name in oldPins)
