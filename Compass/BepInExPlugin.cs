@@ -47,7 +47,7 @@ namespace Compass
             maskFile = Config.Bind<string>("General", "MaskFile", "mask.png", "Mask file to use in Compass folder");
             compassColor = Config.Bind<Color>("General", "CompassColor", Color.white, "Compass color");
             compassScale = Config.Bind<float>("General", "CompassScale", 0.75f, "Compass scale");
-            compassYOffset = Config.Bind<float>("General", "CompassYOffset", 10f, "Compass Y Offset");
+            compassYOffset = Config.Bind<float>("General", "CompassYOffset", 0, "Compass offset from top of screen in pixels");
 
             if (!modEnabled.Value)
                 return;
@@ -111,19 +111,12 @@ namespace Compass
                 rt.SetParent(parent.transform);
                 rt.localScale = Vector3.one;
                 rt.anchoredPosition = Vector2.zero;
-                //rt.anchorMax = new Vector2(2,1);
                 rt.sizeDelta = new Vector2(texture.width, texture.height);
 
                 Image image = compassObject.AddComponent<Image>();
                 image.sprite = sprite;
                 image.preserveAspect = true;
 
-
-                //go.GetComponent<RectTransform>().localPosition = new Vector2(Screen.width / 2, Screen.height - texture.height);
-                /*
-                go.GetComponent<RectTransform>().anchorMin = new Vector2(0.25f,0);
-                go.GetComponent<RectTransform>().anchorMax = new Vector2(0.75f,1);
-                */
                 Dbgl("Added compass to hud");
             }
         }
