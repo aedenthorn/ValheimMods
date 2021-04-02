@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "0.3.0")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -23,6 +23,7 @@ namespace Compass
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
         
+        public static ConfigEntry<bool> usePlayerDirection;
         public static ConfigEntry<string> compassFile;
         public static ConfigEntry<string> maskFile;
         public static ConfigEntry<Color> compassColor;
@@ -31,6 +32,8 @@ namespace Compass
         public static ConfigEntry<float> compassScale;
         public static ConfigEntry<float> markerScale;
         public static ConfigEntry<float> maxMarkerDistance;
+        public static ConfigEntry<float> minMarkerScale;
+        public static ConfigEntry<string> ignoredMarkerNames;
         
 
         public static GameObject compassObject;
@@ -47,10 +50,14 @@ namespace Compass
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 851, "Nexus mod ID for updates");
 
-            compassScale = Config.Bind<float>("General", "CompassScale", 0.75f, "Compass scale");
-            markerScale = Config.Bind<float>("General", "MarkerScale", 1f, "Marker scale");
-            compassYOffset = Config.Bind<float>("General", "CompassYOffset", 0, "Compass offset from top of screen in pixels");
-            maxMarkerDistance = Config.Bind<float>("General", "MaxMarkerDistance", 100, "Max marker distance to show on map in metres");
+            usePlayerDirection = Config.Bind<bool>("Compass", "usePlayerDirection", false, "Orient the compass based on the player's facing direction, rather than the middle of the screen");
+            compassScale = Config.Bind<float>("Compass", "CompassScale", 0.75f, "Compass scale");
+            compassYOffset = Config.Bind<float>("Compass", "CompassYOffset", 0, "Compass offset from top of screen in pixels");
+            
+            markerScale = Config.Bind<float>("Markers", "MarkerScale", 1f, "Marker scale");
+            maxMarkerDistance = Config.Bind<float>("Markers", "MaxMarkerDistance", 100, "Max marker distance to show on map in metres");
+            minMarkerScale = Config.Bind<float>("Markers", "MinMarkerScale", 0.25f, "Marker scale at max marker distance (before applying MarkerScale)");
+            ignoredMarkerNames = Config.Bind<string>("Markers", "IgnoredMarkerNames", "Silver,Obsidian,Copper,Tin", "Ignore markers with these names (comma-separated). Default list is pins added by AutoMapPins");
 
             compassFile = Config.Bind<string>("Files", "CompassFile", "compass.png", "Compass file to use in Compass folder");
             maskFile = Config.Bind<string>("Files", "MaskFile", "mask.png", "Mask file to use in Compass folder");
@@ -152,7 +159,12 @@ namespace Compass
                 if (!modEnabled.Value || !Player.m_localPlayer)
                     return;
 
-                float angle = GameCamera.instance.transform.eulerAngles.y;
+                float angle;
+                
+                if(usePlayerDirection.Value)
+                    angle = Player.m_localPlayer.transform.eulerAngles.y;
+                else
+                    angle = GameCamera.instance.transform.eulerAngles.y;
 
                 if (angle > 180)
                     angle -= 360;
@@ -183,6 +195,10 @@ namespace Compass
                     pinList.Add(deathPin);
                 }
 
+                string[] ignoredNames = ignoredMarkerNames.Value.Split(',');
+                Transform pt = Player.m_localPlayer.transform;
+                float zeroScaleDistance = maxMarkerDistance.Value / (1 - minMarkerScale.Value);
+
                 foreach (Minimap.PinData pin in pinList)
                 {
                     string name = pin.m_pos.ToString();
@@ -190,7 +206,7 @@ namespace Compass
 
                     var t = pinsObject.transform.Find(name);
 
-                    if (Vector3.Distance(Player.m_localPlayer.transform.position, pin.m_pos) > maxMarkerDistance.Value)
+                    if (ignoredNames.Contains(pin.m_name) || Vector3.Distance(pt.position, pin.m_pos) > maxMarkerDistance.Value)
                     {
                         if(t)
                             t.gameObject.SetActive(false);
@@ -199,7 +215,12 @@ namespace Compass
                     if (t)
                         t.gameObject.SetActive(true);
 
-                    var offset = GameCamera.instance.transform.InverseTransformPoint(pin.m_pos);
+                    Vector3 offset;
+                    if (usePlayerDirection.Value)
+                        offset = pt.InverseTransformPoint(pin.m_pos);
+                    else
+                        offset = GameCamera.instance.transform.InverseTransformPoint(pin.m_pos);
+
                     angle = Mathf.Atan2(offset.x, offset.z);
 
                     GameObject po;
@@ -221,7 +242,9 @@ namespace Compass
                         rt = t.GetComponent<RectTransform>();
                         img = t.GetComponent<Image>();
                     }
-                    rt.localScale = Vector3.one * (maxMarkerDistance.Value - Vector3.Distance(Player.m_localPlayer.transform.position, pin.m_pos)) / maxMarkerDistance.Value * 0.5f * markerScale.Value;
+
+                    float distanceScale = minMarkerScale.Value < 1 ? (zeroScaleDistance - Vector3.Distance(pt.position, pin.m_pos)) / zeroScaleDistance : 1;
+                    rt.localScale = Vector3.one * distanceScale * 0.5f * markerScale.Value;
                     img.color = markerColor.Value;
                     img.sprite = pin.m_icon;
                     rt.localPosition = Vector3.right * (rect.width / 2) * angle / (2f * Mathf.PI);
