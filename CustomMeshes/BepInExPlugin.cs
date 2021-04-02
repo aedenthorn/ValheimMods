@@ -241,10 +241,10 @@ namespace CustomMeshes
                     foreach (MeshFilter mf in mfs)
                     {
                         string parent = mf.transform.parent.gameObject.name;
-                        Dbgl($"got piece name: {name}, obj: {parent}, mf: {mf.name}");
+                        //Dbgl($"got piece name: {name}, obj: {parent}, mf: {mf.name}");
                         if (customMeshes[name].ContainsKey(parent) && customMeshes[name][parent].ContainsKey(mf.name))
                         {
-                            Dbgl($"replacing mesh {mf.name}");
+                            //Dbgl($"replacing mesh {mf.name}");
                             mf.mesh = customMeshes[name][parent][mf.name].mesh;
                         }
                     }

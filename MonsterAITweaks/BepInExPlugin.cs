@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 
 namespace MonsterAITweaks
 {
-    [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.2.1")]
+    [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -21,6 +21,7 @@ namespace MonsterAITweaks
 
         public static ConfigEntry<bool> noMonstersTargetPlayers;
         public static ConfigEntry<bool> noMonstersAlerted;
+        public static ConfigEntry<bool> noMonstersFlee;
         public static ConfigEntry<bool> allMonstersTame;
         public static ConfigEntry<bool> noBuildingTargeting;
         public static ConfigEntry<bool> allMonstersFearFire;
@@ -28,6 +29,7 @@ namespace MonsterAITweaks
 
         public static ConfigEntry<string> neverTargetPlayersListString;
         public static ConfigEntry<string> neverAlertedListString;
+        public static ConfigEntry<string> neverFleeListString;
         public static ConfigEntry<string> defaultTamedListString;
         public static ConfigEntry<string> noBuildingTargetListString;
         public static ConfigEntry<string> fearFireListString;
@@ -39,6 +41,7 @@ namespace MonsterAITweaks
 
         private static string[] neverTargetPlayersList;
         private static string[] neverAlertedList;
+        private static string[] neverFleeList;
         private static string[] defaultTamedList;
         private static string[] noBuildingTargetList;
         private static string[] fearFireList;
@@ -58,6 +61,7 @@ namespace MonsterAITweaks
 
             noMonstersTargetPlayers = Config.Bind<bool>("Global", "NoMonstersTargetPlayers", false, "No monsters target players.");
             noMonstersAlerted = Config.Bind<bool>("Global", "NoMonstersAlerted", false, "No monsters become alerted.");
+            noMonstersFlee = Config.Bind<bool>("Global", "NoMonstersFlee", false, "No monsters flee.");
             allMonstersTame = Config.Bind<bool>("Global", "NoMonstersAlerted", false, "All monsters tamed by default.");
             noBuildingTargeting = Config.Bind<bool>("Global", "NoBuildingTargeting", false, "No monsters target buildings.");
             allMonstersFearFire = Config.Bind<bool>("Global", "AllMonstersFearFire", false, "All monsters fear fire.");
@@ -65,6 +69,7 @@ namespace MonsterAITweaks
 
             neverTargetPlayersListString = Config.Bind<string>("Lists", "NeverTargetPlayersList", "", "List of monsters that will never target players (comma-separated).");
             neverAlertedListString = Config.Bind<string>("Lists", "NeverAlertedList", "", "List of monsters that will never be alerted (comma-separated).");
+            neverFleeListString = Config.Bind<string>("Lists", "NeverFleeListString", "", "List of monsters that will never flee (comma-separated).");
             defaultTamedListString = Config.Bind<string>("Lists", "DefaultTamedList", "", "List of monsters that are tamed by default (comma-separated).");
             noBuildingTargetListString = Config.Bind<string>("Lists", "NoBuildingTargetList", "", "List of monsters that do not target buildings (comma-separated).");
             fearFireListString = Config.Bind<string>("Lists", "FearFireListString", "", "List of monsters that fear fire (comma-separated).");
@@ -79,6 +84,7 @@ namespace MonsterAITweaks
 
             neverTargetPlayersList = neverTargetPlayersListString.Value.Split(',');
             neverAlertedList = neverAlertedListString.Value.Split(',');
+            neverFleeList = neverFleeListString.Value.Split(',');
             defaultTamedList = defaultTamedListString.Value.Split(',');
             noBuildingTargetList = noBuildingTargetListString.Value.Split(',');
             fearFireList = fearFireListString.Value.Split(',');
@@ -132,6 +138,20 @@ namespace MonsterAITweaks
                 //Dbgl($"{__instance.name} setting target player {attacker.IsPlayer()} cancel {noMonstersTargetPlayers.Value}");
 
                 if (attacker?.IsPlayer() == true && (noMonstersTargetPlayers.Value || neverTargetPlayersList.Contains(ZNetView.GetPrefabName(__instance.gameObject))))
+                    return false;
+                return true;
+            }
+        }
+        
+        [HarmonyPatch(typeof(BaseAI), "Flee")]
+        static class BaseAI_Flee_Patch
+        {
+            static bool Prefix(BaseAI __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+
+                if (noMonstersFlee.Value || neverFleeList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
                     return false;
                 return true;
             }

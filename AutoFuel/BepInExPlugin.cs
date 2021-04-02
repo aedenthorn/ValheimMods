@@ -8,13 +8,16 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.6.4")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = false;
 
         public static ConfigEntry<float> dropRange;
         public static ConfigEntry<float> containerRange;
+        public static ConfigEntry<float> fireplaceRange;
+        public static ConfigEntry<float> smelterOreRange;
+        public static ConfigEntry<float> smelterFuelRange;
         public static ConfigEntry<string> fuelDisallowTypes;
         public static ConfigEntry<string> oreDisallowTypes;
         public static ConfigEntry<string> toggleKey;
@@ -37,7 +40,10 @@ namespace AutoFuel
         {
             context = this;
             dropRange = Config.Bind<float>("General", "DropRange", 5f, "The maximum range to pull dropped fuel");
-            containerRange = Config.Bind<float>("General", "ContainerRange", 5f, "The maximum range to pull fuel from containers");
+            containerRange = Config.Bind<float>("General", "ContainerRange", -1f, "(obsolete)");
+            fireplaceRange = Config.Bind<float>("General", "FireplaceRange", 5f, "The maximum range to pull fuel from containers for fireplaces");
+            smelterOreRange = Config.Bind<float>("General", "SmelterOreRange", 5f, "The maximum range to pull fuel from containers for smelters");
+            smelterFuelRange = Config.Bind<float>("General", "SmelterFuelRange", 5f, "The maximum range to pull ore from containers for smelters");
             fuelDisallowTypes = Config.Bind<string>("General", "FuelDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as fuel (i.e. anything that is consumed), comma-separated.");
             oreDisallowTypes = Config.Bind<string>("General", "OreDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as ore (i.e. anything that is transformed), comma-separated).");
             toggleString = Config.Bind<string>("General", "ToggleString", "Auto Fuel: {0}", "Text to show on toggle. {0} is replaced with true/false");
@@ -48,6 +54,14 @@ namespace AutoFuel
             isOn = Config.Bind<bool>("General", "IsOn", true, "Behaviour is currently on or not");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 159, "Nexus mod ID for updates");
+
+            if(containerRange.Value != -1)
+            {
+                fireplaceRange.Value = containerRange.Value;
+                smelterFuelRange.Value = containerRange.Value;
+                smelterOreRange.Value = containerRange.Value;
+                containerRange.Value = -1;
+            }
 
             if (!modEnabled.Value)
                 return;
@@ -77,12 +91,12 @@ namespace AutoFuel
             return result;
         }
 
-        public static List<Container> GetNearbyContainers(Vector3 center)
+        public static List<Container> GetNearbyContainers(Vector3 center, float range)
         {
             try { 
                 List<Container> containers = new List<Container>();
 
-                foreach (Collider collider in Physics.OverlapSphere(center, Mathf.Max(containerRange.Value, 0), LayerMask.GetMask(new string[] { "piece" })))
+                foreach (Collider collider in Physics.OverlapSphere(center, Mathf.Max(range, 0), LayerMask.GetMask(new string[] { "piece" })))
                 {
                     Container container = collider.transform.parent?.parent?.gameObject?.GetComponent<Container>();
                     if (container?.GetComponent<ZNetView>()?.IsValid() != true)
@@ -111,7 +125,7 @@ namespace AutoFuel
 
                 int maxFuel = (int)(__instance.m_maxFuel - Mathf.Ceil(___m_nview.GetZDO().GetFloat("fuel", 0f)));
 
-                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
+                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position, fireplaceRange.Value);
 
                 Vector3 position = __instance.transform.position + Vector3.up;
                 foreach (Collider collider in Physics.OverlapSphere(position, dropRange.Value, LayerMask.GetMask(new string[] { "item" })))
@@ -200,7 +214,8 @@ namespace AutoFuel
                 int maxFuel = __instance.m_maxFuel - Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f));
 
 
-                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
+                List<Container> nearbyOreContainers = GetNearbyContainers(__instance.transform.position, smelterOreRange.Value);
+                List<Container> nearbyFuelContainers = GetNearbyContainers(__instance.transform.position, smelterFuelRange.Value);
 
                 Vector3 position = __instance.transform.position + Vector3.up;
                 foreach (Collider collider in Physics.OverlapSphere(position, dropRange.Value, LayerMask.GetMask(new string[] { "item" })))
@@ -285,7 +300,7 @@ namespace AutoFuel
                     }
                 }
 
-                foreach (Container c in nearbyContainers)
+                foreach (Container c in nearbyOreContainers)
                 {
                     foreach (Smelter.ItemConversion itemConversion in __instance.m_conversion)
                     {
@@ -305,7 +320,9 @@ namespace AutoFuel
                             typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
                         }
                     }
-
+                }
+                foreach (Container c in nearbyFuelContainers)
+                {
                     if (__instance.m_fuelItem && maxFuel > 0)
                     {
                         ItemDrop.ItemData fuelItem = c.GetInventory().GetItem(__instance.m_fuelItem.m_itemData.m_shared.m_name);

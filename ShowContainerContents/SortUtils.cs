@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class SortUtils
 {
-    public static void SortByType(BepInExPlugin.SortType type, List<ItemDrop.ItemData> items, bool asc)
+    public static void SortByType(BepInExPlugin.SortType type, List<ItemData> items, bool asc)
     {
         // combine
         SortByName(items, true);
@@ -40,9 +40,9 @@ public class SortUtils
         }
     }
 
-    public static void SortByName(List<ItemDrop.ItemData> items, bool asc)
+    public static void SortByName(List<ItemData> items, bool asc)
     {
-        items.Sort(delegate (ItemDrop.ItemData a, ItemDrop.ItemData b) {
+        items.Sort(delegate (ItemData a, ItemData b) {
 
             if (a.m_shared.m_name == b.m_shared.m_name)
             {
@@ -51,9 +51,9 @@ public class SortUtils
             return CompareStrings(Localization.instance.Localize(a.m_shared.m_name), Localization.instance.Localize(b.m_shared.m_name), asc);
         });
     }
-    public static void SortByWeight(List<ItemDrop.ItemData> items, bool asc)
+    public static void SortByWeight(List<ItemData> items, bool asc)
     {
-        items.Sort(delegate (ItemDrop.ItemData a, ItemDrop.ItemData b) {
+        items.Sort(delegate (ItemData a, ItemData b) {
             if (a.m_shared.m_weight == b.m_shared.m_weight)
             {
                 if (a.m_shared.m_name == b.m_shared.m_name)
@@ -63,9 +63,9 @@ public class SortUtils
             return CompareFloats(a.m_shared.m_weight, b.m_shared.m_weight, asc);
         });
     }
-    public static void SortByValue(List<ItemDrop.ItemData> items, bool asc)
+    public static void SortByValue(List<ItemData> items, bool asc)
     {
-        items.Sort(delegate (ItemDrop.ItemData a, ItemDrop.ItemData b) {
+        items.Sort(delegate (ItemData a, ItemData b) {
             if (a.m_shared.m_value == b.m_shared.m_value)
             {
                 if (a.m_shared.m_name == b.m_shared.m_name)
@@ -76,9 +76,9 @@ public class SortUtils
         });
     }
 
-    public static void SortByAmount(List<ItemDrop.ItemData> items, bool asc)
+    public static void SortByAmount(List<ItemData> items, bool asc)
     {
-        items.Sort(delegate (ItemDrop.ItemData a, ItemDrop.ItemData b) {
+        items.Sort(delegate (ItemData a, ItemData b) {
             if (a.m_stack == b.m_stack)
             {
                 return CompareStrings(Localization.instance.Localize(a.m_shared.m_name), Localization.instance.Localize(b.m_shared.m_name), true);

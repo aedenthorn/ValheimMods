@@ -131,6 +131,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonRegen", "DungeonRege
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowContainerContents", "ShowContainerContents\ShowContainerContents.csproj", "{6BB20CFB-D3F8-4C89-98C0-5FC2C6B31372}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvancedSigns", "AdvancedSigns\AdvancedSigns.csproj", "{155A25D0-60B0-4D1C-B53A-6A262612B02B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compass", "Compass\Compass.csproj", "{F3FE9EEB-505D-4BBB-A164-DCA766BF42B5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -381,6 +385,14 @@ Global
 		{6BB20CFB-D3F8-4C89-98C0-5FC2C6B31372}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BB20CFB-D3F8-4C89-98C0-5FC2C6B31372}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BB20CFB-D3F8-4C89-98C0-5FC2C6B31372}.Release|Any CPU.Build.0 = Release|Any CPU
+		{155A25D0-60B0-4D1C-B53A-6A262612B02B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{155A25D0-60B0-4D1C-B53A-6A262612B02B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{155A25D0-60B0-4D1C-B53A-6A262612B02B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{155A25D0-60B0-4D1C-B53A-6A262612B02B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3FE9EEB-505D-4BBB-A164-DCA766BF42B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3FE9EEB-505D-4BBB-A164-DCA766BF42B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3FE9EEB-505D-4BBB-A164-DCA766BF42B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3FE9EEB-505D-4BBB-A164-DCA766BF42B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

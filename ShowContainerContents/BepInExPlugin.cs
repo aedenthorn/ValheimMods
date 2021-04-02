@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ShowContainerContents
 {
-    [BepInPlugin("aedenthorn.ShowContainerContents", "Show Container Contents", "0.1.2")]
+    [BepInPlugin("aedenthorn.ShowContainerContents", "Show Container Contents", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -71,7 +71,11 @@ namespace ShowContainerContents
                 if (!modEnabled.Value || (__instance.m_checkGuardStone && !PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false)) || __instance.GetInventory().NrOfItems() == 0)
                     return;
 
-                var items = new List<ItemDrop.ItemData>(__instance.GetInventory().GetAllItems());
+                var items = new List<ItemData>();
+                foreach(ItemDrop.ItemData idd in __instance.GetInventory().GetAllItems())
+                {
+                    items.Add(new ItemData(idd));
+                }
                 SortUtils.SortByType(SortType.Value, items, sortAsc.Value);
                 int entries = 0;
                 int amount = 0;
@@ -84,7 +88,7 @@ namespace ShowContainerContents
                             __result += "\n"+overFlowText.Value;
                         break;
                     }
-                    ItemDrop.ItemData item = items[i];
+                    ItemData item = items[i];
 
                     if (item.m_shared.m_name == name || name == "")
                     {

@@ -50,59 +50,55 @@ namespace PlayerModelSwitch
 
                 if(femaleModelName.Value.Length > 0)
                 {
-                    GameObject go = ZNetScene.instance.GetPrefab(femaleModelName.Value);
-
-                    SkinnedMeshRenderer[] smrs = go.GetComponentsInChildren<SkinnedMeshRenderer>();
-
-                    if(smrs.Length == 1)
-                    {
-                        Dbgl($"smr name {smrs[0].name}.");
-                        Mesh mesh = smrs[0].sharedMesh;
-                        __instance.m_models[1].m_mesh = mesh;
-
-                    }
-                    else
-                    {
-
-                        foreach (SkinnedMeshRenderer smr in smrs)
-                        {
-                            Dbgl($"switching female model to {smr.name}.");
-                            if (smr.name.ToLower() == femaleModelName.Value.ToLower())
-                            {
-                                Dbgl("switching female model");
-                                Mesh mesh = smr.sharedMesh;
-                                __instance.m_models[1].m_mesh = mesh;
-                                break;
-                            }
-                        }
-                    }
+                    ChangeModel(ref __instance, femaleModelName.Value, 1);
                 }
                 if (maleModelName.Value.Length > 0)
                 {
-                    GameObject go = ZNetScene.instance.GetPrefab(maleModelName.Value);
+                    ChangeModel(ref __instance, maleModelName.Value, 0);
+                }
+            }
 
-                    SkinnedMeshRenderer[] smrs = go.GetComponentsInChildren<SkinnedMeshRenderer>();
-                    if (smrs.Length == 1)
+            private static void ChangeModel(ref VisEquipment vis, string value, int which)
+            {
+                GameObject go = ZNetScene.instance.GetPrefab(value);
+
+                if (go == null)
+                {
+                    Dbgl($"couldn't find object {value}.");
+                    return;
+                }
+
+                SkinnedMeshRenderer[] smrs = go.GetComponentsInChildren<SkinnedMeshRenderer>();
+
+                if (smrs.Length == 1)
+                {
+                    Dbgl($"switching model {which} to {smrs[0].name}.");
+                    Dbgl($"smr name {smrs[0].name}.");
+                    vis.m_models[which].m_mesh = smrs[0].sharedMesh;
+                    return;
+                }
+                else if (smrs.Length > 1)
+                {
+                    bool switched = false;
+                    foreach (SkinnedMeshRenderer smr in smrs)
                     {
-                        Dbgl($"switching male model to {smrs[0].name}.");
-                        Mesh mesh = smrs[0].sharedMesh;
-                        __instance.m_models[0].m_mesh = mesh;
-                    }
-                    else
-                    {
-                        foreach (SkinnedMeshRenderer smr in smrs)
+                        if (smr.name.ToLower() == value.ToLower())
                         {
-                            Dbgl($"smr name {smr.name}.");
-                            if (smr.name.ToLower() == maleModelName.Value.ToLower())
-                            {
-                                Dbgl("switching male model");
-                                Mesh mesh = smr.sharedMesh;
-                                __instance.m_models[0].m_mesh = mesh;
-                                break;
-                            }
+                            switched = true;
+                            Dbgl($"switching model {which} model");
+                            Mesh mesh = smr.sharedMesh;
+                            vis.m_models[which].m_mesh = mesh;
+                            return;
                         }
                     }
+                    if (!switched)
+                    {
+                        Dbgl($"switching model {which} to {smrs[0].name}.");
+                        vis.m_models[which].m_mesh = smrs[0].sharedMesh;
+                        return;
+                    }
                 }
+                Dbgl($"No model {value} found for {which}.");
             }
         }
 
