@@ -23,12 +23,13 @@ namespace Compass
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
         
-        public static ConfigEntry<int> compassWidth;
+        public static ConfigEntry<string> compassFile;
+        public static ConfigEntry<string> maskFile;
+        public static ConfigEntry<Color> compassColor;
+        public static ConfigEntry<float> compassYOffset;
+        public static ConfigEntry<float> compassScale;
         
-        public static ConfigEntry<bool> useRichText;
-        public static ConfigEntry<string> fontName;
-        public static ConfigEntry<Vector2> textPositionOffset;
-        public static ConfigEntry<Vector3> signScale;
+
         public static GameObject compassObject;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -40,15 +41,13 @@ namespace Compass
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            //nexusID = Config.Bind<int>("General", "NexusID", 827, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 851, "Nexus mod ID for updates");
 
-            compassWidth = Config.Bind<int>("General", "CompassWidth", 480, "Compass width");
-            /*
-            signScale = Config.Bind<Vector3>("Signs", "SignScale", new Vector3(1,1,1), "Sign scale (w,h,d)");
-            textPositionOffset = Config.Bind<Vector2>("Signs", "TextPositionOffset", new Vector2(0,0), "Default font size");
-            useRichText = Config.Bind<bool>("Signs", "UseRichText", true, "Enable rich text");
-            fontName = Config.Bind<string>("Signs", "FontName", "AveriaSerifLibre-Bold", "Font name");
-            */
+            compassFile = Config.Bind<string>("General", "CompassFile", "compass.png", "Compass file to use in Compass folder");
+            maskFile = Config.Bind<string>("General", "MaskFile", "mask.png", "Mask file to use in Compass folder");
+            compassColor = Config.Bind<Color>("General", "CompassColor", Color.white, "Compass color");
+            compassScale = Config.Bind<float>("General", "CompassScale", 0.75f, "Compass scale");
+            compassYOffset = Config.Bind<float>("General", "CompassYOffset", 10f, "Compass Y Offset");
 
             if (!modEnabled.Value)
                 return;
@@ -71,11 +70,11 @@ namespace Compass
                 string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Compass");
 
                 Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, true, false);
-                byte[] data = File.ReadAllBytes(Path.Combine(path, "compass.png"));
+                byte[] data = File.ReadAllBytes(Path.Combine(path, compassFile.Value));
                 texture.LoadImage(data);
 
                 Texture2D maskTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, false);
-                byte[] maskData = File.ReadAllBytes(Path.Combine(path, "mask.png"));
+                byte[] maskData = File.ReadAllBytes(Path.Combine(path, maskFile.Value));
                 maskTex.LoadImage(maskData);
 
                 float halfWidth = texture.width / 2f;
@@ -91,9 +90,9 @@ namespace Compass
                 parent.name = "Compass";
                 RectTransform prt = parent.AddComponent<RectTransform>();
                 prt.SetParent(__instance.m_rootObject.transform);
-                prt.anchoredPosition = new Vector2(0f, (Screen.height / imageScale - texture.height) / 2);
+                prt.anchoredPosition = new Vector2(0f, (Screen.height / imageScale - texture.height) / 2) - Vector2.up * compassYOffset.Value;
                 prt.sizeDelta = new Vector2(halfWidth, texture.height);
-                prt.localScale = Vector3.one;
+                prt.localScale = Vector3.one * compassScale.Value;
 
                 Image maskImage = parent.AddComponent<Image>();
                 maskImage.sprite = maskSprite;
@@ -148,7 +147,11 @@ namespace Compass
                 // and ranges -pi...pi for objects to the left/right.
                 float angle = Mathf.Atan2(offset.x, offset.z);
 
-                compassObject.GetComponent<RectTransform>().localPosition = Vector3.right * (compassObject.GetComponent<Image>().sprite.rect.width / 2) * angle / (2f * Mathf.PI) + new Vector3(compassObject.GetComponent<Image>().sprite.rect.width / 2f, 0, 0);
+                compassObject.GetComponent<RectTransform>().localPosition = Vector3.right * (compassObject.GetComponent<Image>().sprite.rect.width / 2) * angle / (2f * Mathf.PI) - new Vector3(compassObject.GetComponent<Image>().sprite.rect.width * 0.125f, 0, 0);
+
+                compassObject.GetComponent<Image>().color = compassColor.Value;
+                compassObject.transform.parent.GetComponent<RectTransform>().localScale = Vector3.one * compassScale.Value;
+                compassObject.transform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, (Screen.height / (Screen.width / (compassObject.GetComponent<Image>().sprite.rect.width / 2)) - compassObject.GetComponent<Image>().sprite.rect.height) / 2) - Vector2.up * compassYOffset.Value;
             }
         }
 
