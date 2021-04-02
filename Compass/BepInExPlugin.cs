@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "0.2.1")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -142,7 +142,7 @@ namespace Compass
             }
         }
 
-
+        public static float lastAngle;
 
         [HarmonyPatch(typeof(Hud), "Update")]
         static class Hud_Update_Patch
@@ -152,14 +152,12 @@ namespace Compass
                 if (!modEnabled.Value || !Player.m_localPlayer)
                     return;
 
-                //DMGregory https://gamedev.stackexchange.com/a/149355  cc by-sa
+                float angle = GameCamera.instance.transform.eulerAngles.y;
 
-                // Get an arrow pointing to the marked object in the player's local frame of reference
-                Vector3 offset = GameCamera.instance.transform.InverseTransformPoint(Vector3.forward);
+                if (angle > 180)
+                    angle -= 360;
 
-                // Get an angle that's 0 when the object is directly ahead, 
-                // and ranges -pi...pi for objects to the left/right.
-                float angle = Mathf.Atan2(offset.x, offset.z);
+                angle *= -Mathf.Deg2Rad;
 
                 Rect rect = compassObject.GetComponent<Image>().sprite.rect;
 
@@ -201,7 +199,7 @@ namespace Compass
                     if (t)
                         t.gameObject.SetActive(true);
 
-                    offset = GameCamera.instance.transform.InverseTransformPoint(pin.m_pos);
+                    var offset = GameCamera.instance.transform.InverseTransformPoint(pin.m_pos);
                     angle = Mathf.Atan2(offset.x, offset.z);
 
                     GameObject po;
@@ -223,7 +221,7 @@ namespace Compass
                         rt = t.GetComponent<RectTransform>();
                         img = t.GetComponent<Image>();
                     }
-                    rt.localScale = Vector3.one * (maxMarkerDistance.Value - Vector3.Distance(Player.m_localPlayer.transform.position, pin.m_pos)) / maxMarkerDistance.Value * markerScale.Value;
+                    rt.localScale = Vector3.one * (maxMarkerDistance.Value - Vector3.Distance(Player.m_localPlayer.transform.position, pin.m_pos)) / maxMarkerDistance.Value * 0.5f * markerScale.Value;
                     img.color = markerColor.Value;
                     img.sprite = pin.m_icon;
                     rt.localPosition = Vector3.right * (rect.width / 2) * angle / (2f * Mathf.PI);
