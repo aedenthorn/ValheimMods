@@ -12,24 +12,23 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomMeshes
 {
-    [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.2.0")]
+    [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.2.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-
         private static Dictionary<string, Dictionary<string, Dictionary<string, CustomMeshData>>> customMeshes = new Dictionary<string, Dictionary<string, Dictionary<string, CustomMeshData>>>();
         private static Dictionary<string, AssetBundle> customAssetBundles = new Dictionary<string, AssetBundle>();
         private static Dictionary<string, Dictionary<string, Dictionary<string, GameObject>>> customGameObjects = new Dictionary<string, Dictionary<string, Dictionary<string, GameObject>>>();
-        public static ConfigEntry<int> nexusID;
         private static BepInExPlugin context;
 
+        public static ConfigEntry<int> nexusID;
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> isDebug;
 
         public static Mesh customMesh { get; set; }
 
         public static void Dbgl(string str = "", bool pref = true)
         {
-            if (isDebug)
+            if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
         private void Awake()
@@ -38,6 +37,7 @@ namespace CustomMeshes
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 184, "Nexus id for update checking");
+            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug");
 
             if (!modEnabled.Value)
                 return;

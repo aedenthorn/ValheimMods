@@ -135,6 +135,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvancedSigns", "AdvancedSi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compass", "Compass\Compass.csproj", "{F3FE9EEB-505D-4BBB-A164-DCA766BF42B5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backpack", "Backpack\Backpack.csproj", "{0B6AFC30-0900-490A-88B4-96B779519B9D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -393,6 +395,10 @@ Global
 		{F3FE9EEB-505D-4BBB-A164-DCA766BF42B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3FE9EEB-505D-4BBB-A164-DCA766BF42B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3FE9EEB-505D-4BBB-A164-DCA766BF42B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B6AFC30-0900-490A-88B4-96B779519B9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B6AFC30-0900-490A-88B4-96B779519B9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B6AFC30-0900-490A-88B4-96B779519B9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B6AFC30-0900-490A-88B4-96B779519B9D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

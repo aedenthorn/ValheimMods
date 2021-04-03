@@ -175,7 +175,7 @@ namespace ContainersAnywhere
 
             int container = currentContainerIndex + which < 0 ? containers.Count - 1 : (currentContainerIndex + which) % containers.Count;
             currentContainerIndex = container;
-            Dbgl($"Opening {currentType} container {container+1}/{containers.Count}");
+            Dbgl($"Opening {currentType} container {container+1}/{containers.Count} {containers[container].transform.parent.name} {containers[container].transform.position}");
             ((ZNetView)typeof(Container).GetField("m_nview", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(containers[container])).InvokeRPC("RequestOpen", new object[]{ Player.m_localPlayer.GetPlayerID() });
             
         }

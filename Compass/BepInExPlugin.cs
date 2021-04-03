@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "0.4.0")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
