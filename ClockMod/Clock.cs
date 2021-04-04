@@ -30,9 +30,8 @@ namespace ClockMod
         public static ConfigEntry<string> clockFormat;
         public static ConfigEntry<string> clockString;
         public static ConfigEntry<TextAnchor> clockTextAlignment;
-       //public static ConfigEntry<string> clockFuzzyStrings;
+        public static ConfigEntry<string> clockFuzzyStrings;
         public static ConfigEntry<int> nexusID;
-        private static ConfigEntry<string> clockFuzzyLang;
 
         private static Font clockFont;
         private static GUIStyle style;
@@ -69,10 +68,9 @@ namespace ClockMod
             toggleClockKeyMod = Config.Bind<string>("General", "ShowClockKeyMod", "", "Extra modifier key used to toggle the clock display. Leave blank to not require one. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             toggleClockKeyOnPress = Config.Bind<bool>("General", "ShowClockKeyOnPress", false, "If true, limit clock display to when the hotkey is down");
             clockFormat = Config.Bind<string>("General", "ClockFormat", "HH:mm", "Time format; set to 'fuzzy' for fuzzy time");
-            clockString = Config.Bind<string>("General", "ClockString", "<b>{0}</b>", "Formatted clock string - {0} is replaced by the actual time string, and {1} is replaced by the fuzzy string, {2} is replaced by the current day");
+            clockString = Config.Bind<string>("General", "ClockString", "<b>{0}</b>", "Formatted clock string - {0} is replaced by the actual time string, {1} is replaced by the fuzzy string, {2} is replaced by the current day");
             clockTextAlignment = Config.Bind<TextAnchor>("General", "ClockTextAlignment", TextAnchor.MiddleCenter, "Clock text alignment.");
-            clockFuzzyLang = Config.Bind<string>("General", "ClockFuzzyLang", "en", "Fuzzy string language. Avaiable: en (English),pt (Portuguese)");
-            //clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Midnight,Early Morning,Early Morning,Before Dawn,Before Dawn,Dawn,Dawn,Morning,Morning,Late Morning,Late Morning,Midday,Midday,Early Afternoon,Early Afternoon,Afternoon,Afternoon,Evening,Evening,Night,Night,Late Night,Late Night,Midnight", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
+            clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Midnight,Early Morning,Early Morning,Before Dawn,Before Dawn,Dawn,Dawn,Morning,Morning,Late Morning,Late Morning,Midday,Midday,Early Afternoon,Early Afternoon,Afternoon,Afternoon,Evening,Evening,Night,Night,Late Night,Late Night,Midnight", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
 
             newTimeString = "";
             style = new GUIStyle
@@ -206,25 +204,14 @@ namespace ClockMod
         private string GetCurrentTimeString(DateTime theTime, float fraction, int days)
         {
 
-            string fuzzyLangFile = GetFuzzyFileName("en");
-
-            if (clockFuzzyLang.Value != "en")
-            {
-                var tempfilename = GetFuzzyFileName(clockFuzzyLang.Value);
-                if (File.Exists(tempfilename) || File.ReadAllText(tempfilename).Length == 0)
-                    fuzzyLangFile = tempfilename;
-                else
-                    Debug.LogWarning(string.Format("Language file {0} not found. Using language default (en).", tempfilename));                
-            }
-
-            string[] fuzzyStringArray = (File.ReadAllLines(fuzzyLangFile))[0].Split(',');
+            string[] fuzzyStringArray = clockFuzzyStrings.Value.Split(',');
 
             int idx = Math.Min((int)(fuzzyStringArray.Length * fraction), fuzzyStringArray.Length - 1);
 
             if (clockFormat.Value == "fuzzy")
                 return string.Format(clockString.Value, fuzzyStringArray[idx]);
 
-            return string.Format(clockString.Value, theTime.ToString(clockFormat.Value), fuzzyStringArray[idx], days);
+            return string.Format(clockString.Value, theTime.ToString(clockFormat.Value), fuzzyStringArray[idx], days.ToString());
         }
 
         private static string GetFuzzyFileName(string lang)

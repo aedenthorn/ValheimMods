@@ -210,7 +210,7 @@ namespace CustomUI
                 }
                 if (hudRoot.Find("healthpanel").Find("Health").Find("QuickSlotsHotkeyBar"))
                 {
-                    hudRoot.Find("healthpanel").Find("Health").Find("QuickSlotsHotkeyBar").parent = hudRoot;
+                    hudRoot.Find("healthpanel").Find("Health").Find("QuickSlotsHotkeyBar").SetParent(hudRoot);
                     hudRoot.Find("QuickSlotsHotkeyBar").GetComponent<RectTransform>().anchoredPosition += new Vector2(healthRect.x, healthRect.y);
                     hudRoot.Find("QuickSlotsHotkeyBar").GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0, 0);
                 }

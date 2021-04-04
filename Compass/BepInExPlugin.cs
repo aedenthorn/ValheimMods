@@ -50,7 +50,7 @@ namespace Compass
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 851, "Nexus mod ID for updates");
 
-            usePlayerDirection = Config.Bind<bool>("Compass", "usePlayerDirection", false, "Orient the compass based on the player's facing direction, rather than the middle of the screen");
+            usePlayerDirection = Config.Bind<bool>("Compass", "UsePlayerDirection", false, "Orient the compass based on the player's facing direction, rather than the middle of the screen");
             compassScale = Config.Bind<float>("Compass", "CompassScale", 0.75f, "Compass scale");
             compassYOffset = Config.Bind<float>("Compass", "CompassYOffset", 0, "Compass offset from top of screen in pixels");
             

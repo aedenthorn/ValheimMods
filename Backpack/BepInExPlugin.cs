@@ -4,12 +4,14 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Backpack
 {
-    [BepInPlugin("aedenthorn.Backpack", "Backpack", "0.2.0")]
+    [BepInPlugin("aedenthorn.Backpack", "Backpack", "0.2.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -31,7 +33,6 @@ namespace Backpack
         private static ZDO backpackZDO = null;
         private static string backpackObjectPrefix = "Container_Backpack";
         private static string backpackObjectName;
-        private static string backpackObjectOldName;
         private static bool saving = false;
         private static bool opening = false;
 
@@ -79,7 +80,7 @@ namespace Backpack
                 if (!saving && backpack.transform.parent != Player.m_localPlayer.transform)
                 {
                     Dbgl("Moving backpack to player");
-                    backpack.transform.parent = Player.m_localPlayer.transform;
+                    backpack.transform.SetParent(Player.m_localPlayer.transform);
                     InitBackpack();
                 }
                 if (!AedenthornUtils.IgnoreKeyPresses(true) && AedenthornUtils.CheckKeyDown(hotKey.Value))
@@ -105,9 +106,8 @@ namespace Backpack
                 string name = profile.GetName();
 
                 backpackObjectName = backpackObjectPrefix + "_" + backpackGUID.Value + "_" + name;
-
-                backpackObjectOldName = backpackObjectPrefix + "_" + id;
-                Dbgl($"Backpack object name = {backpackObjectName} {backpackObjectName.GetStableHashCode()}");
+                backpack = null;
+                backpackZDO = null;
             }
         }
 
@@ -118,8 +118,8 @@ namespace Backpack
             {
                 if (!modEnabled.Value)
                     return;
-
-                ___m_namedPrefabs.Add(backpackObjectOldName.GetStableHashCode(), ___m_namedPrefabs["piece_chest".GetStableHashCode()]);
+                
+                //GameObject go = Instantiate(___m_namedPrefabs["piece_chest".GetStableHashCode()]);
                 ___m_namedPrefabs.Add(backpackObjectName.GetStableHashCode(), ___m_namedPrefabs["piece_chest".GetStableHashCode()]);
             }
         }
@@ -127,17 +127,6 @@ namespace Backpack
         [HarmonyPatch(typeof(ZNetScene), "CreateObject")]
         static class CreateObject_Patch
         {
-            static void Prefix(ref ZDO zdo)
-            {
-                if (!modEnabled.Value)
-                    return;
-
-                if (zdo.GetPrefab() == backpackObjectOldName.GetStableHashCode())
-                {
-                    Dbgl($"Converting old backpack");
-                    zdo.SetPrefab(backpackObjectName.GetStableHashCode());
-                }
-            }
             static void Postfix(ZDO zdo, GameObject __result)
             {
                 if (!modEnabled.Value || !__result || zdo.GetPrefab() != backpackObjectName.GetStableHashCode())
@@ -145,6 +134,8 @@ namespace Backpack
                 Dbgl($"Created backpack {__result.name}");
                 __result.name = backpackObjectName;
                 __result.GetComponent<Container>().m_name = backpackName.Value;
+                Traverse.Create(Traverse.Create(__result.GetComponent<Container>()).Field("m_inventory").GetValue<Inventory>()).Field("m_width").SetValue((int)Math.Min(8, backpackSize.Value.x));
+                Traverse.Create(Traverse.Create(__result.GetComponent<Container>()).Field("m_inventory").GetValue<Inventory>()).Field("m_height").SetValue((int)backpackSize.Value.y);
                 backpack = __result;
 
                 if (Player.m_localPlayer)
@@ -285,8 +276,10 @@ namespace Backpack
                     return;
                 if(__instance == Player.m_localPlayer.GetInventory())
                 {
-                    if (Environment.StackTrace.Contains("EquipmentAndQuickSlots"))
+                    if (new StackFrame(2).ToString().IndexOf("OverrideGetTotalWeight") > -1)
+                    {
                         return;
+                    }
                     __result += backpack.GetComponent<Container>().GetInventory().GetTotalWeight();
                 }
                 else if(__instance == backpack.GetComponent<Container>().GetInventory())

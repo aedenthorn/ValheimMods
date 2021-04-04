@@ -403,7 +403,7 @@ namespace CustomMeshes
                             newObject.transform.rotation = go.transform.rotation;
                             Transform parent = go.transform.parent;
                             DestroyImmediate(go);
-                            newObject.transform.parent = parent;
+                            newObject.transform.SetParent(parent);
                         }
                     }
                 }

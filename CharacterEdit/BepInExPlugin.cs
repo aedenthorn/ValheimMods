@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace CharacterEdit
 {
-    [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.3.0")]
+    [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -19,6 +19,8 @@ namespace CharacterEdit
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<string> titleText;
         public static ConfigEntry<string> buttonText;
+        public static ConfigEntry<string> gamePadButton;
+        public static ConfigEntry<string> gamePadButtonHint;
         public static ConfigEntry<int> nexusID;
         private static Transform title;
 
@@ -35,6 +37,8 @@ namespace CharacterEdit
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             buttonText = Config.Bind<string>("General", "ButtonText", "Edit", "Button text");
             titleText = Config.Bind<string>("General", "TitleText", "Edit Character", "Title text");
+            gamePadButton = Config.Bind<string>("General", "GamePadButton", "JoyLTrigger", "Gamepad button used to press button. Possible values: JoyHide, JoyGPower, JoyRun, JoyCrouch, JoyMap, JoyMenu, JoyBlock, JoyAttack, JoySecondAttack, JoyAltPlace, JoyRotate, JoyPlace, JoyRemove, JoyTabLeft, JoyTabRight, JoyLStickLeft, JoyLStickRight, JoyLStickUp, JoyLStickDown, JoyDPadLeft, JoyDPadRight, JoyDPadUp, JoyDPadDown, JoyLTrigger, JoyRTrigger, JoyLStick, JoyRStick");
+            gamePadButtonHint = Config.Bind<string>("General", "GamePadButtonHint", "L", "Hint to show for gamepad button");
             nexusID = Config.Bind<int>("General", "NexusID", 650, "Nexus mod ID for updates");
 
 
@@ -61,16 +65,18 @@ namespace CharacterEdit
 
                 var edit = Instantiate(FejdStartup.instance.m_selectCharacterPanel.transform.Find("BottomWindow").Find("New"));
                 edit.name = "Edit";
-                edit.transform.parent = FejdStartup.instance.m_selectCharacterPanel.transform.Find("BottomWindow");
+                edit.transform.SetParent(FejdStartup.instance.m_selectCharacterPanel.transform.Find("BottomWindow"));
                 edit.GetComponent<RectTransform>().anchoredPosition = new Vector3(-751, -50, 0);
                 edit.transform.Find("Text").GetComponent<Text>().text = buttonText.Value;
                 edit.GetComponent<Button>().onClick.RemoveAllListeners();
                 edit.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
                 edit.GetComponent<Button>().onClick.AddListener(StartCharacterEdit);
+                edit.GetComponent<UIGamePad>().m_zinputKey = gamePadButton.Value;
+                edit.transform.Find("gamepad_hint").Find("Text").GetComponent<Text>().text = gamePadButtonHint.Value;
 
                 title = Instantiate(FejdStartup.instance.m_newCharacterPanel.transform.Find("Topic"));
                 title.name = "EditTitle";
-                title.parent = FejdStartup.instance.m_newCharacterPanel.transform;
+                title.SetParent(FejdStartup.instance.m_newCharacterPanel.transform);
                 title.GetComponent<Text>().text = titleText.Value;
                 title.GetComponent<RectTransform>().anchoredPosition = FejdStartup.instance.m_newCharacterPanel.transform.Find("Topic").GetComponent<RectTransform>().anchoredPosition;
                 title.gameObject.SetActive(false);

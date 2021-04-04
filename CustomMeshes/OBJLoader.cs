@@ -349,7 +349,7 @@ public class OBJLoader
         foreach (string obj in objectNames)
         {
             GameObject subObject = new GameObject(obj);
-            subObject.transform.parent = parentObject.transform;
+            subObject.transform.SetParent(parentObject.transform);
             subObject.transform.localScale = new Vector3(-1, 1, 1);
             //Create mesh
             Mesh m = new Mesh();
