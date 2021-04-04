@@ -27,9 +27,9 @@ namespace ClockMod
         }
         private string GetCurrentTimeString()
         {
-            float fraction = 0;
-            if (EnvMan.instance)
-                 fraction = (float)typeof(EnvMan).GetField("m_smoothDayFraction", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(EnvMan.instance);
+            if (!EnvMan.instance)
+                return "";
+            float fraction = (float)typeof(EnvMan).GetField("m_smoothDayFraction", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(EnvMan.instance);
 
             int hour = (int)(fraction * 24);
             int minute = (int)((fraction * 24 - hour) * 60);
@@ -37,7 +37,8 @@ namespace ClockMod
 
             DateTime now = DateTime.Now;
             DateTime theTime = new DateTime(now.Year, now.Month, now.Day, hour, minute, second);
-            return GetCurrentTimeString(theTime, fraction);
+            int days = Traverse.Create(EnvMan.instance).Method("GetCurrentDay").GetValue<int>();
+            return GetCurrentTimeString(theTime, fraction, days);
         }
     }
 }

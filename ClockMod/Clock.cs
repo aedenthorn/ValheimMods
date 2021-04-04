@@ -69,12 +69,12 @@ namespace ClockMod
             toggleClockKeyMod = Config.Bind<string>("General", "ShowClockKeyMod", "", "Extra modifier key used to toggle the clock display. Leave blank to not require one. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             toggleClockKeyOnPress = Config.Bind<bool>("General", "ShowClockKeyOnPress", false, "If true, limit clock display to when the hotkey is down");
             clockFormat = Config.Bind<string>("General", "ClockFormat", "HH:mm", "Time format; set to 'fuzzy' for fuzzy time");
-            clockString = Config.Bind<string>("General", "ClockString", "<b>{0}</b>", "Formatted clock string - {0} is replaced by the actual time string, and {1} is replaced by the fuzzy string");
+            clockString = Config.Bind<string>("General", "ClockString", "<b>{0}</b>", "Formatted clock string - {0} is replaced by the actual time string, and {1} is replaced by the fuzzy string, {2} is replaced by the current day");
             clockTextAlignment = Config.Bind<TextAnchor>("General", "ClockTextAlignment", TextAnchor.MiddleCenter, "Clock text alignment.");
             clockFuzzyLang = Config.Bind<string>("General", "ClockFuzzyLang", "en", "Fuzzy string language. Avaiable: en (English),pt (Portuguese)");
             //clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Midnight,Early Morning,Early Morning,Before Dawn,Before Dawn,Dawn,Dawn,Morning,Morning,Late Morning,Late Morning,Midday,Midday,Early Afternoon,Early Afternoon,Afternoon,Afternoon,Evening,Evening,Night,Night,Late Night,Late Night,Midnight", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
 
-            newTimeString = GetCurrentTimeString(DateTime.Now, 0.5f);
+            newTimeString = "";
             style = new GUIStyle
             {
                 richText = true,
@@ -203,12 +203,8 @@ namespace ClockMod
             configApplied = true;
         }
 
-        private string GetCurrentTimeString(DateTime theTime, float fraction)
+        private string GetCurrentTimeString(DateTime theTime, float fraction, int days)
         {
-            if (!clockString.Value.Contains("{1}") && clockFormat.Value != "fuzzy")
-            {
-                return string.Format(clockString.Value, theTime.ToString(clockFormat.Value));
-            }
 
             string fuzzyLangFile = GetFuzzyFileName("en");
 
@@ -228,7 +224,7 @@ namespace ClockMod
             if (clockFormat.Value == "fuzzy")
                 return string.Format(clockString.Value, fuzzyStringArray[idx]);
 
-            return string.Format(clockString.Value, theTime.ToString(clockFormat.Value), fuzzyStringArray[idx]);
+            return string.Format(clockString.Value, theTime.ToString(clockFormat.Value), fuzzyStringArray[idx], days);
         }
 
         private static string GetFuzzyFileName(string lang)

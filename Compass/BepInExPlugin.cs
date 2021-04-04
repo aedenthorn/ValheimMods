@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "0.5.0")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "0.5.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -86,11 +86,11 @@ namespace Compass
             {
                 string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Compass");
 
-                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, true, false);
+                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, true, true);
                 byte[] data = File.ReadAllBytes(Path.Combine(path, compassFile.Value));
                 texture.LoadImage(data);
 
-                Texture2D maskTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, false);
+                Texture2D maskTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, true);
                 byte[] maskData = File.ReadAllBytes(Path.Combine(path, maskFile.Value));
                 maskTex.LoadImage(maskData);
 
@@ -99,7 +99,9 @@ namespace Compass
                 Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
                 Sprite maskSprite = Sprite.Create(maskTex, new Rect(0, 0, halfWidth, maskTex.height), Vector2.zero);
 
-                float imageScale = Screen.width / halfWidth; // 1 1/3 for 1440p
+                //float imageScale = 4 / 3f *  GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;
+
+                //Dbgl($"image scale {imageScale} pos {((Screen.height - texture.height) / 2)}");
 
                 // Mask object
 
@@ -107,7 +109,7 @@ namespace Compass
                 parent.name = "Compass";
                 RectTransform prt = parent.AddComponent<RectTransform>();
                 prt.SetParent(__instance.m_rootObject.transform);
-                prt.anchoredPosition = new Vector2(0f, (Screen.height / imageScale - texture.height) / 2) - Vector2.up * compassYOffset.Value;
+                //prt.anchoredPosition = new Vector2(0f, (Screen.height - texture.height) / imageScale / 2) - Vector2.up * compassYOffset.Value;
                 prt.sizeDelta = new Vector2(halfWidth, texture.height);
                 prt.localScale = Vector3.one * compassScale.Value;
 
@@ -150,6 +152,7 @@ namespace Compass
         }
 
         public static float lastAngle;
+        public static bool dbgl;
 
         [HarmonyPatch(typeof(Hud), "Update")]
         static class Hud_Update_Patch
@@ -172,12 +175,19 @@ namespace Compass
                 angle *= -Mathf.Deg2Rad;
 
                 Rect rect = compassObject.GetComponent<Image>().sprite.rect;
+                float imageScale = GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;
+
+                if (!dbgl)
+                {
+                    dbgl = true;
+                    Dbgl($"scale {imageScale} {Screen.height} {compassObject.GetComponent<Image>().sprite.texture.height}");
+                }
 
                 compassObject.GetComponent<RectTransform>().localPosition = Vector3.right * (rect.width / 2) * angle / (2f * Mathf.PI) - new Vector3(rect.width * 0.125f, 0, 0);
 
                 compassObject.GetComponent<Image>().color = compassColor.Value;
                 compassObject.transform.parent.GetComponent<RectTransform>().localScale = Vector3.one * compassScale.Value;
-                compassObject.transform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, (Screen.height / (Screen.width / (rect.width / 2)) - rect.height) / 2) - Vector2.up * compassYOffset.Value;
+                compassObject.transform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, (Screen.height / imageScale - compassObject.GetComponent<Image>().sprite.texture.height * compassScale.Value) / 2) - Vector2.up * compassYOffset.Value;
 
                 int count = pinsObject.transform.childCount;
                 List<string> oldPins = new List<string>();

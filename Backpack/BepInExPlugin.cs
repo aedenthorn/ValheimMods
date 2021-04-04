@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
@@ -8,7 +9,7 @@ using UnityEngine;
 
 namespace Backpack
 {
-    [BepInPlugin("aedenthorn.Backpack", "Backpack", "0.1.0")]
+    [BepInPlugin("aedenthorn.Backpack", "Backpack", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -34,7 +35,6 @@ namespace Backpack
         private static bool saving = false;
         private static bool opening = false;
 
-
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
@@ -44,12 +44,12 @@ namespace Backpack
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            //nexusID = Config.Bind<int>("General", "NexusID", 851, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 858, "Nexus mod ID for updates");
 
 
             hotKey = Config.Bind<string>("General", "HotKey", "b", "Hotkey to open backpack.");
             backpackName = Config.Bind<string>("General", "BackpackName", "Backpack", "Display name for backpack.");
-            backpackGUID = Config.Bind<string>("General", "BackpackGUID", Guid.NewGuid().ToString(), "Unique ID for your backpack.");
+            backpackGUID = Config.Bind<string>("General", "BackpackGUID", Guid.NewGuid().ToString(), "Unique ID for your backpack (don't change this).");
             backpackSize = Config.Bind<Vector2>("General", "BackpackSize", new Vector2(6,3), "Size of backpack (w,h).");
             backpackWeightMult = Config.Bind<float>("General", "BackpackWeightMult", 0.5f, "Multiplier for weight of items in backpack (set to 0 to disable backpack weight).");
             dropInventoryOnDeath = Config.Bind<bool>("General", "DropInventoryOnDeath", true, "Drop backpack inventory on death");
@@ -90,6 +90,8 @@ namespace Backpack
                 }
             }
         }
+
+
         [HarmonyPatch(typeof(FejdStartup), "LoadMainScene")]
         static class LoadMainScene_Patch
         {
@@ -274,6 +276,7 @@ namespace Backpack
         }   
 
         [HarmonyPatch(typeof(Inventory), "GetTotalWeight")]
+        [HarmonyPriority(Priority.Last)]
         static class GetTotalWeight_Patch
         {
             static void Postfix(Inventory __instance, ref float __result)
@@ -282,6 +285,8 @@ namespace Backpack
                     return;
                 if(__instance == Player.m_localPlayer.GetInventory())
                 {
+                    if (Environment.StackTrace.Contains("EquipmentAndQuickSlots"))
+                        return;
                     __result += backpack.GetComponent<Container>().GetInventory().GetTotalWeight();
                 }
                 else if(__instance == backpack.GetComponent<Container>().GetInventory())
