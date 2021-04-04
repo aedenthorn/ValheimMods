@@ -4,7 +4,6 @@
 using System;
 using BepInEx;
 using BepInEx.Configuration;
-using ConfigurationManager.Utilities;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -36,7 +35,7 @@ namespace ConfigurationManager
                 BepInExPlugin.Logger.LogError(ex);
             }
 
-            foreach (var plugin in Utils.FindPlugins())
+            foreach (var plugin in Utilities.Utils.FindPlugins())
             {
                 if (plugin.Info.Metadata.GUID == "com.bepis.bepinex.configurationmanager" || plugin.enabled == false)
                 {
@@ -92,8 +91,8 @@ namespace ConfigurationManager
             var coreConfig = (ConfigFile)coreConfigProp.GetValue(null, null);
             var bepinMeta = new BepInPlugin("BepInEx", "BepInEx", typeof(BepInEx.Bootstrap.Chainloader).Assembly.GetName().Version.ToString());
 
-            return coreConfig.GetConfigEntries()
-                .Select(x => new ConfigSettingEntry(x, null) { IsAdvanced = true, PluginInfo = bepinMeta })
+            return coreConfig
+                .Select(x => new ConfigSettingEntry(x.Value, null) { IsAdvanced = true, PluginInfo = bepinMeta })
                 .Cast<SettingEntryBase>();
         }
 
@@ -102,7 +101,7 @@ namespace ConfigurationManager
         /// </summary>
         private static IEnumerable<ConfigSettingEntry> GetPluginConfig(BaseUnityPlugin plugin)
         {
-            return plugin.Config.GetConfigEntries().Select(x => new ConfigSettingEntry(x, plugin));
+            return plugin.Config.Select(x => new ConfigSettingEntry(x.Value, plugin));
         }
     }
 }
