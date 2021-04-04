@@ -27,7 +27,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  
+
   <!-- Find GamePath -->
   <Choose>
     <When Condition="($(OS) == 'Unix' OR $(OS) == 'OSX') AND $(GamePath) == ''">
@@ -46,17 +46,32 @@
       </PropertyGroup>
     </When>
   </Choose>
+  
+  <!-- Manual overrides -->
+  <PropertyGroup>
+    <BepInExPath>$(GamePath)\BepInEx</BepInExPath>
+    <ManagedDataPath>$(GamePath)\valheim_Data\Managed</ManagedDataPath>
+    <UnityPath>$(GamePath)\unstripped_corlib</UnityPath>
+  </PropertyGroup>
+  
+  <!-- Set start action -->
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <StartAction>Program</StartAction>
+    <StartProgram>$(GamePath)\valheim.exe</StartProgram>
+    <StartArguments>-console</StartArguments>
+    <StartWorkingDirectory>$(GamePath)</StartWorkingDirectory>
+  </PropertyGroup>
 
   <!-- Add BepInEx references -->
   <ItemGroup Label="BepInEx">
     <Reference Include="0Harmony20">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\BepInEx\core\0Harmony20.dll</HintPath>
+      <HintPath>$(BepInExPath)\core\0Harmony20.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\BepInEx\core\BepInEx.dll</HintPath>
+      <HintPath>$(BepInExPath)\core\BepInEx.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -65,37 +80,37 @@
   <ItemGroup Label="Valheim_Data">
     <Reference Include="assembly_valheim">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\valheim_Data\Managed\assembly_valheim.dll</HintPath>
+      <HintPath>$(ManagedDataPath)\assembly_valheim.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="assembly_googleanalytics">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\valheim_Data\Managed\assembly_googleanalytics.dll</HintPath>
+      <HintPath>$(ManagedDataPath)\assembly_googleanalytics.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="assembly_guiutils">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\valheim_Data\Managed\assembly_guiutils.dll</HintPath>
+      <HintPath>$(ManagedDataPath)\assembly_guiutils.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="assembly_postprocessing">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\valheim_Data\Managed\assembly_postprocessing.dll</HintPath>
+      <HintPath>$(ManagedDataPath)\assembly_postprocessing.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="assembly_steamworks">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\valheim_Data\Managed\assembly_steamworks.dll</HintPath>
+      <HintPath>$(ManagedDataPath)\assembly_steamworks.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="assembly_sunshafts">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\valheim_Data\Managed\assembly_sunshafts.dll</HintPath>
+      <HintPath>$(ManagedDataPath)\assembly_sunshafts.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="assembly_utils">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\valheim_Data\Managed\assembly_utils.dll</HintPath>
+      <HintPath>$(ManagedDataPath)\assembly_utils.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -104,132 +119,132 @@
   <ItemGroup Label="Unity">
     <Reference Include="UnityEngine">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.AccessibilityModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.AccessibilityModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.AccessibilityModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.AIModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.AIModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.AIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.AnimationModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.AnimationModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.AudioModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.AudioModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.AudioModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.ClothModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.ClothModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.ClothModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.InputLegacyModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.ParticleSystemModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.ParticleSystemModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.ParticleSystemModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.PhysicsModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.ScreenCaptureModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.ScreenCaptureModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.ScreenCaptureModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.UI.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.UIModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.UIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UIElementsModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.UIElementsModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.UIElementsModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.InputModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.InputModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.InputModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.JSONSerializeModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.JSONSerializeModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.JSONSerializeModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.IMGUIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.ImageConversionModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.ImageConversionModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.TerrainModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.TerrainModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.TerrainModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.TextCoreModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.TextCoreModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.TextCoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.TextRenderingModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UnityWebRequestAudioModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UnityWebRequestModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.UnityWebRequestModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.UnityWebRequestModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UnityWebRequestWWWModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UnityWebRequestTextureModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.AssetBundleModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.AssetBundleModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.AssetBundleModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
