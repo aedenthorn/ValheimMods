@@ -43,7 +43,7 @@ namespace MapCoordinateDisplay
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            //nexusID = Config.Bind<int>("General", "NexusID", 858, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 907, "Nexus mod ID for updates");
             titleString = Config.Bind<string>("General", "TitleString", "Map Coordinates", "Title string");
             coordPosition = Config.Bind<Vector2>("General", "CoordPosition", new Vector2(Screen.width / 2f, 0), "Coordinates current position");
             coordFontSize = Config.Bind<int>("General", "CoordFontSize", 20, "Coordinate font size");
