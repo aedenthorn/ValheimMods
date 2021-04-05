@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.1.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.1.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -119,42 +119,7 @@ namespace CraftFromContainers
                 return !req;
             }
         }
-        /*
-        public static List<Container> GetNearbyContainers(Vector3 center)
-        {
-            List<Container> containers = new List<Container>();
 
-            foreach (Collider collider in Physics.OverlapSphere(center, m_range.Value, LayerMask.GetMask(new string[] { "piece" })))
-            {
-                try
-                {
-
-                    Dbgl($"collider name {collider.transform?.name} parent {collider.transform.parent?.name}");
-                    Container c = null;
-                    if (collider.transform.parent.name == "_NetSceneRoot")
-                    {
-                        c = collider.transform.gameObject?.GetComponentInChildren<Container>();
-                        if(c == null)
-                            c = collider.transform.gameObject?.transform.Find("Container").GetComponent<Container>();
-                    }
-                    else if (collider.transform.parent?.Find("Container") != null)
-                        c = collider.transform.parent?.Find("Container").GetComponent<Container>();
-                    else if (collider.transform.parent?.GetComponentInChildren<Container>() != null)
-                        c = collider.transform.parent?.GetComponentInChildren<Container>();
-                    if (c?.GetComponent<ZNetView>()?.IsValid() != true)
-                        continue;
-                    if (c?.transform?.position != null && c.GetInventory() != null && (m_range.Value <= 0 || Vector3.Distance(center, c.transform.position) < m_range.Value) && (c.name.StartsWith("piece_chest") || c.name.StartsWith("Container")) && c.GetInventory() != null && Traverse.Create(c).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>())
-                    {
-                        containers.Add(c);
-                    }
-                }
-                catch
-                {
-                }
-            }
-            return containers;
-        }
-        */
         public static List<Container> GetNearbyContainers(Vector3 center)
         {
             List<Container> containers = new List<Container>();
@@ -222,9 +187,9 @@ namespace CraftFromContainers
         [HarmonyPatch(typeof(InventoryGui), "Update")]
         static class InventoryGui_Update_Patch
         {
-            static void Prefix(InventoryGui __instance)
+            static void Prefix(InventoryGui __instance, Animator ___m_animator)
             {
-                if (wasAllowed != AllowByKey())
+                if (Player.m_localPlayer && wasAllowed != AllowByKey() && ___m_animator.GetBool("visible"))
                     Traverse.Create(__instance).Method("UpdateCraftingPanel", new object[] { false }).GetValue();
             }
         }

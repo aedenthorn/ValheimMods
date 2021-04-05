@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace ClockMod
 {
-    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "1.4.2")]
+    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "1.4.3")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
 

@@ -3,119 +3,119 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31005.135
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TorchMod", "TorchMod\TorchMod.csproj", "{4679AA01-DD8C-473E-A88F-2B1D7A7306DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TorchMod", "TorchMod\TorchMod.csproj", "{4679AA01-DD8C-473E-A88F-2B1D7A7306DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickLoad", "QuickLoad\QuickLoad.csproj", "{9A75D46F-077B-4719-ABEE-EA0934C070BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickLoad", "QuickLoad\QuickLoad.csproj", "{9A75D46F-077B-4719-ABEE-EA0934C070BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Durability", "Durability\Durability.csproj", "{9C18D21E-6292-498C-95C8-F441224135B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Durability", "Durability\Durability.csproj", "{9C18D21E-6292-498C-95C8-F441224135B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Regeneration", "Regeneration\Regeneration.csproj", "{72A87FDD-73E4-4E8F-A866-0D7842D684C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Regeneration", "Regeneration\Regeneration.csproj", "{72A87FDD-73E4-4E8F-A866-0D7842D684C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeRespawn", "TreeRespawn\TreeRespawn.csproj", "{D19F8AE0-7192-42B5-94E9-30C8496F7394}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TreeRespawn", "TreeRespawn\TreeRespawn.csproj", "{D19F8AE0-7192-42B5-94E9-30C8496F7394}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CraftFromContainers", "CraftFromContainers\CraftFromContainers.csproj", "{571E7C29-571A-41F0-9D93-2161DD20C36A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CraftFromContainers", "CraftFromContainers\CraftFromContainers.csproj", "{571E7C29-571A-41F0-9D93-2161DD20C36A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomTextures", "CustomTextures\CustomTextures.csproj", "{341D9492-226D-4381-9FDA-95DE6057033F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomTextures", "CustomTextures\CustomTextures.csproj", "{341D9492-226D-4381-9FDA-95DE6057033F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscardInventoryItem", "DiscardInventoryItem\DiscardInventoryItem.csproj", "{B827CA6A-3604-4617-A2B5-86D49F049F60}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscardInventoryItem", "DiscardInventoryItem\DiscardInventoryItem.csproj", "{B827CA6A-3604-4617-A2B5-86D49F049F60}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeMod", "TimeMod\TimeMod.csproj", "{453B3B2F-54ED-42E3-995E-D306ECB518BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeMod", "TimeMod\TimeMod.csproj", "{453B3B2F-54ED-42E3-995E-D306ECB518BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoSplitStack", "AutoSplitStack\AutoSplitStack.csproj", "{721B4F8C-9FC4-46A2-A359-2816E60F9488}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoSplitStack", "AutoSplitStack\AutoSplitStack.csproj", "{721B4F8C-9FC4-46A2-A359-2816E60F9488}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClockMod", "ClockMod\ClockMod.csproj", "{F664E67E-D2B1-4AAE-B9E2-9E036BA3D2F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClockMod", "ClockMod\ClockMod.csproj", "{F664E67E-D2B1-4AAE-B9E2-9E036BA3D2F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomAudio", "CustomAudio\CustomAudio.csproj", "{332F7475-7977-44C3-A511-CB13C56A8BD8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomAudio", "CustomAudio\CustomAudio.csproj", "{332F7475-7977-44C3-A511-CB13C56A8BD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NexusUpdate", "NexusUpdate\NexusUpdate.csproj", "{FD08909F-E5D9-45E6-AAE9-15D3791105DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NexusUpdate", "NexusUpdate\NexusUpdate.csproj", "{FD08909F-E5D9-45E6-AAE9-15D3791105DB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealClockMod", "RealClockMod\RealClockMod.csproj", "{3E0DB48D-E00B-4B24-B252-F4BC859BC2B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RealClockMod", "RealClockMod\RealClockMod.csproj", "{3E0DB48D-E00B-4B24-B252-F4BC859BC2B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomMeshes", "CustomMeshes\CustomMeshes.csproj", "{3CA2F556-BB70-402C-ADC3-AC6F0145B6E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomMeshes", "CustomMeshes\CustomMeshes.csproj", "{3CA2F556-BB70-402C-ADC3-AC6F0145B6E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DayCycle", "DayCycle\DayCycle.csproj", "{F5F0D897-CEFF-416C-A9F8-B7A4F434B830}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DayCycle", "DayCycle\DayCycle.csproj", "{F5F0D897-CEFF-416C-A9F8-B7A4F434B830}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomContainerSizes", "CustomContainerSizes\CustomContainerSizes.csproj", "{310FBC9C-4084-4D42-AF12-02DB7AAECD28}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomContainerSizes", "CustomContainerSizes\CustomContainerSizes.csproj", "{310FBC9C-4084-4D42-AF12-02DB7AAECD28}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShipSpeed", "ShipSpeed\ShipSpeed.csproj", "{B60664F7-A85E-4302-B5C5-C475C1ABF8D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShipSpeed", "ShipSpeed\ShipSpeed.csproj", "{B60664F7-A85E-4302-B5C5-C475C1ABF8D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovableChestInventory", "MovableChestInventory\MovableChestInventory.csproj", "{0473B5A9-FABE-441F-A1CE-E3E77F61F098}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovableChestInventory", "MovableChestInventory\MovableChestInventory.csproj", "{0473B5A9-FABE-441F-A1CE-E3E77F61F098}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContainersAnywhere", "ContainersAnywhere\ContainersAnywhere.csproj", "{46E92BC8-73B2-4C97-A55E-9B0385F496A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContainersAnywhere", "ContainersAnywhere\ContainersAnywhere.csproj", "{46E92BC8-73B2-4C97-A55E-9B0385F496A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoFuel", "AutoFuel\AutoFuel.csproj", "{87660053-76CB-449E-9AB1-E750F55A0B4D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoFuel", "AutoFuel\AutoFuel.csproj", "{87660053-76CB-449E-9AB1-E750F55A0B4D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstantMonsterDrop", "InstantMonsterDrop\InstantMonsterDrop.csproj", "{F98B7653-0348-40D0-90F0-1D46880CF9AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InstantMonsterDrop", "InstantMonsterDrop\InstantMonsterDrop.csproj", "{F98B7653-0348-40D0-90F0-1D46880CF9AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingDamageMod", "BuildingDamageMod\BuildingDamageMod.csproj", "{05E33387-F302-4EB9-B002-7DF95DD37CE7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildingDamageMod", "BuildingDamageMod\BuildingDamageMod.csproj", "{05E33387-F302-4EB9-B002-7DF95DD37CE7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomGraphicsSettings", "CustomGraphicsSettings\CustomGraphicsSettings.csproj", "{FC9E944F-8834-491C-A165-0DABFE80FDD6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomGraphicsSettings", "CustomGraphicsSettings\CustomGraphicsSettings.csproj", "{FC9E944F-8834-491C-A165-0DABFE80FDD6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscardDroppedItems", "DiscardDroppedItems\DiscardDroppedItems.csproj", "{766FBAFB-85B1-49D1-B262-98DDCFDB668D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscardDroppedItems", "DiscardDroppedItems\DiscardDroppedItems.csproj", "{766FBAFB-85B1-49D1-B262-98DDCFDB668D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoStore", "AutoStore\AutoStore.csproj", "{6BCB72BB-3244-42B5-B283-0C080AD73EA7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoStore", "AutoStore\AutoStore.csproj", "{6BCB72BB-3244-42B5-B283-0C080AD73EA7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiningMod", "MiningMod\MiningMod.csproj", "{E6159595-5A40-4248-932C-98624B950FBF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiningMod", "MiningMod\MiningMod.csproj", "{E6159595-5A40-4248-932C-98624B950FBF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepairRequiresMats", "RepairRequiresMats\RepairRequiresMats.csproj", "{BD7C5A4A-A394-4961-9DAC-3F6CF4203D57}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RepairRequiresMats", "RepairRequiresMats\RepairRequiresMats.csproj", "{BD7C5A4A-A394-4961-9DAC-3F6CF4203D57}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HereFishy", "HereFishy\HereFishy.csproj", "{85610E11-6796-40FB-9E7B-32C5CA7C14A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HereFishy", "HereFishy\HereFishy.csproj", "{85610E11-6796-40FB-9E7B-32C5CA7C14A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomItems", "CustomItems\CustomItems.csproj", "{EBBED5D5-6E40-4F03-A355-4D0F57E05FDA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomItems", "CustomItems\CustomItems.csproj", "{EBBED5D5-6E40-4F03-A355-4D0F57E05FDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonsterAITweaks", "MonsterAITweaks\MonsterAITweaks.csproj", "{110352B6-6B4A-4172-898F-84018761AF2E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonsterAITweaks", "MonsterAITweaks\MonsterAITweaks.csproj", "{110352B6-6B4A-4172-898F-84018761AF2E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimationSpeed", "AnimationSpeed\AnimationSpeed.csproj", "{84C8AB36-5D72-41C3-B9C4-F00BB2850C17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimationSpeed", "AnimationSpeed\AnimationSpeed.csproj", "{84C8AB36-5D72-41C3-B9C4-F00BB2850C17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapTeleport", "MapTeleport\MapTeleport.csproj", "{96DE9EC4-ACC8-4D91-9E2D-D6D52A9B5425}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapTeleport", "MapTeleport\MapTeleport.csproj", "{96DE9EC4-ACC8-4D91-9E2D-D6D52A9B5425}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SleepWithoutSpawn", "SleepWithoutSpawn\SleepWithoutSpawn.csproj", "{E9EDC6FF-AB75-4487-9D45-D60A9EDC7789}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SleepWithoutSpawn", "SleepWithoutSpawn\SleepWithoutSpawn.csproj", "{E9EDC6FF-AB75-4487-9D45-D60A9EDC7789}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlantMod", "PlantMod\PlantMod.csproj", "{F98C028D-737B-41B1-AC78-AA89839F5655}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlantMod", "PlantMod\PlantMod.csproj", "{F98C028D-737B-41B1-AC78-AA89839F5655}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrassTweaks", "GrassTweaks\GrassTweaks.csproj", "{197882E5-903E-40FD-9963-3AFAFFC85978}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrassTweaks", "GrassTweaks\GrassTweaks.csproj", "{197882E5-903E-40FD-9963-3AFAFFC85978}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JumpRunDodgeSneakWalk", "JumpRunDodgeSneakWalk\JumpRunDodgeSneakWalk.csproj", "{DFA917A1-CFF4-454A-AE3F-38412D10B297}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JumpRunDodgeSneakWalk", "JumpRunDodgeSneakWalk\JumpRunDodgeSneakWalk.csproj", "{DFA917A1-CFF4-454A-AE3F-38412D10B297}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmoteKeys", "EmoteKeys\EmoteKeys.csproj", "{D958DE95-7E2B-49B2-B2D9-866CC4F6D3F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmoteKeys", "EmoteKeys\EmoteKeys.csproj", "{D958DE95-7E2B-49B2-B2D9-866CC4F6D3F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomLoadingScreens", "CustomLoadingScreens\CustomLoadingScreens.csproj", "{EFF3C72E-CA27-4290-9869-44308747E719}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomLoadingScreens", "CustomLoadingScreens\CustomLoadingScreens.csproj", "{EFF3C72E-CA27-4290-9869-44308747E719}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTweaks", "ConsoleTweaks\ConsoleTweaks.csproj", "{E1E0580B-4932-44CA-A94D-B29FCF947D19}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleTweaks", "ConsoleTweaks\ConsoleTweaks.csproj", "{E1E0580B-4932-44CA-A94D-B29FCF947D19}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelmetHairToggle", "HelmetHairToggle\HelmetHairToggle.csproj", "{F67BE8BE-C23C-4F9B-A91D-7B77AD1E8D55}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelmetHairToggle", "HelmetHairToggle\HelmetHairToggle.csproj", "{F67BE8BE-C23C-4F9B-A91D-7B77AD1E8D55}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickCart", "QuickCart\QuickCart.csproj", "{7CA0E23D-7255-481D-966C-DD24AD9A85D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickCart", "QuickCart\QuickCart.csproj", "{7CA0E23D-7255-481D-966C-DD24AD9A85D0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingDemolish", "BuildingDemolish\BuildingDemolish.csproj", "{DA998B9B-ABEA-4389-82A8-1FCA3368ECE3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildingDemolish", "BuildingDemolish\BuildingDemolish.csproj", "{DA998B9B-ABEA-4389-82A8-1FCA3368ECE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotbarSwitch", "HotbarSwitch\HotbarSwitch.csproj", "{56A9443B-6C54-4C7A-84E8-C5CBDBA0E6FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotbarSwitch", "HotbarSwitch\HotbarSwitch.csproj", "{56A9443B-6C54-4C7A-84E8-C5CBDBA0E6FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayerModelSwitch", "PlayerModelSwitch\PlayerModelSwitch.csproj", "{C3ADDFBA-2DAE-4AD4-B99F-EBC0990D5E7F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlayerModelSwitch", "PlayerModelSwitch\PlayerModelSwitch.csproj", "{C3ADDFBA-2DAE-4AD4-B99F-EBC0990D5E7F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomServerLoadingScreen", "CustomServerLoadingScreen\CustomServerLoadingScreen.csproj", "{FD682840-FDBD-4548-84FB-0A1B153A82DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomServerLoadingScreen", "CustomServerLoadingScreen\CustomServerLoadingScreen.csproj", "{FD682840-FDBD-4548-84FB-0A1B153A82DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DespawnTrader", "DespawnTrader\DespawnTrader.csproj", "{DFC06E5E-D824-4A04-A72D-1984C77AA300}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DespawnTrader", "DespawnTrader\DespawnTrader.csproj", "{DFC06E5E-D824-4A04-A72D-1984C77AA300}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomizableToolbar", "CustomizableToolbar\CustomizableToolbar.csproj", "{5A03AFEC-CBFE-460E-B7DE-CEF3275C2D98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomizableToolbar", "CustomizableToolbar\CustomizableToolbar.csproj", "{5A03AFEC-CBFE-460E-B7DE-CEF3275C2D98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RememberIP", "RememberIP\RememberIP.csproj", "{DEC85537-0690-45D5-BD02-8BC28F67443D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RememberIP", "RememberIP\RememberIP.csproj", "{DEC85537-0690-45D5-BD02-8BC28F67443D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovableInventoryWindows", "MovableInventoryWindows\MovableInventoryWindows.csproj", "{080E3A8C-7284-45FE-865D-CBC07C4725CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MovableInventoryWindows", "MovableInventoryWindows\MovableInventoryWindows.csproj", "{080E3A8C-7284-45FE-865D-CBC07C4725CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeleteThis", "DeleteThis\DeleteThis.csproj", "{EF6F8026-740F-4E17-A09F-3EEAC37319A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeleteThis", "DeleteThis\DeleteThis.csproj", "{EF6F8026-740F-4E17-A09F-3EEAC37319A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleSort", "SimpleSort\SimpleSort.csproj", "{612657EF-E3FD-4D61-98C2-66D191CCC1D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleSort", "SimpleSort\SimpleSort.csproj", "{612657EF-E3FD-4D61-98C2-66D191CCC1D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomUI", "CustomUI\CustomUI.csproj", "{6ABC7498-9885-4913-865C-017090A58FEE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomUI", "CustomUI\CustomUI.csproj", "{6ABC7498-9885-4913-865C-017090A58FEE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharacterEdit", "CharacterEdit\CharacterEdit.csproj", "{E9436D85-5A2A-4D51-9E1D-31AAABAB4160}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CharacterEdit", "CharacterEdit\CharacterEdit.csproj", "{E9436D85-5A2A-4D51-9E1D-31AAABAB4160}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnableConsole", "EnableConsole\EnableConsole.csproj", "{E4A787A2-D08D-4F41-A287-800093FFCFCB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnableConsole", "EnableConsole\EnableConsole.csproj", "{E4A787A2-D08D-4F41-A287-800093FFCFCB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomToolbarHotkeys", "CustomToolbarHotkeys\CustomToolbarHotkeys.csproj", "{430D8DC6-D188-4D3C-8EC4-D67065267320}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomToolbarHotkeys", "CustomToolbarHotkeys\CustomToolbarHotkeys.csproj", "{430D8DC6-D188-4D3C-8EC4-D67065267320}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayerInventory", "PlayerInventory\PlayerInventory.csproj", "{348B29C1-CBCE-41BA-A524-60B9FBC49757}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlayerInventory", "PlayerInventory\PlayerInventory.csproj", "{348B29C1-CBCE-41BA-A524-60B9FBC49757}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{490F0E66-9372-49F1-8E48-91034AE7DE18}"
 	ProjectSection(SolutionItems) = preProject
@@ -124,19 +124,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		valheim.targets = valheim.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigurationManager", "ConfigurationManager\ConfigurationManager.csproj", "{104215E5-C277-4D43-A52C-B31467312299}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConfigurationManager", "ConfigurationManager\ConfigurationManager.csproj", "{104215E5-C277-4D43-A52C-B31467312299}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingHealthDisplay", "BuildingHealthDisplay\BuildingHealthDisplay.csproj", "{844E25D7-5D76-43C4-AC56-5136E801084D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildingHealthDisplay", "BuildingHealthDisplay\BuildingHealthDisplay.csproj", "{844E25D7-5D76-43C4-AC56-5136E801084D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonRegen", "DungeonRegen\DungeonRegen.csproj", "{EA29414E-93F8-472B-90AF-B46D5F2C0C2C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DungeonRegen", "DungeonRegen\DungeonRegen.csproj", "{EA29414E-93F8-472B-90AF-B46D5F2C0C2C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowContainerContents", "ShowContainerContents\ShowContainerContents.csproj", "{6BB20CFB-D3F8-4C89-98C0-5FC2C6B31372}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShowContainerContents", "ShowContainerContents\ShowContainerContents.csproj", "{6BB20CFB-D3F8-4C89-98C0-5FC2C6B31372}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvancedSigns", "AdvancedSigns\AdvancedSigns.csproj", "{155A25D0-60B0-4D1C-B53A-6A262612B02B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvancedSigns", "AdvancedSigns\AdvancedSigns.csproj", "{155A25D0-60B0-4D1C-B53A-6A262612B02B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compass", "Compass\Compass.csproj", "{F3FE9EEB-505D-4BBB-A164-DCA766BF42B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Compass", "Compass\Compass.csproj", "{F3FE9EEB-505D-4BBB-A164-DCA766BF42B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backpack", "Backpack\Backpack.csproj", "{0B6AFC30-0900-490A-88B4-96B779519B9D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Backpack", "Backpack\Backpack.csproj", "{0B6AFC30-0900-490A-88B4-96B779519B9D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CookingStationTweaks", "CookingStationTweaks\CookingStationTweaks.csproj", "{65432E8F-25EC-459C-911E-F1344A9BC012}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -400,6 +402,10 @@ Global
 		{0B6AFC30-0900-490A-88B4-96B779519B9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B6AFC30-0900-490A-88B4-96B779519B9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B6AFC30-0900-490A-88B4-96B779519B9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65432E8F-25EC-459C-911E-F1344A9BC012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65432E8F-25EC-459C-911E-F1344A9BC012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65432E8F-25EC-459C-911E-F1344A9BC012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65432E8F-25EC-459C-911E-F1344A9BC012}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
