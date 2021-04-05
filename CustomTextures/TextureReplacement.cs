@@ -100,6 +100,25 @@ namespace CustomTextures
                 hm.Regenerate();
             }
         }
+        
+        private static void ReplaceLocationTextures()
+        {
+            GameObject[] array = Resources.FindObjectsOfTypeAll<GameObject>();
+            foreach (GameObject gameObject in array)
+            {
+                if (gameObject.name == "_Locations")
+                {
+
+                    Location[] locations = gameObject.GetComponentsInChildren<Location>(true);
+                    Dbgl($"Checking {locations.Length} locations");
+                    foreach (Location location in locations)
+                    {
+                        ReplaceOneGameObjectTextures(location.gameObject, location.gameObject.name, "object");
+                    }
+                    break;
+                }
+            }
+        }
 
         private static void ReplaceHeightmapTextures()
         {

@@ -90,25 +90,13 @@ namespace CustomTextures
         [HarmonyPatch(typeof(ZoneSystem), "Start")]
         static class ZoneSystem_Start_Patch
         {
-            static void Prefix(ZoneSystem __instance)
+            static void Prefix()
             {
                 Dbgl($"Starting ZoneSystem Location prefab replacement");
                 stopwatch.Restart();
-                GameObject[] array = Resources.FindObjectsOfTypeAll<GameObject>();
-                foreach (GameObject gameObject in array)
-                {
-                    if (gameObject.name == "_Locations")
-                    {
 
-                        Location[] locations = gameObject.GetComponentsInChildren<Location>(true);
-                        Dbgl($"Checking {locations.Length} locations");
-                        foreach (Location location in locations)
-                        {
-                            ReplaceOneGameObjectTextures(location.gameObject, location.gameObject.name, "object");
-                        }
-                        break;
-                    }
-                }
+                ReplaceLocationTextures();
+
                 LogStopwatch("ZoneSystem Locations");
 
                 if (ZNetScene.instance && dumpSceneTextures.Value)

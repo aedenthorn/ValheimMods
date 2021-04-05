@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "0.5.1")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -31,9 +31,11 @@ namespace Compass
         public static ConfigEntry<float> compassYOffset;
         public static ConfigEntry<float> compassScale;
         public static ConfigEntry<float> markerScale;
+        public static ConfigEntry<float> minMarkerDistance;
         public static ConfigEntry<float> maxMarkerDistance;
         public static ConfigEntry<float> minMarkerScale;
         public static ConfigEntry<string> ignoredMarkerNames;
+        //public static ConfigEntry<string> unlimitedRangeMarkerNames;
         
 
         public static GameObject compassObject;
@@ -55,9 +57,11 @@ namespace Compass
             compassYOffset = Config.Bind<float>("Compass", "CompassYOffset", 0, "Compass offset from top of screen in pixels");
             
             markerScale = Config.Bind<float>("Markers", "MarkerScale", 1f, "Marker scale");
+            minMarkerDistance = Config.Bind<float>("Markers", "MinMarkerDistance", 1, "Minimum marker distance to show on map in metres");
             maxMarkerDistance = Config.Bind<float>("Markers", "MaxMarkerDistance", 100, "Max marker distance to show on map in metres");
             minMarkerScale = Config.Bind<float>("Markers", "MinMarkerScale", 0.25f, "Marker scale at max marker distance (before applying MarkerScale)");
             ignoredMarkerNames = Config.Bind<string>("Markers", "IgnoredMarkerNames", "Silver,Obsidian,Copper,Tin", "Ignore markers with these names (comma-separated). Default list is pins added by AutoMapPins");
+            //unlimitedRangeMarkerNames = Config.Bind<string>("Markers", "UnlimitedRangeMarkerNames", "", "Ignore max range limits for markers with these names (comma-separated).");
 
             compassFile = Config.Bind<string>("Files", "CompassFile", "compass.png", "Compass file to use in Compass folder");
             maskFile = Config.Bind<string>("Files", "MaskFile", "mask.png", "Mask file to use in Compass folder");
@@ -206,6 +210,7 @@ namespace Compass
                 }
 
                 string[] ignoredNames = ignoredMarkerNames.Value.Split(',');
+                //string[] unlimitedRangeMarkerNamesList = unlimitedRangeMarkerNames.Value.Split(',');
                 Transform pt = Player.m_localPlayer.transform;
                 float zeroScaleDistance = maxMarkerDistance.Value / (1 - minMarkerScale.Value);
 
@@ -216,7 +221,7 @@ namespace Compass
 
                     var t = pinsObject.transform.Find(name);
 
-                    if (ignoredNames.Contains(pin.m_name) || Vector3.Distance(pt.position, pin.m_pos) > maxMarkerDistance.Value)
+                    if (ignoredNames.Contains(pin.m_name) || Vector3.Distance(pt.position, pin.m_pos) > maxMarkerDistance.Value || Vector3.Distance(pt.position, pin.m_pos) < minMarkerDistance.Value)
                     {
                         if(t)
                             t.gameObject.SetActive(false);
