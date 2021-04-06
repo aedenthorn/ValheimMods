@@ -249,13 +249,13 @@
     </Reference>
   </ItemGroup>
 
-  <ItemGroup>
-    <MainDLL Include="$(TargetDir)$(TargetName).dll" />
-    <AdditionalFiles Include="$(TargetDir)**\*.*" Exclude="$(TargetDir)**\*.pdb" />
-  </ItemGroup>
   
   <!-- Copy to plugins folder and zip -->
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <MainDLL Include="$(TargetDir)$(TargetName).dll" />
+      <AdditionalFiles Include="$(TargetDir)**\*.*" Exclude="$(TargetDir)**\*.pdb" />
+    </ItemGroup>
     <Copy SourceFiles="@(MainDLL)" DestinationFolder="$(GamePath)\BepInEx\plugins\%(RecursiveDir)"></Copy>
     <Copy SourceFiles="@(AdditionalFiles)" DestinationFolder="$(GamePath)\BepInEx\plugins\%(RecursiveDir)"></Copy>
     <Delete Files="$(ProjectDir)\bin\$(TargetName).zip" />
@@ -263,5 +263,5 @@
     <Copy SourceFiles="@(AdditionalFiles)" DestinationFolder="$(TargetDir)..\Release\%(RecursiveDir)"></Copy>
     <ZipDirectory SourceDirectory="$(TargetDir)..\Release" DestinationFile="$(ProjectDir)\bin\$(TargetName).zip" />
     <RemoveDir Directories="$(TargetDir)..\Release" />
-</Target>
+  </Target>
 </Project>
