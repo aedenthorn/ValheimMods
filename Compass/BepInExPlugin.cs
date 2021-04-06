@@ -1,19 +1,16 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "0.6.0")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "0.6.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -65,6 +62,7 @@ namespace Compass
 
             compassFile = Config.Bind<string>("Files", "CompassFile", "compass.png", "Compass file to use in Compass folder");
             maskFile = Config.Bind<string>("Files", "MaskFile", "mask.png", "Mask file to use in Compass folder");
+
             compassColor = Config.Bind<Color>("Colors", "CompassColor", Color.white, "Compass color");
             markerColor = Config.Bind<Color>("Colors", "MarkerColor", Color.white, "Marker color");
 
