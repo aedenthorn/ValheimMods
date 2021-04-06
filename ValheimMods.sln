@@ -140,9 +140,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Backpack", "Backpack\Backpa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CookingStationTweaks", "CookingStationTweaks\CookingStationTweaks.csproj", "{65432E8F-25EC-459C-911E-F1344A9BC012}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MerchantSpawnTweaks", "MerchantSpawnTweaks\MerchantSpawnTweaks.csproj", "{4AA627B6-66EE-4A52-8983-28ADA518C735}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MerchantSpawnTweaks", "MerchantSpawnTweaks\MerchantSpawnTweaks.csproj", "{4AA627B6-66EE-4A52-8983-28ADA518C735}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapCoordinateDisplay", "MapCoordinateDisplay\MapCoordinateDisplay.csproj", "{779BE120-644F-4AB1-A6B6-D684738E7473}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapCoordinateDisplay", "MapCoordinateDisplay\MapCoordinateDisplay.csproj", "{779BE120-644F-4AB1-A6B6-D684738E7473}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
