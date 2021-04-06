@@ -3,7 +3,4 @@
     <Version>1.0.0</Version>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\valheim.targets" />
-  <ItemGroup>
-    <None Remove="clockmod.lang.de.cfg" />
-  </ItemGroup>
 </Project>
