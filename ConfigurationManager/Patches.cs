@@ -3,6 +3,8 @@
 
 using HarmonyLib;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace ConfigurationManager
@@ -10,15 +12,11 @@ namespace ConfigurationManager
     static class Patches
     {
         const string OpenLogString = "Show Player.log";
-        private static Text OpenLogButton { get; set; }
+        private static GameObject OpenMenuButton { get; set; }
+
         internal static void ApplyPatches()
         {
             Harmony harmony = new Harmony(BepInExPlugin.GUID);
-
-            harmony.Patch(
-                original: AccessTools.Method(typeof(FejdStartup), "OnButtonShowLog"),
-                prefix: new HarmonyMethod(AccessTools.Method(typeof(Patches), nameof(Patches.OnButtonShowLog)))
-                );
 
             harmony.Patch(
                 original: AccessTools.Method(typeof(FejdStartup), "Start"),
@@ -30,17 +28,25 @@ namespace ConfigurationManager
                 prefix: new HarmonyMethod(AccessTools.Method(typeof(Patches), nameof(Patches.InputText)))
                 );
 
-            BepInExPlugin._openMenuText.SettingChanged += (s,e) => ResetButtonText();
-            BepInExPlugin._replaceLogButton.SettingChanged += (s,e) => ResetButtonText();
+            BepInExPlugin._openMenuText.SettingChanged += (s,e) => SetupMenuButton();
+            BepInExPlugin._showMenuButton.SettingChanged += (s,e) => SetupMenuButton();
         }
 
-        internal static void ResetButtonText()
+        internal static void SetupMenuButton()
         {
-            if (OpenLogButton == null)
-                OpenLogButton = FejdStartup.instance?.m_mainMenu.GetComponentsInChildren<Text>().FirstOrDefault(t => t.text == OpenLogString || t.text == Localization.instance.Localize(OpenLogString));
+            if (OpenMenuButton == null && FejdStartup.instance?.m_mainMenu.GetComponentsInChildren<Text>().FirstOrDefault(t => t.text == OpenLogString || t.text == Localization.instance.Localize(OpenLogString)) is Text openLogButton)
+            {
+                OpenMenuButton = Object.Instantiate(openLogButton.transform.parent.gameObject, openLogButton.transform.parent.parent);
+                OpenMenuButton.name = "OpenConfigMenu";
+                OpenMenuButton.transform.localPosition += new Vector3(0, 25, 0);
+                OpenMenuButton.GetComponentInChildren<Text>().text = BepInExPlugin._openMenuText.Value;
+                var button = OpenMenuButton.GetComponent<Button>();
+                button.onClick = new Button.ButtonClickedEvent();
+                button.onClick.AddListener(() => BepInExPlugin.context.DisplayingWindow = true);
+            }
 
-            if (OpenLogButton?.text is string)
-                OpenLogButton.text = BepInExPlugin._replaceLogButton.Value ? BepInExPlugin._openMenuText.Value : Localization.instance.Localize(OpenLogString);
+            OpenMenuButton.GetComponentInChildren<Text>().text = BepInExPlugin._openMenuText.Value;
+            OpenMenuButton.SetActive(BepInExPlugin._showMenuButton.Value);
         }
 
         private static bool InputText(Console __instance)
@@ -59,16 +65,7 @@ namespace ConfigurationManager
 
         private static void Start()
         {
-            ResetButtonText();
-        }
-
-        private static bool OnButtonShowLog(FejdStartup __instance)
-        {
-            if (!BepInExPlugin._replaceLogButton.Value || BepInExPlugin.context.DisplayingWindow)
-                return true;
-
-            BepInExPlugin.context.DisplayingWindow = true;
-            return false;
+            SetupMenuButton();
         }
     }
 }

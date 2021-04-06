@@ -81,7 +81,7 @@ namespace ConfigurationManager
         public static ConfigEntry<bool> _showAdvanced;
         public static ConfigEntry<bool> _showKeybinds;
         public static ConfigEntry<bool> _showSettings;
-        public static ConfigEntry<bool> _replaceLogButton;
+        public static ConfigEntry<bool> _showMenuButton;
 
         public static ConfigEntry<KeyboardShortcut> _keybind;
         public static ConfigEntry<bool> _hideSingleSection;
@@ -142,7 +142,7 @@ namespace ConfigurationManager
             _showKeybinds = Config.Bind("Filtering", "Show keybinds", true);
             _showSettings = Config.Bind("Filtering", "Show settings", true);
             _hideSingleSection = Config.Bind("General", "Hide single sections", false, new ConfigDescription("Show section title for plugins with only one section"));
-            _replaceLogButton = Config.Bind("General", "Replace Log Button", true, new ConfigDescription("Replaces the Show Player.log button on the start menu"));
+            _showMenuButton = Config.Bind("General", "Show Menu Button", true, new ConfigDescription("Show the menu button on the start menu"));
 
             _windowTitle = Config.Bind("Text", "WindowTitle", "Configuration Manager", new ConfigDescription("Window title text"));
             _normalText = Config.Bind("Text", "NormalText", "Normal", new ConfigDescription("Normal settings toggle text"));
@@ -349,9 +349,6 @@ namespace ConfigurationManager
                     try { Utilities.Utils.OpenLog(); }
                     catch (SystemException ex) { Logger.Log(LogLevel.Message | LogLevel.Error, ex.Message); }
                 }
-
-                if (GUILayout.Button("Log Folder", buttonStyle, GUILayout.ExpandWidth(false)))
-                    FejdStartup.instance.OnButtonShowLog();
 
                 if (GUILayout.Button("Close", buttonStyle, GUILayout.ExpandWidth(false)))
                     DisplayingWindow = false;
