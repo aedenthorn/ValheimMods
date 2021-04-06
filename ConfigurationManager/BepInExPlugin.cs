@@ -5,7 +5,6 @@ using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,7 +31,7 @@ namespace ConfigurationManager
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
 
-        private static BepInExPlugin context;
+        internal static BepInExPlugin context;
         internal static new ManualLogSource Logger;
         private static SettingFieldDrawer _fieldDrawer;
 
@@ -82,6 +81,8 @@ namespace ConfigurationManager
         public static ConfigEntry<bool> _showAdvanced;
         public static ConfigEntry<bool> _showKeybinds;
         public static ConfigEntry<bool> _showSettings;
+        public static ConfigEntry<bool> _showMenuButton;
+
         public static ConfigEntry<KeyboardShortcut> _keybind;
         public static ConfigEntry<bool> _hideSingleSection;
         public static ConfigEntry<bool> _pluginConfigCollapsedDefault;
@@ -100,6 +101,7 @@ namespace ConfigurationManager
         public static ConfigEntry<string> _collapseText;
         public static ConfigEntry<string> _tipText;
         public static ConfigEntry<string> _clearText;
+        public static ConfigEntry<string> _openMenuText;
 
         public static ConfigEntry<int> _textSize;
         public static ConfigEntry<Color> _windowBackgroundColor;
@@ -140,6 +142,7 @@ namespace ConfigurationManager
             _showKeybinds = Config.Bind("Filtering", "Show keybinds", true);
             _showSettings = Config.Bind("Filtering", "Show settings", true);
             _hideSingleSection = Config.Bind("General", "Hide single sections", false, new ConfigDescription("Show section title for plugins with only one section"));
+            _showMenuButton = Config.Bind("General", "Show Menu Button", true, new ConfigDescription("Show the menu button on the start menu"));
 
             _windowTitle = Config.Bind("Text", "WindowTitle", "Configuration Manager", new ConfigDescription("Window title text"));
             _normalText = Config.Bind("Text", "NormalText", "Normal", new ConfigDescription("Normal settings toggle text"));
@@ -153,20 +156,20 @@ namespace ConfigurationManager
             _collapseText = Config.Bind("Text", "CollapseText", "Collapse", new ConfigDescription("Collapse button text"));
             _tipText = Config.Bind("Text", "TipText", "Tip: Click plugin names to expand. Hover over setting names to see their descriptions.", new ConfigDescription("Tip text"));
             _clearText = Config.Bind("Text", "ClearText", "Clear", new ConfigDescription("Clear search text"));
+            _openMenuText = Config.Bind("Text", "OpenMenuText", "Open Config Menu", new ConfigDescription("Open Menu Button text"));
 
             _pluginConfigCollapsedDefault = Config.Bind("General", "Plugin collapsed default", true, new ConfigDescription("If set to true plugins will be collapsed when opening the configuration manager window"));
-            _windowPosition = Config.Bind("General", "WindowPosition", new Vector2(55,35), "Window position");
+            _windowPosition = Config.Bind("General", "WindowPosition", new Vector2(55, 35), "Window position");
             _windowSize = Config.Bind("General", "WindowSize", DefaultWindowRect.size, "Window size");
             _textSize = Config.Bind("General", "FontSize", 14, "Font Size");
-            _windowBackgroundColor = Config.Bind("Colors", "WindowBackgroundColor", new Color(0,0,0,1), "Window background color");
+            _windowBackgroundColor = Config.Bind("Colors", "WindowBackgroundColor", new Color(0, 0, 0, 1), "Window background color");
             _entryBackgroundColor = Config.Bind("Colors", "EntryBackgroundColor", new Color(0.557f, 0.502f, 0.502f, 0.871f), "Entry background color");
             _fontColor = Config.Bind("Colors", "FontColor", new Color(1, 0.714f, 0.361f, 1), "Font color");
             _widgetBackgroundColor = Config.Bind("Colors", "WidgetColor", new Color(0.882f, 0.463f, 0, 0.749f), "Widget color");
 
             currentWindowRect = new Rect(_windowPosition.Value, _windowSize.Value);
-            
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
+            Patches.ApplyPatches();
         }
 
         private void OnGUI()
@@ -346,6 +349,9 @@ namespace ConfigurationManager
                     try { Utilities.Utils.OpenLog(); }
                     catch (SystemException ex) { Logger.Log(LogLevel.Message | LogLevel.Error, ex.Message); }
                 }
+
+                if (GUILayout.Button("Close", buttonStyle, GUILayout.ExpandWidth(false)))
+                    DisplayingWindow = false;
             }
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
@@ -839,24 +845,5 @@ namespace ConfigurationManager
 
             public int Height { get; set; }
         }
-
-        [HarmonyPatch(typeof(Console), "InputText")]
-        static class InputText_Patch
-        {
-            static bool Prefix(Console __instance)
-            {
-                string text = __instance.m_input.text;
-                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
-                {
-                    context.Config.Reload();
-                    context.Config.Save();
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
-                    return false;
-                }
-                return true;
-            }
-        }
-
     }
 }
