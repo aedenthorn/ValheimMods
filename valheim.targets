@@ -249,26 +249,26 @@
     </Reference>
   </ItemGroup>
 
+  
   <ItemGroup>
-	<Content Include="*.cfg">
-		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</Content>
-  </ItemGroup>
-
+	  <Content Include="AdditionalFiles/**/*.*">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+   </ItemGroup>
+  
   <ItemGroup>
     <MainDLL Include="$(TargetDir)$(TargetName).dll" />
-    <AllCFG Include="$(TargetDir)**\*.cfg" />
+    <AditionalFiles Include="$(ProjectDir)AdditionalFiles/**/*.*" />
   </ItemGroup>
   
   <!-- Copy to plugins folder and zip -->
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="@(MainDLL)" DestinationFolder="$(GamePath)\BepInEx\plugins\%(RecursiveDir)"></Copy>
-    <Copy SourceFiles="@(AllCFG)" DestinationFolder="$(GamePath)\BepInEx\plugins\%(RecursiveDir)"></Copy>
-    <Copy Condition="@(AditionalFiles) != ''" SourceFiles="@(AditionalFiles)" DestinationFolder="$(GamePath)\BepInEx\plugins\%(RecursiveDir)"></Copy>
+    <Copy SourceFiles="@(AditionalFiles)" DestinationFolder="$(GamePath)\BepInEx\plugins\%(RecursiveDir)"></Copy>
     <Delete Files="$(TargetDir)$(TargetName).zip" />
     <Copy SourceFiles="@(MainDLL)" DestinationFolder="$(TargetDir)Release\%(RecursiveDir)"></Copy>
-    <Copy SourceFiles="@(AllCFG)" DestinationFolder="$(TargetDir)Release\%(RecursiveDir)"></Copy>
-    <Copy Condition="@(AditionalFiles) != ''" SourceFiles="@(AditionalFiles)" DestinationFolder="$(TargetDir)Release\%(RecursiveDir)"></Copy>
+    <Copy SourceFiles="@(AditionalFiles)" DestinationFolder="$(TargetDir)Release\%(RecursiveDir)"></Copy>
+    <Delete Files="$(TargetDir)$(TargetName).zip" />
     <ZipDirectory SourceDirectory="$(TargetDir)Release" DestinationFile="$(TargetDir)$(TargetName).zip" />
     <RemoveDir Directories="$(TargetDir)Release" />
 </Target>
