@@ -3,4 +3,15 @@
     <Version>1.0.0</Version>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\valheim.targets" />
+  <ItemGroup>
+    <None Update="Compass\compass.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Compass\Compass.xcf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Compass\mask.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
