@@ -29,10 +29,10 @@ namespace Backpack
         public static ConfigEntry<bool> dropInventoryOnDeath;
         public static ConfigEntry<bool> createTombStone;
 
-        private static GameObject backpack;
+        private static GameObject backpack = null;
         private static ZDO backpackZDO = null;
         private static string backpackObjectPrefix = "Container_Backpack";
-        private static string backpackObjectName;
+        private static string backpackObjectName = "";
         private static bool saving = false;
         private static bool opening = false;
 

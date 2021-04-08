@@ -6,7 +6,7 @@ using Debug = UnityEngine.Debug;
 
 namespace MapCoordinateDisplay
 {
-    [BepInPlugin("aedenthorn.MapCoordinateDisplay", "Map Coordinate Display", "0.1.0")]
+    [BepInPlugin("aedenthorn.MapCoordinateDisplay", "Map Coordinate Display", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -26,9 +26,11 @@ namespace MapCoordinateDisplay
         public static ConfigEntry<string> titleString;
         public static ConfigEntry<string> cursorString;
         public static ConfigEntry<string> playerString;
+        public static ConfigEntry<string> fontName;
         public static ConfigEntry<Color> playerCoordFontColor;
         public static ConfigEntry<Color> cursorCoordFontColor;
         public static ConfigEntry<Color> windowBackgroundColor;
+        public static ConfigEntry<TextAnchor> alignment;
 
         private Rect windowRect;
         private int windowId = 5318008;
@@ -37,9 +39,12 @@ namespace MapCoordinateDisplay
         private Rect secondRect;
         private GUIStyle cursorStyle;
         private GUIStyle playerStyle;
+        private GUIStyle windowStyle;
 
         private static string playerPos = "";
         private static string cursorPos = "";
+        private string lastFontName;
+        private Font currentFont;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -64,6 +69,8 @@ namespace MapCoordinateDisplay
             playerCoordFontColor = Config.Bind<Color>("Display", "PlayerCoordFontColor", Color.white, "Player coordinate font color");
             cursorCoordFontColor = Config.Bind<Color>("Display", "CursorCoordFontColor", Color.white, "Cursor coordinate font color");
             windowBackgroundColor = Config.Bind<Color>("Display", "windowBackgroundColor", Color.clear, "Window background color");
+            fontName = Config.Bind<string>("Display", "FontName", "AveriaSerifLibre-Bold", "Font name");
+            alignment = Config.Bind<TextAnchor>("Display", "TextAlignment", TextAnchor.UpperCenter, "Text alignment");
 
 
             windowRect = new Rect(coordPosition.Value, new Vector2(1000, 100));
@@ -77,17 +84,28 @@ namespace MapCoordinateDisplay
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
+        private static Font GetFont(string fontName, int fontSize)
+        {
+            Font[] fonts = Resources.FindObjectsOfTypeAll<Font>();
+            foreach (Font font in fonts)
+            {
+                if (font.name == fontName)
+                {
+                    return font;
+                }
+            }
+            return Font.CreateDynamicFontFromOSFont(fontName, fontSize);
+        }
 
         private void OnGUI()
         {
             if (!modEnabled.Value || !Player.m_localPlayer)
                 return;
-
             cursorStyle = new GUIStyle
             {
                 richText = true,
                 fontSize = coordFontSize.Value,
-                alignment = TextAnchor.UpperCenter
+                alignment = alignment.Value
             };
             cursorStyle.normal.textColor = cursorCoordFontColor.Value;
 
@@ -95,11 +113,31 @@ namespace MapCoordinateDisplay
             {
                 richText = true,
                 fontSize = coordFontSize.Value,
-                alignment = TextAnchor.UpperCenter
+                alignment = alignment.Value
             };
             playerStyle.normal.textColor = playerCoordFontColor.Value;
 
-            playerPos = showPlayerCoordinates.Value ? string.Format(playerString.Value, Player.m_localPlayer.transform.position) : "";
+            windowStyle = GUI.skin.window;
+
+            if (lastFontName != fontName.Value) // call when config changes
+            {
+                lastFontName = fontName.Value;
+                Dbgl($"new font {fontName.Value}");
+                Font font = GetFont(fontName.Value, 20);
+                if (font == null)
+                    Dbgl($"new font not found");
+                else
+                    currentFont = font;
+            }
+            if (currentFont != null && cursorStyle?.font?.name != currentFont.name)
+            {
+                Dbgl($"setting font {currentFont.name}");
+                cursorStyle.font = currentFont;
+                playerStyle.font = currentFont;
+                windowStyle.font = currentFont;
+            }
+
+            playerPos = showPlayerCoordinates.Value ? string.Format(playerString.Value, new Vector3(Player.m_localPlayer.transform.position.x, Player.m_localPlayer.transform.position.z, Player.m_localPlayer.transform.position.y)) : "";
 
             if (Minimap.IsOpen() && showCursorCoordinates.Value)
             {
@@ -113,7 +151,7 @@ namespace MapCoordinateDisplay
                 return;
 
             GUI.backgroundColor = windowBackgroundColor.Value;
-            windowRect = GUILayout.Window(windowId, new Rect(windowRect.position, coordRect.position + (playerPos.Length > 0 && cursorPos.Length > 0 ? doubleSize.size : coordRect.size)), new GUI.WindowFunction(WindowBuilder), titleString.Value);
+            windowRect = GUILayout.Window(windowId, new Rect(windowRect.position, coordRect.position + (playerPos.Length > 0 && cursorPos.Length > 0 ? doubleSize.size : coordRect.size)), new GUI.WindowFunction(WindowBuilder), titleString.Value, windowStyle);
             if (!Input.GetKey(KeyCode.Mouse0) && (windowRect.x != coordPosition.Value.x || windowRect.y != coordPosition.Value.y))
             {
                 coordPosition.Value = new Vector2(windowRect.x, windowRect.y);
