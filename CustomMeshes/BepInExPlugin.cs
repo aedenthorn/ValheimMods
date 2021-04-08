@@ -12,7 +12,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomMeshes
 {
-    [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.2.1")]
+    [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.2.3")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static Dictionary<string, Dictionary<string, Dictionary<string, CustomMeshData>>> customMeshes = new Dictionary<string, Dictionary<string, Dictionary<string, CustomMeshData>>>();
@@ -212,7 +212,7 @@ namespace CustomMeshes
                     foreach (MeshFilter mf in mfs)
                     {
                         string parent = mf.transform.parent.gameObject.name;
-                        //Dbgl($"got item name: {name}, obj: {parent}, mf: {mf.name}");
+                        Dbgl($"got mesh filter, item name: {name}, obj: {parent}, mf: {mf.name}");
                         if (name == GetPrefabName(parent) && customMeshes[name].ContainsKey(mf.name) && customMeshes[name][mf.name].ContainsKey(mf.name))
                         {
                             Dbgl($"replacing item mesh {mf.name}");
@@ -222,6 +222,22 @@ namespace CustomMeshes
                         {
                             Dbgl($"replacing attached mesh {mf.name}");
                             mf.mesh = customMeshes[name][parent][mf.name].mesh;
+                        }
+                    }
+                    SkinnedMeshRenderer[] smrs = __instance.m_itemData.m_dropPrefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                    foreach (SkinnedMeshRenderer smr in smrs)
+                    {
+                        string parent = smr.transform.parent.gameObject.name;
+                        Dbgl($"got skinned mesh renderer, item name: {name}, obj: {parent}, smr: {smr.name}");
+                        if (name == GetPrefabName(parent) && customMeshes[name].ContainsKey(smr.name) && customMeshes[name][smr.name].ContainsKey(smr.name))
+                        {
+                            Dbgl($"replacing item mesh {smr.name}");
+                            smr.sharedMesh = customMeshes[name][smr.name][smr.name].mesh;
+                        }
+                        else if (customMeshes[name].ContainsKey(parent) && customMeshes[name][parent].ContainsKey(smr.name))
+                        {
+                            Dbgl($"replacing attached mesh {smr.name}");
+                            smr.sharedMesh = customMeshes[name][parent][smr.name].mesh;
                         }
                     }
                 }

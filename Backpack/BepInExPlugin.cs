@@ -179,7 +179,7 @@ namespace Backpack
         }
         private static void InitBackpack()
         {
-            Dbgl("Fixing backpack.");
+            Dbgl("Initializing backpack.");
 
             backpack.transform.localPosition = Vector3.zero;
             backpack.name = backpackObjectName;
@@ -234,7 +234,7 @@ namespace Backpack
         {
             static void Prefix(ZNetScene __instance)
             {
-                if (!modEnabled.Value || !backpack || !Player.m_localPlayer)
+                if (!modEnabled.Value || !Player.m_localPlayer)
                     return;
                 ResetBackpackSector();
             }
@@ -326,6 +326,9 @@ namespace Backpack
         }
         private static void ResetBackpackSector()
         {
+            if (backpack?.GetComponent<ZNetView>()?.GetZDO() == null)
+                return;
+
             Vector2i zone = ZoneSystem.instance.GetZone(ZNet.instance.GetReferencePosition());
             Traverse.Create(backpack.GetComponent<ZNetView>().GetZDO()).Method("SetSector", new object[] { zone }).GetValue();
         }

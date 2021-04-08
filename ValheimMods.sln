@@ -144,6 +144,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MerchantSpawnTweaks", "Merc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapCoordinateDisplay", "MapCoordinateDisplay\MapCoordinateDisplay.csproj", "{779BE120-644F-4AB1-A6B6-D684738E7473}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartSupport", "CartSupport\CartSupport.csproj", "{2A3A0C62-40E5-4D77-AE6E-6466D8AD7648}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -418,6 +420,10 @@ Global
 		{779BE120-644F-4AB1-A6B6-D684738E7473}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{779BE120-644F-4AB1-A6B6-D684738E7473}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{779BE120-644F-4AB1-A6B6-D684738E7473}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A3A0C62-40E5-4D77-AE6E-6466D8AD7648}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A3A0C62-40E5-4D77-AE6E-6466D8AD7648}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A3A0C62-40E5-4D77-AE6E-6466D8AD7648}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A3A0C62-40E5-4D77-AE6E-6466D8AD7648}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
