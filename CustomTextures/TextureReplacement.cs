@@ -103,17 +103,38 @@ namespace CustomTextures
         
         private static void ReplaceLocationTextures()
         {
+            if (!dumpSceneTextures.Value)
+            {
+                try
+                {
+                    customTextures.First(k => k.Key.StartsWith("location"));
+                }
+                catch
+                {
+                    return;
+                }
+            }
             GameObject[] array = Resources.FindObjectsOfTypeAll<GameObject>();
             foreach (GameObject gameObject in array)
             {
                 if (gameObject.name == "_Locations")
                 {
-
                     Location[] locations = gameObject.GetComponentsInChildren<Location>(true);
                     Dbgl($"Checking {locations.Length} locations");
                     foreach (Location location in locations)
                     {
-                        ReplaceOneGameObjectTextures(location.gameObject, location.gameObject.name, "object");
+                        if (!dumpSceneTextures.Value)
+                        {
+                            try
+                            {
+                                customTextures.First(k => k.Key.StartsWith("location_") && k.Key.Contains(location.gameObject.name));
+                            }
+                            catch
+                            {
+                                continue;
+                            }
+                        }
+                        ReplaceOneGameObjectTextures(location.gameObject, location.gameObject.name, "location");
                     }
                     break;
                 }

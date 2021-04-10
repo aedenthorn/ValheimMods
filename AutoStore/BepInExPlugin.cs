@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace AutoStore
 {
-    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.2.6")]
+    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -197,7 +194,7 @@ namespace AutoStore
         {
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
-                if (!isOn.Value || ___m_nview == null || ___m_nview.GetZDO() == null || !__instance.IsOwner())
+                if (!isOn.Value || ___m_nview == null || ___m_nview.GetZDO() == null)
                     return;
 
                 Vector3 position = __instance.transform.position + Vector3.up;
@@ -208,22 +205,22 @@ namespace AutoStore
                         ItemDrop item = collider.attachedRigidbody.GetComponent<ItemDrop>();
                         //Dbgl($"nearby item name: {item.m_itemData.m_dropPrefab.name}");
 
-                        if (item?.GetComponent<ZNetView>()?.IsValid() != true)
+                        if (item?.GetComponent<ZNetView>()?.IsValid() != true || !item.GetComponent<ZNetView>().IsOwner())
                             continue;
 
                         if (DisallowItem(__instance, item.m_itemData))
                             continue;
 
                         Dbgl($"auto storing {item.m_itemData.m_dropPrefab.name} from ground");
-                        item.GetComponent<ZNetView>()?.ClaimOwnership();
+                        
 
                         while (item.m_itemData.m_stack > 1 && __instance.GetInventory().CanAddItem(item.m_itemData, 1))
                         {
                             item.m_itemData.m_stack--;
-                            Traverse.Create(item).Method("Save").GetValue();
                             ItemDrop.ItemData newItem = item.m_itemData.Clone();
                             newItem.m_stack = 1;
                             __instance.GetInventory().AddItem(newItem);
+                            Traverse.Create(item).Method("Save").GetValue();
                             typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { });
                             typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance.GetInventory(), new object[] { });
                         }

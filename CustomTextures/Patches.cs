@@ -92,13 +92,15 @@ namespace CustomTextures
         {
             static void Prefix()
             {
-                Dbgl($"Starting ZoneSystem Location prefab replacement");
-                stopwatch.Restart();
+                if (replaceLocationTextures.Value)
+                {
+                    Dbgl($"Starting ZoneSystem Location prefab replacement");
+                    stopwatch.Restart();
 
-                ReplaceLocationTextures();
+                    ReplaceLocationTextures();
 
-                LogStopwatch("ZoneSystem Locations");
-
+                    LogStopwatch("ZoneSystem Locations");
+                }
                 if (ZNetScene.instance && dumpSceneTextures.Value)
                 {
                     string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");

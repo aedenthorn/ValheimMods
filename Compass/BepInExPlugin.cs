@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "0.6.2")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "0.7.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -20,6 +20,7 @@ namespace Compass
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
         
+        public static ConfigEntry<bool> showPlayerMarkers;
         public static ConfigEntry<bool> usePlayerDirection;
         public static ConfigEntry<string> compassFile;
         public static ConfigEntry<string> maskFile;
@@ -52,7 +53,8 @@ namespace Compass
             usePlayerDirection = Config.Bind<bool>("Compass", "UsePlayerDirection", false, "Orient the compass based on the player's facing direction, rather than the middle of the screen");
             compassScale = Config.Bind<float>("Compass", "CompassScale", 0.75f, "Compass scale");
             compassYOffset = Config.Bind<float>("Compass", "CompassYOffset", 0, "Compass offset from top of screen in pixels");
-            
+
+            showPlayerMarkers = Config.Bind<bool>("Markers", "ShowPlayerMarkers", true, "Show player markers on compass.");
             markerScale = Config.Bind<float>("Markers", "MarkerScale", 1f, "Marker scale");
             minMarkerDistance = Config.Bind<float>("Markers", "MinMarkerDistance", 1, "Minimum marker distance to show on map in metres");
             maxMarkerDistance = Config.Bind<float>("Markers", "MaxMarkerDistance", 100, "Max marker distance to show on map in metres");
@@ -101,17 +103,12 @@ namespace Compass
                 Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
                 Sprite maskSprite = Sprite.Create(maskTex, new Rect(0, 0, halfWidth, maskTex.height), Vector2.zero);
 
-                //float imageScale = 4 / 3f *  GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;
-
-                //Dbgl($"image scale {imageScale} pos {((Screen.height - texture.height) / 2)}");
-
                 // Mask object
 
                 GameObject parent = new GameObject();
                 parent.name = "Compass";
                 RectTransform prt = parent.AddComponent<RectTransform>();
                 prt.SetParent(__instance.m_rootObject.transform);
-                //prt.anchoredPosition = new Vector2(0f, (Screen.height - texture.height) / imageScale / 2) - Vector2.up * compassYOffset.Value;
                 prt.sizeDelta = new Vector2(halfWidth, texture.height);
                 prt.localScale = Vector3.one * compassScale.Value;
 
@@ -199,6 +196,9 @@ namespace Compass
                 var pinList = new List<Minimap.PinData>(AccessTools.DeclaredField(typeof(Minimap), "m_pins").GetValue(Minimap.instance) as List<Minimap.PinData>);
 
                 pinList.AddRange((AccessTools.DeclaredField(typeof(Minimap), "m_locationPins").GetValue(Minimap.instance) as Dictionary<Vector3, Minimap.PinData>).Values);
+                
+                if(showPlayerMarkers.Value)
+                    pinList.AddRange((AccessTools.DeclaredField(typeof(Minimap), "m_playerPins").GetValue(Minimap.instance) as List<Minimap.PinData>));
 
                 Minimap.PinData deathPin = AccessTools.DeclaredField(typeof(Minimap), "m_deathPin").GetValue(Minimap.instance) as Minimap.PinData;
 

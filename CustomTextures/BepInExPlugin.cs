@@ -11,11 +11,12 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "2.2.0")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "2.2.2")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> dumpSceneTextures;
+        public static ConfigEntry<bool> replaceLocationTextures;
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<int> nexusID;
 
@@ -42,6 +43,7 @@ namespace CustomTextures
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             hotKey = Config.Bind<string>("General", "HotKey", "page down", "Key to reload textures");
+            replaceLocationTextures = Config.Bind<bool>("General", "ReplaceLocationTextures", true, "Replace textures for special locations (can take a long time)");
             dumpSceneTextures = Config.Bind<bool>("General", "DumpSceneTextures", false, "Dump scene textures to BepInEx/plugins/CustomTextures/scene_dump.txt");
             nexusID = Config.Bind<int>("General", "NexusID", 48, "Nexus mod ID for updates");
 
