@@ -34,7 +34,6 @@ namespace AutoFuel
 
         private static float lastFuel;
         private static int fuelCount;
-        private static List<ZDO> fueled = new List<ZDO>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {

@@ -228,7 +228,7 @@ namespace CustomTextures
                     int propHash = Shader.PropertyToID(property);
                     if (m.HasProperty(propHash))
                     {
-                        logDump.Add($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {str}{property}.png for {property}.");
+                        logDump.Add($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {str}{property} for {property}.");
 
                         Texture vanilla = m.GetTexture(propHash);
 

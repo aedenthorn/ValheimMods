@@ -1,19 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace CustomGraphicsSettings
 {
-    [BepInPlugin("aedenthorn.CustomGraphicsSettings", "Custom Graphics Settings", "0.2.0")]
+    [BepInPlugin("aedenthorn.CustomGraphicsSettings", "Custom Graphics Settings", "0.3.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -53,7 +46,6 @@ namespace CustomGraphicsSettings
         public static ConfigEntry<int> streamingMipmapsMemoryBudget;
         public static ConfigEntry<int> vSyncCount;
 
-        private static string[] audioFiles;
         private static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -102,11 +94,13 @@ namespace CustomGraphicsSettings
             if (!modEnabled.Value)
                 return;
 
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+
             SetGraphicsSettings();
 
         }
 
-        private void SetGraphicsSettings()
+        private static void SetGraphicsSettings()
         {
             QualitySettings.anisotropicFiltering = (AnisotropicFiltering) anisotropicFiltering.Value;
             QualitySettings.antiAliasing = antiAliasing.Value;
@@ -142,37 +136,21 @@ namespace CustomGraphicsSettings
             QualitySettings.vSyncCount = vSyncCount.Value;
         }
 
-
-        //[HarmonyPatch(typeof(InstanceRenderer), "Update")]
-        static class InstanceRenderer_Patch
-        {
-            static void Prefix(InstanceRenderer __instance)
-            {
-                __instance.m_lodMaxDistance = 1000;
-            }
-        }
-
-        //[HarmonyPatch(typeof(ClutterSystem), "Awake")]
-        static class ClutterSystem_Patch
-        {
-            static void Prefix(ClutterSystem __instance)
-            {
-                __instance.m_distance = 1000;
-            }
-        }
-
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch
         {
             static bool Prefix(Console __instance)
             {
+                Dbgl("test");
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
+                    Dbgl("tested");
                     context.Config.Reload();
                     context.Config.Save();
+                    SetGraphicsSettings();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;

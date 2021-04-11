@@ -146,7 +146,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapCoordinateDisplay", "Map
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CartSupport", "CartSupport\CartSupport.csproj", "{2A3A0C62-40E5-4D77-AE6E-6466D8AD7648}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationTweaks", "NotificationTweaks\NotificationTweaks.csproj", "{D9807E29-FF87-497E-A460-70742308C97E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NotificationTweaks", "NotificationTweaks\NotificationTweaks.csproj", "{D9807E29-FF87-497E-A460-70742308C97E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoFeed", "AutoFeed\AutoFeed.csproj", "{4A4941B7-3227-4D66-AE89-D9FFD36996C4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -430,6 +432,10 @@ Global
 		{D9807E29-FF87-497E-A460-70742308C97E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9807E29-FF87-497E-A460-70742308C97E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9807E29-FF87-497E-A460-70742308C97E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A4941B7-3227-4D66-AE89-D9FFD36996C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A4941B7-3227-4D66-AE89-D9FFD36996C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A4941B7-3227-4D66-AE89-D9FFD36996C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A4941B7-3227-4D66-AE89-D9FFD36996C4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -27,20 +27,21 @@ namespace CustomTextures
 
             texturesToLoad.Clear();
 
-            foreach (string file in Directory.GetFiles(path, "*.png", SearchOption.AllDirectories))
+            foreach (string file in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
             {
                 string fileName = Path.GetFileName(file);
                 string id = Path.GetFileNameWithoutExtension(fileName);
 
-
+                
                 if (!fileWriteTimes.ContainsKey(id) || (cachedTextures.ContainsKey(id) && !DateTime.Equals(File.GetLastWriteTimeUtc(file), fileWriteTimes[id])))
                 {
                     cachedTextures.Remove(id);
                     texturesToLoad.Add(id);
-                    layersToLoad.Add(Regex.Replace(id, @"_[^_]+\.png", ".png"));
+                    layersToLoad.Add(Regex.Replace(id, @"_[^_]+\.", "."));
                     fileWriteTimes[id] = File.GetLastWriteTimeUtc(file);
                     //Dbgl($"adding new {fileName} custom texture.");
                 }
+                
                 customTextures[id] = file;
             }
         }
@@ -53,7 +54,7 @@ namespace CustomTextures
 
             LoadCustomTextures();
 
-            Dbgl($"textures to load \n\n{string.Join("\n", texturesToLoad)}");
+            //Dbgl($"textures to load \n\n{string.Join("\n", texturesToLoad)}");
 
             ReplaceObjectDBTextures();
 
