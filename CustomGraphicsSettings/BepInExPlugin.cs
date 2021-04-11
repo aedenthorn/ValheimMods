@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace CustomGraphicsSettings
 {
-    [BepInPlugin("aedenthorn.CustomGraphicsSettings", "Custom Graphics Settings", "0.3.1")]
+    [BepInPlugin("aedenthorn.CustomGraphicsSettings", "Custom Graphics Settings", "0.3.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -141,13 +141,11 @@ namespace CustomGraphicsSettings
         {
             static bool Prefix(Console __instance)
             {
-                Dbgl("test");
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
-                    Dbgl("tested");
                     context.Config.Reload();
                     context.Config.Save();
                     SetGraphicsSettings();

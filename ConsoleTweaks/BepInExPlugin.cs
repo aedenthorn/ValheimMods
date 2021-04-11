@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace ConsoleTweaks
 {
-    [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.2.2")]
+    [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
