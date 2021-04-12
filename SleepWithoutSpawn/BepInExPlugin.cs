@@ -14,6 +14,7 @@ namespace SleepWithoutSpawn
         public static ConfigEntry<int> nexusID;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> unclaimedOnly;
+        public static ConfigEntry<bool> allowDaySleep;
         public static ConfigEntry<string> modKey;
 
         private static BepInExPlugin context;
@@ -28,6 +29,7 @@ namespace SleepWithoutSpawn
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             unclaimedOnly = Config.Bind<bool>("General", "UnclaimedOnly", false, "Only sleep on unclaimed beds");
+            allowDaySleep = Config.Bind<bool>("General", "AllowDaySleep", false, "Allow sleeping during the day");
             modKey = Config.Bind<string>("General", "ModKey", "left alt", "Modifier key to sleep without setting spawn point. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             nexusID = Config.Bind<int>("General", "NexusID", 261, "Nexus mod ID for updates");
 
@@ -58,7 +60,7 @@ namespace SleepWithoutSpawn
         {
             static bool Prefix(Bed __instance, Humanoid human, bool repeat, ref bool __result, ZNetView ___m_nview)
             {
-                if (Traverse.Create(__instance).Method("IsCurrent").GetValue<bool>() || repeat || !AedenthornUtils.CheckKeyHeld(modKey.Value) || (unclaimedOnly.Value && ___m_nview.GetZDO().GetLong("owner", 0L) != 0))
+                if (((!allowDaySleep.Value || EnvMan.instance.IsAfternoon() || EnvMan.instance.IsNight()) && Traverse.Create(__instance).Method("IsCurrent").GetValue<bool>()) || repeat || !AedenthornUtils.CheckKeyHeld(modKey.Value) || (unclaimedOnly.Value && ___m_nview.GetZDO().GetLong("owner", 0L) != 0))
                 {
                     return true;
                 }
@@ -66,7 +68,7 @@ namespace SleepWithoutSpawn
 
                 Player player = human as Player;
 
-                if (!EnvMan.instance.IsAfternoon() && !EnvMan.instance.IsNight())
+                if (!allowDaySleep.Value && !EnvMan.instance.IsAfternoon() && !EnvMan.instance.IsNight())
                 {
                     human.Message(MessageHud.MessageType.Center, "$msg_cantsleep", 0, null);
                     __result = false;
@@ -97,7 +99,7 @@ namespace SleepWithoutSpawn
                 return false;
             }
         }
-        
+
 
 
         [HarmonyPatch(typeof(Console), "InputText")]
@@ -108,12 +110,12 @@ namespace SleepWithoutSpawn
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("sleepmod reset"))
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "SleepWithoutSpawn config reloaded" }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
                 }
                 return true;
