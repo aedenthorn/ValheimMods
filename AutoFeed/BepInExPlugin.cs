@@ -6,11 +6,10 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace AutoFeed
 {
-    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.2.0")]
+    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.2.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -138,13 +137,13 @@ namespace AutoFeed
                                 if (Time.time - lastFeed < 0.1)
                                 {
                                     feedCount++;
-                                    FeedAnimal(__instance, ___m_character, c, item, feedCount * 33);
+                                    FeedAnimal(__instance, ___m_tamable, ___m_character, c, item, feedCount * 33);
                                 }
                                 else
                                 {
                                     feedCount = 0;
                                     lastFeed = Time.time;
-                                    FeedAnimal(__instance, ___m_character, c, item, 0);
+                                    FeedAnimal(__instance, ___m_tamable, ___m_character, c, item, 0);
                                 }
                                 return;
                             }
@@ -153,10 +152,12 @@ namespace AutoFeed
                 }
             }
         }
-        public static async void FeedAnimal(MonsterAI monsterAI, Character character, Container c, ItemDrop.ItemData item, int delay)
+        public static async void FeedAnimal(MonsterAI monsterAI, Tameable tamable, Character character, Container c, ItemDrop.ItemData item, int delay)
         {
-
             await Task.Delay(delay);
+
+            if (!tamable.IsHungry())
+                return;
 
             if (requireMove.Value)
             {
@@ -192,14 +193,14 @@ namespace AutoFeed
                 Dbgl($"path exists {path} {((NavMeshPath)typeof(Pathfinding).GetField("m_path", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Pathfinding.instance)).status}");
                 Dbgl($"found path {traverseAI.Method("FindPath", new object[] { groundTarget }).GetValue<bool>()}");
                 Dbgl($"{Time.time - traverseAI.Field("m_lastFindPathTime").GetValue<float>()} {traverseAI.Field("m_lastFindPathTarget").GetValue<Vector3>()} {traverseAI.Field("m_lastFindPathResult").GetValue<bool>()} {traverseAI.Field("m_pathAgentType").GetValue<Pathfinding.AgentType>()}");
+                //Dbgl($"{monsterAI.gameObject.name} moved to");
                 */
 
 
-                //Dbgl($"{monsterAI.gameObject.name} moved to");
 
                 traverseAI.Method("LookAt", new object[] { c.transform.position }).GetValue();
                 
-                if (!traverseAI.Method("IsLookingAt", new object[] { c.transform.position, 20f }).GetValue<bool>())
+                if (!traverseAI.Method("IsLookingAt", new object[] { c.transform.position, 90f }).GetValue<bool>())
                     return;
 
 
