@@ -332,7 +332,7 @@ namespace CustomAudio
         {
             private static MusicMan.NamedMusic lastMusic = null;
 
-            static void Prefix(ref MusicMan.NamedMusic ___m_currentMusic, ref MusicMan.NamedMusic ___m_queuedMusic, AudioSource ___m_musicSource, bool ___m_stopMusic, ref float __state)
+            static void Prefix(ref MusicMan.NamedMusic ___m_currentMusic, ref MusicMan.NamedMusic ___m_queuedMusic, AudioSource ___m_musicSource)
             {
 
                 if(___m_queuedMusic != null)
@@ -363,9 +363,9 @@ namespace CustomAudio
                     lastMusic = null;
                 if (___m_musicSource.isPlaying)
                 {
-                    //Dbgl($"queued {___m_queuedMusic.m_name}, setting loop to false {___m_queuedMusic.m_clips.Length}");
+                    if(___m_musicSource.loop)
+                        Dbgl($"queued {___m_queuedMusic?.m_name}, setting {___m_musicSource.name} loop to false");
                     ___m_musicSource.loop = false;
-                    __state = ___m_musicSource.volume;
                 }
             }
         }

@@ -99,7 +99,7 @@ namespace MapCoordinateDisplay
 
         private void OnGUI()
         {
-            if (!modEnabled.Value || !Player.m_localPlayer)
+            if (!modEnabled.Value || !Player.m_localPlayer || ((!Hud.instance || !Traverse.Create(Hud.instance).Method("IsVisible").GetValue<bool>()) && !Minimap.IsOpen()))
                 return;
             cursorStyle = new GUIStyle
             {

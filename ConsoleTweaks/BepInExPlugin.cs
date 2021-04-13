@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace ConsoleTweaks
 {
-    [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.3.0")]
+    [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.3.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -165,7 +165,7 @@ namespace ConsoleTweaks
             {
                 if (plugin.Key.StartsWith("aedenthorn."))
                 {
-                    resetPlugins.Add(plugin.Key.Substring("aedenthorn.".Length));
+                    resetPlugins.Add(plugin.Key.Substring("aedenthorn.".Length).ToLower());
                 }
             }
         }

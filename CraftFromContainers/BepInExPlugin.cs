@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.1.3")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.1.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -136,7 +136,7 @@ namespace CraftFromContainers
                     && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
                 {
                     //container.GetComponent<ZNetView>()?.ClaimOwnership();
-                    //Traverse.Create(container).Method("Load").GetValue();
+                    Traverse.Create(container).Method("Load").GetValue();
                     containers.Add(container);
                 }
             }
@@ -999,7 +999,7 @@ namespace CraftFromContainers
 
             foreach (Piece.Requirement resource in piece.m_resources)
             {
-                if ((bool)(UnityEngine.Object)resource.m_resItem && resource.m_amount > 0)
+                if (resource.m_resItem && resource.m_amount > 0)
                 {
                     switch (mode)
                     {

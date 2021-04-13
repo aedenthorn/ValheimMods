@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace RepairRequiresMats
 {
-    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.2.0")]
+    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static bool isDebug = true;
@@ -106,7 +106,7 @@ namespace RepairRequiresMats
                             continue;
                         reqstring.Add($"{req.GetAmount(item.m_quality)}/{Player.m_localPlayer.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name)} {Localization.instance.Localize(req.m_resItem.m_itemData.m_shared.m_name)}");
                     }
-                    if (!HaveRequirements(recipe.m_resources, item.m_quality))
+                    if (!Traverse.Create(Player.m_localPlayer).Method("HaveRequirements", new object[] { recipe.m_resources, false, 1 }).GetValue<bool>())
                         notEnoughRepairs.Add(new RepairItemData(item, reqstring));
                     else
                         enoughRepairs.Add(new RepairItemData(item, reqstring));
@@ -172,7 +172,7 @@ namespace RepairRequiresMats
                         reqstring.Add($"{req.GetAmount(item.m_quality)}/{Player.m_localPlayer.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name)} {Localization.instance.Localize(req.m_resItem.m_itemData.m_shared.m_name)}");
                     }
                     string outstring;
-                    if (HaveRequirements(recipe.m_resources, item.m_quality))
+                    if (Traverse.Create(Player.m_localPlayer).Method("HaveRequirements", new object[] { recipe.m_resources, false, 1 }).GetValue<bool>())
                     {
                         Player.m_localPlayer.ConsumeResources(recipe.m_resources, item.m_quality);
                         outstring = $"Used {string.Join(", ", reqstring)} to repair {Localization.instance.Localize(item.m_shared.m_name)}";
@@ -246,22 +246,6 @@ namespace RepairRequiresMats
                 return null;
             }
             return recipe;
-        }
-
-        private static bool HaveRequirements(Piece.Requirement[] resources, int qualityLevel)
-        {
-            foreach (Piece.Requirement requirement in resources)
-            {
-                if (requirement.m_resItem)
-                {
-                    int amount = requirement.GetAmount(qualityLevel);
-                    if (Player.m_localPlayer.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) < amount)
-                    {
-                        return false;
-                    }
-                }
-            }
-            return true;
         }
 
 
