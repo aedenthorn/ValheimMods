@@ -1,32 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System.Collections;
+using System.Reflection;
 using UnityEngine;
 
 namespace InstantMonsterDrop
 {
-    [BepInPlugin("aedenthorn.InstantMonsterDrop", "Instant Monster Drop", "0.2.1")]
+    [BepInPlugin("aedenthorn.InstantMonsterDrop", "Instant Monster Drop", "0.3.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
         private static BepInExPlugin context;
         private static ConfigEntry<bool> modEnabled;
+        private static ConfigEntry<bool> isDebug;
         private static ConfigEntry<float> dropDelay;
+        private static ConfigEntry<float> destroyDelay;
         private static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
-            if (isDebug)
+            if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
         private void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug");
             dropDelay = Config.Bind<float>("General", "DropDelay", 0.01f, "Delay before dropping loot");
+            destroyDelay = Config.Bind<float>("General", "DestroyDelay", 0.05f, "Delay before destroying ragdoll");
             nexusID = Config.Bind<int>("General", "NexusID", 164, "Mod ID on the Nexus for update checks");
             nexusID.Value = 164;
             Config.Save(); 
@@ -39,11 +41,61 @@ namespace InstantMonsterDrop
         [HarmonyPatch(typeof(Ragdoll), "Awake")]
         static class Ragdoll_Awake_Patch
         {
-            static void Prefix(Ragdoll __instance)
+            static void Postfix(Ragdoll __instance, ZNetView ___m_nview, EffectList ___m_removeEffect)
             {
-                Dbgl($"Changing death time from {__instance.m_ttl} to {dropDelay.Value}");
-                __instance.m_ttl = dropDelay.Value;
+                if (!ZNetScene.instance)
+                    return;
+                Dbgl($"Changing death time from {__instance.m_ttl} to {destroyDelay.Value}, drop time from {__instance.m_ttl} to {dropDelay.Value}");
+                context.StartCoroutine(DropNow(__instance, ___m_nview, ___m_removeEffect));
             }
+        }
+        
+        [HarmonyPatch(typeof(Ragdoll), "DestroyNow")]
+        static class Ragdoll_DestroyNow_Patch
+        {
+            static bool Prefix(Ragdoll __instance)
+            {
+                //Dbgl($"cancelling destroynow");
+                return !modEnabled.Value;
+            }
+        }
+
+        private static IEnumerator DropNow(Ragdoll ragdoll, ZNetView nview, EffectList removeEffect)
+        {
+            Dbgl($"delaying dropping loot");
+            yield return new WaitForSeconds(dropDelay.Value);
+
+            if (!modEnabled.Value)
+                yield break;
+
+            if (!nview.IsValid() || !nview.IsOwner())
+            {
+                context.StartCoroutine(DropNow(ragdoll, nview, removeEffect));
+                yield break;
+            }
+            Dbgl($"dropping loot");
+            Vector3 averageBodyPosition = ragdoll.GetAverageBodyPosition();
+            Traverse.Create(ragdoll).Method("SpawnLoot", new object[] { averageBodyPosition }).GetValue();
+            context.StartCoroutine(DestroyNow(ragdoll, nview, removeEffect));
+        }
+
+        private static IEnumerator DestroyNow(Ragdoll ragdoll, ZNetView nview, EffectList m_removeEffect)
+        {
+            Dbgl($"delaying destroying ragdoll");
+            yield return new WaitForSeconds(Mathf.Max(destroyDelay.Value - dropDelay.Value, 0));
+
+            if (!modEnabled.Value)
+                yield break;
+
+            if (!nview.IsValid() || !nview.IsOwner())
+            {
+                context.StartCoroutine(DestroyNow(ragdoll, nview, m_removeEffect));
+                yield break;
+            }
+            Dbgl($"destroying ragdoll");
+            Vector3 averageBodyPosition = ragdoll.GetAverageBodyPosition();
+            m_removeEffect.Create(averageBodyPosition, Quaternion.identity, null, 1f);
+            ZNetScene.instance.Destroy(ragdoll.gameObject);
         }
 
         [HarmonyPatch(typeof(Console), "InputText")]

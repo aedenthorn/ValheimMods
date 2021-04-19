@@ -84,7 +84,7 @@ namespace BuildingRepairRequiresMats
             }
         }
 
-        [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool) })]
+        //[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool) })]
         static class GetTooltip_Patch
         {
             static void Postfix(ItemDrop.ItemData item, int qualityLevel, bool crafting, ref string __result)
@@ -132,7 +132,7 @@ namespace BuildingRepairRequiresMats
             }
         }
         
-        [HarmonyPatch(typeof(InventoryGui), "CanRepair")]
+        //[HarmonyPatch(typeof(InventoryGui), "CanRepair")]
         static class InventoryGui_CanRepair_Patch
         {
             static void Postfix(ItemDrop.ItemData item, ref bool __result)
