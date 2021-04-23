@@ -364,9 +364,10 @@ namespace CustomAudio
                     lastMusic = null;
                 if (___m_musicSource.isPlaying)
                 {
-                    if(___m_musicSource.loop)
+                    if (___m_queuedMusic != null && ___m_musicSource.loop) {
                         Dbgl($"queued {___m_queuedMusic?.m_name}, setting {___m_musicSource.name} loop to false");
-                    ___m_musicSource.loop = false;
+                        ___m_musicSource.loop = false;
+                    }
                 }
             }
         }
