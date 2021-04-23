@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace TreeRespawn
 {
-    [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.6.1")]
+    [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.7.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -46,7 +46,9 @@ namespace TreeRespawn
         private void Start()
         {
             string jsonFile = "tree_dict.json";
-            if (Chainloader.PluginInfos.ContainsKey("com.Defryder.Plant_all_trees"))
+            if (Chainloader.PluginInfos.ContainsKey("advize.PlantEverything"))
+                jsonFile = "tree_dict_Plant_Everything.json";
+            else if (Chainloader.PluginInfos.ContainsKey("com.Defryder.Plant_all_trees"))
                 jsonFile = "tree_dict_Plant_all_trees.json";
             else if (Chainloader.PluginInfos.ContainsKey("com.bkeyes93.PlantingPlus"))
                 jsonFile = "tree_dict_PlantingPlus.json";

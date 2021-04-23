@@ -1,15 +1,13 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace CustomToolbarHotkeys
 {
-    [BepInPlugin("aedenthorn.CustomToolbarHotkeys", "Custom Toolbar Hotkeys", "0.2.3")]
+    [BepInPlugin("aedenthorn.CustomToolbarHotkeys", "Custom Toolbar Hotkeys", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -146,10 +144,9 @@ namespace CustomToolbarHotkeys
                 if (!modEnabled.Value || !hideNumbers.Value || !___m_animator.GetBool("visible"))
                     return;
 
-                List<object> elements = typeof(InventoryGrid).GetField("m_elements", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(___m_playerGrid) as List<object>;
                 for(int i = 0; i < 8; i++)
                 {
-                    if(___m_playerGrid.m_gridRoot.transform.GetChild(i).Find("binding"))
+                    if(___m_playerGrid.m_gridRoot.transform.GetChild(i)?.Find("binding"))
                         ___m_playerGrid.m_gridRoot.transform.GetChild(i).Find("binding").GetComponent<Text>().text = showHotkeys.Value ? hotkeys[i].Value : "";
                 }
 

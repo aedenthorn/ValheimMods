@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.9.0")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.9.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -351,6 +351,7 @@ namespace CustomAudio
                 {
                     if (lastMusic != null)
                     {
+                        lastMusic.m_lastPlayedTime = 0;
                         ___m_queuedMusic = lastMusic;
                         lastMusic = null;
                     }

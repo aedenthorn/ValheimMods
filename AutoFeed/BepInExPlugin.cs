@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace AutoFeed
 {
-    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.2.1")]
+    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -22,6 +22,7 @@ namespace AutoFeed
         public static ConfigEntry<string> toggleString;
         public static ConfigEntry<bool> isOn;
         public static ConfigEntry<bool> requireMove;
+        public static ConfigEntry<bool> requireOnlyFood;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
@@ -42,6 +43,7 @@ namespace AutoFeed
             feedDisallowTypes = Config.Bind<string>("Config", "FeedDisallowTypes", "", "Types of item to disallow as feed, comma-separated.");
             animalDisallowTypes = Config.Bind<string>("Config", "AnimalDisallowTypes", "", "Types of creature to disallow to feed, comma-separated.");
             requireMove = Config.Bind<bool>("Config", "RequireMove", true, "Require animals to move to container to feed.");
+            requireOnlyFood = Config.Bind<bool>("Config", "RequireOnlyFood", false, "Don't allow feeding from containers that have non-food items as well.");
             moveProximity = Config.Bind<float>("Config", "MoveProximity", 2f, "How close to move towards the container if RequireMove is true.");
             
             toggleKey = Config.Bind<string>("General", "ToggleKey", "", "Key to toggle behaviour. Leave blank to disable the toggle key. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
@@ -92,9 +94,18 @@ namespace AutoFeed
                         continue;
                     if ((container.name.StartsWith("piece_chest") || container.name.StartsWith("Container")) && container.GetInventory() != null)
                     {
+                        if (requireOnlyFood.Value)
+                        {
+                            foreach(ItemDrop.ItemData item in container.GetInventory().GetAllItems())
+                            {
+                                if (item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Consumable)
+                                    continue;
+                            }
+                        }
                         containers.Add(container);
                     }
                 }
+                containers.OrderBy(c => Vector3.Distance(c.transform.position, center));
                 return containers;
             }
             catch
@@ -126,6 +137,8 @@ namespace AutoFeed
                     {
                         foreach (Container c in nearbyContainers)
                         {
+                            if (Utils.DistanceXZ(c.transform.position, __instance.transform.position) < moveProximity.Value && Mathf.Abs(c.transform.position.y - __instance.transform.position.y) > moveProximity.Value)
+                                continue;
                             ItemDrop.ItemData item = c.GetInventory().GetItem(enumerator.Current.m_itemData.m_shared.m_name);
                             if (item != null)
                             {
@@ -172,6 +185,10 @@ namespace AutoFeed
 
                 if (!traverseAI.Method("MoveTo", new object[] { 0.05f, groundTarget, moveProximity.Value, false }).GetValue<bool>())
                     return;
+
+                if (Mathf.Abs(c.transform.position.y - monsterAI.transform.position.y) > moveProximity.Value)
+                    return;
+
                 /*
                 Vector3 characterPos = monsterAI.transform.position;
                 bool snap1 = (bool)typeof(Pathfinding).GetMethod("SnapToNavMesh", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Pathfinding.instance, new object[] { characterPos, typeof(Pathfinding).GetMethod("GetSettings", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Pathfinding.instance, new object[] { Pathfinding.AgentType.Humanoid }) });
@@ -219,10 +236,8 @@ namespace AutoFeed
 
         private static void ConsumeItem(ItemDrop.ItemData item, MonsterAI monsterAI, Character character)
         {
-            if (monsterAI.m_onConsumedItem != null)
-            {
-                monsterAI.m_onConsumedItem(null);
-            }
+            monsterAI.m_onConsumedItem?.Invoke(null);
+
             (character as Humanoid).m_consumeItemEffects.Create(character.transform.position, Quaternion.identity, null, 1f);
             Traverse.Create(monsterAI).Field("m_animator").GetValue<ZSyncAnimation>().SetTrigger("consume");
             if (monsterAI.m_consumeHeal > 0f)

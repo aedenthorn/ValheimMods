@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace CharacterEdit
 {
-    [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.4.0")]
+    [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.4.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -24,8 +24,6 @@ namespace CharacterEdit
         public static ConfigEntry<int> nexusID;
         private static Transform title;
 
-        public static int itemSize = 70;
-
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
@@ -38,7 +36,7 @@ namespace CharacterEdit
             buttonText = Config.Bind<string>("General", "ButtonText", "Edit", "Button text");
             titleText = Config.Bind<string>("General", "TitleText", "Edit Character", "Title text");
             gamePadButton = Config.Bind<string>("General", "GamePadButton", "JoyLTrigger", "Gamepad button used to press button. Possible values: JoyHide, JoyGPower, JoyRun, JoyCrouch, JoyMap, JoyMenu, JoyBlock, JoyAttack, JoySecondAttack, JoyAltPlace, JoyRotate, JoyPlace, JoyRemove, JoyTabLeft, JoyTabRight, JoyLStickLeft, JoyLStickRight, JoyLStickUp, JoyLStickDown, JoyDPadLeft, JoyDPadRight, JoyDPadUp, JoyDPadDown, JoyLTrigger, JoyRTrigger, JoyLStick, JoyRStick");
-            gamePadButtonHint = Config.Bind<string>("General", "GamePadButtonHint", "L", "Hint to show for gamepad button");
+            gamePadButtonHint = Config.Bind<string>("General", "GamePadButtonHint", "LT", "Hint to show for gamepad button");
             nexusID = Config.Bind<int>("General", "NexusID", 650, "Nexus mod ID for updates");
 
 

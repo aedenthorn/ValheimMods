@@ -3,4 +3,18 @@
     <Version>1.0.0</Version>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\valheim.targets" />
+  <ItemGroup>
+    <None Update="TreeRespawn\tree_dict.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TreeRespawn\tree_dict_PlantingPlus.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TreeRespawn\tree_dict_Plant_all_trees.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TreeRespawn\tree_dict_Plant_Everything.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
