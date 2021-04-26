@@ -1,16 +1,14 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace InventoryHUD
 {
-    [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.1.0")]
+    [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -62,7 +60,7 @@ namespace InventoryHUD
             extraSlots = Config.Bind<int>("General", "ExtraSlots", 0, "Extra slots added by mods outside of the actual player inventory. Use this for mods that add extra inventories or other hacky things. E.g. Equipment and Quick Slots mods adds eight extra slots outside of the actual player inventory. Set this to 8 if you use that mod.");
 
 
-            infoStringOffset = Config.Bind<Vector2>("InfoString", "InfoStringOffset", new Vector2(-64,0), "Inventory info string offset");
+            infoStringOffset = Config.Bind<Vector2>("Info", "InfoStringOffset", new Vector2(-64,0), "Inventory info string offset");
             infoString = Config.Bind<string>("Info", "InfoString", "{0}/{1}\r\n{2}/{3}", "Inventory info string to show. {0} is replaced by current number of items. {1} is replaced by number of slots total. {2} is replaced by current weight. {3} is replaced by total weight. See string.Format API for advanced usage.");
             infoStringSize = Config.Bind<int>("Info", "InfoStringSize", 12, "Inventory info string size.");
             infoStringFont = Config.Bind<string>("Info", "InfoStringFont", "AveriaSerifLibre-Bold", "Inventory info string font.");
@@ -230,7 +228,7 @@ namespace InventoryHUD
                 Inventory inv = Player.m_localPlayer.GetInventory();
                 Vector3 hudPos = new Vector3(hudPosition.Value.x, hudPosition.Value.y, 0);
                 float weight = inv.GetTotalWeight();
-                float totalWeight = Player.m_localPlayer.m_maxCarryWeight;
+                float totalWeight = Player.m_localPlayer.GetMaxCarryWeight();
                 if (fullObject != null)
                 {
                     float hudScale = GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;

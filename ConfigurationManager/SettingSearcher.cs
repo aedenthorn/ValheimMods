@@ -35,8 +35,17 @@ namespace ConfigurationManager
                 BepInExPlugin.Logger.LogError(ex);
             }
 
-            foreach (var plugin in Utilities.Utils.FindPlugins())
+            var allPlugins = Utilities.Utils.FindPlugins();
+
+            BepInExPlugin.Dbgl($"all plugins: {allPlugins.Length}");
+
+            foreach (var plugin in allPlugins)
             {
+                if (plugin == null)
+                    continue;
+
+                //BepInExPlugin.Dbgl(plugin.name);
+
                 if (plugin.Info.Metadata.GUID == "com.bepis.bepinex.configurationmanager" || plugin.enabled == false)
                 {
                     BepInExPlugin.Dbgl($"plugin: {plugin.Info.Metadata.Name} enabled {plugin.enabled}");
@@ -49,6 +58,7 @@ namespace ConfigurationManager
                 if (type.GetCustomAttributes(typeof(BrowsableAttribute), false).Cast<BrowsableAttribute>()
                     .Any(x => !x.Browsable))
                 {
+                    BepInExPlugin.Dbgl($"{pluginInfo.Name} has no settings, skipping.");
                     modsWithoutSettings.Add(pluginInfo.Name);
                     continue;
                 }
@@ -57,10 +67,18 @@ namespace ConfigurationManager
 
                 detected.AddRange(GetPluginConfig(plugin).Cast<SettingEntryBase>());
 
-                detected.RemoveAll(x => x.Browsable == false);
+                int count = detected.FindAll(x => x.Browsable == false).Count;
+                if(count > 0)
+                {
+                    BepInExPlugin.Dbgl($"{count} settings are not browseable, removing.");
+                    detected.RemoveAll(x => x.Browsable == false);
+                }
 
                 if (!detected.Any())
+                {
+                    BepInExPlugin.Dbgl($"{pluginInfo.Name} has no showable settings, skipping.");
                     modsWithoutSettings.Add(pluginInfo.Name);
+                }
 
                 // Allow to enable/disable plugin if it uses any update methods ------
                 if (showDebug && type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Any(x => _updateMethodNames.Contains(x.Name)))
@@ -75,6 +93,7 @@ namespace ConfigurationManager
 
                 if (detected.Any())
                 {
+                    //BepInExPlugin.Dbgl($"Adding {pluginInfo.Name} to config manager.");
                     results = results.Concat(detected);
                 }
             }

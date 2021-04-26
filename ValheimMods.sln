@@ -160,9 +160,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeathTweaks", "DeathTweaks\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerraformTweaks", "TerraformTweaks\TerraformTweaks.csproj", "{3C71E421-2A98-4B06-B708-888E5E77D7F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrainReset", "TerrainReset\TerrainReset.csproj", "{C0BD6D8D-50BD-4C80-BD59-1AFB17E146C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerrainReset", "TerrainReset\TerrainReset.csproj", "{C0BD6D8D-50BD-4C80-BD59-1AFB17E146C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryHUD", "InventoryHUD\InventoryHUD.csproj", "{2A3431AE-002D-4B07-B681-21942166995C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InventoryHUD", "InventoryHUD\InventoryHUD.csproj", "{2A3431AE-002D-4B07-B681-21942166995C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Recycle", "Recycle\Recycle.csproj", "{C7BA4A36-003D-4CA4-94B4-3BCC8BB05448}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControllerButtonSwitch", "ControllerButtonSwitch\ControllerButtonSwitch.csproj", "{A775ED6F-5FD3-4315-BD97-537BF9999300}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -478,6 +482,14 @@ Global
 		{2A3431AE-002D-4B07-B681-21942166995C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A3431AE-002D-4B07-B681-21942166995C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A3431AE-002D-4B07-B681-21942166995C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7BA4A36-003D-4CA4-94B4-3BCC8BB05448}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7BA4A36-003D-4CA4-94B4-3BCC8BB05448}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7BA4A36-003D-4CA4-94B4-3BCC8BB05448}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7BA4A36-003D-4CA4-94B4-3BCC8BB05448}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A775ED6F-5FD3-4315-BD97-537BF9999300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A775ED6F-5FD3-4315-BD97-537BF9999300}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A775ED6F-5FD3-4315-BD97-537BF9999300}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A775ED6F-5FD3-4315-BD97-537BF9999300}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

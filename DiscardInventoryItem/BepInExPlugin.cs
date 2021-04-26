@@ -1,13 +1,15 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
 namespace DiscardInventoryItem
 {
-    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.3.6")]
+    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.4.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -18,6 +20,7 @@ namespace DiscardInventoryItem
         public static ConfigEntry<int> nexusID;
 
         private static BepInExPlugin context;
+        private static Assembly epicLootAssembly;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -38,6 +41,12 @@ namespace DiscardInventoryItem
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
+        private void Start()
+        {
+            if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.epicloot"))
+                epicLootAssembly = Chainloader.PluginInfos["randyknapp.mods.epicloot"].Instance.GetType().Assembly;
+
+        }
 
         [HarmonyPatch(typeof(InventoryGui), "UpdateItemDrag")]
         static class UpdateItemDrag_Patch
@@ -51,35 +60,59 @@ namespace DiscardInventoryItem
                     if (returnResources.Value > 0)
                     {
                         Recipe recipe = ObjectDB.instance.GetRecipe(___m_dragItem);
-                        
-                        if(recipe != null)
-                            Dbgl($"Recipe stack: {recipe.m_amount} num of stacks: {___m_dragAmount / recipe.m_amount}");
-                        
-                        if (recipe != null && ___m_dragAmount / recipe.m_amount > 0)
-                        {
-                            for (int i = 0; i < ___m_dragAmount / recipe.m_amount; i++)
-                            {
-                                foreach (Piece.Requirement req in recipe.m_resources)
-                                {
-                                    int quality = ___m_dragItem.m_quality;
-                                    for(int j = quality; j > 0; j--)
-                                    {
-                                        GameObject prefab = ObjectDB.instance.m_items.FirstOrDefault(item => item.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == req.m_resItem.m_itemData.m_shared.m_name);
-                                        ItemDrop.ItemData newItem = prefab.GetComponent<ItemDrop>().m_itemData;
-                                        int numToAdd = Mathf.RoundToInt(req.GetAmount(j) * returnResources.Value);
-                                        Dbgl($"Returning {numToAdd}/{req.GetAmount(j)} {prefab.name}");
-                                        while (numToAdd > 0)
-                                        {
-                                            int stack = Mathf.Min(req.m_resItem.m_itemData.m_shared.m_maxStackSize, numToAdd);
-                                            numToAdd -= stack;
 
-                                            if (Player.m_localPlayer.GetInventory().AddItem(prefab.name, stack, req.m_resItem.m_itemData.m_quality, req.m_resItem.m_itemData.m_variant, 0, "") == null)
+                        if (recipe != null)
+                        {
+                            Dbgl($"Recipe stack: {recipe.m_amount} num of stacks: {___m_dragAmount / recipe.m_amount}");
+
+
+                            var reqs = recipe.m_resources.ToList();
+
+                            bool isMagic = false;
+                            if (epicLootAssembly != null)
+                            {
+                                isMagic = (bool)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("IsMagic", BindingFlags.Public | BindingFlags.Static).Invoke(null, new[] { ___m_dragItem });
+                            }
+                            if (isMagic)
+                            {
+                                int rarity = (int)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("GetRarity", BindingFlags.Public | BindingFlags.Static).Invoke(null, new[] { ___m_dragItem });
+                                List<KeyValuePair<ItemDrop, int>> magicReqs = (List<KeyValuePair<ItemDrop, int>>)epicLootAssembly.GetType("EpicLoot.Crafting.EnchantTabController").GetMethod("GetEnchantCosts", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { ___m_dragItem, rarity });
+                                foreach (var kvp in magicReqs)
+                                {
+                                    reqs.Add(new Piece.Requirement()
+                                    {
+                                        m_amount = kvp.Value,
+                                        m_resItem = kvp.Key
+                                    });
+                                }
+                            }
+
+                            if (___m_dragAmount / recipe.m_amount > 0)
+                            {
+                                for (int i = 0; i < ___m_dragAmount / recipe.m_amount; i++)
+                                {
+                                    foreach (Piece.Requirement req in reqs)
+                                    {
+                                        int quality = ___m_dragItem.m_quality;
+                                        for (int j = quality; j > 0; j--)
+                                        {
+                                            GameObject prefab = ObjectDB.instance.m_items.FirstOrDefault(item => item.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == req.m_resItem.m_itemData.m_shared.m_name);
+                                            ItemDrop.ItemData newItem = prefab.GetComponent<ItemDrop>().m_itemData;
+                                            int numToAdd = Mathf.RoundToInt(req.GetAmount(j) * returnResources.Value);
+                                            Dbgl($"Returning {numToAdd}/{req.GetAmount(j)} {prefab.name}");
+                                            while (numToAdd > 0)
                                             {
-                                                ItemDrop component = Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward + Player.m_localPlayer.transform.up, Player.m_localPlayer.transform.rotation).GetComponent<ItemDrop>();
-                                                component.m_itemData = newItem.Clone();
-                                                component.m_itemData.m_dropPrefab = prefab;
-                                                component.m_itemData.m_stack = stack;
-                                                Traverse.Create(component).Method("Save").GetValue();
+                                                int stack = Mathf.Min(req.m_resItem.m_itemData.m_shared.m_maxStackSize, numToAdd);
+                                                numToAdd -= stack;
+
+                                                if (Player.m_localPlayer.GetInventory().AddItem(prefab.name, stack, req.m_resItem.m_itemData.m_quality, req.m_resItem.m_itemData.m_variant, 0, "") == null)
+                                                {
+                                                    ItemDrop component = Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward + Player.m_localPlayer.transform.up, Player.m_localPlayer.transform.rotation).GetComponent<ItemDrop>();
+                                                    component.m_itemData = newItem.Clone();
+                                                    component.m_itemData.m_dropPrefab = prefab;
+                                                    component.m_itemData.m_stack = stack;
+                                                    Traverse.Create(component).Method("Save").GetValue();
+                                                }
                                             }
                                         }
                                     }
