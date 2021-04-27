@@ -158,20 +158,6 @@ namespace TerrainReset
                     traverse.Field("m_paintMask").SetValue(m_paintMask);
 
                     continue;
-
-                    Vector3 position = terrainComp.transform.position;
-
-                    if (Utils.DistanceXZ(position, playerPos) <= radius)
-                    {
-                        Dbgl($"TerrainComp {position}, player {playerPos}. distance: {Utils.DistanceXZ(position, playerPos)}");
-                        ZNetView nview = terrainComp.GetComponent<ZNetView>();
-                        if (nview != null && nview.IsValid() && nview.IsOwner())
-                        {
-                            resets++;
-                            nview.Destroy();
-                        }
-                    }
-
                 }
             }
 
