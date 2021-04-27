@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace TerrainReset
 {
-    [BepInPlugin("aedenthorn.TerrainReset", "Terrain Reset", "0.3.1")]
+    [BepInPlugin("aedenthorn.TerrainReset", "Terrain Reset", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -16,10 +16,12 @@ namespace TerrainReset
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
 
-        public static ConfigEntry<float> resetRadius;
+        public static ConfigEntry<float> hotKeyRadius;
+        public static ConfigEntry<float> toolRadius;
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<string> consoleCommand;
         public static ConfigEntry<string> resetMessage;
+        public static ConfigEntry<string> modKey;
 
         private static BepInExPlugin context;
 
@@ -35,8 +37,10 @@ namespace TerrainReset
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1113, "Nexus mod ID for updates");
-            resetRadius = Config.Bind<float>("Config", "ResetRadius", 150f, "Reset radius for hotkey command");
+            hotKeyRadius = Config.Bind<float>("Config", "HotKeyRadius", 150f, "Reset radius for hotkey command");
+            toolRadius = Config.Bind<float>("Config", "ToolRadius", 2f, "Reset radius for tool");
             hotKey = Config.Bind<string>("Config", "HotKey", "", "Hotkey to reset terrain. Use https://docs.unity3d.com/Manual/class-InputManager.html");
+            modKey = Config.Bind<string>("Config", "ModKey", "left alt", "Modifer key to reset terrain when using the level ground hoe tool. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             consoleCommand = Config.Bind<string>("Config", "ConsoleCommand", "resetterrain", "Console command to reset terrain. Usage: <command> <radius>");
             resetMessage = Config.Bind<string>("Config", "ResetMessage", "{0} edits reset.", "Reset message. {0} is replaced by the number of edits. Set to empty to disable message");
 
@@ -48,20 +52,19 @@ namespace TerrainReset
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses(true) || !AedenthornUtils.CheckKeyDown(hotKey.Value) || !Player.m_localPlayer)
                 return;
 
-            int resets = ResetTerrain(resetRadius.Value);
+            int resets = ResetTerrain(Player.m_localPlayer.transform.position, hotKeyRadius.Value);
             if (resetMessage.Value.Length > 0 && resetMessage.Value.Contains("{0}"))
                 Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(resetMessage.Value, resets));
         }
 
         
-        private static int ResetTerrain(float radius)
+        private static int ResetTerrain(Vector3 center, float radius)
         {
             int resets = 0;
             List<Heightmap> list = new List<Heightmap>();
 
-            Vector3 playerPos = Player.m_localPlayer.transform.position;
 
-            Heightmap.FindHeightmap(Player.m_localPlayer.transform.position, 150, list);
+            Heightmap.FindHeightmap(center, 150, list);
 
 
             List<TerrainModifier> allInstances = TerrainModifier.GetAllInstances();
@@ -69,7 +72,7 @@ namespace TerrainReset
             {
                 Vector3 position = terrainModifier.transform.position;
                 ZNetView nview = terrainModifier.GetComponent<ZNetView>();
-                if (nview != null && nview.IsValid() && nview.IsOwner() && Utils.DistanceXZ(position, playerPos) <= radius)
+                if (nview != null && nview.IsValid() && nview.IsOwner() && Utils.DistanceXZ(position, center) <= radius)
                 {
                     //Dbgl($"TerrainModifier {position}, player {playerPos}, distance: {Utils.DistanceXZ(position, playerPos)}");
                     resets++;
@@ -90,7 +93,7 @@ namespace TerrainReset
                     if (!traverse.Field("m_initialized").GetValue<bool>())
                         continue;
 
-                    enumerator.Current.WorldToVertex(playerPos, out int x, out int y);
+                    enumerator.Current.WorldToVertex(center, out int x, out int y);
 
                     bool[] m_modifiedHeight = traverse.Field("m_modifiedHeight").GetValue<bool[]>();
                     float[] m_levelDelta = traverse.Field("m_levelDelta").GetValue<float[]>();
@@ -102,6 +105,7 @@ namespace TerrainReset
 
                     Dbgl($"Checking heightmap at {terrainComp.transform.position}");
                     int thisResets = 0;
+                    bool thisReset = false;
                     int num = m_width + 1;
                     for (int h = 0; h < num; h++)
                     {
@@ -122,7 +126,7 @@ namespace TerrainReset
 
                             resets++;
                             thisResets++;
-
+                            thisReset = true;
 
                             m_modifiedHeight[idx] = false;
                             m_levelDelta[idx] = 0;
@@ -144,25 +148,30 @@ namespace TerrainReset
                             if (CoordDistance(x, y, w, h) > radius)
                                 continue;
 
+                            thisReset = true;
                             m_modifiedPaint[idx] = false;
                             m_paintMask[idx] = Color.clear;
                         }
                     }
 
-                    Dbgl($"\tReset {thisResets} comp edits");
+                    if (thisReset)
+                    {
+                        Dbgl($"\tReset {thisResets} comp edits");
 
-                    traverse.Field("m_modifiedHeight").SetValue(m_modifiedHeight);
-                    traverse.Field("m_levelDelta").SetValue(m_levelDelta);
-                    traverse.Field("m_smoothDelta").SetValue(m_smoothDelta);
-                    traverse.Field("m_modifiedPaint").SetValue(m_modifiedPaint);
-                    traverse.Field("m_paintMask").SetValue(m_paintMask);
+                        traverse.Field("m_modifiedHeight").SetValue(m_modifiedHeight);
+                        traverse.Field("m_levelDelta").SetValue(m_levelDelta);
+                        traverse.Field("m_smoothDelta").SetValue(m_smoothDelta);
+                        traverse.Field("m_modifiedPaint").SetValue(m_modifiedPaint);
+                        traverse.Field("m_paintMask").SetValue(m_paintMask);
 
-                    continue;
+                        traverse.Method("Save").GetValue();
+                    }
+
                 }
             }
 
             if (resets > 0)
-                context.StartCoroutine(ReloadTerrain());
+                context.StartCoroutine(ReloadTerrain(center));
             return resets;
         }
 
@@ -173,11 +182,11 @@ namespace TerrainReset
             return Mathf.Sqrt(num * num + num2 * num2);
         }
 
-        private static IEnumerator ReloadTerrain()
+        private static IEnumerator ReloadTerrain(Vector3 center)
         {
             yield return null;
             List<Heightmap> list = new List<Heightmap>();
-            Heightmap.FindHeightmap(Player.m_localPlayer.transform.position, 150, list);
+            Heightmap.FindHeightmap(center, 150, list);
 
             using (List<Heightmap>.Enumerator enumerator = list.GetEnumerator())
             {
@@ -193,6 +202,35 @@ namespace TerrainReset
                 }
             }
 
+        }
+
+        [HarmonyPatch(typeof(TerrainComp), "DoOperation")]
+        static class DoOperation_Patch
+        {
+            static bool Prefix(Vector3 pos, TerrainOp.Settings modifier, bool ___m_initialized)
+            {
+                if (!___m_initialized)
+                    return false;
+
+                if (!modEnabled.Value || !modifier.m_smooth || !AedenthornUtils.CheckKeyHeld(modKey.Value))
+                    return true;
+
+                ResetTerrain(pos, toolRadius.Value);
+
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(TerrainOp), "OnPlaced")]
+        static class OnPlaced_Patch
+        {
+            static bool Prefix(TerrainOp.Settings ___m_settings)
+            {
+                //Dbgl($"{___m_settings.m_smooth} {AedenthornUtils.CheckKeyHeld(modKey.Value)}");
+                if (!modEnabled.Value || !___m_settings.m_smooth || !AedenthornUtils.CheckKeyHeld(modKey.Value))
+                    return true;
+                return false;
+            }
         }
 
         [HarmonyPatch(typeof(Console), "InputText")]
@@ -215,7 +253,7 @@ namespace TerrainReset
                 {
                     if (float.TryParse(text.ToLower().Split(' ')[1], out float radius))
                     {
-                        int resets = ResetTerrain(radius);
+                        int resets = ResetTerrain(Player.m_localPlayer.transform.position, radius);
                         Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                         if (resetMessage.Value.Length > 0 && resetMessage.Value.Contains("{0}"))
                             Traverse.Create(__instance).Method("AddString", new object[] { string.Format(resetMessage.Value, resets) }).GetValue();
