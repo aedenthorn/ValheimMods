@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace TerrainReset
 {
-    [BepInPlugin("aedenthorn.TerrainReset", "Terrain Reset", "0.1.0")]
+    [BepInPlugin("aedenthorn.TerrainReset", "Terrain Reset", "0.3.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -48,83 +48,159 @@ namespace TerrainReset
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses(true) || !AedenthornUtils.CheckKeyDown(hotKey.Value) || !Player.m_localPlayer)
                 return;
 
-            int resets = ResetTerrainFake(resetRadius.Value);
+            int resets = ResetTerrain(resetRadius.Value);
             if (resetMessage.Value.Length > 0 && resetMessage.Value.Contains("{0}"))
                 Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(resetMessage.Value, resets));
         }
 
-        private static int ResetTerrainFake(float radius)
-        {
-            int resets = 69;
-            List<Heightmap> list = new List<Heightmap>();
-            Heightmap.FindHeightmap(Player.m_localPlayer.transform.position, radius, list);
-
-            using (List<Heightmap>.Enumerator enumerator = list.GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                {
-                    enumerator.Current.Poke(false);
-                    if (ClutterSystem.instance)
-                        ClutterSystem.instance.ResetGrass(enumerator.Current.transform.position, enumerator.Current.m_width * enumerator.Current.m_scale / 2f);
-                }
-            }
-
-            return resets;
-        }
         
         private static int ResetTerrain(float radius)
         {
             int resets = 0;
             List<Heightmap> list = new List<Heightmap>();
-            Heightmap.FindHeightmap(Player.m_localPlayer.transform.position, radius, list);
-            List<TerrainModifier> allInstances = TerrainModifier.GetAllInstances();
 
-            List<TerrainComp> comps = (List<TerrainComp>)typeof(TerrainComp).GetField("m_instances", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
-            foreach (TerrainComp terrainComp in comps)
+            Vector3 playerPos = Player.m_localPlayer.transform.position;
+
+            Heightmap.FindHeightmap(Player.m_localPlayer.transform.position, 150, list);
+
+
+            List<TerrainModifier> allInstances = TerrainModifier.GetAllInstances();
+            foreach (TerrainModifier terrainModifier in allInstances)
             {
-                Vector3 position = terrainComp.transform.position;
-                if (Vector3.Distance(terrainComp.transform.position, Player.m_localPlayer.transform.position) <= radius)
+                Vector3 position = terrainModifier.transform.position;
+                ZNetView nview = terrainModifier.GetComponent<ZNetView>();
+                if (nview != null && nview.IsValid() && nview.IsOwner() && Utils.DistanceXZ(position, playerPos) <= radius)
                 {
-                    ZNetView nview = terrainComp.GetComponent<ZNetView>();
-                    if (nview != null && nview.IsValid() && nview.IsOwner())
-                    {
-                        resets++;
-                        nview.Destroy();
-                    }
+                    //Dbgl($"TerrainModifier {position}, player {playerPos}, distance: {Utils.DistanceXZ(position, playerPos)}");
+                    resets++;
+                    nview.Destroy();
                 }
             }
+            Dbgl($"Reset {resets} mod edits");
 
             using (List<Heightmap>.Enumerator enumerator = list.GetEnumerator())
             {
                 while (enumerator.MoveNext())
                 {
-                    foreach (TerrainModifier terrainModifier in allInstances)
+                    TerrainComp terrainComp = TerrainComp.FindTerrainCompiler(enumerator.Current.transform.position);
+                    if (!terrainComp)
+                        continue;
+                    Traverse traverse = Traverse.Create(terrainComp);
+
+                    if (!traverse.Field("m_initialized").GetValue<bool>())
+                        continue;
+
+                    enumerator.Current.WorldToVertex(playerPos, out int x, out int y);
+
+                    bool[] m_modifiedHeight = traverse.Field("m_modifiedHeight").GetValue<bool[]>();
+                    float[] m_levelDelta = traverse.Field("m_levelDelta").GetValue<float[]>();
+                    float[] m_smoothDelta = traverse.Field("m_smoothDelta").GetValue<float[]>();
+                    bool[] m_modifiedPaint = traverse.Field("m_modifiedPaint").GetValue<bool[]>();
+                    Color[] m_paintMask = traverse.Field("m_paintMask").GetValue<Color[]>();
+                    
+                    int m_width = traverse.Field("m_width").GetValue<int>();
+
+                    Dbgl($"Checking heightmap at {terrainComp.transform.position}");
+                    int thisResets = 0;
+                    int num = m_width + 1;
+                    for (int h = 0; h < num; h++)
                     {
-                        ZNetView nview = terrainModifier.GetComponent<ZNetView>();
-                        if (nview != null && nview.IsValid() && nview.IsOwner() && Vector3.Distance(terrainModifier.transform.position, enumerator.Current.transform.position) <= radius)
+                        for (int w = 0; w < num; w++)
+                        {
+
+                            int idx = h * num + w;
+
+                            if (!m_modifiedHeight[idx])
+                                continue;
+
+                            //Dbgl($"Player coord {x},{y} coord {w},{h}, distance {CoordDistance(x, y, w, h)} has edits. ");
+
+                            if (CoordDistance(x, y, w, h) > radius)
+                                continue;
+
+                            //Dbgl("In range, resetting");
+
+                            resets++;
+                            thisResets++;
+
+
+                            m_modifiedHeight[idx] = false;
+                            m_levelDelta[idx] = 0;
+                            m_smoothDelta[idx] = 0;
+                        }
+                    }
+
+                    num = m_width;
+                    for (int h = 0; h < num; h++)
+                    {
+                        for (int w = 0; w < num; w++)
+                        {
+
+                            int idx = h * num + w;
+
+                            if (!m_modifiedPaint[idx])
+                                continue;
+
+                            if (CoordDistance(x, y, w, h) > radius)
+                                continue;
+
+                            m_modifiedPaint[idx] = false;
+                            m_paintMask[idx] = Color.clear;
+                        }
+                    }
+
+                    Dbgl($"\tReset {thisResets} comp edits");
+
+                    traverse.Field("m_modifiedHeight").SetValue(m_modifiedHeight);
+                    traverse.Field("m_levelDelta").SetValue(m_levelDelta);
+                    traverse.Field("m_smoothDelta").SetValue(m_smoothDelta);
+                    traverse.Field("m_modifiedPaint").SetValue(m_modifiedPaint);
+                    traverse.Field("m_paintMask").SetValue(m_paintMask);
+
+                    continue;
+
+                    Vector3 position = terrainComp.transform.position;
+
+                    if (Utils.DistanceXZ(position, playerPos) <= radius)
+                    {
+                        Dbgl($"TerrainComp {position}, player {playerPos}. distance: {Utils.DistanceXZ(position, playerPos)}");
+                        ZNetView nview = terrainComp.GetComponent<ZNetView>();
+                        if (nview != null && nview.IsValid() && nview.IsOwner())
                         {
                             resets++;
                             nview.Destroy();
                         }
                     }
+
                 }
             }
 
             if (resets > 0)
-                context.StartCoroutine(ReloadTerrain(radius));
+                context.StartCoroutine(ReloadTerrain());
             return resets;
         }
 
-        private static IEnumerator ReloadTerrain(float radius)
+        private static float CoordDistance(float x, float y, float rx, float ry)
+        {
+            float num = x - rx;
+            float num2 = y - ry;
+            return Mathf.Sqrt(num * num + num2 * num2);
+        }
+
+        private static IEnumerator ReloadTerrain()
         {
             yield return null;
             List<Heightmap> list = new List<Heightmap>();
-            Heightmap.FindHeightmap(Player.m_localPlayer.transform.position, radius, list);
+            Heightmap.FindHeightmap(Player.m_localPlayer.transform.position, 150, list);
 
             using (List<Heightmap>.Enumerator enumerator = list.GetEnumerator())
             {
                 while (enumerator.MoveNext())
                 {
+                    TerrainComp terrainComp = TerrainComp.FindTerrainCompiler(enumerator.Current.transform.position);
+                    if (!terrainComp)
+                        continue;
+
                     enumerator.Current.Poke(false);
                     if (ClutterSystem.instance)
                         ClutterSystem.instance.ResetGrass(enumerator.Current.transform.position, enumerator.Current.m_width * enumerator.Current.m_scale / 2f);
