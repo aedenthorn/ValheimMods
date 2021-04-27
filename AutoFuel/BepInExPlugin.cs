@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.8.0")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.9.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = false;
@@ -26,6 +26,7 @@ namespace AutoFuel
         public static ConfigEntry<bool> refuelStandingTorches;
         public static ConfigEntry<bool> refuelWallTorches;
         public static ConfigEntry<bool> refuelFirePits;
+        public static ConfigEntry<bool> leaveLastItem;
         public static ConfigEntry<bool> isOn;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -55,6 +56,7 @@ namespace AutoFuel
             refuelWallTorches = Config.Bind<bool>("General", "RefuelWallTorches", true, "Refuel wall torches");
             refuelFirePits = Config.Bind<bool>("General", "RefuelFirePits", true, "Refuel fire pits");
             isOn = Config.Bind<bool>("General", "IsOn", true, "Behaviour is currently on or not");
+            leaveLastItem = Config.Bind<bool>("General", "LeaveLastItem", false, "Don't use last of item in chest");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 159, "Nexus mod ID for updates");
 
@@ -194,14 +196,15 @@ namespace AutoFuel
                 if (fireplace.m_fuelItem && maxFuel > 0)
                 {
                     ItemDrop.ItemData fuelItem = c.GetInventory().GetItem(fireplace.m_fuelItem.m_itemData.m_shared.m_name);
-                    if (fuelItem != null)
+
+                    if (fuelItem != null && (!leaveLastItem.Value || fuelItem.m_stack > 1))
                     {
-                        maxFuel--;
                         if (fuelDisallowTypes.Value.Split(',').Contains(fuelItem.m_dropPrefab.name))
                         {
                             //Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
                             continue;
                         }
+                        maxFuel--;
 
                         Dbgl($"container at {c.transform.position} has {fuelItem.m_stack} {fuelItem.m_dropPrefab.name}, taking one");
                             
@@ -298,7 +301,7 @@ namespace AutoFuel
                         }
                     }
 
-                    if (__instance.m_fuelItem && item.m_itemData.m_shared.m_name == __instance.m_fuelItem.m_itemData.m_shared.m_name && maxFuel > 0)
+                    if (__instance.m_fuelItem && item.m_itemData.m_shared.m_name == __instance.m_fuelItem.m_itemData.m_shared.m_name && maxFuel > 0 )
                     {
 
                         if (fuelDisallowTypes.Value.Split(',').Contains(name))
@@ -339,11 +342,11 @@ namespace AutoFuel
                 {
                     ItemDrop.ItemData oreItem = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
 
-                    if (oreItem != null && maxOre > 0)
+                    if (oreItem != null && maxOre > 0 && (!leaveLastItem.Value || oreItem.m_stack > 1))
                     {
-                        maxOre--;
                         if (oreDisallowTypes.Value.Split(',').Contains(oreItem.m_dropPrefab.name))
                             continue;
+                        maxOre--;
 
                         Dbgl($"container at {c.transform.position} has {oreItem.m_stack} {oreItem.m_dropPrefab.name}, taking one");
 
@@ -359,7 +362,7 @@ namespace AutoFuel
                 if (__instance.m_fuelItem && maxFuel > 0)
                 {
                     ItemDrop.ItemData fuelItem = c.GetInventory().GetItem(__instance.m_fuelItem.m_itemData.m_shared.m_name);
-                    if (fuelItem != null)
+                    if (fuelItem != null && (!leaveLastItem.Value || fuelItem.m_stack > 1))
                     {
                         maxFuel--;
                         if (fuelDisallowTypes.Value.Split(',').Contains(fuelItem.m_dropPrefab.name))
