@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace TerrainReset
+namespace ServerRewards
 {
-    [BepInPlugin("aedenthorn.TerrainReset", "Terrain Reset", "0.4.0")]
+    [BepInPlugin("aedenthorn.TerrainReset", "Terrain Reset", "0.5.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -64,7 +64,7 @@ namespace TerrainReset
             List<Heightmap> list = new List<Heightmap>();
 
 
-            Heightmap.FindHeightmap(center, 150, list);
+            Heightmap.FindHeightmap(center, radius + 100, list);
 
 
             List<TerrainModifier> allInstances = TerrainModifier.GetAllInstances();
@@ -76,6 +76,11 @@ namespace TerrainReset
                 {
                     //Dbgl($"TerrainModifier {position}, player {playerPos}, distance: {Utils.DistanceXZ(position, playerPos)}");
                     resets++;
+                    foreach (Heightmap heightmap in list)
+                    {
+                        if (heightmap.TerrainVSModifier(terrainModifier))
+                            heightmap.Poke(true);
+                    }
                     nview.Destroy();
                 }
             }
@@ -165,13 +170,15 @@ namespace TerrainReset
                         traverse.Field("m_paintMask").SetValue(m_paintMask);
 
                         traverse.Method("Save").GetValue();
+                        enumerator.Current.Poke(true);
                     }
 
                 }
             }
 
-            if (resets > 0)
-                context.StartCoroutine(ReloadTerrain(center));
+            if (resets > 0 && ClutterSystem.instance)
+                ClutterSystem.instance.ResetGrass(center, radius);
+            
             return resets;
         }
 
@@ -180,28 +187,6 @@ namespace TerrainReset
             float num = x - rx;
             float num2 = y - ry;
             return Mathf.Sqrt(num * num + num2 * num2);
-        }
-
-        private static IEnumerator ReloadTerrain(Vector3 center)
-        {
-            yield return null;
-            List<Heightmap> list = new List<Heightmap>();
-            Heightmap.FindHeightmap(center, 150, list);
-
-            using (List<Heightmap>.Enumerator enumerator = list.GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                {
-                    TerrainComp terrainComp = TerrainComp.FindTerrainCompiler(enumerator.Current.transform.position);
-                    if (!terrainComp)
-                        continue;
-
-                    enumerator.Current.Poke(false);
-                    if (ClutterSystem.instance)
-                        ClutterSystem.instance.ResetGrass(enumerator.Current.transform.position, enumerator.Current.m_width * enumerator.Current.m_scale / 2f);
-                }
-            }
-
         }
 
         [HarmonyPatch(typeof(TerrainComp), "DoOperation")]

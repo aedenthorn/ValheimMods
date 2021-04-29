@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace InventoryHUD
 {
-    [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.2.0")]
+    [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -225,8 +225,24 @@ namespace InventoryHUD
                 if (!modEnabled.Value || !Player.m_localPlayer)
                     return;
 
-                Inventory inv = Player.m_localPlayer.GetInventory();
                 Vector3 hudPos = new Vector3(hudPosition.Value.x, hudPosition.Value.y, 0);
+
+                if (__instance.m_rootObject.transform.localPosition.x > 1000f)
+                {
+                    maskObject.SetActive(false);
+                    partialObject.SetActive(false);
+                    fullObject.SetActive(false);
+                    infoObject.SetActive(false);
+                    return;
+                }
+                maskObject.SetActive(true);
+                partialObject.SetActive(true);
+                fullObject.SetActive(true);
+                infoObject.SetActive(true);
+
+                Inventory inv = Player.m_localPlayer.GetInventory();
+                Vector3 weightPos = hudPos + new Vector3(weightOffset.Value.x, weightOffset.Value.y, 0);
+
                 float weight = inv.GetTotalWeight();
                 float totalWeight = Player.m_localPlayer.GetMaxCarryWeight();
                 if (fullObject != null)
@@ -245,7 +261,7 @@ namespace InventoryHUD
                             lastPosition = Input.mousePosition;
                         }
                     }
-                    else if (AedenthornUtils.CheckKeyHeld(modKey.Value, true) && Input.GetKey(KeyCode.Mouse0) && Vector3.Distance(lastPosition, hudPos) < (weightTexture.height + weightTexture.width) / 4f * weightScale.Value * hudScale)
+                    else if (AedenthornUtils.CheckKeyHeld(modKey.Value, true) && Input.GetKey(KeyCode.Mouse0) && Vector3.Distance(lastPosition, weightPos) < (weightTexture.height + weightTexture.width) / 4f * weightScale.Value * hudScale)
                     {
                         hudPos += Input.mousePosition - lastPosition;
                         hudPosition.Value = new Vector2(hudPos.x, hudPos.y);
@@ -255,9 +271,9 @@ namespace InventoryHUD
                     partialObject.GetComponent<Image>().color = fillColor.Value;
                     fullObject.GetComponent<Image>().color = weightColor.Value;
 
-                    maskObject.transform.position = hudPos - new Vector3(0, maskOffset, 0) + new Vector3(weightOffset.Value.x, weightOffset.Value.y, 0);
-                    partialObject.transform.position = hudPos;
-                    fullObject.transform.position = hudPos;
+                    maskObject.transform.position = weightPos - new Vector3(0, maskOffset, 0);
+                    partialObject.transform.position = weightPos;
+                    fullObject.transform.position = weightPos;
                 }
                 if(infoObject != null)
                 {

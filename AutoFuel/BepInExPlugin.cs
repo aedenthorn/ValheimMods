@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.9.0")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.9.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = false;
@@ -195,24 +195,28 @@ namespace AutoFuel
             {
                 if (fireplace.m_fuelItem && maxFuel > 0)
                 {
-                    ItemDrop.ItemData fuelItem = c.GetInventory().GetItem(fireplace.m_fuelItem.m_itemData.m_shared.m_name);
-
-                    if (fuelItem != null && (!leaveLastItem.Value || fuelItem.m_stack > 1))
+                    List<ItemDrop.ItemData> itemList = new List<ItemDrop.ItemData>();
+                    c.GetInventory().GetAllItems(fireplace.m_fuelItem.m_itemData.m_shared.m_name, itemList);
+                    
+                    foreach(var fuelItem in itemList)
                     {
-                        if (fuelDisallowTypes.Value.Split(',').Contains(fuelItem.m_dropPrefab.name))
+                        if (fuelItem != null && (!leaveLastItem.Value || fuelItem.m_stack > 1))
                         {
-                            //Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
-                            continue;
+                            if (fuelDisallowTypes.Value.Split(',').Contains(fuelItem.m_dropPrefab.name))
+                            {
+                                //Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
+                                continue;
+                            }
+                            maxFuel--;
+
+                            Dbgl($"container at {c.transform.position} has {fuelItem.m_stack} {fuelItem.m_dropPrefab.name}, taking one");
+
+                            znview.InvokeRPC("AddFuel", new object[] { });
+
+                            c.GetInventory().RemoveItem(fireplace.m_fuelItem.m_itemData.m_shared.m_name, 1);
+                            typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
+                            typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
                         }
-                        maxFuel--;
-
-                        Dbgl($"container at {c.transform.position} has {fuelItem.m_stack} {fuelItem.m_dropPrefab.name}, taking one");
-                            
-                        znview.InvokeRPC("AddFuel", new object[] { });
-
-                        c.GetInventory().RemoveItem(fireplace.m_fuelItem.m_itemData.m_shared.m_name, 1);
-                        typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                        typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
                     }
                 }
             }
@@ -340,20 +344,24 @@ namespace AutoFuel
             {
                 foreach (Smelter.ItemConversion itemConversion in __instance.m_conversion)
                 {
-                    ItemDrop.ItemData oreItem = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
+                    List<ItemDrop.ItemData> itemList = new List<ItemDrop.ItemData>();
+                    c.GetInventory().GetAllItems(itemConversion.m_from.m_itemData.m_shared.m_name, itemList);
 
-                    if (oreItem != null && maxOre > 0 && (!leaveLastItem.Value || oreItem.m_stack > 1))
+                    foreach (var oreItem in itemList)
                     {
-                        if (oreDisallowTypes.Value.Split(',').Contains(oreItem.m_dropPrefab.name))
-                            continue;
-                        maxOre--;
+                        if (oreItem != null && maxOre > 0 && (!leaveLastItem.Value || oreItem.m_stack > 1))
+                        {
+                            if (oreDisallowTypes.Value.Split(',').Contains(oreItem.m_dropPrefab.name))
+                                continue;
+                            maxOre--;
 
-                        Dbgl($"container at {c.transform.position} has {oreItem.m_stack} {oreItem.m_dropPrefab.name}, taking one");
+                            Dbgl($"container at {c.transform.position} has {oreItem.m_stack} {oreItem.m_dropPrefab.name}, taking one");
 
-                        ___m_nview.InvokeRPC("AddOre", new object[] { oreItem.m_dropPrefab?.name });
-                        c.GetInventory().RemoveItem(itemConversion.m_from.m_itemData.m_shared.m_name, 1);
-                        typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                        typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
+                            ___m_nview.InvokeRPC("AddOre", new object[] { oreItem.m_dropPrefab?.name });
+                            c.GetInventory().RemoveItem(itemConversion.m_from.m_itemData.m_shared.m_name, 1);
+                            typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
+                            typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
+                        }
                     }
                 }
             }
@@ -361,23 +369,29 @@ namespace AutoFuel
             {
                 if (__instance.m_fuelItem && maxFuel > 0)
                 {
-                    ItemDrop.ItemData fuelItem = c.GetInventory().GetItem(__instance.m_fuelItem.m_itemData.m_shared.m_name);
-                    if (fuelItem != null && (!leaveLastItem.Value || fuelItem.m_stack > 1))
+
+                    List<ItemDrop.ItemData> itemList = new List<ItemDrop.ItemData>();
+                    c.GetInventory().GetAllItems(__instance.m_fuelItem.m_itemData.m_shared.m_name, itemList);
+
+                    foreach (var fuelItem in itemList)
                     {
-                        maxFuel--;
-                        if (fuelDisallowTypes.Value.Split(',').Contains(fuelItem.m_dropPrefab.name))
+                        if (fuelItem != null && (!leaveLastItem.Value || fuelItem.m_stack > 1))
                         {
-                            //Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
-                            continue;
+                            maxFuel--;
+                            if (fuelDisallowTypes.Value.Split(',').Contains(fuelItem.m_dropPrefab.name))
+                            {
+                                //Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name} but it's forbidden by config");
+                                continue;
+                            }
+
+                            Dbgl($"container at {c.transform.position} has {fuelItem.m_stack} {fuelItem.m_dropPrefab.name}, taking one");
+
+                            ___m_nview.InvokeRPC("AddFuel", new object[] { });
+
+                            c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, 1);
+                            typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
+                            typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
                         }
-
-                        Dbgl($"container at {c.transform.position} has {fuelItem.m_stack} {fuelItem.m_dropPrefab.name}, taking one");
-                            
-                        ___m_nview.InvokeRPC("AddFuel", new object[] { });
-
-                        c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, 1);
-                        typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                        typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
                     }
                 }
             }

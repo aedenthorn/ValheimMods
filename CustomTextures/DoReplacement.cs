@@ -26,6 +26,7 @@ namespace CustomTextures
             SkinnedMeshRenderer[] smrs = gameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true);
             InstanceRenderer[] irs = gameObject.GetComponentsInChildren<InstanceRenderer>(true);
             ParticleSystemRenderer[] prs = gameObject.GetComponentsInChildren<ParticleSystemRenderer>(true);
+            LineRenderer[] lrs = gameObject.GetComponentsInChildren<LineRenderer>(true);
 
 
             if (mrs.Length > 0)
@@ -168,6 +169,37 @@ namespace CustomTextures
                                 outputDump.Add($"\t\t\t{m.name}:");
 
                             ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "ParticleSystemRenderer", r.name);
+                        }
+                        catch (Exception ex)
+                        {
+                            logDump.Add($"\t\t\tError loading {r.name}:\r\n{ex}");
+                        }
+                    }
+                }
+            }
+            if (lrs.Length > 0)
+            {
+                if (dumpOutput)
+                    outputDump.Add($"{prefix} {thingName} has {lrs.Length} LineRenderers:");
+                foreach (LineRenderer r in lrs)
+                {
+                    if (r == null)
+                    {
+                        if (dumpOutput)
+                            outputDump.Add($"\tnull");
+                        continue;
+                    }
+
+                    if (dumpOutput)
+                        outputDump.Add($"\tLineRenderers name: {r.name}");
+                    foreach (Material m in r.materials)
+                    {
+                        try
+                        {
+                            if (dumpOutput)
+                                outputDump.Add($"\t\t\t{m.name}:");
+
+                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "LineRenderer", r.name);
                         }
                         catch (Exception ex)
                         {

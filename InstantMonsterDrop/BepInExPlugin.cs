@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace InstantMonsterDrop
 {
-    [BepInPlugin("aedenthorn.InstantMonsterDrop", "Instant Monster Drop", "0.3.2")]
+    [BepInPlugin("aedenthorn.InstantMonsterDrop", "Instant Monster Drop", "0.3.3")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;

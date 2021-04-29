@@ -9,13 +9,14 @@ using UnityEngine;
 
 namespace DiscardInventoryItem
 {
-    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard Inventory Items", "0.4.1")]
+    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard or Recycle Inventory Items", "0.5.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
 
         public static ConfigEntry<string> m_hotkey;
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> returnUnknownResources;
         public static ConfigEntry<float> returnResources;
         public static ConfigEntry<int> nexusID;
 
@@ -33,7 +34,8 @@ namespace DiscardInventoryItem
 
             m_hotkey = Config.Bind<string>("General", "DiscardHotkey", "delete", "The hotkey to discard an item");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            returnResources = Config.Bind<float>("General", "ReturnResources", 0f, "Fraction of resources to return (0.0 - 1.0)");
+            returnUnknownResources = Config.Bind<bool>("General", "ReturnUnknownResources", false, "Return resources if recipe is unknown");
+            returnResources = Config.Bind<float>("General", "ReturnResources", 1f, "Fraction of resources to return (0.0 - 1.0)");
             nexusID = Config.Bind<int>("General", "NexusID", 45, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
@@ -61,7 +63,7 @@ namespace DiscardInventoryItem
                     {
                         Recipe recipe = ObjectDB.instance.GetRecipe(___m_dragItem);
 
-                        if (recipe != null)
+                        if (recipe != null && (returnUnknownResources.Value || Player.m_localPlayer.IsRecipeKnown(___m_dragItem.m_shared.m_name)))
                         {
                             Dbgl($"Recipe stack: {recipe.m_amount} num of stacks: {___m_dragAmount / recipe.m_amount}");
 
@@ -69,6 +71,7 @@ namespace DiscardInventoryItem
                             var reqs = recipe.m_resources.ToList();
 
                             bool isMagic = false;
+                            bool cancel = false;
                             if (epicLootAssembly != null)
                             {
                                 isMagic = (bool)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("IsMagic", BindingFlags.Public | BindingFlags.Static).Invoke(null, new[] { ___m_dragItem });
@@ -79,6 +82,11 @@ namespace DiscardInventoryItem
                                 List<KeyValuePair<ItemDrop, int>> magicReqs = (List<KeyValuePair<ItemDrop, int>>)epicLootAssembly.GetType("EpicLoot.Crafting.EnchantTabController").GetMethod("GetEnchantCosts", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { ___m_dragItem, rarity });
                                 foreach (var kvp in magicReqs)
                                 {
+                                    if (!returnUnknownResources.Value && !Player.m_localPlayer.IsRecipeKnown(kvp.Key.m_itemData.m_shared.m_name))
+                                    {
+                                        cancel = true;
+                                        break;
+                                    }
                                     reqs.Add(new Piece.Requirement()
                                     {
                                         m_amount = kvp.Value,
@@ -87,7 +95,7 @@ namespace DiscardInventoryItem
                                 }
                             }
 
-                            if (___m_dragAmount / recipe.m_amount > 0)
+                            if (!cancel && ___m_dragAmount / recipe.m_amount > 0)
                             {
                                 for (int i = 0; i < ___m_dragAmount / recipe.m_amount; i++)
                                 {

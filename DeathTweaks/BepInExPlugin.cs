@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.3.1")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -21,11 +21,14 @@ namespace DeathTweaks
         public static ConfigEntry<bool> keepEquippedItems;
         public static ConfigEntry<bool> keepHotbarItems;
         public static ConfigEntry<bool> keepAllItems;
+        public static ConfigEntry<bool> destroyAllItems;
         
         public static ConfigEntry<bool> useTombStone;
         public static ConfigEntry<bool> keepFoodLevels;
+        public static ConfigEntry<bool> keepQuickSlotItems;
         public static ConfigEntry<bool> createDeathEffects;
         public static ConfigEntry<bool> reduceSkills;
+        public static ConfigEntry<bool> noSkillProtection;
 
         public static ConfigEntry<string> keepItemTypes;
         public static ConfigEntry<string> dropItemTypes;
@@ -54,15 +57,18 @@ namespace DeathTweaks
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1068, "Nexus mod ID for updates");
             keepItemTypes = Config.Bind<string>("ItemLists", "KeepItemTypes", "", $"List of items to keep (comma-separated). Leave empty if using DropItemTypes. Valid types: {string.Join(",", typeEnums)}");
-            dropItemTypes = Config.Bind<string>("ItemLists", "DropItemTypes", "", $"List of items to drop (comma-separated). Leave empty if using DropItemTypes. Valid types: {string.Join(",", typeEnums)}");
+            dropItemTypes = Config.Bind<string>("ItemLists", "DropItemTypes", "", $"List of items to drop (comma-separated). Leave empty if using KeepItemTypes. Valid types: {string.Join(",", typeEnums)}");
             destroyItemTypes = Config.Bind<string>("ItemLists", "DestroyItemTypes", "", $"List of items to destroy (comma-separated). Overrides other lists. Valid types: {string.Join(",", typeEnums)}");
             keepAllItems = Config.Bind<bool>("Toggles", "KeepAllItems", false, "Overrides all other item options if true.");
+            destroyAllItems = Config.Bind<bool>("Toggles", "DestroyAllItems", false, "Overrides all other item options except KeepAllItems if true.");
             keepEquippedItems = Config.Bind<bool>("Toggles", "KeepEquippedItems", false, "Overrides item lists if true.");
             keepHotbarItems = Config.Bind<bool>("Toggles", "KeepHotbarItems", false, "Overrides item lists if true.");
             useTombStone = Config.Bind<bool>("Toggles", "UseTombStone", true, "Use tombstone (if false, drops items on ground).");
             createDeathEffects = Config.Bind<bool>("Toggles", "CreateDeathEffects", true, "Create death effects.");
             keepFoodLevels = Config.Bind<bool>("Toggles", "KeepFoodLevels", false, "Keep food levels.");
+            keepQuickSlotItems = Config.Bind<bool>("Toggles", "KeepQuickSlotItems", false, "Keep QuickSlot items.");
             reduceSkills = Config.Bind<bool>("Toggles", "ReduceSkills", true, "Reduce skills.");
+            noSkillProtection = Config.Bind<bool>("Toggles", "NoSkillProtection", false, "Prevents skill protection after death.");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
@@ -71,9 +77,11 @@ namespace DeathTweaks
         {
             if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.equipmentandquickslots"))
                 quickSlotsAssembly = Chainloader.PluginInfos["randyknapp.mods.equipmentandquickslots"].Instance.GetType().Assembly;
+
         }
 
         [HarmonyPatch(typeof(Player), "OnDeath")]
+        [HarmonyPriority(Priority.First)]
         static class OnDeath_Patch
         {
             static bool Prefix(Player __instance, Inventory ___m_inventory, ref float ___m_timeSinceDeath, float ___m_hardDeathCooldown, ZNetView ___m_nview, List<Player.Food> ___m_foods, Skills ___m_skills)
@@ -90,74 +98,89 @@ namespace DeathTweaks
                 if (createDeathEffects.Value)
                     Traverse.Create(__instance).Method("CreateDeathEffects").GetValue();
 
-                List<Inventory> inventories = new List<Inventory>();
-
-                if (quickSlotsAssembly != null)
-                {
-                    var extendedInventory = quickSlotsAssembly.GetType("EquipmentAndQuickSlots.InventoryExtensions").GetMethod("Extended", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { ___m_inventory });
-                    inventories = (List<Inventory>)quickSlotsAssembly.GetType("EquipmentAndQuickSlots.ExtendedInventory").GetField("_inventories", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(extendedInventory);
-                }
-                else
-                {
-                    inventories.Add(___m_inventory);
-                }
-
                 List<ItemDrop.ItemData> dropItems = new List<ItemDrop.ItemData>();
-                for (int i = 0; i < inventories.Count; i++)
+
+                if (!keepAllItems.Value)
                 {
-                    Inventory inv = inventories[i];
-                    List<ItemDrop.ItemData> keepItems = inv.GetAllItems();
-                    foreach (ItemDrop.ItemData item in inv.GetAllItems())
+
+                    List<Inventory> inventories = new List<Inventory>();
+
+                    if (quickSlotsAssembly != null)
                     {
+                        var extendedInventory = quickSlotsAssembly.GetType("EquipmentAndQuickSlots.InventoryExtensions").GetMethod("Extended", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { ___m_inventory });
+                        inventories = (List<Inventory>)quickSlotsAssembly.GetType("EquipmentAndQuickSlots.ExtendedInventory").GetField("_inventories", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(extendedInventory);
+                    }
+                    else
+                    {
+                        inventories.Add(___m_inventory);
+                    }
 
-                        if (keepAllItems.Value)
-                            continue;
+                    for (int i = 0; i < inventories.Count; i++)
+                    {
+                        Inventory inv = inventories[i];
 
-                        if (keepEquippedItems.Value && item.m_equiped)
-                            continue;
-
-                        if (keepHotbarItems.Value && item.m_gridPos.y == 0)
-                            continue;
-
-                        if (item.m_shared.m_questItem)
-                            continue;
-
-                        if (destroyItemTypes.Value.Length > 0)
+                        if (quickSlotsAssembly != null && keepQuickSlotItems.Value && inv == (Inventory)quickSlotsAssembly.GetType("EquipmentAndQuickSlots.PlayerExtensions").GetMethod("GetQuickSlotInventory", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { __instance }))
                         {
-                            string[] destroyTypes = destroyItemTypes.Value.Split(',');
-                            if (destroyTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
-                            {
-                                keepItems.Remove(item);
-                                continue;
-                            }
+                            Dbgl("Skipping quick slot inventory");
+                            continue;
                         }
 
-                        if (keepItemTypes.Value.Length > 0)
+                        List<ItemDrop.ItemData> keepItems = new List<ItemDrop.ItemData>(inv.GetAllItems());
+
+                        if (destroyAllItems.Value)
+                            keepItems.Clear();
+                        else
                         {
-                            string[] keepTypes = keepItemTypes.Value.Split(',');
-                            if (keepTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
-                                continue;
-                        }
-                        else if (dropItemTypes.Value.Length > 0)
-                        {
-                            string[] dropTypes = dropItemTypes.Value.Split(',');
-                            if (dropTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
+
+                            foreach (ItemDrop.ItemData item in inv.GetAllItems())
                             {
+
+                                if (keepEquippedItems.Value && item.m_equiped)
+                                    continue;
+
+                                if (keepHotbarItems.Value && item.m_gridPos.y == 0)
+                                    continue;
+
+                                if (item.m_shared.m_questItem)
+                                    continue;
+
+                                if (destroyItemTypes.Value.Length > 0)
+                                {
+                                    string[] destroyTypes = destroyItemTypes.Value.Split(',');
+                                    if (destroyTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
+                                    {
+                                        keepItems.Remove(item);
+                                        continue;
+                                    }
+                                }
+
+                                if (keepItemTypes.Value.Length > 0)
+                                {
+                                    string[] keepTypes = keepItemTypes.Value.Split(',');
+                                    if (keepTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
+                                        continue;
+                                }
+                                else if (dropItemTypes.Value.Length > 0)
+                                {
+                                    string[] dropTypes = dropItemTypes.Value.Split(',');
+                                    if (dropTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
+                                    {
+                                        keepItems.Remove(item);
+                                        dropItems.Add(item);
+                                    }
+                                    continue;
+                                }
+
                                 keepItems.Remove(item);
                                 dropItems.Add(item);
                             }
-                            continue;
                         }
-
-                        keepItems.Remove(item);
-                        dropItems.Add(item);
+                        Traverse.Create(inv).Field("m_inventory").SetValue(keepItems);
+                        Traverse.Create(inv).Method("Changed").GetValue();
                     }
-
-                    Traverse.Create(inv).Field("m_inventory").SetValue(keepItems);
-                    Traverse.Create(inv).Method("Changed").GetValue();
                 }
 
-                if (useTombStone.Value)
+                if (useTombStone.Value && dropItems.Any())
                 {
                     GameObject gameObject = Instantiate(__instance.m_tombstone, __instance.GetCenterPoint(), __instance.transform.rotation);
                     gameObject.GetComponent<Container>().GetInventory().RemoveAll();
@@ -189,7 +212,7 @@ namespace DeathTweaks
                 if (!keepFoodLevels.Value)
                     ___m_foods.Clear();
 
-                bool hardDeath = ___m_timeSinceDeath > ___m_hardDeathCooldown;
+                bool hardDeath = noSkillProtection.Value || ___m_timeSinceDeath > ___m_hardDeathCooldown;
 
                 if (hardDeath && reduceSkills.Value)
                 {
@@ -213,6 +236,17 @@ namespace DeathTweaks
 
         }
 
+        [HarmonyPatch(typeof(Player), "HardDeath")]
+        static class HardDeath_Patch
+        {
+            static bool Prefix(ref bool __result)
+            {
+                if (!modEnabled.Value || !noSkillProtection.Value)
+                    return true;
+                __result = true;
+                return false;
+            }
+        }
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch
         {
