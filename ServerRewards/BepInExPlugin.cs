@@ -30,11 +30,13 @@ namespace ServerRewards
         public static ConfigEntry<float> windowWidth;
         public static ConfigEntry<float> windowHeight;
         public static ConfigEntry<Vector2> windowPosition;
-        public static ConfigEntry<int> fontSize;
-        public static ConfigEntry<Color> fontColor;
+        public static ConfigEntry<int> titleFontSize;
+        public static ConfigEntry<int> currencyFontSize;
+        public static ConfigEntry<int> labelFontSize;
         public static ConfigEntry<string> storeTitle;
         public static ConfigEntry<string> currencyString;
         public static ConfigEntry<string> packageString;
+        public static ConfigEntry<string> myCurrencyString;
         public static ConfigEntry<int> packagesPerRow;
 
         private static BepInExPlugin context;
@@ -42,8 +44,9 @@ namespace ServerRewards
         private static bool storeOpen;
 
         private static Vector2 scrollPosition;
-        private static GUIStyle style;
-        private static GUIStyle style2;
+        private static GUIStyle titleStyle;
+        private static GUIStyle currencyStyle;
+        private static GUIStyle labelStyle;
         private static Rect windowRect;
         private static string windowTitleText;
         private static List<PackageInfo> storePackages = new List<PackageInfo>();
@@ -73,10 +76,13 @@ namespace ServerRewards
             windowHeight = Config.Bind<float>("UI", "WindowHeight", Screen.height / 3, "Height of the store window");
             windowPosition = Config.Bind<Vector2>("UI", "WindowPosition", new Vector2(Screen.width / 3, Screen.height / 3), "Position of the store window");
             packagesPerRow = Config.Bind<int>("UI", "PackagesPerRow", 4, "Packages per row");
-            fontSize = Config.Bind<int>("UI", "FontSize", 24, "Size of the text in the store window");
-            fontColor = Config.Bind<Color>("UI", "FontColor", new Color(1, 1, 0.7f, 1), "Color of the text in the updateable list");
-            storeTitle = Config.Bind<string>("UI", "StoreTitle", "Server Store", "Store window title");
-            currencyString = Config.Bind<string>("UI", "CurrencyString", "${0}", "Currency string.");
+            titleFontSize = Config.Bind<int>("UI", "TitleFontSize", 24, "Size of the store window title");
+            currencyFontSize = Config.Bind<int>("UI", "CurrencyFontSize", 20, "Size of the currency info");
+            labelFontSize = Config.Bind<int>("UI", "LabelFontSize", 24, "Size of the package labels");
+            //titleFontColor = Config.Bind<Color>("UI", "TitleFontColor", new Color(1, 1, 0.7f, 1), "Color of the store window title");
+            storeTitle = Config.Bind<string>("UI", "StoreTitle", "<b><color=#9999FFFF>Server Store</color></b>", "Store window title");
+            currencyString = Config.Bind<string>("UI", "CurrencyString", "${1}", "Currency string.");
+            myCurrencyString = Config.Bind<string>("UI", "MyCurrencyString", "<b><color=#FFFFFFFF>My Balance:</color> <color=#FFFF00FF>{0}</color></b>", "My currency string");
             packageString = Config.Bind<string>("UI", "PackageString", "<b><color=#FFFFFFFF>{0}</color> <color=#FFFF00FF>{1}</color></b>", "Package string");
 
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ServerRewards");
@@ -119,7 +125,7 @@ namespace ServerRewards
                 };
                 File.WriteAllText(Path.Combine(storePath, package.id + ".json"), JsonUtility.ToJson(package));
             }
-
+            windowTitleText = storeTitle.Value;
 
             ApplyConfig();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
@@ -127,23 +133,43 @@ namespace ServerRewards
 
         private static void ApplyConfig()
         {
-            windowRect = new Rect(windowPosition.Value.x, windowPosition.Value.y, windowWidth.Value + 50, windowHeight.Value);
+            windowRect = new Rect(windowPosition.Value.x, windowPosition.Value.y, windowWidth.Value, windowHeight.Value);
 
-            style = new GUIStyle
+            titleStyle = new GUIStyle
             {
                 richText = true,
-                fontSize = fontSize.Value,
+                fontSize = titleFontSize.Value,
+                wordWrap = true,
+                alignment = TextAnchor.MiddleCenter
+            };
+            currencyStyle = new GUIStyle
+            {
+                richText = true,
+                fontSize = currencyFontSize.Value,
                 wordWrap = true,
                 alignment = TextAnchor.MiddleLeft
             };
-            style.normal.textColor = fontColor.Value;
+            labelStyle = new GUIStyle
+            {
+                richText = true,
+                fontSize = labelFontSize.Value,
+                wordWrap = true,
+                alignment = TextAnchor.MiddleCenter
+            };
         }
 
         private void Update()
         {
-            if (!AedenthornUtils.IgnoreKeyPresses(true) && AedenthornUtils.CheckKeyDown(openUIKey.Value))
+            /*
+            if (AedenthornUtils.CheckKeyDown(openUIKey.Value))
             {
+                storeOpen = !storeOpen;
 
+            }
+            return;
+            */
+            if (ZNet.instance && Player.m_localPlayer && !AedenthornUtils.IgnoreKeyPresses(true) && AedenthornUtils.CheckKeyDown(openUIKey.Value))
+            {
                 Dbgl("Pressed hotkey");
                 if (storeOpen)
                 {
@@ -173,68 +199,56 @@ namespace ServerRewards
         {
             if (!modEnabled.Value)
                 return;
-
-            
-            if (!AedenthornUtils.IgnoreKeyPresses(true) && AedenthornUtils.CheckKeyDown(openUIKey.Value))
-            {
-                storeOpen = true;
-            }
+            /*
             if (storeOpen)
             {
-                myCurrency = 69;
-                windowTitleText = storeTitle.Value;
-                storePackages.Clear();
-                PackageInfo package = new PackageInfo()
+                windowRect = GUI.Window(424243, windowRect, new GUI.WindowFunction(WindowBuilder), "");
+                if (!Input.GetKey(KeyCode.Mouse0) && (windowRect.x != windowPosition.Value.x || windowRect.y != windowPosition.Value.y))
                 {
-                    name = "Shields",
-                    id = "Shields",
-                    type = "Common",
-                    price = 50,
-                    items = new List<string>() { "ShieldWood,1,70,choice", "ShieldBronze,1,30,choice" }
-                };
-                storePackages.Add(package);
-                storePackages.Add(package);
-                storePackages.Add(package);
-                storePackages.Add(package);
-                storePackages.Add(package);
-                storePackages.Add(package);
-                windowRect = GUI.Window(424243, windowRect, new GUI.WindowFunction(WindowBuilder), windowTitleText);
-            }
-            if (!Input.GetKey(KeyCode.Mouse0) && (windowRect.x != windowPosition.Value.x || windowRect.y != windowPosition.Value.y))
-            {
-                windowPosition.Value = new Vector2(windowRect.x, windowRect.y);
-            }
+                    windowPosition.Value = new Vector2(windowRect.x, windowRect.y);
+                }
 
+            }
             return;
-            
+            */
             if (!ZNet.instance?.IsServer() == true && Player.m_localPlayer) 
             {
                 if (storeOpen)
                 {
-                    windowRect = GUI.Window(424243, windowRect, new GUI.WindowFunction(WindowBuilder), windowTitleText);
+                    windowRect = GUI.Window(424243, windowRect, new GUI.WindowFunction(WindowBuilder), "");
+                }
+                if (!Input.GetKey(KeyCode.Mouse0) && (windowRect.x != windowPosition.Value.x || windowRect.y != windowPosition.Value.y))
+                {
+                    windowPosition.Value = new Vector2(windowRect.x, windowRect.y);
                 }
             }
         }
 
         private void WindowBuilder(int id)
         {
-            GUI.DragWindow(new Rect(0, 0, windowWidth.Value, 20));
-
-            GUILayout.BeginVertical();
-            GUILayout.Label(string.Format(currencyString.Value, myCurrency), style);
-
-            scrollPosition = GUILayout.BeginScrollView(scrollPosition, new GUILayoutOption[] { GUILayout.Width(windowWidth.Value + 40), GUILayout.Height(windowHeight.Value - 30) });
+            GUI.DragWindow(new Rect(0,0,windowWidth.Value, 20));
+            GUILayout.BeginVertical(new GUILayoutOption[] { GUILayout.Width(windowWidth.Value) });
+            GUILayout.Label(windowTitleText, titleStyle);
+            GUILayout.Label(string.Format(myCurrencyString.Value, string.Format(currencyString.Value, myCurrency)), currencyStyle);
+            
+            float width = windowWidth.Value - 70;
+            float itemWidth = width / packagesPerRow.Value;
+            scrollPosition = GUILayout.BeginScrollView(scrollPosition, new GUILayoutOption[] { GUILayout.Width(windowWidth.Value - 20) });
+            GUILayout.Space(10);
+            GUILayout.BeginVertical(new GUILayoutOption[] { GUILayout.Width(width) });
             GUILayout.BeginHorizontal();
-            for(int i = 0; i < storePackages.Count; i++)
+            for (int i = 0; i < storePackages.Count; i++)
             {
                 if(i > 0 && i % packagesPerRow.Value == 0)
                 {
                     GUILayout.EndHorizontal();
+                    GUILayout.Space(10);
                     GUILayout.BeginHorizontal();
                 }
                 PackageInfo pi = storePackages[i];
-                GUILayout.BeginVertical();
-                if (GUILayout.Button(textureDict.ContainsKey(pi.type) ? textureDict[pi.type] : textureDict["Common"]))
+                string texture = textureDict.ContainsKey(pi.type) ? pi.type : "Common";
+                GUILayout.BeginVertical(new GUILayoutOption[] { GUILayout.Width(itemWidth) });
+                if (GUILayout.Button(textureDict[texture], new GUILayoutOption[] { GUILayout.Width(itemWidth), GUILayout.Height(itemWidth) }))
                 {
                     if (myCurrency >= pi.price)
                     {
@@ -254,9 +268,12 @@ namespace ServerRewards
                     }
                 }
 
-                GUILayout.Label(string.Format(packageString.Value, pi.name, pi.price, style));
-                GUILayout.EndHorizontal();
+                GUILayout.Label(string.Format(packageString.Value, pi.name, pi.price), labelStyle, new GUILayoutOption[] { GUILayout.Width(itemWidth) });
+                GUILayout.EndVertical();
             }
+            GUILayout.EndHorizontal();
+            GUILayout.Space(10);
+            GUILayout.EndVertical();
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
         }

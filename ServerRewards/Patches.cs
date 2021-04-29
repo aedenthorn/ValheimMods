@@ -86,6 +86,7 @@ namespace ServerRewards
                 {
                     context.Config.Reload();
                     context.Config.Save();
+                    ApplyConfig();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
