@@ -1,0 +1,30 @@
+{
+    "id": "Base_Epic",
+    "name": "Epic",
+    "price": 400,
+    "type": "Epic",
+    "items": [
+        "ArmorIronLegs,1,10,choice",
+        "ArmorIronChest,1,10,choice",
+		"HelmetIron,1,10,choice",
+		"CapeWolf,1,10,choice",
+		"SledgeIron,1,5,choice",
+		"Battleaxe,1,5,choice",
+		"ShieldBanded,1,5,choice",
+		"MaceIron,1,5,choice",
+		"AxeIron,1,5,choice",
+		"AtgeirIron,1,5,choice",
+		"SpearElderbark,1,5,choice",
+		"SwordIron,1,5,choice",
+		"BowHuntsman,1,10,choice",
+		"ShieldSilver,1,3,choice",
+		"SpearChitin,1,1,choice",
+		"MaceSilver,1,1,choice",
+		"KnifeChitin,1,1,choice",
+		"SpearWolfFang,1,1,choice",
+		"SwordSilver,1,1,choice",
+		"BowDraugrFang,1,2,choice",
+		"ArrowFire,20-100,10,chance",
+		"ArrowIron,20-100,10,chance"
+    ]
+}

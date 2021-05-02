@@ -1,0 +1,24 @@
+{
+    "id": "Base_Rare",
+    "name": "Rare",
+    "price": 150,
+    "type": "Rare",
+    "items": [
+        "ArmorBronzeLegs,1,10,choice",
+        "ArmorBronzeChest,1,10,choice",
+		"HelmetBronze,1,10,choice",
+		"CapeTrollHide,1,10,choice",
+		"SledgeStagbreaker,1,5,choice",
+		"KnifeCopper,1,5,choice",
+		"ShieldBronzeBuckler,1,5,choice",
+		"MaceBronze,1,5,choice",
+		"AxeBronze,1,5,choice",
+		"AtgeirBronze,1,5,choice",
+		"SpearBronze,1,5,choice",
+		"SwordBronze,1,5,choice",
+		"BowFineWood,1,10,choice",
+		"ArrowFire,100,10,chance",
+		"ArrowBronze,100,10,chance",
+		"ShieldWood,1,10,choice"
+    ]
+}

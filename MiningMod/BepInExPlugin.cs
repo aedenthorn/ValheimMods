@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace MiningMod
 {
-    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.5.0")]
+    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -28,6 +28,7 @@ namespace MiningMod
         public static ConfigEntry<float> rubyDropChance;
         public static ConfigEntry<float> amberDropChance;
         public static ConfigEntry<float> amberPearlDropChance;
+        public static ConfigEntry<float> flintDropChance;
         public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -47,6 +48,7 @@ namespace MiningMod
             rubyDropChance = Config.Bind<float>("General", "RubyDropChance", 0.05f, "Chance of dropping a ruby");
             amberPearlDropChance = Config.Bind<float>("General", "AmberPearlDropChance", 0.1f, "Chance of dropping amber pearl");
             amberDropChance = Config.Bind<float>("General", "AmberDropChance", 0.2f, "Chance of dropping amber");
+            flintDropChance = Config.Bind<float>("General", "FlintDropChance", 0.15f, "Chance of dropping flint");
             damageMult = Config.Bind<float>("General", "DamageMult", 1f, "Damage multiplier to mining rocks");
             nexusID = Config.Bind<int>("General", "NexusID", 206, "Nexus mod ID for updates");
 
@@ -133,7 +135,7 @@ namespace MiningMod
                         {
                             count = Mathf.RoundToInt(count * oreDropMult.Value);
                         }
-                        Dbgl($"loot drop had {kvp.Value.Count} {kvp.Value} - changed amount to {count}");
+                        //Dbgl($"loot drop had {kvp.Value.Count} {(kvp.Value.Count > 0? kvp.Value[0].name :"")} - changed amount to {count}");
                         if(kvp.Value.Count < count)
                         {
                             for (int i = kvp.Value.Count; i < count; i++)
@@ -163,6 +165,11 @@ namespace MiningMod
                     if (UnityEngine.Random.value < amberPearlDropChance.Value)
                     {
                         GameObject go = ZNetScene.instance.GetPrefab("AmberPearl");
+                        __result.Add(go);
+                    }
+                    if (UnityEngine.Random.value < flintDropChance.Value)
+                    {
+                        GameObject go = ZNetScene.instance.GetPrefab("Flint");
                         __result.Add(go);
                     }
                 }

@@ -168,7 +168,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Recycle", "Recycle\Recycle.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ControllerButtonSwitch", "ControllerButtonSwitch\ControllerButtonSwitch.csproj", "{A775ED6F-5FD3-4315-BD97-537BF9999300}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerRewards", "ServerRewards\ServerRewards.csproj", "{9A3F6016-5760-4975-8217-5731AC5E8AB4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerRewards", "ServerRewards\ServerRewards.csproj", "{9A3F6016-5760-4975-8217-5731AC5E8AB4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomWeapons", "CustomWeapons\CustomWeapons.csproj", "{0EFD1FBE-B627-4680-9A66-B95AA347EB48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -496,6 +498,10 @@ Global
 		{9A3F6016-5760-4975-8217-5731AC5E8AB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A3F6016-5760-4975-8217-5731AC5E8AB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A3F6016-5760-4975-8217-5731AC5E8AB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EFD1FBE-B627-4680-9A66-B95AA347EB48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EFD1FBE-B627-4680-9A66-B95AA347EB48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EFD1FBE-B627-4680-9A66-B95AA347EB48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EFD1FBE-B627-4680-9A66-B95AA347EB48}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

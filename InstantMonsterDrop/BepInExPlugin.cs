@@ -62,6 +62,12 @@ namespace InstantMonsterDrop
 
         private static IEnumerator DropNow(Ragdoll ragdoll, ZNetView nview, EffectList removeEffect)
         {
+            if(dropDelay.Value < 0)
+            {
+                context.StartCoroutine(DestroyNow(ragdoll, nview, removeEffect));
+                yield break;
+            }
+
             Dbgl($"delaying dropping loot");
             yield return new WaitForSeconds(dropDelay.Value);
 

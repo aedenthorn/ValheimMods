@@ -8,6 +8,7 @@ namespace ServerRewards
         public string id;
         public string name;
         public int price;
+        public int limit;
         public string type;
         public List<string> items;
 

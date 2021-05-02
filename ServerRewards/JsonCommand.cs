@@ -11,5 +11,6 @@
         public string storeInventory;
         public string packageid;
         public string items;
+        public string data;
     }
 }

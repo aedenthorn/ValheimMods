@@ -6,7 +6,20 @@ namespace ServerRewards
 {
     public partial class BepInExPlugin : BaseUnityPlugin
     {
+        [HarmonyPatch(typeof(ZNet), "Awake")]
+        public static class ZNet_Awake_Patch
+        {
+            public static void Postfix(ZNet __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
 
+                Dbgl($"ZNet Awake! Server? {__instance.IsServer()}");
+
+                if (__instance.IsServer())
+                    context.InvokeRepeating("UpdatePlayersRepeated", 1, updateInterval.Value);
+            }
+        }
 
         [HarmonyPatch(typeof(ZNet), "OnNewConnection")]
         public static class ZNet_OnNewConnection_Patch
@@ -19,61 +32,37 @@ namespace ServerRewards
                 Dbgl("New connection");
 
                 peer.m_rpc.Register<string>("SendServerRewardsJSON", new Action<ZRpc, string>(RPC_SendJSON));
-            }
-        }
-
-        [HarmonyPatch(typeof(ZNet), "RPC_ServerHandshake")]
-        public static class ZNet_RPC_ServerHandshake_Patch
-        {
-            public static void Prefix(ZNet __instance, ZRpc rpc)
-            {
-                ZNetPeer peer = Traverse.Create(__instance).Method("GetPeer", new object[] { rpc }).GetValue<ZNetPeer>();
-
-                Dbgl("Server Handshake");
-
-                if (peer == null)
+                if (__instance.IsServer())
                 {
-                    Dbgl("peer is null");
-                    return;
+                    peer.m_rpc.Register<string>("ServerRewardsConsoleCommand", new Action<ZRpc, string>(RPC_ConsoleCommand));
+                    context.UpdatePlayers(true);
                 }
-
-                var steamID = (peer.m_socket as ZSteamSocket).GetPeerID();
-
-                Dbgl($"Peer connected, steam ID: {steamID}");
-
-                /*
-                peer.m_rpc.Invoke("SendServerRewardsJSON", new object[]
-                {
-                    "{ command:\"SendID\", data:\""+SteamUser.GetSteamID().GetAccountID().m_AccountID+"\" }"
-                });
-                */
             }
         }
 
-        [HarmonyPatch(typeof(ZNet), "RPC_ClientHandshake")]
-        public static class ZNet_RPC_ClientHandshake_Patch
+        [HarmonyPatch(typeof(PlayerController), "TakeInput")]
+        static class TakeInput_Patch
         {
-            public static void Prefix(ZNet __instance, ZRpc rpc)
+            static bool Prefix(ref bool __result)
             {
-                ZNetPeer peer = Traverse.Create(__instance).Method("GetPeer", new object[] { rpc }).GetValue<ZNetPeer>();
-
-                Dbgl("Client Handshake");
-
-                if (peer == null)
-                {
-                    Dbgl("peer is null");
-                    return;
-                }
-
-                /*
-                peer.m_rpc.Invoke("SendServerRewardsJSON", new object[]
-                {
-                    "{ command:\"SendID\", data:\""+SteamUser.GetSteamID().GetAccountID().m_AccountID+"\" }"
-                });
-                */
+                if(!modEnabled.Value || !storeOpen)
+                    return true;
+                __result = false;
+                return false;
             }
         }
 
+        [HarmonyPatch(typeof(Player), "InCutscene")]
+        static class InCutscene_Patch
+        {
+            static bool Prefix(ref bool __result)
+            {
+                if(!modEnabled.Value || !storeOpen)
+                    return true;
+                __result = true;
+                return false;
+            }
+        }
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch
         {
@@ -91,8 +80,17 @@ namespace ServerRewards
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
                 }
+                if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} "))
+                {
+                    ZRpc serverRPC = ZNet.instance.GetServerRPC();
+                    if (serverRPC != null)
+                        serverRPC.Invoke("ServerRewardsConsoleCommand", new object[] { text });
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    return false;
+                }
                 return true;
             }
+
         }
     }
 }

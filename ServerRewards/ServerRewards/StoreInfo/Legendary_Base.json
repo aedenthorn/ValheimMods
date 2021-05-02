@@ -1,0 +1,32 @@
+{
+    "id": "Base_Legendary",
+    "name": "Legendary",
+    "price": 1000,
+    "type": "Legendary",
+    "items": [
+        "ArmorWolfLegs,1,10,choice",
+        "ArmorWolfChest,1,10,choice",
+		"HelmetDrake,1,10,choice",
+		"CapeWolf,1,15,choice",
+		"SpearChitin,1,5,choice",
+		"ShieldBlackmetal,1,5,choice",
+		"ShieldSilver,1,5,choice",
+		"MaceSilver,1,5,choice",
+		"KnifeChitin,1,5,choice",
+		"SpearWolfFang,1,5,choice",
+		"SwordSilver,1,5,choice",
+		"BowDraugrFang,1,10,choice",
+		"KnifeBlackMetal,1,3,choice",
+		"AxeBlackMetal,1,1,choice",
+		"AtgeirBlackmetal,1,1,choice",
+		"SwordBlackmetal,1,1,choice",
+		"MaceNeedle,1,1,choice",
+		"ShieldSerpentscale,1,1,choice",
+		"ShieldBlackmetalTower,1,2,choice",
+		"ArrowFire,20-100,10,chance",
+		"ArrowPoison,20-100,10,chance",
+		"ArrowFrost,20-100,10,chance",
+		"ArrowObsidian,20-100,10,chance",
+		"ArrowNeedle,20-100,10,chance"
+    ]
+}

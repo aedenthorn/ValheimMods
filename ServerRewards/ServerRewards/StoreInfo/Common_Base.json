@@ -1,0 +1,22 @@
+{
+    "id": "Base_Common",
+    "name": "Common",
+    "price": 50,
+    "type": "Common",
+    "items": [
+        "ArmorLeatherLegs,1,15,choice",
+        "ArmorLeatherChest,1,15,choice",
+		"HelmetLeather,1,15,choice",
+		"CapeDeerHide,1,10,choice",
+		"ArmorTrollLeatherLegs,1,5,choice",
+        "ArmorTrollLeatherChest,1,5,choice",
+		"HelmetTrollLeather,1,5,choice",
+		"CapeTrollHide,1,5,choice",
+		"KnifeFlint,1,5,choice",
+		"SpearFlint,1,5,choice",
+		"AxeFlint,1,5,choice",
+		"Bow,1,5,choice",
+		"ArrowFlint,100,15,chance",
+		"ShieldWood,1,5,choice"
+    ]
+}
