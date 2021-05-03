@@ -170,7 +170,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ControllerButtonSwitch", "C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerRewards", "ServerRewards\ServerRewards.csproj", "{9A3F6016-5760-4975-8217-5731AC5E8AB4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomWeapons", "CustomWeapons\CustomWeapons.csproj", "{0EFD1FBE-B627-4680-9A66-B95AA347EB48}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomWeaponStats", "CustomWeapons\CustomWeaponStats.csproj", "{0EFD1FBE-B627-4680-9A66-B95AA347EB48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace ConsoleTweaks
 {
-    [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.3.1")]
+    [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.3.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -134,7 +134,7 @@ namespace ConsoleTweaks
         };
         public static List<string> commandStrings = new List<string>();
         
-        private static List<string> resetPlugins = new List<string>();
+        private static List<string> aedenthornPlugins = new List<string>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -165,7 +165,7 @@ namespace ConsoleTweaks
             {
                 if (plugin.Key.StartsWith("aedenthorn."))
                 {
-                    resetPlugins.Add(plugin.Key.Substring("aedenthorn.".Length).ToLower());
+                    aedenthornPlugins.Add(plugin.Key.Substring("aedenthorn.".Length).ToLower());
                 }
             }
         }
@@ -180,7 +180,7 @@ namespace ConsoleTweaks
                     commandStrings.AddRange(skCommandStrings);
 
                 if (aedenthornEnabled.Value)
-                    commandStrings.AddRange(resetPlugins);
+                    commandStrings.AddRange(aedenthornPlugins);
 
                 if (cheatsEnabled.Value)
                     Traverse.Create(Console.instance).Field("m_cheat").SetValue(true);
@@ -238,7 +238,7 @@ namespace ConsoleTweaks
                     __instance.m_input.caretPosition += space;
                 }
 
-                if (words.Length > 1 && !resetPlugins.Contains(words[0]) && words[words.Length - 1] == "reset")
+                if (words.Length > 1 && !aedenthornPlugins.Contains(words[0]) && words[words.Length - 1] == "reset")
                 {
                     words = words.Take(words.Length - 1).ToArray();
                     str = string.Join(" ", words);
@@ -266,8 +266,8 @@ namespace ConsoleTweaks
                                 if (commandSuffix.Length > 0)
                                 {
                                     words[0] = partial;
-                                    if (resetPlugins.Contains(words[0]) && words.Length < 3)
-                                        words = new string[] { partial, "reset" };
+                                    if (aedenthornPlugins.Contains(words[0]) && words.Length < 3)
+                                        words = new string[] { partial};
                                     
                                 }
                             }

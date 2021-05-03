@@ -39,7 +39,7 @@ namespace ServerRewards
         public static ConfigEntry<string> currencyString;
         public static ConfigEntry<string> packageString;
         public static ConfigEntry<string> myCurrencyString;
-        public static ConfigEntry<string> rewardString;
+        public static ConfigEntry<string> packageInfoString;
 
         private static BepInExPlugin context;
         private static int myCurrency;
@@ -92,7 +92,7 @@ namespace ServerRewards
             currencyString = Config.Bind<string>("Text", "CurrencyString", "<b><color=#FFFF00FF>{0}</color></b>", "Currency string");
             myCurrencyString = Config.Bind<string>("Text", "MyCurrencyString", "<b><color=#FFFFFFFF>My Balance:</color></b>", "My currency string");
             packageString = Config.Bind<string>("Text", "PackageString", "<b><color=#FFFFFFFF>{0}</color></b>", "Package string");
-            rewardString = Config.Bind<string>("Text", "RewardString", "You received a {0}!", "Reward string");
+            packageInfoString = Config.Bind<string>("Text", "PackageInfoString", "{0} chest purchased by", "Reward string");
 
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ServerRewards");
             if (!Directory.Exists(path))

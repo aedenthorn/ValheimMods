@@ -146,7 +146,7 @@ namespace ServerRewards
                 else
                 {
                     var go = Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward * 2f + Vector3.up, Quaternion.identity);
-                    Player.m_localPlayer.Message(MessageHud.MessageType.TopLeft, string.Format(rewardString.Value, Localization.instance.Localize(go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name)), 0, null);
+                    Player.m_localPlayer.Message(MessageHud.MessageType.TopLeft, string.Format(packageInfoString.Value, Localization.instance.Localize(go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name)), 0, null);
                 }
             }
             else
@@ -208,6 +208,8 @@ namespace ServerRewards
                     {
                         command = "PurchaseResult",
                         currency = player.currency,
+                        packageid = package.id,
+                        packagename = package.name,
                         items = GetPackageItems(package, player)
                     };
 
@@ -245,15 +247,31 @@ namespace ServerRewards
                     Cursor.lockState = CursorLockMode.Locked;
                     Cursor.visible = false;
                     storeOpen = false;
-                    PlayEffects();
+                    //PlayEffects();
+
+                    var items = command.items.Split(';');
+
+                    GameObject gameObject = Instantiate(Player.m_localPlayer.m_tombstone, Player.m_localPlayer.GetCenterPoint(), Player.m_localPlayer.transform.rotation);
+                    Traverse traverse = Traverse.Create(gameObject.GetComponent<Container>().GetInventory());
+                    traverse.Field("m_width").SetValue(8);
+                    int rows = items.Count() / 8;
+                    if (items.Count() % 8 != 0)
+                        rows++;
+                    traverse.Field("m_height").SetValue(rows);
+
+                    TombStone tombstone = gameObject.GetComponent<TombStone>();
+                    PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
+                    tombstone.Setup(playerProfile.GetName(), playerProfile.GetPlayerID());
 
                     myCurrency = command.currency;
-                    foreach (string itemString in command.items.Split(';'))
+
+                    List<string> itemStrings = new List<string>();
+                    foreach (string itemString in items)
                     {
                         Dbgl($"Receving {itemString}");
 
-                        string[] itemAmount = itemString.Split(',');
-                        string name = itemAmount[0];
+                        string[] nameAmount = itemString.Split(',');
+                        string name = nameAmount[0];
                         GameObject prefab = ZNetScene.instance.GetPrefab(name);
                         if (!prefab)
                         {
@@ -261,22 +279,16 @@ namespace ServerRewards
                             continue;
                         }
 
-                        int amount = int.Parse(itemAmount[1]);
-                        if (amount == 1)
-                        {
-                            var go = Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward * 2f + Vector3.up, Quaternion.identity);
-                            Player.m_localPlayer.Message(MessageHud.MessageType.TopLeft, string.Format(rewardString.Value, Localization.instance.Localize(go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name)), 0, null);
-                        }
-                        else
-                        {
-                            for (int j = 0; j < amount; j++)
-                            {
-                                Vector3 b = UnityEngine.Random.insideUnitSphere * 0.5f;
-                                var go = Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward * 2f + Vector3.up + b, Quaternion.identity);
-                                Player.m_localPlayer.Message(MessageHud.MessageType.TopLeft, Localization.instance.Localize(go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name), 0, null);
-                            }
-                        }
+                        int amount = int.Parse(nameAmount[1]);
+
+                        var item = prefab.GetComponent<ItemDrop>().m_itemData;
+                        item.m_stack = amount;
+                        item.m_durability = item.m_shared.m_maxDurability;
+                        gameObject.GetComponent<Container>().GetInventory().AddItem(item);
+                        itemStrings.Add($"{nameAmount[1]} {nameAmount[0]}");
                     }
+                    tombstone.m_text = string.Format(packageInfoString.Value, command.packagename) + "\r\n" + string.Join("\r\n", itemStrings);
+
                 }
                 else if (command.command == "SendStoreInfo")
                 {

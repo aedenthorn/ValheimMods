@@ -10,6 +10,7 @@
         public int currency;
         public string storeInventory;
         public string packageid;
+        public string packagename;
         public string items;
         public string data;
     }
