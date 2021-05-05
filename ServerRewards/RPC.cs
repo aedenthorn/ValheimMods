@@ -210,6 +210,7 @@ namespace ServerRewards
                         currency = player.currency,
                         packageid = package.id,
                         packagename = package.name,
+                        packagedescription = package.description,
                         items = GetPackageItems(package, player)
                     };
 
@@ -251,17 +252,21 @@ namespace ServerRewards
 
                     var items = command.items.Split(';');
 
-                    GameObject gameObject = Instantiate(Player.m_localPlayer.m_tombstone, Player.m_localPlayer.GetCenterPoint(), Player.m_localPlayer.transform.rotation);
-                    Traverse traverse = Traverse.Create(gameObject.GetComponent<Container>().GetInventory());
-                    traverse.Field("m_width").SetValue(8);
-                    int rows = items.Count() / 8;
-                    if (items.Count() % 8 != 0)
-                        rows++;
-                    traverse.Field("m_height").SetValue(rows);
-
-                    TombStone tombstone = gameObject.GetComponent<TombStone>();
+                    GameObject chest = null;
                     PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
-                    tombstone.Setup(playerProfile.GetName(), playerProfile.GetPlayerID());
+                    if (useTombstone.Value)
+                    {
+                        chest = Instantiate(Player.m_localPlayer.m_tombstone, Player.m_localPlayer.GetCenterPoint() + Player.m_localPlayer.transform.forward, Player.m_localPlayer.transform.rotation);
+                        Traverse traverse = Traverse.Create(chest.GetComponent<Container>().GetInventory());
+                        traverse.Field("m_width").SetValue(8);
+                        int rows = items.Count() / 8;
+                        if (items.Count() % 8 != 0)
+                            rows++;
+                        traverse.Field("m_height").SetValue(rows);
+
+                        TombStone tombstone = chest.GetComponent<TombStone>();
+                        tombstone.Setup(command.packagename, playerProfile.GetPlayerID());
+                    }
 
                     myCurrency = command.currency;
 
@@ -281,13 +286,37 @@ namespace ServerRewards
 
                         int amount = int.Parse(nameAmount[1]);
 
-                        var item = prefab.GetComponent<ItemDrop>().m_itemData;
-                        item.m_stack = amount;
-                        item.m_durability = item.m_shared.m_maxDurability;
-                        gameObject.GetComponent<Container>().GetInventory().AddItem(item);
-                        itemStrings.Add($"{nameAmount[1]} {nameAmount[0]}");
+                        if (useTombstone.Value)
+                        {
+                            var item = prefab.GetComponent<ItemDrop>().m_itemData;
+                            item.m_stack = amount;
+                            item.m_durability = item.m_shared.m_maxDurability;
+                            chest.GetComponent<Container>().GetInventory().AddItem(item);
+                            itemStrings.Add($"{Localization.instance.Localize(item.m_shared.m_name)} {nameAmount[0]}");
+                        }
+                        else
+                        {
+                            if (amount == 1)
+                            {
+                                var go = Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward * 2f + Vector3.up, Quaternion.identity);
+                                Player.m_localPlayer.Message(MessageHud.MessageType.TopLeft, string.Format(rewardString.Value, Localization.instance.Localize(go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name)), 0, null);
+                            }
+                            else
+                            {
+                                for (int j = 0; j < amount; j++)
+                                {
+                                    Vector3 b = UnityEngine.Random.insideUnitSphere * 0.5f;
+                                    var go = Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward * 2f + Vector3.up + b, Quaternion.identity);
+                                    Player.m_localPlayer.Message(MessageHud.MessageType.TopLeft, Localization.instance.Localize(go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name), 0, null);
+                                }
+                            }
+                        }
+
+
+
                     }
-                    tombstone.m_text = string.Format(packageInfoString.Value, command.packagename) + "\r\n" + string.Join("\r\n", itemStrings);
+                    if(useTombstone.Value)
+                        chest.GetComponent<ZNetView>().GetZDO().Set("ServerReward", string.Format(packageInfoString.Value, command.packagename, playerProfile.GetName()) + "\r\n" + string.Join("\r\n", itemStrings));
 
                 }
                 else if (command.command == "SendStoreInfo")
@@ -301,7 +330,7 @@ namespace ServerRewards
                     windowTitleText = command.storeTitle;
                     currencyString.Value = command.currencyString;
                     storePackages = GetStorePackagesFromString(command.storeInventory);
-                    Dbgl($"Got user currency: {myCurrency}");
+                    Dbgl($"Got store inventory {storePackages.Count}, user currency: {myCurrency}");
 
                     storeOpen = true;
                 }

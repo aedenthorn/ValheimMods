@@ -69,18 +69,19 @@ namespace ServerRewards
             return string.Join(";", output);
         }
 
-        private static List<PackageInfo> GetStorePackagesFromString(string storeInventory)
+        private static List<PackageInfo> GetStorePackagesFromString(List<string> storeInventory)
         {
             List<PackageInfo> packages = new List<PackageInfo>();
-            foreach(string package in storeInventory.Split(';'))
+            foreach(string package in storeInventory)
             {
                 string[] info = package.Split(',');
                 packages.Add(new PackageInfo()
                 {
                     id = info[0],
                     name = info[1],
-                    type = info[2],
-                    price = int.Parse(info[3])
+                    description = info[2],
+                    type = info[3],
+                    price = int.Parse(info[4])
                 });
             }
             return packages;
@@ -123,7 +124,7 @@ namespace ServerRewards
         }
 
 
-        private static string GetStoreInventoryString(PlayerInfo player)
+        private static List<string> GetStoreInventoryString(PlayerInfo player)
         {
             List<string> packages = new List<string>();
             foreach(PackageInfo pi in GetAllPackages())
@@ -131,7 +132,7 @@ namespace ServerRewards
                 if (CanBuyPackage(ref player, pi, false, true, out string result))
                     packages.Add(pi.StoreString());
             }
-            return string.Join(";", packages);
+            return packages;
         }
 
         private static int GetUserCurrency(string steamID)

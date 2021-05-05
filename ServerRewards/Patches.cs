@@ -63,6 +63,24 @@ namespace ServerRewards
                 return false;
             }
         }
+
+        [HarmonyPatch(typeof(TombStone), "GetHoverText")]
+        static class TombStone_GetHoverText_Patch
+        {
+            static bool Prefix(ZNetView ___m_nview, ref string __result)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string reward = ___m_nview.GetZDO().GetString("ServerReward", null);
+                if (reward != null)
+                {
+                    __result = reward;
+                    return false;
+                }
+                return true;
+            }
+        }
+
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch
         {

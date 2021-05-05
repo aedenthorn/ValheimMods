@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomWeaponStats
 {
-    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.3.0")]
+    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.4.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -24,6 +24,7 @@ namespace CustomWeaponStats
         public static ConfigEntry<float> globalAttackForceMultiplier;
         public static ConfigEntry<float> globalBackstabBonusMultiplier;
         public static ConfigEntry<float> globalHoldDurationMinMultiplier;
+        public static ConfigEntry<float> globalHoldStaminaDrainMultiplier;
         private static List<WeaponData> weaponDatas;
         private static string assetPath;
 
@@ -45,7 +46,9 @@ namespace CustomWeaponStats
             globalAttackForceMultiplier = Config.Bind<float>("Global", "GlobalAttackForceMultiplier", 1f, "Global attack force multiplier for all weapons");
             globalBackstabBonusMultiplier = Config.Bind<float>("Global", "GlobalBackstabBonusMultiplier", 1f, "Global backstab bonus multiplier for all weapons");
             globalHoldDurationMinMultiplier = Config.Bind<float>("Global", "GlobalHoldDurationMinMultiplier", 1f, "Global hold duration minimum multiplier for all weapons");
+            globalHoldStaminaDrainMultiplier = Config.Bind<float>("Global", "GlobalHoldStaminaDrainMultiplier", 1f, "Global hold stamina drain multiplier for all weapons");
 
+            assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomWeaponStats");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
@@ -98,6 +101,7 @@ namespace CustomWeaponStats
 
                 weapon.m_shared.m_useDurabilityDrain *= globalUseDurabilityMultiplier.Value;
                 weapon.m_shared.m_holdDurationMin *= globalHoldDurationMinMultiplier.Value;
+                weapon.m_shared.m_holdStaminaDrain *= globalHoldStaminaDrainMultiplier.Value;
                 weapon.m_shared.m_attackForce *= globalAttackForceMultiplier.Value;
                 weapon.m_shared.m_backstabBonus *= globalBackstabBonusMultiplier.Value;
                 weapon.m_shared.m_damages.m_damage *= globalDamageMultiplier.Value;
@@ -155,12 +159,8 @@ namespace CustomWeaponStats
 
         private static List<WeaponData> GetWeaponDataFromFiles()
         {
-            assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomWeaponStats");
-            if (!Directory.Exists(assetPath))
-            {
-                Dbgl("Creating mod folder");
-                Directory.CreateDirectory(assetPath);
-            }
+
+            CheckModFolder();
 
             List<WeaponData> weaponDatas = new List<WeaponData>();
 
@@ -176,13 +176,20 @@ namespace CustomWeaponStats
             item.m_shared.m_ammoType = weapon.ammoType;
             item.m_shared.m_useDurability = weapon.useDurability;
             item.m_shared.m_useDurabilityDrain = weapon.useDurabilityDrain;
+            item.m_shared.m_durabilityPerLevel = weapon.durabilityPerLevel;
             item.m_shared.m_skillType = weapon.skillType;
             item.m_shared.m_holdDurationMin = weapon.holdDurationMin;
+            item.m_shared.m_holdStaminaDrain = weapon.holdStaminaDrain;
             item.m_shared.m_toolTier = weapon.toolTier;
             item.m_shared.m_blockable = weapon.blockable;
             item.m_shared.m_dodgeable = weapon.dodgeable;
             item.m_shared.m_attackForce = weapon.attackForce;
             item.m_shared.m_backstabBonus = weapon.backStabBonus;
+            item.m_shared.m_blockPower = weapon.blockPower;
+            item.m_shared.m_blockPowerPerLevel = weapon.blockPowerPerLevel;
+            item.m_shared.m_deflectionForce = weapon.deflectionForce;
+            item.m_shared.m_deflectionForcePerLevel = weapon.deflectionForcePerLevel;
+
             item.m_shared.m_damages.m_damage = weapon.damage;
             item.m_shared.m_damages.m_blunt = weapon.blunt;
             item.m_shared.m_damages.m_slash = weapon.slash;
@@ -194,6 +201,19 @@ namespace CustomWeaponStats
             item.m_shared.m_damages.m_lightning = weapon.lightning;
             item.m_shared.m_damages.m_poison = weapon.poison;
             item.m_shared.m_damages.m_spirit = weapon.spirit;
+
+            item.m_shared.m_damagesPerLevel.m_damage = weapon.damagePerLevel;
+            item.m_shared.m_damagesPerLevel.m_blunt = weapon.bluntPerLevel;
+            item.m_shared.m_damagesPerLevel.m_slash = weapon.slashPerLevel;
+            item.m_shared.m_damagesPerLevel.m_pierce = weapon.piercePerLevel;
+            item.m_shared.m_damagesPerLevel.m_chop = weapon.chopPerLevel;
+            item.m_shared.m_damagesPerLevel.m_pickaxe = weapon.pickaxePerLevel;
+            item.m_shared.m_damagesPerLevel.m_fire = weapon.firePerLevel;
+            item.m_shared.m_damagesPerLevel.m_frost = weapon.frostPerLevel;
+            item.m_shared.m_damagesPerLevel.m_lightning = weapon.lightningPerLevel;
+            item.m_shared.m_damagesPerLevel.m_poison = weapon.poisonPerLevel;
+            item.m_shared.m_damagesPerLevel.m_spirit = weapon.spiritPerLevel;
+
             item.m_shared.m_attackStatusEffect = ObjectDB.instance.GetStatusEffect(weapon.statusEffect);
             //Dbgl($"Set weapon data for {weapon.name}");
         }
@@ -220,14 +240,21 @@ namespace CustomWeaponStats
                 name = itemName,
                 ammoType = item.m_shared.m_ammoType,
                 useDurability = item.m_shared.m_useDurability,
+                durabilityPerLevel = item.m_shared.m_durabilityPerLevel,
                 useDurabilityDrain = item.m_shared.m_useDurabilityDrain,
                 skillType = item.m_shared.m_skillType,
                 holdDurationMin = item.m_shared.m_holdDurationMin,
+                holdStaminaDrain = item.m_shared.m_holdStaminaDrain,
                 toolTier = item.m_shared.m_toolTier,
                 blockable = item.m_shared.m_blockable,
                 dodgeable = item.m_shared.m_dodgeable,
                 attackForce = item.m_shared.m_attackForce,
                 backStabBonus = item.m_shared.m_backstabBonus,
+                blockPower = item.m_shared.m_blockPower,
+                blockPowerPerLevel = item.m_shared.m_blockPowerPerLevel,
+                deflectionForce = item.m_shared.m_deflectionForce,
+                deflectionForcePerLevel = item.m_shared.m_deflectionForcePerLevel,
+
                 damage = item.m_shared.m_damages.m_damage,
                 blunt = item.m_shared.m_damages.m_blunt,
                 slash = item.m_shared.m_damages.m_slash,
@@ -239,8 +266,29 @@ namespace CustomWeaponStats
                 lightning = item.m_shared.m_damages.m_lightning,
                 poison = item.m_shared.m_damages.m_poison,
                 spirit = item.m_shared.m_damages.m_spirit,
+
+                damagePerLevel = item.m_shared.m_damagesPerLevel.m_damage,
+                bluntPerLevel = item.m_shared.m_damagesPerLevel.m_blunt,
+                slashPerLevel = item.m_shared.m_damagesPerLevel.m_slash,
+                piercePerLevel = item.m_shared.m_damagesPerLevel.m_pierce,
+                chopPerLevel = item.m_shared.m_damagesPerLevel.m_chop,
+                pickaxePerLevel = item.m_shared.m_damagesPerLevel.m_pickaxe,
+                firePerLevel = item.m_shared.m_damagesPerLevel.m_fire,
+                frostPerLevel = item.m_shared.m_damagesPerLevel.m_frost,
+                lightningPerLevel = item.m_shared.m_damagesPerLevel.m_lightning,
+                poisonPerLevel = item.m_shared.m_damagesPerLevel.m_poison,
+                spiritPerLevel = item.m_shared.m_damagesPerLevel.m_spirit,
+
                 statusEffect = item.m_shared.m_attackStatusEffect?.name
             };
+        }
+        private static void CheckModFolder()
+        {
+            if (!Directory.Exists(assetPath))
+            {
+                Dbgl("Creating mod folder");
+                Directory.CreateDirectory(assetPath);
+            }
         }
 
         [HarmonyPatch(typeof(Console), "InputText")]
@@ -280,11 +328,26 @@ namespace CustomWeaponStats
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped {weapon}" }).GetValue();
                     return false;
                 }
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} skills"))
+                {
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    
+                    List<string> output = new List<string>();
+                    foreach(Skills.SkillType type in Enum.GetValues(typeof(Skills.SkillType)))
+                    {
+                        output.Add(Enum.GetName(typeof(Skills.SkillType), type) + " " + (int)type);
+                    }
+                    Dbgl(string.Join("\r\n", output));
+
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped skill types" }).GetValue();
+                    return false;
+                }
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} se"))
                 {
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    
                     Dbgl(string.Join("\r\n", ObjectDB.instance.m_StatusEffects.Select(se => se.name)));
 
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped status effects" }).GetValue();
                     return false;
                 }
@@ -295,6 +358,7 @@ namespace CustomWeaponStats
                     WeaponData weaponData = GetWeaponDataByName(weapon);
                     if (weaponData == null)
                         return false;
+                    CheckModFolder();
                     File.WriteAllText(Path.Combine(assetPath, weaponData.name + ".json"), JsonUtility.ToJson(weaponData));
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} saved weapon data to {weapon}.json" }).GetValue();
@@ -306,6 +370,7 @@ namespace CustomWeaponStats
                     + $"{context.Info.Metadata.Name} reload\r\n"
                     + $"{context.Info.Metadata.Name} dump <WeaponName>\r\n"
                     + $"{context.Info.Metadata.Name} save <WeaponName>\r\n"
+                    + $"{context.Info.Metadata.Name} skills"
                     + $"{context.Info.Metadata.Name} se";
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { output }).GetValue();

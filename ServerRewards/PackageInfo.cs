@@ -7,6 +7,7 @@ namespace ServerRewards
     {
         public string id;
         public string name;
+        public string description;
         public int price;
         public int limit;
         public string type;
@@ -14,7 +15,7 @@ namespace ServerRewards
 
         public string StoreString()
         {
-            return string.Join(",", new string[] { id, name, type, price+"" });
+            return string.Join(",", new string[] { id, name, description, type, price+"" });
         }
     }
 }

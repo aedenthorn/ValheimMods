@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace ServerRewards
 {
-    [BepInPlugin("aedenthorn.ServerRewards", "Server Rewards", "0.3.0")]
+    [BepInPlugin("aedenthorn.ServerRewards", "Server Rewards", "0.5.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -25,6 +25,7 @@ namespace ServerRewards
         public static ConfigEntry<string> consecutiveLoginReward;
         public static ConfigEntry<bool> consecutiveLoginRewardOnce;
         public static ConfigEntry<int> playerStartCurrency;
+        public static ConfigEntry<bool> useTombstone;
 
         public static ConfigEntry<bool> coinBeforeAmount;
         public static ConfigEntry<float> windowWidth;
@@ -40,6 +41,7 @@ namespace ServerRewards
         public static ConfigEntry<string> packageString;
         public static ConfigEntry<string> myCurrencyString;
         public static ConfigEntry<string> packageInfoString;
+        public static ConfigEntry<string> rewardString;
 
         private static BepInExPlugin context;
         private static int myCurrency;
@@ -55,6 +57,7 @@ namespace ServerRewards
         private static string windowTitleText;
         private static List<PackageInfo> storePackages = new List<PackageInfo>();
         private static Dictionary<string, Texture2D> textureDict = new Dictionary<string, Texture2D>();
+        private string thisTooltip;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -72,6 +75,7 @@ namespace ServerRewards
 
             openUIKey = Config.Bind<string>("Config", "OpenUIKey", "f10", "Key to open currency UI");
             updateInterval = Config.Bind<int>("Config", "UpdateInterval", 60, "Update interval in seconds (server only)");
+            useTombstone = Config.Bind<bool>("General", "UseTombstone", false, "Place items in a tombstone instead of dropping on ground.");
             
             updateIntervalReward = Config.Bind<int>("Currency", "UpdateIntervalReward", 1, "Currency awarded every update interval");
             staticLoginReward = Config.Bind<int>("Currency", "StaticLoginReward", 100, "Currency awarded for logging in");
@@ -92,7 +96,8 @@ namespace ServerRewards
             currencyString = Config.Bind<string>("Text", "CurrencyString", "<b><color=#FFFF00FF>{0}</color></b>", "Currency string");
             myCurrencyString = Config.Bind<string>("Text", "MyCurrencyString", "<b><color=#FFFFFFFF>My Balance:</color></b>", "My currency string");
             packageString = Config.Bind<string>("Text", "PackageString", "<b><color=#FFFFFFFF>{0}</color></b>", "Package string");
-            packageInfoString = Config.Bind<string>("Text", "PackageInfoString", "{0} chest purchased by", "Reward string");
+            packageInfoString = Config.Bind<string>("Text", "PackageInfoString", "{0} chest purchased by {1}", "Reward string to show on the tombstone. {0} is replaced by the package name, {1} is replaced by the player name.");
+            rewardString = Config.Bind<string>("Text", "RewardString", "You received a {0}!", "Reward string to show when dropping items in world.");
 
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ServerRewards");
             if (!Directory.Exists(path))
@@ -221,6 +226,10 @@ namespace ServerRewards
         }
         private void OnGUI()
         {
+            GUI.Label(new Rect(Input.mousePosition.x, Screen.height - Input.mousePosition.y, 200, 40), "test");
+            GUI.Label(new Rect(Input.mousePosition.x, Screen.height - Input.mousePosition.y + 100, 200, 40), thisTooltip);
+
+
             if (!modEnabled.Value)
                 return;
 
@@ -251,6 +260,7 @@ namespace ServerRewards
                     Cursor.lockState = CursorLockMode.None;
                     Cursor.visible = ZInput.IsMouseActive();
                     windowRect = GUI.Window(424243, windowRect, new GUI.WindowFunction(WindowBuilder), "");
+                    GUI.Label(new Rect(Input.mousePosition.x, Screen.height - Input.mousePosition.y + 50, 200, 40), GUI.tooltip);
                 }
                 if (!Input.GetKey(KeyCode.Mouse0) && (windowRect.x != windowPosition.Value.x || windowRect.y != windowPosition.Value.y))
                 {
@@ -300,7 +310,7 @@ namespace ServerRewards
                 PackageInfo pi = storePackages[i];
                 string texture = textureDict.ContainsKey(pi.type) ? pi.type : "Common";
                 GUILayout.BeginVertical(new GUILayoutOption[] { GUILayout.Width(itemWidth) });
-                if (GUILayout.Button(textureDict[texture], new GUILayoutOption[] { GUILayout.Width(itemWidth), GUILayout.Height(itemWidth) }))
+                if (GUILayout.Button(new GUIContent(textureDict[texture], "This is a test"), new GUILayoutOption[] { GUILayout.Width(itemWidth), GUILayout.Height(itemWidth) }))
                 {
                     if (myCurrency >= pi.price)
                     {
@@ -327,6 +337,10 @@ namespace ServerRewards
                             }
                         }
                     }
+                }
+                if(GUI.tooltip != null && GUI.tooltip.Length > 0)
+                {
+                    thisTooltip = GUI.tooltip;
                 }
 
                 GUILayout.Label(string.Format(packageString.Value, pi.name), labelStyle, new GUILayoutOption[] { GUILayout.Width(itemWidth) });

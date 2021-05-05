@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.9.2")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.9.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -52,12 +52,14 @@ namespace CustomAudio
 
             if (!modEnabled.Value)
                 return;
-            PreloadAudioClips();
+            StartCoroutine(PreloadAudioClips());
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-        private static void PreloadAudioClips()
+        public IEnumerator PreloadAudioClips()
         {
+            Dbgl("Preloading audio clips.");
+
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomAudio");
             if (Directory.Exists(path))
             {
@@ -70,7 +72,7 @@ namespace CustomAudio
 
                 if (Directory.Exists(Path.Combine(path, "Music")))
                 {
-                    CollectAudioFiles(Path.Combine(path, "Music"), customMusic, customMusicList);
+                    yield return StartCoroutine(CollectAudioFiles(Path.Combine(path, "Music"), customMusic, customMusicList));
                 }
                 else 
                 {
@@ -78,7 +80,7 @@ namespace CustomAudio
                 }
                 if (Directory.Exists(Path.Combine(path, "SFX")))
                 {
-                    CollectAudioFiles(Path.Combine(path, "SFX"), customSFX, customSFXList);
+                    yield return StartCoroutine(CollectAudioFiles(Path.Combine(path, "SFX"), customSFX, customSFXList));
                 }
                 else 
                 {
@@ -86,7 +88,7 @@ namespace CustomAudio
                 }
                 if (Directory.Exists(Path.Combine(path, "Ambient")))
                 {
-                    CollectAudioFiles(Path.Combine(path, "Ambient"), customAmbient, customAmbientList);
+                    yield return StartCoroutine(CollectAudioFiles(Path.Combine(path, "Ambient"), customAmbient, customAmbientList));
                 }
                 else 
                 {
@@ -101,42 +103,42 @@ namespace CustomAudio
                 Directory.CreateDirectory(Path.Combine(path, "Music"));
                 Directory.CreateDirectory(Path.Combine(path, "SFX"));
             }
+            yield break;
         }
 
-        private static void CollectAudioFiles(string path, Dictionary<string, AudioClip> customDict, Dictionary<string, Dictionary<string, AudioClip>> customDictDict)
+        public IEnumerator CollectAudioFiles(string path, Dictionary<string, AudioClip> customDict, Dictionary<string, Dictionary<string, AudioClip>> customDictDict)
         {
             Dbgl($"checking folder {Path.GetFileName(path)}");
             audioFiles = Directory.GetFiles(path);
             foreach (string file in audioFiles)
             {
-                Dbgl($"\tchecking single file {Path.GetFileName(file)}");
+                //Dbgl($"\tchecking single file {Path.GetFileName(file)}");
 
                 if (Path.GetExtension(file).ToLower().Equals(".ogg"))
-                    context.StartCoroutine(PreloadClipCoroutine(file, AudioType.OGGVORBIS, customDict));
-                else if(Path.GetExtension(file).ToLower().Equals(".wav"))
-                    context.StartCoroutine(PreloadClipCoroutine(file, AudioType.WAV, customDict));
+                    yield return StartCoroutine(PreloadClipCoroutine(file, AudioType.OGGVORBIS, customDict));
+                else if (Path.GetExtension(file).ToLower().Equals(".wav"))
+                    yield return StartCoroutine(PreloadClipCoroutine(file, AudioType.WAV, customDict));
             }
-            foreach(string folder in Directory.GetDirectories(path))
+            foreach (string folder in Directory.GetDirectories(path))
             {
-                Dbgl($"\tchecking folder {Path.GetFileName(folder)}");
+                //Dbgl($"\tchecking folder {Path.GetFileName(folder)}");
                 string folderName = Path.GetFileName(folder);
                 audioFiles = Directory.GetFiles(folder);
                 customDictDict[folderName] = new Dictionary<string, AudioClip>();
                 foreach (string file in audioFiles)
                 {
-                    Dbgl($"\tchecking file {Path.GetFileName(file)}");
+                    //Dbgl($"\tchecking file {Path.GetFileName(file)}");
                     if (Path.GetExtension(file).ToLower().Equals(".ogg"))
-                        context.StartCoroutine(PreloadClipCoroutine(file, AudioType.OGGVORBIS, customDictDict[folderName]));
+                        yield return StartCoroutine(PreloadClipCoroutine(file, AudioType.OGGVORBIS, customDictDict[folderName]));
                     else if (Path.GetExtension(file).ToLower().Equals(".wav"))
-                        context.StartCoroutine(PreloadClipCoroutine(file, AudioType.WAV, customDictDict[folderName]));
+                        yield return StartCoroutine(PreloadClipCoroutine(file, AudioType.WAV, customDictDict[folderName]));
                 }
             }
         }
 
-        public static IEnumerator PreloadClipCoroutine(string path, AudioType audioType, Dictionary<string, AudioClip> whichDict)
+        private IEnumerator PreloadClipCoroutine(string path, AudioType audioType, Dictionary<string, AudioClip> whichDict)
         {
-            Dbgl($"\t\tpath: {path}");
-            
+            Dbgl($"path: {path}");
             path = "file:///" + path.Replace("\\", "/");
 
 
@@ -429,7 +431,7 @@ namespace CustomAudio
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    PreloadAudioClips();
+                    context.StartCoroutine(context.PreloadAudioClips());
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { "Reloaded custom audio mod" }).GetValue();
                     return false;
