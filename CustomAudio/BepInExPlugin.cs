@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "0.9.3")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.0.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -52,11 +53,12 @@ namespace CustomAudio
 
             if (!modEnabled.Value)
                 return;
-            StartCoroutine(PreloadAudioClips());
+            PreloadAudioClips();
+
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-        public IEnumerator PreloadAudioClips()
+        public void PreloadAudioClips()
         {
             Dbgl("Preloading audio clips.");
 
@@ -72,7 +74,7 @@ namespace CustomAudio
 
                 if (Directory.Exists(Path.Combine(path, "Music")))
                 {
-                    yield return StartCoroutine(CollectAudioFiles(Path.Combine(path, "Music"), customMusic, customMusicList));
+                    CollectAudioFiles(Path.Combine(path, "Music"), customMusic, customMusicList);
                 }
                 else 
                 {
@@ -80,7 +82,7 @@ namespace CustomAudio
                 }
                 if (Directory.Exists(Path.Combine(path, "SFX")))
                 {
-                    yield return StartCoroutine(CollectAudioFiles(Path.Combine(path, "SFX"), customSFX, customSFXList));
+                    CollectAudioFiles(Path.Combine(path, "SFX"), customSFX, customSFXList);
                 }
                 else 
                 {
@@ -88,7 +90,7 @@ namespace CustomAudio
                 }
                 if (Directory.Exists(Path.Combine(path, "Ambient")))
                 {
-                    yield return StartCoroutine(CollectAudioFiles(Path.Combine(path, "Ambient"), customAmbient, customAmbientList));
+                    CollectAudioFiles(Path.Combine(path, "Ambient"), customAmbient, customAmbientList);
                 }
                 else 
                 {
@@ -103,44 +105,57 @@ namespace CustomAudio
                 Directory.CreateDirectory(Path.Combine(path, "Music"));
                 Directory.CreateDirectory(Path.Combine(path, "SFX"));
             }
-            yield break;
         }
 
-        public IEnumerator CollectAudioFiles(string path, Dictionary<string, AudioClip> customDict, Dictionary<string, Dictionary<string, AudioClip>> customDictDict)
+        public void CollectAudioFiles(string path, Dictionary<string, AudioClip> customDict, Dictionary<string, Dictionary<string, AudioClip>> customDictDict)
         {
             Dbgl($"checking folder {Path.GetFileName(path)}");
-            audioFiles = Directory.GetFiles(path);
+            audioFiles = Directory.GetFiles(path, "*.wav");
             foreach (string file in audioFiles)
             {
                 //Dbgl($"\tchecking single file {Path.GetFileName(file)}");
 
                 if (Path.GetExtension(file).ToLower().Equals(".ogg"))
-                    yield return StartCoroutine(PreloadClipCoroutine(file, AudioType.OGGVORBIS, customDict));
+                    PreloadClipCoroutine(file, AudioType.OGGVORBIS, customDict);
                 else if (Path.GetExtension(file).ToLower().Equals(".wav"))
-                    yield return StartCoroutine(PreloadClipCoroutine(file, AudioType.WAV, customDict));
+                    PreloadClipCoroutine(file, AudioType.WAV, customDict);
             }
             foreach (string folder in Directory.GetDirectories(path))
             {
                 //Dbgl($"\tchecking folder {Path.GetFileName(folder)}");
                 string folderName = Path.GetFileName(folder);
-                audioFiles = Directory.GetFiles(folder);
+                audioFiles = Directory.GetFiles(folder, "*.wav");
                 customDictDict[folderName] = new Dictionary<string, AudioClip>();
                 foreach (string file in audioFiles)
                 {
                     //Dbgl($"\tchecking file {Path.GetFileName(file)}");
                     if (Path.GetExtension(file).ToLower().Equals(".ogg"))
-                        yield return StartCoroutine(PreloadClipCoroutine(file, AudioType.OGGVORBIS, customDictDict[folderName]));
+                        PreloadClipCoroutine(file, AudioType.OGGVORBIS, customDictDict[folderName]);
                     else if (Path.GetExtension(file).ToLower().Equals(".wav"))
-                        yield return StartCoroutine(PreloadClipCoroutine(file, AudioType.WAV, customDictDict[folderName]));
+                        PreloadClipCoroutine(file, AudioType.WAV, customDictDict[folderName]);
                 }
             }
         }
 
-        private IEnumerator PreloadClipCoroutine(string path, AudioType audioType, Dictionary<string, AudioClip> whichDict)
+        private void PreloadClipCoroutine(string path, AudioType audioType, Dictionary<string, AudioClip> whichDict)
         {
-            Dbgl($"path: {path}");
-            path = "file:///" + path.Replace("\\", "/");
+            //Dbgl($"path: {path}");
+            //path = "file:///" + path.Replace("\\", "/");
 
+            try
+            {
+                AudioClip ac = WaveLoader.WaveLoader.LoadWaveToAudioClip(File.ReadAllBytes(path));
+                string name = Path.GetFileNameWithoutExtension(path);
+                whichDict[name] = ac;
+                Dbgl($"Added audio clip {name} to dict");
+            }
+            catch (Exception ex)
+            {
+                Dbgl($"Exception loading {path}\r\n{ex}");
+            }
+
+
+            /*
 
             using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(path, audioType))
             {
@@ -177,6 +192,7 @@ namespace CustomAudio
                     Dbgl("www is null " + www.url);
                 }
             }
+            */
         }
 
         [HarmonyPatch(typeof(ZSFX), "Awake")]
@@ -207,6 +223,7 @@ namespace CustomAudio
                 }
             }
         }
+
         [HarmonyPatch(typeof(MusicMan), "Awake")]
         static class MusicMan_Awake_Patch
         {
@@ -431,7 +448,7 @@ namespace CustomAudio
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    context.StartCoroutine(context.PreloadAudioClips());
+                    context.PreloadAudioClips();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { "Reloaded custom audio mod" }).GetValue();
                     return false;
