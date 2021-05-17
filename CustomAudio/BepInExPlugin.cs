@@ -7,12 +7,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.0.0")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.1.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -110,38 +112,46 @@ namespace CustomAudio
         public void CollectAudioFiles(string path, Dictionary<string, AudioClip> customDict, Dictionary<string, Dictionary<string, AudioClip>> customDictDict)
         {
             Dbgl($"checking folder {Path.GetFileName(path)}");
-            audioFiles = Directory.GetFiles(path, "*.wav");
+            audioFiles = Directory.GetFiles(path);
             foreach (string file in audioFiles)
             {
                 //Dbgl($"\tchecking single file {Path.GetFileName(file)}");
 
                 if (Path.GetExtension(file).ToLower().Equals(".ogg"))
+                {
                     PreloadClipCoroutine(file, AudioType.OGGVORBIS, customDict);
+                }
                 else if (Path.GetExtension(file).ToLower().Equals(".wav"))
+                {
                     PreloadClipCoroutine(file, AudioType.WAV, customDict);
+                }
             }
             foreach (string folder in Directory.GetDirectories(path))
             {
                 //Dbgl($"\tchecking folder {Path.GetFileName(folder)}");
                 string folderName = Path.GetFileName(folder);
-                audioFiles = Directory.GetFiles(folder, "*.wav");
+                audioFiles = Directory.GetFiles(folder);
                 customDictDict[folderName] = new Dictionary<string, AudioClip>();
                 foreach (string file in audioFiles)
                 {
                     //Dbgl($"\tchecking file {Path.GetFileName(file)}");
                     if (Path.GetExtension(file).ToLower().Equals(".ogg"))
+                    {
                         PreloadClipCoroutine(file, AudioType.OGGVORBIS, customDictDict[folderName]);
+                    }
                     else if (Path.GetExtension(file).ToLower().Equals(".wav"))
+                    {
                         PreloadClipCoroutine(file, AudioType.WAV, customDictDict[folderName]);
+                    }
                 }
             }
         }
 
         private void PreloadClipCoroutine(string path, AudioType audioType, Dictionary<string, AudioClip> whichDict)
         {
-            //Dbgl($"path: {path}");
-            //path = "file:///" + path.Replace("\\", "/");
-
+            Dbgl($"path: {path}");
+            path = "file:///" + path.Replace("\\", "/");
+            /*
             try
             {
                 AudioClip ac = WaveLoader.WaveLoader.LoadWaveToAudioClip(File.ReadAllBytes(path));
@@ -153,46 +163,46 @@ namespace CustomAudio
             {
                 Dbgl($"Exception loading {path}\r\n{ex}");
             }
+            */
 
 
-            /*
-
-            using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(path, audioType))
+            var www = UnityWebRequestMultimedia.GetAudioClip(path, audioType);
+            www.SendWebRequest();
+            while (!www.isDone)
             {
-                www.SendWebRequest();
-                yield return null;
-                //Dbgl($"checking downloaded {filename}");
-                if (www != null)
+
+            }
+
+            //Dbgl($"checking downloaded {filename}");
+            if (www != null)
+            {
+                //Dbgl("www not null. errors: " + www.error);
+                DownloadHandlerAudioClip dac = ((DownloadHandlerAudioClip)www.downloadHandler);
+                if (dac != null)
                 {
-                    //Dbgl("www not null. errors: " + www.error);
-                    DownloadHandlerAudioClip dac = ((DownloadHandlerAudioClip)www.downloadHandler);
-                    if (dac != null)
+                    AudioClip ac = dac.audioClip;
+                    if (ac != null)
                     {
-                        AudioClip ac = dac.audioClip;
-                        if (ac != null)
-                        {
-                            string name = Path.GetFileNameWithoutExtension(path);
-                            ac.name = name;
-                            if (!whichDict.ContainsKey(name))
-                                whichDict[name] = ac;
-                            Dbgl($"Added audio clip {name} to dict");
-                        }
-                        else
-                        {
-                            Dbgl("audio clip is null. data: " + dac.text);
-                        }
+                        string name = Path.GetFileNameWithoutExtension(path);
+                        ac.name = name;
+                        if (!whichDict.ContainsKey(name))
+                            whichDict[name] = ac;
+                        Dbgl($"Added audio clip {name} to dict");
                     }
                     else
                     {
-                        Dbgl("DownloadHandler is null. bytes downloaded: " + www.downloadedBytes);
+                        Dbgl("audio clip is null. data: " + dac.text);
                     }
                 }
                 else
                 {
-                    Dbgl("www is null " + www.url);
+                    Dbgl("DownloadHandler is null. bytes downloaded: " + www.downloadedBytes);
                 }
             }
-            */
+            else
+            {
+                Dbgl("www is null " + www.url);
+            }
         }
 
         [HarmonyPatch(typeof(ZSFX), "Awake")]
@@ -455,6 +465,52 @@ namespace CustomAudio
                 }
                 return true;
             }
+        }
+    }
+    public class UnityWebRequestAwaiter : INotifyCompletion
+    {
+        private UnityWebRequestAsyncOperation asyncOp;
+        private Action continuation;
+
+        public UnityWebRequestAwaiter(UnityWebRequestAsyncOperation asyncOp)
+        {
+            this.asyncOp = asyncOp;
+            asyncOp.completed += OnRequestCompleted;
+            BepInExPlugin.Dbgl("created asyncop");
+        }
+
+        public bool IsCompleted 
+        { 
+            get {
+                BepInExPlugin.Dbgl("Is completed get");
+                return asyncOp.isDone; 
+            } 
+        }
+
+        public void GetResult()
+        {
+            BepInExPlugin.Dbgl("Get Result");
+        }
+
+        public void OnCompleted(Action continuation)
+        {
+            this.continuation = continuation;
+
+            BepInExPlugin.Dbgl("on completed");
+        }
+
+        private void OnRequestCompleted(AsyncOperation obj)
+        {
+            continuation();
+            BepInExPlugin.Dbgl("on request completed");
+        }
+    }
+
+    public static class ExtensionMethods
+    {
+        public static UnityWebRequestAwaiter GetAwaiter(this UnityWebRequestAsyncOperation asyncOp)
+        {
+            return new UnityWebRequestAwaiter(asyncOp);
         }
     }
 }

@@ -73,9 +73,11 @@ namespace ServerRewards
                         var dailyRewards = consecutiveLoginReward.Value.Split(',');
                         var rewardDay = -1;
                         playerInfo.consecutiveDays++;
+
+
                         if (consecutiveLoginRewardOnce.Value)
                         {
-                            if (playerInfo.maxConsecutiveDays < dailyRewards.Length)
+                            if (playerInfo.maxConsecutiveDays < playerInfo.consecutiveDays && playerInfo.consecutiveDays < dailyRewards.Length && playerInfo.maxConsecutiveDays < playerInfo.consecutiveDays)
                                 rewardDay = playerInfo.consecutiveDays;
                         }
                         else
@@ -87,11 +89,11 @@ namespace ServerRewards
                             Dbgl($"\tgiving consecutive login reward {dailyRewards[rewardDay]}");
                             playerInfo.currency += int.Parse(dailyRewards[rewardDay]);
                         }
-
                         if (playerInfo.maxConsecutiveDays < playerInfo.consecutiveDays)
                             playerInfo.maxConsecutiveDays = playerInfo.consecutiveDays;
+
                     }
-                    if(staticLoginReward.Value > 0 && DateTime.Today - new DateTime(playerInfo.lastLogin).Date >= TimeSpan.FromDays(1))
+                    if (staticLoginReward.Value > 0 && DateTime.Today - new DateTime(playerInfo.lastLogin).Date >= TimeSpan.FromDays(1))
                     {
                         Dbgl($"\tPlayer has not logged in today, giving static login reward");
                         playerInfo.currency += staticLoginReward.Value;

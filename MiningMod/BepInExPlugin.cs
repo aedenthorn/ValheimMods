@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace MiningMod
 {
-    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.6.0")]
+    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.6.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -125,7 +125,7 @@ namespace MiningMod
 
                     foreach(var kvp in typeLootDict)
                     {
-                        string name = ZNetView.GetPrefabName(kvp.Value[0]);
+                        string name = Utils.GetPrefabName(kvp.Value[0]);
                         int count = kvp.Value.Count;
                         if (kvp.Key == "Stone")
                         {

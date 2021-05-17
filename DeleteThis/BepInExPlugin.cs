@@ -66,7 +66,7 @@ namespace DeleteThis
                         t = t.parent;
                     }
 
-                    string name = ZNetView.GetPrefabName(t.gameObject);
+                    string name = Utils.GetPrefabName(t.gameObject);
 
                     if (AedenthornUtils.CheckKeyDown(checkKey.Value))
                     {

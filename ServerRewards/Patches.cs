@@ -71,7 +71,7 @@ namespace ServerRewards
             {
                 if (!modEnabled.Value)
                     return true;
-                string reward = ___m_nview.GetZDO().GetString("ServerReward", null);
+                string reward = ___m_nview?.GetZDO()?.GetString("ServerReward", null);
                 if (reward != null)
                 {
                     __result = reward;

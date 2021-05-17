@@ -289,9 +289,7 @@ namespace ServerRewards
                         if (useTombstone.Value)
                         {
                             var item = prefab.GetComponent<ItemDrop>().m_itemData;
-                            item.m_stack = amount;
-                            item.m_durability = item.m_shared.m_maxDurability;
-                            chest.GetComponent<Container>().GetInventory().AddItem(item);
+                            chest.GetComponent<Container>().GetInventory().AddItem(item.m_shared.m_name, amount, item.m_quality, item.m_variant, Player.m_localPlayer.GetPlayerID(), Player.m_localPlayer.GetPlayerName());
                             itemStrings.Add($"{Localization.instance.Localize(item.m_shared.m_name)} {nameAmount[0]}");
                         }
                         else
@@ -299,6 +297,8 @@ namespace ServerRewards
                             if (amount == 1)
                             {
                                 var go = Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward * 2f + Vector3.up, Quaternion.identity);
+                                var item = go.GetComponent<ItemDrop>().m_itemData;
+                                item.m_durability = item.m_shared.m_maxDurability;
                                 Player.m_localPlayer.Message(MessageHud.MessageType.TopLeft, string.Format(rewardString.Value, Localization.instance.Localize(go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name)), 0, null);
                             }
                             else
@@ -307,6 +307,8 @@ namespace ServerRewards
                                 {
                                     Vector3 b = UnityEngine.Random.insideUnitSphere * 0.5f;
                                     var go = Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward * 2f + Vector3.up + b, Quaternion.identity);
+                                    var item = go.GetComponent<ItemDrop>().m_itemData;
+                                    item.m_durability = item.m_shared.m_maxDurability;
                                     Player.m_localPlayer.Message(MessageHud.MessageType.TopLeft, Localization.instance.Localize(go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name), 0, null);
                                 }
                             }

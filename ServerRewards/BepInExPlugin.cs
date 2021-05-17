@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace ServerRewards
 {
-    [BepInPlugin("aedenthorn.ServerRewards", "Server Rewards", "0.5.0")]
+    [BepInPlugin("aedenthorn.ServerRewards", "Server Rewards", "0.5.4")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -226,8 +226,6 @@ namespace ServerRewards
         }
         private void OnGUI()
         {
-            GUI.Label(new Rect(Input.mousePosition.x, Screen.height - Input.mousePosition.y, 200, 40), "test");
-            GUI.Label(new Rect(Input.mousePosition.x, Screen.height - Input.mousePosition.y + 100, 200, 40), thisTooltip);
 
 
             if (!modEnabled.Value)
@@ -237,6 +235,8 @@ namespace ServerRewards
             { 
                 if (storeOpen)
                 {
+                    GUI.Label(new Rect(Input.mousePosition.x, Screen.height - Input.mousePosition.y, 200, 40), "test");
+                    GUI.Label(new Rect(Input.mousePosition.x, Screen.height - Input.mousePosition.y + 100, 200, 40), thisTooltip);
                     if (GameCamera.instance)
                     {
                         Traverse.Create(GameCamera.instance).Field("m_mouseCapture").SetValue(false);
@@ -280,14 +280,14 @@ namespace ServerRewards
             if (coinBeforeAmount.Value)
             {
                 GUILayout.Space(5);
-                GUILayout.Button(textureDict["currency"], coinStyle, new GUILayoutOption[] { GUILayout.Width(currencyFontSize.Value * coinFactor), GUILayout.Height(currencyFontSize.Value) });
+                GUILayout.Button(textureDict.ContainsKey("currency") ? textureDict["currency"] : null, coinStyle, new GUILayoutOption[] { GUILayout.Width(currencyFontSize.Value * coinFactor), GUILayout.Height(currencyFontSize.Value) });
             }
             GUILayout.Space(5);
             GUILayout.Label(string.Format(currencyString.Value, myCurrency), currencyStyle);
             if (!coinBeforeAmount.Value)
             {
                 GUILayout.Space(5);
-                GUILayout.Button(textureDict["currency"], coinStyle, new GUILayoutOption[] { GUILayout.Width(currencyFontSize.Value * coinFactor), GUILayout.Height(currencyFontSize.Value) });
+                GUILayout.Button(textureDict.ContainsKey("currency") ? textureDict["currency"] : null, coinStyle, new GUILayoutOption[] { GUILayout.Width(currencyFontSize.Value * coinFactor), GUILayout.Height(currencyFontSize.Value) });
             }
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();

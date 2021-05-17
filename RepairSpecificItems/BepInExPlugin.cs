@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RepairSpecificItems
 {
-    [BepInPlugin("aedenthorn.RepairSpecificItems", "Repair Specific Items", "0.1.0")]
+    [BepInPlugin("aedenthorn.RepairSpecificItems", "Repair Specific Items", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -18,6 +18,7 @@ namespace RepairSpecificItems
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<bool> requireMats;
         public static ConfigEntry<bool> leftClick;
+        public static ConfigEntry<bool> hideRepairButton;
         public static ConfigEntry<float> materialRequirementMult;
         public static ConfigEntry<string> modKey;
         public static ConfigEntry<string> titleTooltipColor;
@@ -45,6 +46,7 @@ namespace RepairSpecificItems
             requireMats = Config.Bind<bool>("General", "RequireMats", true, "Require materials to repair.");
             modKey = Config.Bind<string>("General", "ModifierKey", "left alt", "Key to hold in order to switch click to repair.");
             leftClick = Config.Bind<bool>("General", "LeftClick", true, "Use left click to repair (otherwise use right click).");
+            hideRepairButton = Config.Bind<bool>("General", "HideRepairButton", true, "Hide the vanilla repair button.");
             freeTooltipString = Config.Bind<string>("General", "FreeTooltipString", "<color=#00FF00FF>Repair: Free</color>", "String in tooltip for items that don't need resources to repair.");
             hasEnoughTooltipString = Config.Bind<string>("General", "HasEnoughTooltipString", "<color=#00FF00FF>Repair: {0}</color>", "String in tooltip for items with enough resources to repair. {0} is replaced by the amounts needed.");
             hasEnoughExternalTooltipString = Config.Bind<string>("General", "HasEnoughExternalTooltipString", "<color=#FFFF00FF>Repair: {0}</color>", "String in tooltip for items with enough resources to repair from mods. {0} is replaced by the amounts needed.");
@@ -261,6 +263,21 @@ namespace RepairSpecificItems
         }
 
 
+        [HarmonyPatch(typeof(InventoryGui), "UpdateRepair")]
+        static class UpdateRepair_Patch
+        {
+            static bool Prefix(InventoryGui __instance)
+            {
+                if (!modEnabled.Value || !hideRepairButton.Value)
+                    return true;
+
+                __instance.m_repairPanel.gameObject.SetActive(false);
+                __instance.m_repairPanelSelection.gameObject.SetActive(false);
+                __instance.m_repairButton.gameObject.SetActive(false);
+
+                return false;
+            }
+        }
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch
         {

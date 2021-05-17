@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 
 namespace MonsterAITweaks
 {
-    [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.3.0")]
+    [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.3.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -102,11 +102,11 @@ namespace MonsterAITweaks
                 if (!modEnabled.Value)
                     return;
 
-                if (allMonstersTame.Value || defaultTamedList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                if (allMonstersTame.Value || defaultTamedList.Contains(Utils.GetPrefabName(__instance.gameObject)))
                     __instance.MakeTame();
-                if (allMonstersAvoidFire.Value || avoidFireList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                if (allMonstersAvoidFire.Value || avoidFireList.Contains(Utils.GetPrefabName(__instance.gameObject)))
                     __instance.m_avoidFire = true;
-                if (allMonstersFearFire.Value || fearFireList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                if (allMonstersFearFire.Value || fearFireList.Contains(Utils.GetPrefabName(__instance.gameObject)))
                     __instance.m_afraidOfFire = true;
 
             }
@@ -137,7 +137,7 @@ namespace MonsterAITweaks
 
                 //Dbgl($"{__instance.name} setting target player {attacker.IsPlayer()} cancel {noMonstersTargetPlayers.Value}");
 
-                if (attacker?.IsPlayer() == true && (noMonstersTargetPlayers.Value || neverTargetPlayersList.Contains(ZNetView.GetPrefabName(__instance.gameObject))))
+                if (attacker?.IsPlayer() == true && (noMonstersTargetPlayers.Value || neverTargetPlayersList.Contains(Utils.GetPrefabName(__instance.gameObject))))
                     return false;
                 return true;
             }
@@ -151,7 +151,7 @@ namespace MonsterAITweaks
                 if (!modEnabled.Value)
                     return true;
 
-                if (noMonstersFlee.Value || neverFleeList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                if (noMonstersFlee.Value || neverFleeList.Contains(Utils.GetPrefabName(__instance.gameObject)))
                     return false;
                 return true;
             }
@@ -167,7 +167,7 @@ namespace MonsterAITweaks
 
                 //Dbgl($"{__instance.name} finding target player {__result?.IsPlayer()} cancel {noMonstersTargetPlayers.Value}");
 
-                if (__result?.IsPlayer() == true && (noMonstersTargetPlayers.Value || neverTargetPlayersList.Contains(ZNetView.GetPrefabName(__instance.gameObject))))
+                if (__result?.IsPlayer() == true && (noMonstersTargetPlayers.Value || neverTargetPlayersList.Contains(Utils.GetPrefabName(__instance.gameObject))))
                 {
                     __result = null;
                 }
@@ -182,7 +182,7 @@ namespace MonsterAITweaks
                 if (!modEnabled.Value)
                     return true;
 
-                if (noMonstersAlerted.Value || neverAlertedList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                if (noMonstersAlerted.Value || neverAlertedList.Contains(Utils.GetPrefabName(__instance.gameObject)))
                 {
                     return false;
                 }
@@ -197,7 +197,7 @@ namespace MonsterAITweaks
                 if (!modEnabled.Value)
                     return true;
 
-                if (noBuildingTargeting.Value || noBuildingTargetList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                if (noBuildingTargeting.Value || noBuildingTargetList.Contains(Utils.GetPrefabName(__instance.gameObject)))
                 {
                     __result = null;
                     return false;
@@ -213,7 +213,7 @@ namespace MonsterAITweaks
                 if (!modEnabled.Value)
                     return true;
 
-                if (noBuildingTargeting.Value || noBuildingTargetList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                if (noBuildingTargeting.Value || noBuildingTargetList.Contains(Utils.GetPrefabName(__instance.gameObject)))
                 {
                     __result = null;
                     return false;
@@ -230,7 +230,7 @@ namespace MonsterAITweaks
                 if (!modEnabled.Value || !alert)
                     return true;
 
-                if (noMonstersAlerted.Value || neverAlertedList.Contains(ZNetView.GetPrefabName(__instance.gameObject)))
+                if (noMonstersAlerted.Value || neverAlertedList.Contains(Utils.GetPrefabName(__instance.gameObject)))
                 {
                     return false;
                 }

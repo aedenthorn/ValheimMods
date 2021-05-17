@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace DiscardInventoryItem
 {
-    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard or Recycle Inventory Items", "0.5.1")]
+    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard or Recycle Inventory Items", "0.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -17,6 +17,7 @@ namespace DiscardInventoryItem
         public static ConfigEntry<string> m_hotkey;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> returnUnknownResources;
+        public static ConfigEntry<bool> returnEnchantedResources;
         public static ConfigEntry<float> returnResources;
         public static ConfigEntry<int> nexusID;
 
@@ -35,6 +36,7 @@ namespace DiscardInventoryItem
             m_hotkey = Config.Bind<string>("General", "DiscardHotkey", "delete", "The hotkey to discard an item");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             returnUnknownResources = Config.Bind<bool>("General", "ReturnUnknownResources", false, "Return resources if recipe is unknown");
+            returnEnchantedResources = Config.Bind<bool>("General", "ReturnEnchantedResources", false, "Return resources for Epic Loot enchantments");
             returnResources = Config.Bind<float>("General", "ReturnResources", 1f, "Fraction of resources to return (0.0 - 1.0)");
             nexusID = Config.Bind<int>("General", "NexusID", 45, "Nexus mod ID for updates");
 
@@ -72,7 +74,7 @@ namespace DiscardInventoryItem
 
                             bool isMagic = false;
                             bool cancel = false;
-                            if (epicLootAssembly != null)
+                            if (epicLootAssembly != null && returnEnchantedResources.Value)
                             {
                                 isMagic = (bool)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("IsMagic", BindingFlags.Public | BindingFlags.Static).Invoke(null, new[] { ___m_dragItem });
                             }
@@ -105,7 +107,7 @@ namespace DiscardInventoryItem
                                         for (int j = quality; j > 0; j--)
                                         {
                                             GameObject prefab = ObjectDB.instance.m_items.FirstOrDefault(item => item.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == req.m_resItem.m_itemData.m_shared.m_name);
-                                            ItemDrop.ItemData newItem = prefab.GetComponent<ItemDrop>().m_itemData;
+                                            ItemDrop.ItemData newItem = prefab.GetComponent<ItemDrop>().m_itemData.Clone();
                                             int numToAdd = Mathf.RoundToInt(req.GetAmount(j) * returnResources.Value);
                                             Dbgl($"Returning {numToAdd}/{req.GetAmount(j)} {prefab.name}");
                                             while (numToAdd > 0)
@@ -116,7 +118,7 @@ namespace DiscardInventoryItem
                                                 if (Player.m_localPlayer.GetInventory().AddItem(prefab.name, stack, req.m_resItem.m_itemData.m_quality, req.m_resItem.m_itemData.m_variant, 0, "") == null)
                                                 {
                                                     ItemDrop component = Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward + Player.m_localPlayer.transform.up, Player.m_localPlayer.transform.rotation).GetComponent<ItemDrop>();
-                                                    component.m_itemData = newItem.Clone();
+                                                    component.m_itemData = newItem;
                                                     component.m_itemData.m_dropPrefab = prefab;
                                                     component.m_itemData.m_stack = stack;
                                                     Traverse.Create(component).Method("Save").GetValue();

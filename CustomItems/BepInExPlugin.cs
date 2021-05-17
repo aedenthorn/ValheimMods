@@ -200,7 +200,7 @@ namespace CustomItems
             creatingObject = false;
             ItemDrop baseItemDrop = baseObject.GetComponent<ItemDrop>();
             customObject.name = name;
-            customObject.name = ZNetView.GetPrefabName(customObject);
+            customObject.name = Utils.GetPrefabName(customObject);
             objectsToAdd[customObject.name] = customObject;
             customObject.AddComponent<DontDestroy>();
             customItems[name].gameObject = customObject;

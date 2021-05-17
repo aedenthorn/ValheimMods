@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.6.0")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.6.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -125,15 +125,16 @@ namespace DeathTweaks
                             continue;
                         }
 
-                        List<ItemDrop.ItemData> keepItems = new List<ItemDrop.ItemData>(inv.GetAllItems());
+                        List<ItemDrop.ItemData> keepItems = Traverse.Create(inv).Field("m_inventory").GetValue<List<ItemDrop.ItemData>>();
 
                         if (destroyAllItems.Value)
                             keepItems.Clear();
                         else
                         {
 
-                            foreach (ItemDrop.ItemData item in inv.GetAllItems())
+                            for(int j = keepItems.Count - 1; j >= 0; j--)
                             {
+                                ItemDrop.ItemData item = keepItems[j];
 
                                 if (keepEquippedItems.Value && item.m_equiped)
                                     continue;
@@ -149,7 +150,7 @@ namespace DeathTweaks
                                     string[] destroyTypes = destroyItemTypes.Value.Split(',');
                                     if (destroyTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
                                     {
-                                        keepItems.Remove(item);
+                                        keepItems.RemoveAt(j);
                                         continue;
                                     }
                                 }
@@ -165,17 +166,16 @@ namespace DeathTweaks
                                     string[] dropTypes = dropItemTypes.Value.Split(',');
                                     if (dropTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
                                     {
-                                        keepItems.Remove(item);
                                         dropItems.Add(item);
+                                        keepItems.RemoveAt(j);
                                     }
                                     continue;
                                 }
 
-                                keepItems.Remove(item);
                                 dropItems.Add(item);
+                                keepItems.RemoveAt(j);
                             }
                         }
-                        Traverse.Create(inv).Field("m_inventory").SetValue(keepItems);
                         Traverse.Create(inv).Method("Changed").GetValue();
                     }
                 }

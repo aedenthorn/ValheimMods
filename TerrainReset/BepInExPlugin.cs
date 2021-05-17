@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace ServerRewards
+namespace TerrainReset
 {
-    [BepInPlugin("aedenthorn.TerrainReset", "Terrain Reset", "0.5.1")]
+    [BepInPlugin("aedenthorn.TerrainReset", "Terrain Reset", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -38,7 +38,7 @@ namespace ServerRewards
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1113, "Nexus mod ID for updates");
             hotKeyRadius = Config.Bind<float>("Config", "HotKeyRadius", 150f, "Reset radius for hotkey command");
-            toolRadius = Config.Bind<float>("Config", "ToolRadius", 2f, "Reset radius for tool");
+            toolRadius = Config.Bind<float>("Config", "ToolRadius", 0, "Reset radius for tool. Set to 0 to use the tool's actual radius.");
             hotKey = Config.Bind<string>("Config", "HotKey", "", "Hotkey to reset terrain. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             modKey = Config.Bind<string>("Config", "ModKey", "left alt", "Modifer key to reset terrain when using the level ground hoe tool. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             consoleCommand = Config.Bind<string>("Config", "ConsoleCommand", "resetterrain", "Console command to reset terrain. Usage: <command> <radius>");
@@ -200,7 +200,7 @@ namespace ServerRewards
                 if (!modEnabled.Value || !modifier.m_smooth || !AedenthornUtils.CheckKeyHeld(modKey.Value))
                     return true;
 
-                ResetTerrain(pos, toolRadius.Value);
+                ResetTerrain(pos, toolRadius.Value > 0 ? toolRadius.Value : modifier.GetRadius());
 
                 return false;
             }

@@ -4,6 +4,9 @@
   </PropertyGroup>
   <Import Project="$(SolutionDir)\valheim.targets" />
   <ItemGroup>
+    <None Update="Compass\center.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Compass\compass.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
