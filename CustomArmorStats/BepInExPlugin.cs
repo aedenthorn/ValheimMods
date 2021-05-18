@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace CustomArmorStats
 {
-    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.2.0")]
+    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.2.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -45,8 +45,9 @@ namespace CustomArmorStats
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 1151, "Nexus mod ID for updates");
-            
+            nexusID = Config.Bind<int>("General", "NexusID", 1162, "Nexus mod ID for updates");
+            nexusID.Value = 1162;
+
             globalArmorDurabilityLossMult = Config.Bind<float>("Stats", "GlobalArmorDurabilityLossMult", 1f, "Global armor durability loss multiplier");
             globalArmorMovementModMult = Config.Bind<float>("Stats", "GlobalArmorMovementModMult", 1f, "Global armor movement modifier multiplier");
 
@@ -118,7 +119,7 @@ namespace CustomArmorStats
         {
             static bool Prefix(SEMan __instance, StatusEffect statusEffect, Character ___m_character, ref StatusEffect __result)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || !___m_character.IsPlayer())
                     return true;
 
                 if(statusEffect.m_name == "$se_wet_name")

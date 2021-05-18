@@ -176,7 +176,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomArmorStats", "CustomA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HoeRadius", "HoeRadius\HoeRadius.csproj", "{F548BD14-E8AA-4223-B6E1-4307267A8D8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildPieceTweaks", "BuildPieceTweaks\BuildPieceTweaks.csproj", "{C895D63B-7C0B-4C7E-BF79-E95B4DEED088}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildPieceTweaks", "BuildPieceTweaks\BuildPieceTweaks.csproj", "{C895D63B-7C0B-4C7E-BF79-E95B4DEED088}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CraftingFilter", "CraftingFilter\CraftingFilter.csproj", "{94812B4A-CEFA-453C-BFF1-31C702D17C8B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -520,6 +522,10 @@ Global
 		{C895D63B-7C0B-4C7E-BF79-E95B4DEED088}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C895D63B-7C0B-4C7E-BF79-E95B4DEED088}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C895D63B-7C0B-4C7E-BF79-E95B4DEED088}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94812B4A-CEFA-453C-BFF1-31C702D17C8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94812B4A-CEFA-453C-BFF1-31C702D17C8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94812B4A-CEFA-453C-BFF1-31C702D17C8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94812B4A-CEFA-453C-BFF1-31C702D17C8B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
