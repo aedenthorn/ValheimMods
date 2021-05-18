@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftingFilter
 {
-    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.1.1")]
+    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -175,8 +175,9 @@ namespace CraftingFilter
             List<Recipe> recipes = new List<Recipe>();
             Player.m_localPlayer.GetAvailableRecipes(ref recipes);
             Dbgl($"Switching to filter {itemTypes[lastItemTypeIndex]} {recipes.Count} total recipes ");
-
-            Traverse.Create(InventoryGui.instance).Method("UpdateRecipeList", new object[] { recipes }).GetValue();
+            Traverse t = Traverse.Create(InventoryGui.instance);
+            t.Method("UpdateRecipeList", new object[] { recipes }).GetValue();
+            t.Method("SetRecipe", new object[] { 0, true }).GetValue();
             InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<Text>().text = craftText + (itemTypes[lastItemTypeIndex] == ItemDrop.ItemData.ItemType.None ? "" : "\n" + itemTypeNames[lastItemTypeIndex]);
         }
 
