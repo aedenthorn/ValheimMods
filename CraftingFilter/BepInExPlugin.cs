@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CraftingFilter
 {
-    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.2.0")]
+    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.2.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -135,7 +135,7 @@ namespace CraftingFilter
 
         private static void SwitchFilter(int idx)
         {
-            Dbgl($"switching to filter {idx}");
+            //Dbgl($"switching to filter {idx}");
 
             lastItemTypeIndex = idx;
             UpdateDropDown(false);
@@ -144,7 +144,7 @@ namespace CraftingFilter
 
         private static void SwitchFilter(bool next)
         {
-            Dbgl($"switching to {(next ? "next" : "last")} filter");
+            //Dbgl($"switching to {(next ? "next" : "last")} filter");
 
             if (next)
             {
@@ -163,7 +163,17 @@ namespace CraftingFilter
             while (itemTypeNames[lastItemTypeIndex] != "None" && recipes.FindAll(r => r.m_item.m_itemData.m_shared.m_itemType == itemTypes[lastItemTypeIndex]).Count == 0 && count < itemTypes.Count)
             {
                 count++;
-                SwitchFilter(next);
+                if (next)
+                {
+                    lastItemTypeIndex++;
+                    lastItemTypeIndex %= itemTypes.Count;
+                }
+                else
+                {
+                    lastItemTypeIndex--;
+                    if (lastItemTypeIndex < 0)
+                        lastItemTypeIndex = itemTypes.Count - 1;
+                }
             }
 
             SwitchFilter();
