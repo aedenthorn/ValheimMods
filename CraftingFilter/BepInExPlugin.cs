@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -11,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CraftingFilter
 {
-    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.2.1")]
+    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -25,15 +26,22 @@ namespace CraftingFilter
         public static ConfigEntry<string> prevHotKey;
         public static ConfigEntry<string> nextHotKey;
         
+        public static ConfigEntry<string> categoryFile;
+        
         private static BepInExPlugin context;
 
-        private static int lastItemTypeIndex = 0;
-        private static List<ItemDrop.ItemData.ItemType> itemTypes;
-        private static List<string> itemTypeNames;
+
+
+        private static Dictionary<string, List<ItemDrop.ItemData.ItemType>> categoryDict = new Dictionary<string, List<ItemDrop.ItemData.ItemType>>();
+        private static List<string> categoryNames = new List<string>();
         private static List<GameObject> dropDownList = new List<GameObject>();
+
+        private static int lastCategoryIndex = 0;
         private Vector3 lastMousePos;
         private static bool isShowing = false;
         private static string craftText = "Craft";
+        private static string assetPath;
+        private static int tabCraftPressed = 0;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -53,36 +61,88 @@ namespace CraftingFilter
             showMenu = Config.Bind<bool>("Settings", "ShowMenu", true, "Show filter menu on hover");
             scrollModKey = Config.Bind<string>("Settings", "ScrollModKey", "", "Modifer key to allow scroll wheel change. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             
+            categoryFile = Config.Bind<string>("Settings", "CategoryFile", "categories.json", "Category file name");
+            
             prevHotKey = Config.Bind<string>("Settings", "HotKeyPrev", "", "Hotkey to switch to previous filter. Use https://docs.unity3d.com/Manual/class-InputManager.html");
             nextHotKey = Config.Bind<string>("Settings", "HotKeyNext", "", "Hotkey to switch to next filter. Use https://docs.unity3d.com/Manual/class-InputManager.html");
 
-            itemTypes = ((ItemDrop.ItemData.ItemType[])Enum.GetValues(typeof(ItemDrop.ItemData.ItemType))).ToList();
-            itemTypeNames = Enum.GetNames(typeof(ItemDrop.ItemData.ItemType)).ToList();
+            assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), typeof(BepInExPlugin).Namespace);
 
-            itemTypes.Sort(delegate (ItemDrop.ItemData.ItemType a, ItemDrop.ItemData.ItemType b)
-            {
-                if ("" + a == "None")
-                    return -1;
-                if ("" + b == "None")
-                    return 1;
-                return ("" + a).CompareTo("" + b);
-            });
+            LoadCategories();
 
-            itemTypeNames.Sort(delegate (string a, string b)
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+        }
+
+        private void LoadCategories()
+        {
+            if (!Directory.Exists(assetPath))
             {
-                if (a == "None")
+                Dbgl("Creating mod folder");
+                Directory.CreateDirectory(assetPath);
+            }
+
+            string file = Path.Combine(assetPath, categoryFile.Value);
+            CategoryData data;
+            if (!File.Exists(file))
+            {
+                Dbgl("Creating category file");
+                data = new CategoryData();
+                File.WriteAllText(file, JsonUtility.ToJson(data));
+
+            }
+            else
+            {
+                data = JsonUtility.FromJson<CategoryData>(File.ReadAllText(file));
+            }
+            Dbgl("Loaded" + data.categories.Count + " categories");
+
+            categoryDict.Clear();
+            categoryNames.Clear();
+
+            foreach (string cat in data.categories)
+            {
+                if (!cat.Contains(":"))
+                    continue;
+                string[] parts = cat.Split(':');
+                string[] types = parts[1].Split(',');
+                categoryNames.Add(parts[0]);
+                
+                categoryDict[parts[0]] = new List<ItemDrop.ItemData.ItemType>();
+                foreach(string type in types)
+                {
+                    if (Enum.TryParse(type, out ItemDrop.ItemData.ItemType result))
+                    {
+                        categoryDict[parts[0]].Add(result);
+                    }
+                }
+            }
+
+            categoryNames.Sort(delegate (string a, string b)
+            {
+                if (categoryDict[a].Contains(ItemDrop.ItemData.ItemType.None))
                     return -1;
-                if (b == "None")
+                if (categoryDict[b].Contains(ItemDrop.ItemData.ItemType.None))
                     return 1;
                 return (a).CompareTo(b);
             });
 
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
+
+
         private void Update()
         {
             if (!modEnabled.Value || !Player.m_localPlayer || !InventoryGui.IsVisible() || (!Player.m_localPlayer.GetCurrentCraftingStation() && !Player.m_localPlayer.NoCostCheat()))
+            {
+                lastCategoryIndex = 0;
+                UpdateDropDown(false);
                 return;
+            }
+            if (!InventoryGui.instance.InCraftTab())
+            {
+                UpdateDropDown(false);
+                return;
+            }
+            Dbgl(""+tabCraftPressed);
 
             bool hover = false;
 
@@ -100,26 +160,39 @@ namespace CraftingFilter
             EventSystem.current.RaycastAll(eventData, raycastResults);
             foreach (RaycastResult rcr in raycastResults)
             {
-                if (rcr.gameObject.layer == LayerMask.NameToLayer("UI") && rcr.gameObject.name == "Craft" && rcr.gameObject.transform.parent.name == "TabsButtons")
+                if (rcr.gameObject.layer == LayerMask.NameToLayer("UI"))
                 {
-                    if (useScrollWheel.Value && AedenthornUtils.CheckKeyHeld(scrollModKey.Value, false) && Input.mouseScrollDelta.y != 0)
+
+                    if (rcr.gameObject.name == "Craft")
                     {
-                        SwitchFilter(Input.mouseScrollDelta.y < 0);
+                        Dbgl("craft hover");
+                        hover = true;
+                        if (tabCraftPressed == 0)
+                        {
+                            if (useScrollWheel.Value && AedenthornUtils.CheckKeyHeld(scrollModKey.Value, false) && Input.mouseScrollDelta.y != 0)
+                            {
+                                SwitchFilter(Input.mouseScrollDelta.y < 0);
+                            }
+                            if (showMenu.Value)
+                            {
+                                UpdateDropDown(true);
+                            }
+                        }
                     }
-                    else if (showMenu.Value)
+                    else if(dropDownList.Contains(rcr.gameObject))
                     {
-                        UpdateDropDown(true);
                         hover = true;
                     }
-                }
-                else if (rcr.gameObject.layer == LayerMask.NameToLayer("UI") && rcr.gameObject.transform.parent.name == "TabsButtons" && itemTypeNames.Contains(rcr.gameObject.name))
-                {
-                    hover = true;
+
                 }
             }
 
-            if(!hover)
+            if (!hover)
+            {
+                if(tabCraftPressed > 0)
+                    tabCraftPressed--;
                 UpdateDropDown(false);
+            }
 
             if (AedenthornUtils.CheckKeyDown(prevHotKey.Value))
             {
@@ -137,7 +210,7 @@ namespace CraftingFilter
         {
             //Dbgl($"switching to filter {idx}");
 
-            lastItemTypeIndex = idx;
+            lastCategoryIndex = idx;
             UpdateDropDown(false);
             SwitchFilter();
         }
@@ -148,31 +221,31 @@ namespace CraftingFilter
 
             if (next)
             {
-                lastItemTypeIndex++;
-                lastItemTypeIndex %= itemTypes.Count;
+                lastCategoryIndex++;
+                lastCategoryIndex %= categoryNames.Count;
             }
             else
             {
-                lastItemTypeIndex--;
-                if (lastItemTypeIndex < 0)
-                    lastItemTypeIndex = itemTypes.Count - 1;
+                lastCategoryIndex--;
+                if (lastCategoryIndex < 0)
+                    lastCategoryIndex = categoryNames.Count - 1;
             }
             List<Recipe> recipes = new List<Recipe>();
             Player.m_localPlayer.GetAvailableRecipes(ref recipes);
             int count = 0;
-            while (itemTypeNames[lastItemTypeIndex] != "None" && recipes.FindAll(r => r.m_item.m_itemData.m_shared.m_itemType == itemTypes[lastItemTypeIndex]).Count == 0 && count < itemTypes.Count)
+            while (!categoryDict[categoryNames[lastCategoryIndex]].Contains(ItemDrop.ItemData.ItemType.None) && recipes.FindAll(r => categoryDict[categoryNames[lastCategoryIndex]].Contains(r.m_item.m_itemData.m_shared.m_itemType)).Count == 0 && count < categoryNames.Count)
             {
                 count++;
                 if (next)
                 {
-                    lastItemTypeIndex++;
-                    lastItemTypeIndex %= itemTypes.Count;
+                    lastCategoryIndex++;
+                    lastCategoryIndex %= categoryNames.Count;
                 }
                 else
                 {
-                    lastItemTypeIndex--;
-                    if (lastItemTypeIndex < 0)
-                        lastItemTypeIndex = itemTypes.Count - 1;
+                    lastCategoryIndex--;
+                    if (lastCategoryIndex < 0)
+                        lastCategoryIndex = categoryNames.Count - 1;
                 }
             }
 
@@ -181,22 +254,21 @@ namespace CraftingFilter
 
         private static void SwitchFilter()
         {
-
             List<Recipe> recipes = new List<Recipe>();
             Player.m_localPlayer.GetAvailableRecipes(ref recipes);
-            Dbgl($"Switching to filter {itemTypes[lastItemTypeIndex]} {recipes.Count} total recipes ");
+            Dbgl($"Switching to filter {categoryNames[lastCategoryIndex]} {recipes.Count} total recipes ");
             Traverse t = Traverse.Create(InventoryGui.instance);
             t.Method("UpdateRecipeList", new object[] { recipes }).GetValue();
             t.Method("SetRecipe", new object[] { 0, true }).GetValue();
-            InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<Text>().text = craftText + (itemTypes[lastItemTypeIndex] == ItemDrop.ItemData.ItemType.None ? "" : "\n" + itemTypeNames[lastItemTypeIndex]);
+            InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<Text>().text = craftText + (categoryDict[categoryNames[lastCategoryIndex]].Contains(ItemDrop.ItemData.ItemType.None) ? "" : "\n" + categoryNames[lastCategoryIndex]);
         }
 
         private static void GetFilteredRecipes(ref List<Recipe> recipes)
         {
-            if(itemTypes[lastItemTypeIndex] != ItemDrop.ItemData.ItemType.None)
+            if(InventoryGui.instance.InCraftTab() && !categoryDict[categoryNames[lastCategoryIndex]].Contains(ItemDrop.ItemData.ItemType.None))
             {
-                recipes = recipes.FindAll(r => r.m_item.m_itemData.m_shared.m_itemType == itemTypes[lastItemTypeIndex]); 
-                Dbgl($"using filter {itemTypes[lastItemTypeIndex]} {recipes.Count} filtered recipes");
+                recipes = recipes.FindAll(r => categoryDict[categoryNames[lastCategoryIndex]].Contains(r.m_item.m_itemData.m_shared.m_itemType)); 
+                Dbgl($"using filter {categoryNames[lastCategoryIndex]}, {recipes.Count} filtered recipes");
             }
         }
 
@@ -210,25 +282,25 @@ namespace CraftingFilter
                 List<Recipe> recipes = new List<Recipe>();
                 Player.m_localPlayer.GetAvailableRecipes(ref recipes);
 
-                GameObject buttonObj = InventoryGui.instance.m_tabCraft.gameObject;
-                RectTransform rt = buttonObj.GetComponent<RectTransform>();
-                Text text = buttonObj.GetComponentInChildren<Text>();
+                float gameScale = GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;
+                Vector2 pos = InventoryGui.instance.m_tabCraft.gameObject.transform.GetComponent<RectTransform>().position;
+                float height = InventoryGui.instance.m_tabCraft.gameObject.transform.GetComponent<RectTransform>().rect.height * gameScale;
 
                 int showCount = 0;
-                for (int i = 0; i < itemTypes.Count; i++)
+                for (int i = 0; i < categoryNames.Count; i++)
                 {
-                    int count = recipes.FindAll(r => r.m_item.m_itemData.m_shared.m_itemType == itemTypes[i]).Count;
-                    dropDownList[i].SetActive(count > 0 || itemTypeNames[i] == "None");
-                    if (count > 0 || itemTypeNames[i] == "None")
+                    int count = recipes.FindAll(r => categoryDict[categoryNames[i]].Contains(r.m_item.m_itemData.m_shared.m_itemType)).Count;
+                    dropDownList[i].SetActive(count > 0 || categoryDict[categoryNames[i]].Contains(ItemDrop.ItemData.ItemType.None));
+                    if (count > 0 || categoryDict[categoryNames[i]].Contains(ItemDrop.ItemData.ItemType.None))
                     {
-                        dropDownList[i].GetComponent<RectTransform>().anchoredPosition = rt.anchoredPosition - new Vector2(0, rt.rect.height * (showCount++ + 1));
-                        dropDownList[i].GetComponentInChildren<Text>().text = itemTypes[i] + (count == 0 ? "" : $" ({count})");
+                        dropDownList[i].GetComponent<RectTransform>().position = pos - new Vector2(0, height * (showCount++ + 1));
+                        dropDownList[i].GetComponentInChildren<Text>().text = categoryNames[i] + (count == 0 ? "" : $" ({count})");
                     }
                 }
             }
             else
             {
-                for (int i = 0; i < itemTypes.Count; i++)
+                for (int i = 0; i < categoryNames.Count; i++)
                 {
                     dropDownList[i].SetActive(false);
                 }
@@ -243,12 +315,39 @@ namespace CraftingFilter
 
             static void Prefix(ref List<Recipe> recipes)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || !Player.m_localPlayer.GetCurrentCraftingStation())
                     return;
 
                 Dbgl($"updating recipes");
 
                 GetFilteredRecipes(ref recipes);
+            }
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), "Hide")]
+        static class Hide_Patch
+        {
+
+            static void Prefix()
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<Text>().text = craftText;
+                lastCategoryIndex = 0;
+            }
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), "OnTabCraftPressed")]
+        static class OnTabCraftPressed_Patch
+        {
+
+            static void Prefix()
+            {
+                if (!modEnabled.Value)
+                    return;
+                Dbgl("Tab craft pressed");
+                tabCraftPressed = 2;
             }
         }
         
@@ -262,17 +361,14 @@ namespace CraftingFilter
 
                 dropDownList.Clear();
 
-                GameObject buttonObj = __instance.m_tabCraft.gameObject;
-                buttonObj.transform.parent.SetAsLastSibling();
-                RectTransform rt = buttonObj.GetComponent<RectTransform>();
-                craftText = buttonObj.GetComponentInChildren<Text>().text;
-                for (int i = 0; i < itemTypes.Count; i++)
+                //buttonObj.transform.parent.SetAsLastSibling();
+                craftText = __instance.m_tabCraft.gameObject.GetComponentInChildren<Text>().text;
+                for (int i = 0; i < categoryNames.Count; i++)
                 {
                     int idx = i;
-                    GameObject go = Instantiate(buttonObj);
-                    go.name = "" + itemTypes[i];
-                    //go.GetComponentInChildren<Text>().text = go.name;
-                    go.transform.SetParent(buttonObj.transform.parent);
+                    GameObject go = Instantiate(__instance.m_tabCraft.gameObject);
+                    go.name = categoryNames[i];
+                    go.transform.SetParent(__instance.m_tabCraft.gameObject.transform.parent.parent);
                     go.GetComponent<Button>().interactable = true;
                     go.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
                     go.GetComponent<Button>().onClick.AddListener(() => SwitchFilter(idx));
@@ -296,6 +392,7 @@ namespace CraftingFilter
                 {
                     context.Config.Reload();
                     context.Config.Save();
+                    context.LoadCategories();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
