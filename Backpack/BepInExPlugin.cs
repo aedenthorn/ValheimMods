@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 
 namespace Backpack
 {
-    [BepInPlugin("aedenthorn.Backpack", "Backpack", "0.2.2")]
+    [BepInPlugin("aedenthorn.Backpack", "Backpack", "0.2.3")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -83,6 +83,7 @@ namespace Backpack
                     backpack.transform.SetParent(Player.m_localPlayer.transform);
                     InitBackpack();
                 }
+                backpack.transform.position = Player.m_localPlayer.transform.position;
                 if (!AedenthornUtils.IgnoreKeyPresses(true) && AedenthornUtils.CheckKeyDown(hotKey.Value))
                 {
                     opening = true;

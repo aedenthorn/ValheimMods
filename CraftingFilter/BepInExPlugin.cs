@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CraftingFilter
 {
-    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.5.0")]
+    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.5.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -142,7 +142,6 @@ namespace CraftingFilter
                 UpdateDropDown(false);
                 return;
             }
-            Dbgl(""+tabCraftPressed);
 
             bool hover = false;
 
@@ -165,7 +164,6 @@ namespace CraftingFilter
 
                     if (rcr.gameObject.name == "Craft")
                     {
-                        Dbgl("craft hover");
                         hover = true;
                         if (tabCraftPressed == 0)
                         {

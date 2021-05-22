@@ -28,6 +28,7 @@ namespace BuildPieceTweaks
         public float spaceRequirement;
         public bool repairPiece;
         public bool canBeRemoved;
+        public string station = "";
         public Heightmap.Biome onlyInBiome;
 
         public float health;

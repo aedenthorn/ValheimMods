@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 
 namespace MonsterAITweaks
 {
-    [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.3.1")]
+    [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.3.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -57,7 +57,7 @@ namespace MonsterAITweaks
             context = this;
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            //nexusID = Config.Bind<int>("General", "NexusID", , "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 758, "Nexus mod ID for updates");
 
             noMonstersTargetPlayers = Config.Bind<bool>("Global", "NoMonstersTargetPlayers", false, "No monsters target players.");
             noMonstersAlerted = Config.Bind<bool>("Global", "NoMonstersAlerted", false, "No monsters become alerted.");

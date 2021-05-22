@@ -52,6 +52,26 @@ namespace BuildPieceTweaks
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
+        [HarmonyPatch(typeof(ObjectDB), "UpdateItemHashes")]
+        static class ObjectDB_UpdateItemHashes_Patch
+        {
+            static void Postfix(ObjectDB __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+                foreach(GameObject go in __instance.m_items)
+                {
+                    if(go.GetComponent<Piece>())
+                        CustomizePiece(go.GetComponent<Piece>());
+                }
+                var pieces = GetPieces();
+                foreach (GameObject go in __instance.m_items)
+                {
+                    if (go.GetComponent<Piece>())
+                        CustomizePiece(go.GetComponent<Piece>());
+                }
+            }
+        }
 
         [HarmonyPatch(typeof(Piece), "Awake")]
         static class Piece_Awake_Patch
@@ -61,104 +81,121 @@ namespace BuildPieceTweaks
                 if (!modEnabled.Value)
                     return;
 
-                //Dbgl($"loading data for {Utils.GetPrefabName(__instance.gameObject)}");
+                CustomizePiece(__instance);
 
-                if (pieceDatas.ContainsKey(Utils.GetPrefabName(__instance.gameObject)))
-                {
-                    PieceData data = pieceDatas[Utils.GetPrefabName(__instance.gameObject)];
-                    __instance.m_category = data.category;
-                    __instance.m_comfortGroup = data.comfortGroup;
-                    __instance.m_comfort = data.comfort;
-                    __instance.m_groundPiece = data.groundPiece;
-                    __instance.m_allowAltGroundPlacement = data.allowAltGroundPlacement;
-                    __instance.m_groundOnly = data.groundOnly;
-                    __instance.m_cultivatedGroundOnly = data.cultivatedGroundOnly;
-                    __instance.m_waterPiece = data.waterPiece;
-                    __instance.m_clipGround = data.clipGround;
-                    __instance.m_clipEverything = data.clipEverything;
-                    __instance.m_noInWater = data.noInWater;
-                    __instance.m_notOnWood = data.notOnWood;
-                    __instance.m_notOnTiltingSurface = data.notOnTiltingSurface;
-                    __instance.m_inCeilingOnly = data.inCeilingOnly;
-                    __instance.m_notOnFloor = data.notOnFloor;
-                    __instance.m_noClipping = data.noClipping;
-                    __instance.m_onlyInTeleportArea = data.onlyInTeleportArea;
-                    __instance.m_allowedInDungeons = data.allowedInDungeons;
-                    __instance.m_spaceRequirement = data.spaceRequirement;
-                    __instance.m_repairPiece = data.repairPiece;
-                    __instance.m_canBeRemoved = data.canBeRemoved;
-                    __instance.m_onlyInBiome = data.onlyInBiome;
-
-                    WearNTear wnt = __instance.gameObject.GetComponent<WearNTear>();
-                    if (wnt)
-                    {
-
-                        wnt.m_health = data.health;
-                        wnt.m_noRoofWear = data.noRoofWear;
-                        wnt.m_noSupportWear = data.noSupportWear;
-                        wnt.m_materialType = data.materialType;
-                        wnt.m_supports = data.supports;
-                        wnt.m_comOffset = data.comOffset;
-                        wnt.m_hitNoise = data.hitNoise;
-                        wnt.m_destroyNoise = data.destroyNoise;
-                        wnt.m_autoCreateFragments = data.autoCreateFragments;
-
-                        foreach (string modString in data.damageModifiers)
-                        {
-                            string[] parts = modString.Split(':');
-                            var type = (HitData.DamageType)Enum.Parse(typeof(HitData.DamageType), parts[0]);
-                            var mod = (HitData.DamageModifier)Enum.Parse(typeof(HitData.DamageModifier), parts[1]);
-                            switch (type)
-                            {
-                                case HitData.DamageType.Blunt:
-                                    wnt.m_damages.m_blunt = mod;
-                                    break;
-                                case HitData.DamageType.Slash:
-                                    wnt.m_damages.m_slash = mod;
-                                    break;
-                                case HitData.DamageType.Pierce:
-                                    wnt.m_damages.m_pierce = mod;
-                                    break;
-                                case HitData.DamageType.Chop:
-                                    wnt.m_damages.m_chop = mod;
-                                    break;
-                                case HitData.DamageType.Pickaxe:
-                                    wnt.m_damages.m_pickaxe = mod;
-                                    break;
-                                case HitData.DamageType.Fire:
-                                    wnt.m_damages.m_fire = mod;
-                                    break;
-                                case HitData.DamageType.Frost:
-                                    wnt.m_damages.m_frost = mod;
-                                    break;
-                                case HitData.DamageType.Lightning:
-                                    wnt.m_damages.m_lightning = mod;
-                                    break;
-                                case HitData.DamageType.Poison:
-                                    wnt.m_damages.m_poison = mod;
-                                    break;
-                                case HitData.DamageType.Spirit:
-                                    wnt.m_damages.m_spirit = mod;
-                                    break;
-
-                            }
-                        }
-                    }
-
-                }
-
-                if (globalPieceClipEverything.Value)
-                    __instance.m_clipEverything = true;
-                if (globalAllowedInDungeons.Value)
-                    __instance.m_allowedInDungeons = true;
-                if (globalRepairPiece.Value)
-                    __instance.m_repairPiece = true;
-                if (globalCanBeRemoved.Value)
-                    __instance.m_canBeRemoved = true;
 
             }
         }
 
+        private static void CustomizePiece(Piece piece)
+        {
+            string name = Utils.GetPrefabName(piece.gameObject);
+            if (pieceDatas.ContainsKey(name))
+            {
+                Dbgl($"loading data for {name}");
+                PieceData data = pieceDatas[name];
+                piece.m_category = data.category;
+                piece.m_comfortGroup = data.comfortGroup;
+                piece.m_comfort = data.comfort;
+                piece.m_groundPiece = data.groundPiece;
+                piece.m_allowAltGroundPlacement = data.allowAltGroundPlacement;
+                piece.m_groundOnly = data.groundOnly;
+                piece.m_cultivatedGroundOnly = data.cultivatedGroundOnly;
+                piece.m_waterPiece = data.waterPiece;
+                piece.m_clipGround = data.clipGround;
+                piece.m_clipEverything = data.clipEverything;
+                piece.m_noInWater = data.noInWater;
+                piece.m_notOnWood = data.notOnWood;
+                piece.m_notOnTiltingSurface = data.notOnTiltingSurface;
+                piece.m_inCeilingOnly = data.inCeilingOnly;
+                piece.m_notOnFloor = data.notOnFloor;
+                piece.m_noClipping = data.noClipping;
+                piece.m_onlyInTeleportArea = data.onlyInTeleportArea;
+                piece.m_allowedInDungeons = data.allowedInDungeons;
+                piece.m_spaceRequirement = data.spaceRequirement;
+                piece.m_repairPiece = data.repairPiece;
+                piece.m_canBeRemoved = data.canBeRemoved;
+                piece.m_craftingStation = GetCraftingStation(data.name);
+                piece.m_onlyInBiome = data.onlyInBiome;
+
+                WearNTear wnt = piece.gameObject.GetComponent<WearNTear>();
+                if (wnt)
+                {
+
+                    wnt.m_health = data.health;
+                    wnt.m_noRoofWear = data.noRoofWear;
+                    wnt.m_noSupportWear = data.noSupportWear;
+                    wnt.m_materialType = data.materialType;
+                    wnt.m_supports = data.supports;
+                    wnt.m_comOffset = data.comOffset;
+                    wnt.m_hitNoise = data.hitNoise;
+                    wnt.m_destroyNoise = data.destroyNoise;
+                    wnt.m_autoCreateFragments = data.autoCreateFragments;
+
+                    foreach (string modString in data.damageModifiers)
+                    {
+                        string[] parts = modString.Split(':');
+                        var type = (HitData.DamageType)Enum.Parse(typeof(HitData.DamageType), parts[0]);
+                        var mod = (HitData.DamageModifier)Enum.Parse(typeof(HitData.DamageModifier), parts[1]);
+                        switch (type)
+                        {
+                            case HitData.DamageType.Blunt:
+                                wnt.m_damages.m_blunt = mod;
+                                break;
+                            case HitData.DamageType.Slash:
+                                wnt.m_damages.m_slash = mod;
+                                break;
+                            case HitData.DamageType.Pierce:
+                                wnt.m_damages.m_pierce = mod;
+                                break;
+                            case HitData.DamageType.Chop:
+                                wnt.m_damages.m_chop = mod;
+                                break;
+                            case HitData.DamageType.Pickaxe:
+                                wnt.m_damages.m_pickaxe = mod;
+                                break;
+                            case HitData.DamageType.Fire:
+                                wnt.m_damages.m_fire = mod;
+                                break;
+                            case HitData.DamageType.Frost:
+                                wnt.m_damages.m_frost = mod;
+                                break;
+                            case HitData.DamageType.Lightning:
+                                wnt.m_damages.m_lightning = mod;
+                                break;
+                            case HitData.DamageType.Poison:
+                                wnt.m_damages.m_poison = mod;
+                                break;
+                            case HitData.DamageType.Spirit:
+                                wnt.m_damages.m_spirit = mod;
+                                break;
+
+                        }
+                    }
+                }
+
+            }
+
+            if (globalPieceClipEverything.Value)
+                piece.m_clipEverything = true;
+            if (globalAllowedInDungeons.Value)
+                piece.m_allowedInDungeons = true;
+            if (globalRepairPiece.Value)
+                piece.m_repairPiece = true;
+            if (globalCanBeRemoved.Value)
+                piece.m_canBeRemoved = true;
+        }
+        private static CraftingStation GetCraftingStation(string name)
+        {
+            foreach (GameObject go in ObjectDB.instance.m_items)
+            {
+                if(go.GetComponent<Piece>()?.m_craftingStation != null)
+                {
+                    return go.GetComponent<Piece>()?.m_craftingStation;
+                }
+            }
+            return null;
+        }
 
         private static Dictionary<string, PieceData> GetDataFromFiles()
         {
@@ -183,15 +220,28 @@ namespace BuildPieceTweaks
             }
         }
 
-        private static PieceData GetDataByName(string pieceName)
+
+
+        private static List<GameObject> GetPieces()
         {
             ItemDrop hammer = ObjectDB.instance.GetItemPrefab("Hammer").GetComponent<ItemDrop>();
 
-            var pieces = Traverse.Create(hammer.m_itemData.m_shared.m_buildPieces).Field("m_pieces").GetValue<List<GameObject>>();
+            var pieces = new List<GameObject>(Traverse.Create(hammer.m_itemData.m_shared.m_buildPieces).Field("m_pieces").GetValue<List<GameObject>>());
+
+            ItemDrop hoe = ObjectDB.instance.GetItemPrefab("Hoe").GetComponent<ItemDrop>();
+            pieces.AddRange(Traverse.Create(hoe.m_itemData.m_shared.m_buildPieces).Field("m_pieces").GetValue<List<GameObject>>());
+            return pieces;
+
+        }
+        private static PieceData GetDataByName(string pieceName)
+        {
+
+            var pieces = GetPieces();
 
             var go = pieces.FirstOrDefault(p => Utils.GetPrefabName(p) == pieceName);
             
-            return GetDataFromItem(go, pieceName);
+            if(go != null)
+                return GetDataFromItem(go, pieceName);
 
             Dbgl($"Game object {pieceName} not found!");
             return null;
@@ -228,6 +278,7 @@ namespace BuildPieceTweaks
                 spaceRequirement = piece.m_spaceRequirement,
                 repairPiece = piece.m_repairPiece,
                 canBeRemoved = piece.m_canBeRemoved,
+                station = piece.m_craftingStation ? piece.m_craftingStation.m_name : "",
                 onlyInBiome = piece.m_onlyInBiome
             };
 
@@ -281,6 +332,14 @@ namespace BuildPieceTweaks
                 {
                     pieceDatas = GetDataFromFiles();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} reloaded piece variables from files" }).GetValue();
+                    return false;
+                }
+                else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} pieces"))
+                {
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    var pieces = GetPieces();
+                    Dbgl("Available Pieces:\n"+string.Join("\n", pieces.Select(p => p.name)));
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} reloaded piece variables from files" }).GetValue();
                     return false;
                 }
@@ -357,6 +416,7 @@ namespace BuildPieceTweaks
                     + $"{context.Info.Metadata.Name} reload\r\n"
                     + $"{context.Info.Metadata.Name} dump <PieceName>\r\n"
                     + $"{context.Info.Metadata.Name} save <PieceName>\r\n"
+                    + $"{context.Info.Metadata.Name} pieces\r\n"
                     + $"{context.Info.Metadata.Name} comfort\r\n"
                     + $"{context.Info.Metadata.Name} cats\r\n"
                     + $"{context.Info.Metadata.Name} damage";
