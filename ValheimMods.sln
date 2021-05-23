@@ -182,7 +182,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CraftingFilter", "CraftingF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DamageMod", "DamageMod\DamageMod.csproj", "{D08034EB-046A-4811-A84B-55A4DB3386D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildPieceReplace", "BuildPieceReplace\BuildPieceReplace.csproj", "{DA3D9481-22D5-427A-9ECB-F60644FCAB78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildPieceReplace", "BuildPieceReplace\BuildPieceReplace.csproj", "{DA3D9481-22D5-427A-9ECB-F60644FCAB78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeCustomization", "RecipeCustomization\RecipeCustomization.csproj", "{FD5B3515-66D6-4724-99D2-805B8D35966C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -538,6 +540,10 @@ Global
 		{DA3D9481-22D5-427A-9ECB-F60644FCAB78}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA3D9481-22D5-427A-9ECB-F60644FCAB78}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA3D9481-22D5-427A-9ECB-F60644FCAB78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD5B3515-66D6-4724-99D2-805B8D35966C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD5B3515-66D6-4724-99D2-805B8D35966C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD5B3515-66D6-4724-99D2-805B8D35966C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD5B3515-66D6-4724-99D2-805B8D35966C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

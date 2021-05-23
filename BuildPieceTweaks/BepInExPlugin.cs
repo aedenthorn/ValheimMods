@@ -6,11 +6,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace BuildPieceTweaks
 {
-    [BepInPlugin("aedenthorn.BuildPieceTweaks", "Build Piece Tweaks", "0.2.0")]
+    [BepInPlugin("aedenthorn.BuildPieceTweaks", "Build Piece Tweaks", "0.2.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -63,6 +64,18 @@ namespace BuildPieceTweaks
                 SetCustomPieces();
             }
         }
+        [HarmonyPatch(typeof(ZNetScene), "Awake")]
+        [HarmonyPriority(Priority.Last)]
+        static class ZNetScene_Awake_Patch
+        {
+            static void Postfix()
+            {
+                if (!modEnabled.Value)
+                    return;
+                SetCustomPieces();
+            }
+        }
+
 
         [HarmonyPatch(typeof(Piece), "Awake")]
         static class Piece_Awake_Patch

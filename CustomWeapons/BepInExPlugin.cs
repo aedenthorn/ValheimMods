@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomWeaponStats
 {
-    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.4.2")]
+    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.4.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -25,6 +25,7 @@ namespace CustomWeaponStats
         public static ConfigEntry<float> globalBackstabBonusMultiplier;
         public static ConfigEntry<float> globalHoldDurationMinMultiplier;
         public static ConfigEntry<float> globalHoldStaminaDrainMultiplier;
+        public static ConfigEntry<float> globalAttackStaminaUseMultiplier;
         private static List<WeaponData> weaponDatas;
         private static string assetPath;
 
@@ -47,6 +48,7 @@ namespace CustomWeaponStats
             globalBackstabBonusMultiplier = Config.Bind<float>("Global", "GlobalBackstabBonusMultiplier", 1f, "Global backstab bonus multiplier for all weapons");
             globalHoldDurationMinMultiplier = Config.Bind<float>("Global", "GlobalHoldDurationMinMultiplier", 1f, "Global hold duration minimum multiplier for all weapons");
             globalHoldStaminaDrainMultiplier = Config.Bind<float>("Global", "GlobalHoldStaminaDrainMultiplier", 1f, "Global hold stamina drain multiplier for all weapons");
+            globalAttackStaminaUseMultiplier = Config.Bind<float>("Global", "GlobalAttackStaminaUseMultiplier", 1f, "Global attack stamina use multiplier for all weapons");
 
             assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomWeaponStats");
 
@@ -87,17 +89,29 @@ namespace CustomWeaponStats
             }
         }
 
+        [HarmonyPatch(typeof(Attack), "GetStaminaUsage")]
+        static class GetStaminaUsage_Patch
+        {
+            static void Postfix(ref float __result)
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                __result *= globalAttackStaminaUseMultiplier.Value;
+            }
+        }
+ 
         [HarmonyPatch(typeof(Attack), "Start")]
         static class Attack_Start_Patch
         {
-            static void Prefix(ref ItemDrop.ItemData weapon, ref ItemDrop.ItemData __state)
+            static void Prefix(ref ItemDrop.ItemData weapon, ref ItemDrop.ItemData.SharedData __state)
             {
                 if (!modEnabled.Value)
                     return;
 
                 CheckWeaponData(ref weapon);
 
-                __state = weapon;
+                __state = weapon.m_shared;
 
                 weapon.m_shared.m_useDurabilityDrain *= globalUseDurabilityMultiplier.Value;
                 weapon.m_shared.m_holdDurationMin *= globalHoldDurationMinMultiplier.Value;
@@ -116,14 +130,13 @@ namespace CustomWeaponStats
                 weapon.m_shared.m_damages.m_poison *= globalDamageMultiplier.Value;
                 weapon.m_shared.m_damages.m_spirit *= globalDamageMultiplier.Value;
 
-                //Dbgl("damage: "+weapon.m_shared.m_damages.m_damage);
             }
-            static void Postfix(ref ItemDrop.ItemData ___m_weapon, ItemDrop.ItemData __state)
+            static void Postfix(ref ItemDrop.ItemData ___m_weapon, ItemDrop.ItemData.SharedData __state)
             {
                 if (!modEnabled.Value)
                     return;
 
-                ___m_weapon = __state;
+                ___m_weapon.m_shared = __state;
             }
         }
 
