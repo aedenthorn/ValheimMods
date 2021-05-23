@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace BuildPieceTweaks
 {
-    [BepInPlugin("aedenthorn.BuildPieceTweaks", "Build Piece Tweaks", "0.1.1")]
+    [BepInPlugin("aedenthorn.BuildPieceTweaks", "Build Piece Tweaks", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -52,24 +52,15 @@ namespace BuildPieceTweaks
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        [HarmonyPatch(typeof(ObjectDB), "UpdateItemHashes")]
-        static class ObjectDB_UpdateItemHashes_Patch
+        [HarmonyPatch(typeof(ObjectDB), "CopyOtherDB")]
+        static class CopyOtherDB_Patch
         {
-            static void Postfix(ObjectDB __instance)
+            static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
-                foreach(GameObject go in __instance.m_items)
-                {
-                    if(go.GetComponent<Piece>())
-                        CustomizePiece(go.GetComponent<Piece>());
-                }
-                var pieces = GetPieces();
-                foreach (GameObject go in __instance.m_items)
-                {
-                    if (go.GetComponent<Piece>())
-                        CustomizePiece(go.GetComponent<Piece>());
-                }
+
+                SetCustomPieces();
             }
         }
 
@@ -84,6 +75,17 @@ namespace BuildPieceTweaks
                 CustomizePiece(__instance);
 
 
+            }
+        }
+        private static void SetCustomPieces()
+        {
+            if (!ObjectDB.instance)
+                return;
+            var pieces = GetPieces();
+            foreach (GameObject go in pieces)
+            {
+                if (go.GetComponent<Piece>())
+                    CustomizePiece(go.GetComponent<Piece>());
             }
         }
 
@@ -115,10 +117,10 @@ namespace BuildPieceTweaks
                 piece.m_spaceRequirement = data.spaceRequirement;
                 piece.m_repairPiece = data.repairPiece;
                 piece.m_canBeRemoved = data.canBeRemoved;
-                piece.m_craftingStation = GetCraftingStation(data.name);
+                piece.m_craftingStation = GetCraftingStation(data.station);
                 piece.m_onlyInBiome = data.onlyInBiome;
-
-                WearNTear wnt = piece.gameObject.GetComponent<WearNTear>();
+                
+                WearNTear wnt = piece.GetComponent<WearNTear>();
                 if (wnt)
                 {
 
@@ -187,11 +189,12 @@ namespace BuildPieceTweaks
         }
         private static CraftingStation GetCraftingStation(string name)
         {
-            foreach (GameObject go in ObjectDB.instance.m_items)
+            foreach (Recipe recipe in ObjectDB.instance.m_recipes)
             {
-                if(go.GetComponent<Piece>()?.m_craftingStation != null)
+                if(recipe?.m_craftingStation?.m_name == name)
                 {
-                    return go.GetComponent<Piece>()?.m_craftingStation;
+                    Dbgl("got crafting station "+name);
+                    return recipe.m_craftingStation;
                 }
             }
             return null;
@@ -224,12 +227,18 @@ namespace BuildPieceTweaks
 
         private static List<GameObject> GetPieces()
         {
-            ItemDrop hammer = ObjectDB.instance.GetItemPrefab("Hammer").GetComponent<ItemDrop>();
+            var pieces = new List<GameObject>();
+            if (!ObjectDB.instance)
+                return pieces;
 
-            var pieces = new List<GameObject>(Traverse.Create(hammer.m_itemData.m_shared.m_buildPieces).Field("m_pieces").GetValue<List<GameObject>>());
+            ItemDrop hammer = ObjectDB.instance.GetItemPrefab("Hammer")?.GetComponent<ItemDrop>();
 
-            ItemDrop hoe = ObjectDB.instance.GetItemPrefab("Hoe").GetComponent<ItemDrop>();
-            pieces.AddRange(Traverse.Create(hoe.m_itemData.m_shared.m_buildPieces).Field("m_pieces").GetValue<List<GameObject>>());
+            if(hammer)
+                pieces.AddRange(Traverse.Create(hammer.m_itemData.m_shared.m_buildPieces).Field("m_pieces").GetValue<List<GameObject>>());
+
+            ItemDrop hoe = ObjectDB.instance.GetItemPrefab("Hoe")?.GetComponent<ItemDrop>();
+            if (hoe)
+                pieces.AddRange(Traverse.Create(hoe.m_itemData.m_shared.m_buildPieces).Field("m_pieces").GetValue<List<GameObject>>());
             return pieces;
 
         }
@@ -331,6 +340,7 @@ namespace BuildPieceTweaks
                 else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reload"))
                 {
                     pieceDatas = GetDataFromFiles();
+                    SetCustomPieces();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} reloaded piece variables from files" }).GetValue();
                     return false;

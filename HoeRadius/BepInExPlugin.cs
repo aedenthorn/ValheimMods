@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HoeRadius
 {
-    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.1.0")]
+    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.1.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -86,7 +86,7 @@ namespace HoeRadius
             if (op == null)
                 return;
 
-            Dbgl($"Adjusting radius by {delta}");
+            //Dbgl($"Adjusting radius by {delta}");
             float originalRadius = 0;
             float moddedRadius = Mathf.Max(lastModdedRadius + delta, 0);
             lastTotalDelta += delta;
@@ -118,12 +118,12 @@ namespace HoeRadius
 
             if (lastOriginalRadius > 0 && lastModdedRadius > 0)
             {
-                Dbgl($"total delta {lastTotalDelta}");
+                //Dbgl($"total delta {lastTotalDelta}");
 
                 var ghost = Traverse.Create(Player.m_localPlayer).Field("m_placementGhost").GetValue<GameObject>()?.transform.Find("_GhostOnly");
                 if (ghost != null)
                 {
-                    Dbgl($"Adjusting ghost scale to {lastModdedRadius / lastOriginalRadius}x");
+                    //Dbgl($"Adjusting ghost scale to {lastModdedRadius / lastOriginalRadius}x");
                     ghost.localScale = new Vector3(lastModdedRadius / lastOriginalRadius, lastModdedRadius / lastOriginalRadius, lastModdedRadius / lastOriginalRadius);
                 }
             }

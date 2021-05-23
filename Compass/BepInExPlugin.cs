@@ -203,12 +203,6 @@ namespace Compass
                 Rect rect = compassObject.GetComponent<Image>().sprite.rect;
                 float imageScale = GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;
 
-                if (!dbgl)
-                {
-                    dbgl = true;
-                    Dbgl($"scale {imageScale} {Screen.height} {compassObject.GetComponent<Image>().sprite.texture.height}");
-                }
-
                 compassObject.GetComponent<RectTransform>().localPosition = Vector3.right * (rect.width / 2) * angle / (2f * Mathf.PI) - new Vector3(rect.width * 0.125f, 0, 0);
 
                 compassObject.GetComponent<Image>().color = compassColor.Value;
