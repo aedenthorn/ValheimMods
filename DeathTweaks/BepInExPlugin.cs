@@ -1,6 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
-using BepInEx.Configuration;
+using AuthoritativeConfig;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -257,8 +257,6 @@ namespace DeathTweaks
                 string text = __instance.m_input.text;
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
-                    context.Config.Reload();
-                    context.Config.Save();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
