@@ -44,9 +44,14 @@ namespace DeathTweaks
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
+        public new AuthoritativeConfig.Config Config
+        {
+            get { return AuthoritativeConfig.Config.Instance; }
+            set { }
+        }
         private void Awake()
         {
-            
+            Config.init(this, true);
             foreach (int i in Enum.GetValues(typeof(ItemDrop.ItemData.ItemType)))
             {
                 typeEnums.Add(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), i));
