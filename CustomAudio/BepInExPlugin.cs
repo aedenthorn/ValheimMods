@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.1.0")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -34,7 +34,6 @@ namespace CustomAudio
         public static ConfigEntry<int> nexusID;
 
         private static string lastMusicName = "";
-        private static string[] audioFiles;
         private static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -57,9 +56,10 @@ namespace CustomAudio
                 return;
             PreloadAudioClips();
 
-
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
+
+
         public void PreloadAudioClips()
         {
             Dbgl("Preloading audio clips.");
@@ -112,7 +112,7 @@ namespace CustomAudio
         public void CollectAudioFiles(string path, Dictionary<string, AudioClip> customDict, Dictionary<string, Dictionary<string, AudioClip>> customDictDict)
         {
             Dbgl($"checking folder {Path.GetFileName(path)}");
-            audioFiles = Directory.GetFiles(path);
+            string[] audioFiles = Directory.GetFiles(path);
             foreach (string file in audioFiles)
             {
                 //Dbgl($"\tchecking single file {Path.GetFileName(file)}");
@@ -143,6 +143,20 @@ namespace CustomAudio
                     {
                         PreloadClipCoroutine(file, AudioType.WAV, customDictDict[folderName]);
                     }
+                }
+            }
+            foreach (string folder in Directory.GetDirectories(path))
+            {
+                //Dbgl($"\tchecking folder {Path.GetFileName(folder)}");
+                string folderName = Path.GetFileName(folder);
+                string[] files = Directory.GetFiles(folder);
+                if (files.Length != 1 || !files[0].ToLower().EndsWith(".txt"))
+                    continue;
+                if (customDictDict.ContainsKey(Path.GetFileNameWithoutExtension(files[0])))
+                {
+                    Dbgl($"\tlinking music folder {Path.GetFileName(folder)} to folder {Path.GetFileNameWithoutExtension(files[0])}");
+
+                    customDictDict[folderName] = customDictDict[Path.GetFileNameWithoutExtension(files[0])];
                 }
             }
         }
@@ -204,12 +218,49 @@ namespace CustomAudio
                 Dbgl("www is null " + www.url);
             }
         }
-
+        public static string GetZSFXName(ZSFX zfx)
+        {
+            string name = zfx.name;
+            char[] anyOf = new char[]
+            {
+            '(',
+            ' '
+            };
+            int num = name.IndexOfAny(anyOf);
+            if (num != -1)
+            {
+                return name.Remove(num);
+            }
+            return name;
+        }
+        private static void AddMusicList(EnvMan envMan, int index, string which)
+        {
+            string name = envMan.m_environments[index].m_name + which;
+            Dbgl($"Adding music list by name: {name} ({customMusicList[name].Count})");
+            switch (which)
+            {
+                case "Morning":
+                    envMan.m_environments[index].m_musicMorning = name;
+                    break;
+                case "Day":
+                    envMan.m_environments[index].m_musicDay = name;
+                    break;
+                case "Evening":
+                    envMan.m_environments[index].m_musicEvening = name;
+                    break;
+                case "Night":
+                    envMan.m_environments[index].m_musicNight = name;
+                    break;
+            }
+            MusicMan.instance.m_music.Add(new MusicMan.NamedMusic() { m_name = name, m_clips = customMusicList[name].Values.ToArray(), m_loop = true, m_ambientMusic = true, m_resume = true });
+        }
         [HarmonyPatch(typeof(ZSFX), "Awake")]
         static class ZSFX_Awake_Patch
         {
             static void Postfix(ZSFX __instance)
             {
+                if (!modEnabled.Value)
+                    return;
                 string name = GetZSFXName(__instance);
                 if (dumpInfo.Value)
                     Dbgl($"Checking SFX: {name}");
@@ -237,29 +288,31 @@ namespace CustomAudio
         [HarmonyPatch(typeof(MusicMan), "Awake")]
         static class MusicMan_Awake_Patch
         {
-            static void Postfix(MusicMan __instance, List<MusicMan.NamedMusic> ___m_music, ref float ___m_musicVolume)
+            static void Postfix(MusicMan __instance)
             {
+                if (!modEnabled.Value)
+                    return;
                 List<string> dump = new List<string>();
 
-                for (int i = 0; i < ___m_music.Count; i++)
+                for (int i = 0; i < __instance.m_music.Count; i++)
                 {
-                    dump.Add($"Music list name: {___m_music[i].m_name}");
-                    for (int j = 0; j < ___m_music[i].m_clips.Length; j++)
+                    dump.Add($"Music list name: {__instance.m_music[i].m_name}");
+                    for (int j = 0; j < __instance.m_music[i].m_clips.Length; j++)
                     {
-                        if (!___m_music[i].m_clips[j])
+                        if (!__instance.m_music[i].m_clips[j])
                             continue;
-                        dump.Add($"\ttrack name: {___m_music[i].m_clips[j].name}");
-                        //Dbgl($"checking music: { ___m_music[i].m_name}, clip: {___m_music[i].m_clips[j].name}");
-                        if (customMusic.ContainsKey(___m_music[i].m_clips[j].name))
+                        dump.Add($"\ttrack name: {__instance.m_music[i].m_clips[j].name}");
+                        //Dbgl($"checking music: { __instance.m_music[i].m_name}, clip: {__instance.m_music[i].m_clips[j].name}");
+                        if (customMusic.ContainsKey(__instance.m_music[i].m_clips[j].name))
                         {
-                            Dbgl($"replacing music: { ___m_music[i].m_name}, clip: {___m_music[i].m_clips[j].name}");
-                            ___m_music[i].m_clips[j] = customMusic[___m_music[i].m_clips[j].name];
+                            Dbgl($"replacing music: { __instance.m_music[i].m_name}, clip: {__instance.m_music[i].m_clips[j].name}");
+                            __instance.m_music[i].m_clips[j] = customMusic[__instance.m_music[i].m_clips[j].name];
                         }
                     }
-                    if (customMusicList.ContainsKey(___m_music[i].m_name))
+                    if (customMusicList.ContainsKey(__instance.m_music[i].m_name))
                     {
-                        Dbgl($"replacing music list by name: {___m_music[i].m_name}");
-                        ___m_music[i].m_clips = customMusicList[___m_music[i].m_name].Values.ToArray();
+                        Dbgl($"replacing music list by name: {__instance.m_music[i].m_name}");
+                        __instance.m_music[i].m_clips = customMusicList[__instance.m_music[i].m_name].Values.ToArray();
                     }
                 }
                 if (dumpInfo.Value)
@@ -271,6 +324,8 @@ namespace CustomAudio
         {
             static void Postfix(AudioMan __instance, List<AudioMan.BiomeAmbients> ___m_randomAmbients, AudioSource ___m_oceanAmbientSource, AudioSource ___m_windLoopSource)
             {
+                if (!modEnabled.Value)
+                    return;
                 List<string> dump = new List<string>();
 
                 for (int i = 0; i <___m_randomAmbients.Count; i++)
@@ -340,21 +395,7 @@ namespace CustomAudio
             }
 
         }
-        public static string GetZSFXName(ZSFX zfx)
-        {
-            string name = zfx.name;
-            char[] anyOf = new char[]
-            {
-            '(',
-            ' '
-            };
-            int num = name.IndexOfAny(anyOf);
-            if (num != -1)
-            {
-                return name.Remove(num);
-            }
-            return name;
-        }
+
 
         [HarmonyPatch(typeof(MusicMan), "UpdateMusic")]
         static class UpdateMusic_Patch
@@ -363,8 +404,10 @@ namespace CustomAudio
 
             static void Prefix(ref MusicMan.NamedMusic ___m_currentMusic, ref MusicMan.NamedMusic ___m_queuedMusic, AudioSource ___m_musicSource)
             {
+                if (!modEnabled.Value)
+                    return;
 
-                if(___m_queuedMusic != null)
+                if (___m_queuedMusic != null)
                 {
                     ___m_queuedMusic.m_volume = musicVol.Value;
 
@@ -407,17 +450,61 @@ namespace CustomAudio
         {
             static void Prefix(ref float ___m_queuedAmbientVol, ref float ___m_ambientVol, ref float vol)
             {
+                if (!modEnabled.Value)
+                    return;
                 vol = ambientVol.Value;
                 ___m_ambientVol = ambientVol.Value;
                 ___m_queuedAmbientVol = ambientVol.Value;
             }
         }
 
+        [HarmonyPatch(typeof(EnvMan), "Awake")]
+        static class EnvMan_Awake_Patch
+        {
+            static void Postfix(EnvMan __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                for(int i = 0; i < __instance.m_environments.Count; i++)
+                {
+                    if (customMusicList.ContainsKey(__instance.m_environments[i].m_name + "Morning"))
+                        AddMusicList(__instance, i, "Morning");
+                    if (customMusicList.ContainsKey(__instance.m_environments[i].m_name + "Day"))
+                        AddMusicList(__instance, i, "Day");
+                    if (customMusicList.ContainsKey(__instance.m_environments[i].m_name + "Evening"))
+                        AddMusicList(__instance, i, "Evening");
+                    if (customMusicList.ContainsKey(__instance.m_environments[i].m_name + "Night"))
+                        AddMusicList(__instance, i, "Night");
+                }
+            }
+        }
+        
+        [HarmonyPatch(typeof(TeleportWorld), "Awake")]
+        static class TeleportWorld_Awake_Patch
+        {
+            static void Postfix(TeleportWorld __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+                if (customSFX.ContainsKey("portal"))
+                {
+                    AudioSource source = __instance.GetComponentInChildren<AudioSource>();
+                    source.clip = customSFX["portal"];
+                    source.gameObject.SetActive(false);
+                    source.gameObject.SetActive(true);
+
+                }
+            }
+        }
+        
         [HarmonyPatch(typeof(Fireplace), "Start")]
         static class Fireplace_Start_Patch
         {
             static void Postfix(Fireplace __instance)
             {
+                if (!modEnabled.Value)
+                    return;
                 if (__instance.name.Contains("groundtorch") && customSFX.ContainsKey("groundtorch"))
                 {
                     Dbgl("Replacing ground torch audio");
@@ -454,13 +541,54 @@ namespace CustomAudio
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("customaudio reset"))
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    context.PreloadAudioClips();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "Reloaded custom audio mod" }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    return false;
+                }
+                else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} music"))
+                {
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    if (EnvMan.instance)
+                    {
+                        string name;
+                        if (Player.m_localPlayer && Player.m_localPlayer.IsSafeInHome())
+                        {
+                            name = "home";
+                        }
+                        else
+                        {
+                            name = EnvMan.instance.GetAmbientMusic();
+                        }
+                        Dbgl("Current environment: " + EnvMan.instance.GetCurrentEnvironment().m_name);
+                        Dbgl("Current music list: " + name + " " + MusicMan.instance.m_music.FirstOrDefault(m => m.m_name == name)?.m_clips.Length);
+                    }
+                    Dbgl("Vanilla music list names:\n"+string.Join("\n", MusicMan.instance.m_music.Select(m => m.m_name)));
+                    if (EnvMan.instance)
+                    {
+
+                        List<string> env = new List<string>();
+                        for (int i = 0; i < EnvMan.instance.m_environments.Count; i++)
+                        {
+                            env.Add(EnvMan.instance.m_environments[i].m_name + "Morning");
+                            env.Add(EnvMan.instance.m_environments[i].m_name + "Day");
+                            env.Add(EnvMan.instance.m_environments[i].m_name + "Evening");
+                            env.Add(EnvMan.instance.m_environments[i].m_name + "Night");
+                        }
+                        Dbgl("Possible music list names:\n" + string.Join("\n", env));
+                    }
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped music names" }).GetValue();
+                    return false;
+                }
+                else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} env"))
+                {
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    if (!EnvMan.instance)
+                        Traverse.Create(__instance).Method("AddString", new object[] { "Must be called in-game" }).GetValue();
+                    Dbgl("Current environment: " + EnvMan.instance.GetCurrentEnvironment().m_name);
                     return false;
                 }
                 return true;

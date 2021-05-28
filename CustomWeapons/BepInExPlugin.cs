@@ -111,6 +111,8 @@ namespace CustomWeaponStats
 
                 CheckWeaponData(ref weapon);
 
+                Dbgl($"pre damage {weapon.m_shared.m_damages.m_slash}");
+
                 __state = weapon.m_shared;
 
                 weapon.m_shared.m_useDurabilityDrain *= globalUseDurabilityMultiplier.Value;
@@ -130,13 +132,14 @@ namespace CustomWeaponStats
                 weapon.m_shared.m_damages.m_poison *= globalDamageMultiplier.Value;
                 weapon.m_shared.m_damages.m_spirit *= globalDamageMultiplier.Value;
 
+                Dbgl($"post damage {weapon.m_shared.m_damages.m_slash}");
             }
-            static void Postfix(ref ItemDrop.ItemData ___m_weapon, ItemDrop.ItemData.SharedData __state)
+            static void Postfix(ref ItemDrop.ItemData weapon, ItemDrop.ItemData.SharedData __state)
             {
                 if (!modEnabled.Value)
                     return;
 
-                ___m_weapon.m_shared = __state;
+                weapon.m_shared = __state;
             }
         }
 

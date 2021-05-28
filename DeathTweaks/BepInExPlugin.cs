@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.6.2")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.7.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -29,7 +29,12 @@ namespace DeathTweaks
         public static ConfigEntry<bool> createDeathEffects;
         public static ConfigEntry<bool> reduceSkills;
         public static ConfigEntry<bool> noSkillProtection;
+        public static ConfigEntry<bool> useFixedSpawnCoordinates;
+        public static ConfigEntry<bool> spawnAtStart;
 
+        public static ConfigEntry<Vector3> fixedSpawnCoordinates;
+        public static ConfigEntry<float> skillReduceFactor;
+        
         public static ConfigEntry<string> keepItemTypes;
         public static ConfigEntry<string> dropItemTypes;
         public static ConfigEntry<string> destroyItemTypes;
@@ -67,8 +72,14 @@ namespace DeathTweaks
             createDeathEffects = Config.Bind<bool>("Toggles", "CreateDeathEffects", true, "Create death effects.");
             keepFoodLevels = Config.Bind<bool>("Toggles", "KeepFoodLevels", false, "Keep food levels.");
             keepQuickSlotItems = Config.Bind<bool>("Toggles", "KeepQuickSlotItems", false, "Keep QuickSlot items.");
-            reduceSkills = Config.Bind<bool>("Toggles", "ReduceSkills", true, "Reduce skills.");
-            noSkillProtection = Config.Bind<bool>("Toggles", "NoSkillProtection", false, "Prevents skill protection after death.");
+            
+            useFixedSpawnCoordinates = Config.Bind<bool>("Spawn", "UseFixedSpawnCoordinates", false, "Use fixed spawn coordinates.");
+            spawnAtStart = Config.Bind<bool>("Spawn", "SpawnAtStart", false, "Respawn at start location.");
+            fixedSpawnCoordinates = Config.Bind<Vector3>("Spawn", "FixedSpawnCoordinates", Vector3.zero, "Fixed spawn coordinates.");
+            
+            noSkillProtection = Config.Bind<bool>("Skills", "NoSkillProtection", false, "Prevents skill protection after death.");
+            reduceSkills = Config.Bind<bool>("Skills", "ReduceSkills", true, "Reduce skills.");
+            skillReduceFactor = Config.Bind<float>("Skills", "SkillReduceFactor", 0.25f, "Reduce skills by this fraction.");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
@@ -247,6 +258,116 @@ namespace DeathTweaks
                 return false;
             }
         }
+
+        [HarmonyPatch(typeof(Skills), "LowerAllSkills")]
+        static class LowerAllSkills_Patch
+        {
+            static bool Prefix(float factor, Dictionary<Skills.SkillType, Skills.Skill> ___m_skillData, Player ___m_player)
+            {
+                if (!modEnabled.Value)
+                    return true;
+
+                factor = skillReduceFactor.Value;
+
+                foreach (KeyValuePair<Skills.SkillType, Skills.Skill> keyValuePair in ___m_skillData)
+                {
+                    float level = keyValuePair.Value.m_level;
+                    float accum = keyValuePair.Value.m_accumulator;
+                    float total = 0;
+                    keyValuePair.Value.m_level = 0;
+                    var nextLevelReq = typeof(Skills.Skill).GetMethod("GetNextLevelRequirement", BindingFlags.NonPublic | BindingFlags.Instance);
+                    for (int i = 0; i < level; i++)
+                    {
+                        total += (float)nextLevelReq.Invoke(keyValuePair.Value, new object[] { });
+                        keyValuePair.Value.m_level += 1;
+                    }
+                    total += accum;
+
+                    //Dbgl($"skill {keyValuePair.Key} total xp {total}, level {level}, next level: {accum} / {nextLevelReq.Invoke(keyValuePair.Value, new object[] { })}");
+
+                    total *= (1 - skillReduceFactor.Value);
+
+                    float newTotal = 0;
+                    keyValuePair.Value.m_level = 0;
+                    while(true)
+                    {
+                        float add = (float)nextLevelReq.Invoke(keyValuePair.Value, new object[] { });
+                        //Dbgl($"xp at level {keyValuePair.Value.m_level}: {newTotal}, xp to level {keyValuePair.Value.m_level + 1}: add");
+                        if(newTotal + add <= total)
+                        {
+                            newTotal += add;
+                            keyValuePair.Value.m_level += 1;
+                        }
+                        else
+                        {
+                            keyValuePair.Value.m_accumulator = total - newTotal;
+                            break;
+                        }
+                    }
+                    //Dbgl($"skill {keyValuePair.Key} new total xp {total}, level {keyValuePair.Value.m_level}, next level: {keyValuePair.Value.m_accumulator} / {nextLevelReq.Invoke(keyValuePair.Value, new object[] { })}");
+                }
+                ___m_player.Message(MessageHud.MessageType.TopLeft, "$msg_skills_lowered", 0, null);
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(Game), "FindSpawnPoint")]
+        static class FindSpawnPoint_Patch
+        {
+            static bool Prefix(ref Vector3 point, ref bool usedLogoutPoint, bool ___m_firstSpawn, ref bool __result)
+            {
+                if (!modEnabled.Value || ___m_firstSpawn)
+                    return true;
+
+                if (spawnAtStart.Value)
+                {
+                    usedLogoutPoint = false;
+
+                    Vector3 a;
+                    if (ZoneSystem.instance.GetLocationIcon(Game.instance.m_StartLocation, out a))
+                    {
+                        point = a + Vector3.up * 2f;
+                        ZNet.instance.SetReferencePosition(point);
+                        __result = ZNetScene.instance.IsAreaReady(point);
+                        if(__result)
+                            Dbgl($"respawning at start: {point}");
+                    }
+                    else
+                    {
+                        Dbgl("start point not found");
+                        ZNet.instance.SetReferencePosition(Vector3.zero);
+                        point = Vector3.zero;
+                        __result = false;
+                    }
+                    return false;
+                }
+                else if (useFixedSpawnCoordinates.Value)
+                {
+                    usedLogoutPoint = false;
+
+                    point = fixedSpawnCoordinates.Value;
+                    ZNet.instance.SetReferencePosition(point);
+                    __result = ZNetScene.instance.IsAreaReady(point);
+                    if(__result)
+                        Dbgl($"respawning at custom point {point}");
+                    return false;
+
+                }
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(Skills), "OnDeath")]
+        static class Skills_OnDeath_Patch
+        {
+            static bool Prefix()
+            {
+                if (!modEnabled.Value)
+                    return true;
+                return reduceSkills.Value;
+            }
+        }
+
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch
         {
