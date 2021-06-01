@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomWeaponStats
 {
-    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.4.3")]
+    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.5.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -55,16 +55,27 @@ namespace CustomWeaponStats
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        static class ZNetScene_Awake_Patch
+        [HarmonyPatch(typeof(ObjectDB), "CopyOtherDB")]
+        static class CopyOtherDB_Patch
         {
-            static void Postfix(ZNetScene __instance)
+            static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
-                LoadAllWeaponData(__instance);
+                LoadAllWeaponData(true);
             }
+        }
 
+        [HarmonyPatch(typeof(InventoryGui), "Show")]
+        [HarmonyPriority(Priority.Last)]
+        static class InventoryGui_Show_Patch
+        {
+            static void Postfix()
+            {
+                if (!modEnabled.Value)
+                    return;
+                LoadAllWeaponData(false);
+            }
         }
 
         [HarmonyPatch(typeof(ItemDrop), "Awake")]
@@ -143,17 +154,44 @@ namespace CustomWeaponStats
             }
         }
 
-        private static void LoadAllWeaponData(ZNetScene scene)
+        private static void LoadAllWeaponData(bool reload)
         {
-            weaponDatas = GetWeaponDataFromFiles();
+            if(reload)
+                weaponDatas = GetWeaponDataFromFiles();
+            
             foreach (var weapon in weaponDatas)
             {
-                GameObject go = scene.GetPrefab(weapon.name);
+                GameObject go = ObjectDB.instance.GetItemPrefab(weapon.name);
                 if (go == null)
                     continue;
-                ItemDrop.ItemData item = go.GetComponent<ItemDrop>().m_itemData;
-                SetWeaponData(ref item, weapon);
-                go.GetComponent<ItemDrop>().m_itemData = item;
+                var item = go.GetComponent<ItemDrop>()?.m_itemData;
+
+                if (go.GetComponent<ItemDrop>()?.m_itemData == null)
+                    continue;
+                
+                SetWeaponData(ref go.GetComponent<ItemDrop>().m_itemData, weapon);
+
+                for(int i = 0; i < ObjectDB.instance.m_recipes.Count; i++)
+                {
+                    var recipe = ObjectDB.instance.m_recipes[i];
+                    if (!(recipe.m_item == null) && recipe.m_item.m_itemData.m_shared.m_name == item.m_shared.m_name)
+                    {
+                        SetWeaponData(ref recipe.m_item.m_itemData, weapon);
+                        ObjectDB.instance.m_recipes[i] = recipe;
+                    }
+                }
+                if (Player.m_localPlayer)
+                {
+                    var inv = Player.m_localPlayer.GetInventory().GetAllItems();
+                    for (int i = 0; i < inv.Count; i++)
+                    {
+                        var invItem = inv[i];
+                        if (invItem.m_shared.m_name == item.m_shared.m_name)
+                            SetWeaponData(ref invItem, weapon);
+
+                        inv[i] = invItem;
+                    }
+                }
             }
         }
 
@@ -326,8 +364,7 @@ namespace CustomWeaponStats
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reload"))
                 {
                     weaponDatas = GetWeaponDataFromFiles();
-                    if(ZNetScene.instance)
-                        LoadAllWeaponData(ZNetScene.instance);
+                    LoadAllWeaponData(true);
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} reloaded weapon stats from files" }).GetValue();
                     return false;

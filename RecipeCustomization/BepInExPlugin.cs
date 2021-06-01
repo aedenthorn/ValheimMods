@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace RecipeCustomization
 {
-    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.1.1")]
+    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.2.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -56,7 +56,7 @@ namespace RecipeCustomization
             {
                 if (!modEnabled.Value)
                     return;
-                LoadAllRecipeData();
+                LoadAllRecipeData(true);
             }
         }
         
@@ -68,14 +68,27 @@ namespace RecipeCustomization
             {
                 if (!modEnabled.Value)
                     return;
-                LoadAllRecipeData();
+                LoadAllRecipeData(true);
+            }
+        }
+                
+        [HarmonyPatch(typeof(InventoryGui), "Show")]
+        [HarmonyPriority(Priority.Last)]
+        static class InventoryGui_Show_Patch
+        {
+            static void Postfix()
+            {
+                if (!modEnabled.Value)
+                    return;
+                LoadAllRecipeData(false);
             }
         }
 
 
-        private static void LoadAllRecipeData()
+        private static void LoadAllRecipeData(bool reload)
         {
-            GetRecipeDataFromFiles();
+            if(reload)
+                GetRecipeDataFromFiles();
             foreach (var data in recipeDatas)
             {
                 SetRecipeData(data);
@@ -280,7 +293,7 @@ namespace RecipeCustomization
                 {
                     GetRecipeDataFromFiles();
                     if(ObjectDB.instance)
-                        LoadAllRecipeData();
+                        LoadAllRecipeData(true);
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} reloaded recipes from files" }).GetValue();
                     return false;
