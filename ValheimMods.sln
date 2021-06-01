@@ -188,7 +188,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RecipeCustomization", "Reci
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RepeatActions", "RepeatActions\RepeatActions.csproj", "{27964F69-935D-4366-9B2B-0632189C2B20}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomItemInfoDisplay", "CustomItemInfoDisplay\CustomItemInfoDisplay.csproj", "{DCFD5456-8398-4A2B-8FF8-9A710D3DC29C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomItemInfoDisplay", "CustomItemInfoDisplay\CustomItemInfoDisplay.csproj", "{DCFD5456-8398-4A2B-8FF8-9A710D3DC29C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildOnTrees", "BuildOnTrees\BuildOnTrees.csproj", "{C3504754-82CD-499B-980D-3499E23AC01F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -556,6 +558,10 @@ Global
 		{DCFD5456-8398-4A2B-8FF8-9A710D3DC29C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCFD5456-8398-4A2B-8FF8-9A710D3DC29C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCFD5456-8398-4A2B-8FF8-9A710D3DC29C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3504754-82CD-499B-980D-3499E23AC01F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3504754-82CD-499B-980D-3499E23AC01F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3504754-82CD-499B-980D-3499E23AC01F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3504754-82CD-499B-980D-3499E23AC01F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

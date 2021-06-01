@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RepairSpecificItems
 {
-    [BepInPlugin("aedenthorn.RepairSpecificItems", "Repair Specific Items", "0.2.0")]
+    [BepInPlugin("aedenthorn.RepairSpecificItems", "Repair Specific Items", "0.2.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -213,7 +213,7 @@ namespace RepairSpecificItems
             bool isMagic = false;
             if (epicLootAssembly != null)
             {
-                isMagic = (bool)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("IsMagic", BindingFlags.Public | BindingFlags.Static).Invoke(null, new[] { item });
+                isMagic = (bool)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("IsMagic", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(ItemDrop.ItemData) }, null).Invoke(null, new[] { item });
             }
             if (isMagic)
             {
