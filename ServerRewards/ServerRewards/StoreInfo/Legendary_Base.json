@@ -1,11 +1,12 @@
 {
-    "id": "Base_Legendary",
-    "name": "Legendary",
-    "price": 1000,
-    "type": "Legendary",
-    "items": [
-        "ArmorWolfLegs,1,10,choice",
-        "ArmorWolfChest,1,10,choice",
+	"id": "Base_Legendary",
+	"name": "Legendary",
+	"description": "This is a legendary chest.",
+	"price": 1000,
+	"type": "Legendary",
+	"items": [
+		"ArmorWolfLegs,1,10,choice",
+		"ArmorWolfChest,1,10,choice",
 		"HelmetDrake,1,10,choice",
 		"CapeWolf,1,15,choice",
 		"SpearChitin,1,5,choice",
@@ -28,5 +29,5 @@
 		"ArrowFrost,20-100,10,chance",
 		"ArrowObsidian,20-100,10,chance",
 		"ArrowNeedle,20-100,10,chance"
-    ]
+	]
 }

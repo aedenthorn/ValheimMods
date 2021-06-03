@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using Steamworks;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -9,7 +10,7 @@ using UnityEngine;
 
 namespace ServerRewards
 {
-    [BepInPlugin("aedenthorn.ServerRewards", "Server Rewards", "0.5.4")]
+    [BepInPlugin("aedenthorn.ServerRewards", "Server Rewards", "0.6.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -34,6 +35,7 @@ namespace ServerRewards
         public static ConfigEntry<int> titleFontSize;
         public static ConfigEntry<int> currencyFontSize;
         public static ConfigEntry<int> labelFontSize;
+        public static ConfigEntry<int> tooltipFontSize;
         public static ConfigEntry<int> packagesPerRow;
 
         public static ConfigEntry<string> storeTitleString;
@@ -42,6 +44,10 @@ namespace ServerRewards
         public static ConfigEntry<string> myCurrencyString;
         public static ConfigEntry<string> packageInfoString;
         public static ConfigEntry<string> rewardString;
+
+        public static ConfigEntry<Color> windowBackgroundColor;
+        public static ConfigEntry<Color> tooltipBackgroundColor;
+        public static ConfigEntry<Color> tooltipTextColor;
 
         private static BepInExPlugin context;
         private static int myCurrency;
@@ -52,7 +58,10 @@ namespace ServerRewards
         private static GUIStyle titleStyle;
         private static GUIStyle currencyStyle;
         private static GUIStyle labelStyle;
+        private static GUIStyle tooltipStyle;
+        private static Texture2D tooltipBackground;
         private static GUIStyle coinStyle;
+        private static GUIStyle tooltipWindowStyle;
         private static Rect windowRect;
         private static string windowTitleText;
         private static List<PackageInfo> storePackages = new List<PackageInfo>();
@@ -90,7 +99,12 @@ namespace ServerRewards
             titleFontSize = Config.Bind<int>("UI", "TitleFontSize", 24, "Size of the store window title");
             currencyFontSize = Config.Bind<int>("UI", "CurrencyFontSize", 20, "Size of the currency info");
             labelFontSize = Config.Bind<int>("UI", "LabelFontSize", 20, "Size of the package labels");
+            tooltipFontSize = Config.Bind<int>("UI", "TooltipFontSize", 16, "Size of the tooltip text");
             coinBeforeAmount = Config.Bind<bool>("UI", "CoinBeforeAmount", true, "Display the currency icon before the amount? Otherwise after");
+            
+            windowBackgroundColor = Config.Bind<Color>("Colors", "WindowBackgroundColor", new Color(0,0,0,0.5f), "Store window background color");
+            tooltipBackgroundColor = Config.Bind<Color>("Colors", "TooltipBackgroundColor", Color.black, "Tooltip background color");
+            tooltipTextColor = Config.Bind<Color>("Colors", "TooltipTextColor", Color.white, "Tooltip background color");
             
             storeTitleString = Config.Bind<string>("Text", "StoreTitle", "<b><color=#FFFFFFFF>Server Store</color></b>", "Store window title");
             currencyString = Config.Bind<string>("Text", "CurrencyString", "<b><color=#FFFF00FF>{0}</color></b>", "Currency string");
@@ -179,6 +193,17 @@ namespace ServerRewards
             {
                 alignment = TextAnchor.MiddleCenter
             };
+            tooltipStyle = new GUIStyle
+            {
+                richText = true,
+                fontSize = tooltipFontSize.Value,
+                wordWrap = true,
+                alignment = TextAnchor.MiddleLeft
+            };
+            tooltipBackground = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+            tooltipBackground.SetPixel(0, 0, tooltipBackgroundColor.Value);
+            tooltipBackground.Apply();
+
         }
 
         private void Update()
@@ -224,49 +249,64 @@ namespace ServerRewards
             }
 
         }
+
         private void OnGUI()
         {
-
-
             if (!modEnabled.Value)
                 return;
+
+            if (thisTooltip != null && thisTooltip.Length > 0)
+            {
+                tooltipWindowStyle = new GUIStyle(GUI.skin.window);
+                tooltipWindowStyle.normal.background = tooltipBackground;
+                GUI.Window(424244, new Rect(Input.mousePosition.x + 30, Screen.height - Input.mousePosition.y + 30, 400, 80), new GUI.WindowFunction(TooltipBuilder), thisTooltip.Split('^')[0], tooltipWindowStyle);
+            }
 
             if (testing.Value)
             { 
                 if (storeOpen)
                 {
-                    GUI.Label(new Rect(Input.mousePosition.x, Screen.height - Input.mousePosition.y, 200, 40), "test");
-                    GUI.Label(new Rect(Input.mousePosition.x, Screen.height - Input.mousePosition.y + 100, 200, 40), thisTooltip);
                     if (GameCamera.instance)
                     {
                         Traverse.Create(GameCamera.instance).Field("m_mouseCapture").SetValue(false);
                         Cursor.lockState = CursorLockMode.None;
                         Cursor.visible = ZInput.IsMouseActive();
                     }
+                    GUI.backgroundColor = windowBackgroundColor.Value;
                     windowRect = GUI.Window(424243, windowRect, new GUI.WindowFunction(WindowBuilder), "");
                     if (!Input.GetKey(KeyCode.Mouse0) && (windowRect.x != windowPosition.Value.x || windowRect.y != windowPosition.Value.y))
                     {
                         windowPosition.Value = new Vector2(windowRect.x, windowRect.y);
                     }
-
                 }
-                return;
             }
-            if (!ZNet.instance?.IsServer() == true && Player.m_localPlayer) 
+            else if (!ZNet.instance?.IsServer() == true && Player.m_localPlayer) 
             {
                 if (storeOpen)
                 {
                     Traverse.Create(GameCamera.instance).Field("m_mouseCapture").SetValue(false);
                     Cursor.lockState = CursorLockMode.None;
                     Cursor.visible = ZInput.IsMouseActive();
+                    GUI.backgroundColor = windowBackgroundColor.Value;
                     windowRect = GUI.Window(424243, windowRect, new GUI.WindowFunction(WindowBuilder), "");
-                    GUI.Label(new Rect(Input.mousePosition.x, Screen.height - Input.mousePosition.y + 50, 200, 40), GUI.tooltip);
                 }
                 if (!Input.GetKey(KeyCode.Mouse0) && (windowRect.x != windowPosition.Value.x || windowRect.y != windowPosition.Value.y))
                 {
                     windowPosition.Value = new Vector2(windowRect.x, windowRect.y);
                 }
             }
+        }
+
+        private void TooltipBuilder(int id)
+        {
+            if (thisTooltip == null || thisTooltip.Length == 0)
+                return;
+
+            tooltipStyle.normal.textColor = tooltipTextColor.Value;
+
+            GUILayout.BeginVertical(new GUILayoutOption[] { GUILayout.Width(windowWidth.Value) });
+            GUILayout.Label(thisTooltip.Split('^')[1], tooltipStyle);
+            GUILayout.EndVertical();
         }
 
         private void WindowBuilder(int id)
@@ -309,8 +349,13 @@ namespace ServerRewards
                 }
                 PackageInfo pi = storePackages[i];
                 string texture = textureDict.ContainsKey(pi.type) ? pi.type : "Common";
+                if (!textureDict.ContainsKey(texture))
+                {
+                    Dbgl($"Missing texture for {texture} type");
+                    continue;
+                }
                 GUILayout.BeginVertical(new GUILayoutOption[] { GUILayout.Width(itemWidth) });
-                if (GUILayout.Button(new GUIContent(textureDict[texture], "This is a test"), new GUILayoutOption[] { GUILayout.Width(itemWidth), GUILayout.Height(itemWidth) }))
+                if (GUILayout.Button(new GUIContent(textureDict[texture], pi.name + "^" + pi.description), new GUILayoutOption[] { GUILayout.Width(itemWidth), GUILayout.Height(itemWidth) }))
                 {
                     if (myCurrency >= pi.price)
                     {
@@ -338,10 +383,6 @@ namespace ServerRewards
                         }
                     }
                 }
-                if(GUI.tooltip != null && GUI.tooltip.Length > 0)
-                {
-                    thisTooltip = GUI.tooltip;
-                }
 
                 GUILayout.Label(string.Format(packageString.Value, pi.name), labelStyle, new GUILayoutOption[] { GUILayout.Width(itemWidth) });
                 GUILayout.BeginHorizontal(new GUILayoutOption[] { GUILayout.Width(itemWidth) });
@@ -361,12 +402,18 @@ namespace ServerRewards
                 GUILayout.EndHorizontal();
                 GUILayout.EndVertical();
             }
+            if (GUI.tooltip != null && GUI.tooltip.Length > 0)
+            {
+                thisTooltip = GUI.tooltip;
+            }
+            else
+                thisTooltip = null;
+
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
             GUILayout.EndVertical();
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
         }
-
     }
 }

@@ -287,7 +287,7 @@ namespace ServerRewards
                             Dbgl($"Item {name} not found!");
                             continue;
                         }
-
+                        
                         int amount = int.Parse(nameAmount[1]);
 
                         if (useTombstone.Value)
@@ -300,19 +300,15 @@ namespace ServerRewards
                             {
                                 int stack = Mathf.Min(item.m_shared.m_maxStackSize, amount);
 
-                                ItemDrop.ItemData _newItem = item.Clone();
-                                _newItem.m_stack = stack;
-                                chest.GetComponent<Container>().GetInventory().AddItem(_newItem);
-                                //chest.GetComponent<Container>().GetInventory().AddItem(item.m_shared.m_name, stack, item.m_quality, item.m_variant, Player.m_localPlayer.GetPlayerID(), Player.m_localPlayer.GetPlayerName());
+                                //chest.GetComponent<Container>().GetInventory().AddItem(_newItem);
+                                chest.GetComponent<Container>().GetInventory().AddItem(name, stack, item.m_quality, item.m_variant, Player.m_localPlayer.GetPlayerID(), Player.m_localPlayer.GetPlayerName());
                                 amount = amount - stack;
                             }
 
                             if (amount > 0)
                             {
-                                ItemDrop.ItemData _newItem2 = item.Clone();
-                                _newItem2.m_stack = amount;
-                                chest.GetComponent<Container>().GetInventory().AddItem(_newItem2);
-                                //chest.GetComponent<Container>().GetInventory().AddItem(_newItem2.m_shared.m_name, amount, _newItem2.m_quality, _newItem2.m_variant, Player.m_localPlayer.GetPlayerID(), Player.m_localPlayer.GetPlayerName());
+                                //chest.GetComponent<Container>().GetInventory().AddItem(_newItem2);
+                                chest.GetComponent<Container>().GetInventory().AddItem(name, amount, item.m_quality, item.m_variant, Player.m_localPlayer.GetPlayerID(), Player.m_localPlayer.GetPlayerName());
                             }
 
                             itemStrings.Add($"{Localization.instance.Localize(item.m_shared.m_name)} {nameAmount[0]}");

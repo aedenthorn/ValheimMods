@@ -1,11 +1,12 @@
 {
-    "id": "Base_Epic",
-    "name": "Epic",
-    "price": 400,
-    "type": "Epic",
-    "items": [
-        "ArmorIronLegs,1,10,choice",
-        "ArmorIronChest,1,10,choice",
+	"id": "Base_Epic",
+	"name": "Epic",
+	"description": "This is an epic chest.",
+	"price": 400,
+	"type": "Epic",
+	"items": [
+		"ArmorIronLegs,1,10,choice",
+		"ArmorIronChest,1,10,choice",
 		"HelmetIron,1,10,choice",
 		"CapeWolf,1,10,choice",
 		"SledgeIron,1,5,choice",
@@ -26,5 +27,5 @@
 		"BowDraugrFang,1,2,choice",
 		"ArrowFire,20-100,10,chance",
 		"ArrowIron,20-100,10,chance"
-    ]
+	]
 }
