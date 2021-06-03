@@ -4,9 +4,9 @@ using HarmonyLib;
 using System.Reflection;
 using UnityEngine;
 
-namespace BuildingDemolish
+namespace BuildingRepair
 {
-    [BepInPlugin("aedenthorn.BuildingDemolish", "Building Demolish", "0.4.0")]
+    [BepInPlugin("aedenthorn.BuildingRepair", "Building Repair", "0.1.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -15,10 +15,11 @@ namespace BuildingDemolish
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
-        public static ConfigEntry<bool> allowDestroyUncreated;
+        public static ConfigEntry<bool> allowRepairOther;
         public static ConfigEntry<bool> requireCraftingStation;
-        public static ConfigEntry<float> destroyRadius;
+        public static ConfigEntry<float> repairRadius;
         public static ConfigEntry<string> hotKey;
+        public static ConfigEntry<string> repairMessage;
         public static int destroyMask = LayerMask.GetMask(new string[]
         {
             "Default",
@@ -39,11 +40,12 @@ namespace BuildingDemolish
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            nexusID = Config.Bind<int>("General", "NexusID", 516, "Nexus mod ID for updates");
-            destroyRadius = Config.Bind<float>("General", "DestroyRadius", 20, "Radius of destruction");
-            allowDestroyUncreated = Config.Bind<bool>("General", "AllowDestroyUncreated", false, "Allow destroying buildings not created by any player");
-            requireCraftingStation = Config.Bind<bool>("General", "RequireCraftingStation", true, "Require a nearby crafting station to destroy corresponding pieces (this is a vanilla requirement)");
-            hotKey = Config.Bind<string>("General", "HotKey", ";", "Hotkey to initiate destruction");
+            nexusID = Config.Bind<int>("General", "NexusID", 1277, "Nexus mod ID for updates");
+            repairRadius = Config.Bind<float>("General", "RepairRadius", 20, "Radius of repair");
+            allowRepairOther = Config.Bind<bool>("General", "AllowRepairOther", false, "Aloow repairing other player's pieces");
+            requireCraftingStation = Config.Bind<bool>("General", "RequireCraftingStation", true, "Require a nearby crafting station to repair corresponding pieces (this is a vanilla requirement)");
+            hotKey = Config.Bind<string>("General", "HotKey", "'", "Hotkey to initiate repair");
+            repairMessage = Config.Bind<string>("General", "RepairMessage", "Repaired {0} pieces.", "Repair message text.");
 
             if (!modEnabled.Value)
                 return;
@@ -57,12 +59,12 @@ namespace BuildingDemolish
         {
             if (!AedenthornUtils.IgnoreKeyPresses(true) && AedenthornUtils.CheckKeyDown(hotKey.Value)) 
             {
-                int count = DemolishPieces(destroyRadius.Value);
-                Dbgl($"Demolished {count} pieces.");
+                int count = repairPieces(repairRadius.Value);
+                Dbgl($"Repaired {count} pieces.");
             }
         }
 
-        private static int DemolishPieces(float radius)
+        private static int repairPieces(float radius)
         {
             Player player = Player.m_localPlayer;
             if (!player)
@@ -74,19 +76,7 @@ namespace BuildingDemolish
                 Piece piece = array[i].GetComponentInParent<Piece>();
                 if (piece)
                 {
-                    if (!piece.IsCreator() && (piece.GetCreator() != 0 || !allowDestroyUncreated.Value))
-                    {
-                        continue;
-                    }
-                    if (!piece.m_canBeRemoved)
-                    {
-                        continue;
-                    }
-                    if (Location.IsInsideNoBuildLocation(piece.transform.position))
-                    {
-                        continue;
-                    }
-                    if (!PrivateArea.CheckAccess(piece.transform.position, 0f, true, false))
+                    if (!piece.IsCreator() && !allowRepairOther.Value)
                     {
                         continue;
                     }
@@ -99,27 +89,13 @@ namespace BuildingDemolish
                     {
                         continue;
                     }
-                    if (!piece.CanBeRemoved())
-                    {
+                    WearNTear wnt = piece.GetComponent<WearNTear>();
+                    if (!wnt || !wnt.Repair())
                         continue;
-                    }
                     count++;
-                    WearNTear component2 = piece.GetComponent<WearNTear>();
-                    if (component2)
-                    {
-                        component2.Remove();
-                    }
-                    else
-                    {
-                        component.ClaimOwnership();
-                        piece.DropResources();
-                        piece.m_placeEffect.Create(piece.transform.position, piece.transform.rotation, piece.gameObject.transform, 1f);
-                        player.m_removeEffects.Create(piece.transform.position, Quaternion.identity, null, 1f);
-                        ZNetScene.instance.Destroy(piece.gameObject);
-                    }
-
                 }
             }
+            Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(repairMessage.Value, count));
             return count;
         }
 
@@ -139,20 +115,20 @@ namespace BuildingDemolish
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
                 }
-                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} demolish"))
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} repair"))
                 {
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    int count = DemolishPieces(destroyRadius.Value);
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} demolished {count} pieces" }).GetValue();
+                    int count = repairPieces(repairRadius.Value);
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} repaired {count} pieces" }).GetValue();
                     return false;
                 }
-                if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} demolish "))
+                if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} repair "))
                 {
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     if(int.TryParse(text.Split(' ')[2], out int radius))
                     {
-                        int count = DemolishPieces(radius);
-                        Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} demolished {count} pieces" }).GetValue();
+                        int count = repairPieces(radius);
+                        Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} repaired {count} pieces" }).GetValue();
                     }
                     else
                         Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} syntax error" }).GetValue();
