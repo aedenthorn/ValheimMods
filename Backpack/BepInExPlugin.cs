@@ -193,9 +193,12 @@ namespace Backpack
                 Destroy(backpack.transform.Find("New").gameObject);
 
             backpack.GetComponent<Container>().m_name = backpackName.Value;
-            Traverse.Create(Traverse.Create(backpack.GetComponent<Container>()).Field("m_inventory").GetValue<Inventory>()).Field("m_name").SetValue(backpackName.Value);
-            Traverse.Create(Traverse.Create(backpack.GetComponent<Container>()).Field("m_inventory").GetValue<Inventory>()).Field("m_width").SetValue((int)Math.Min(8, backpackSize.Value.x));
-            Traverse.Create(Traverse.Create(backpack.GetComponent<Container>()).Field("m_inventory").GetValue<Inventory>()).Field("m_height").SetValue((int)backpackSize.Value.y);
+            Traverse tc = Traverse.Create(backpack.GetComponent<Container>());
+            Traverse ti = Traverse.Create(tc.Field("m_inventory").GetValue<Inventory>());
+            tc.Field("m_nview").GetValue<ZNetView>().ClaimOwnership();
+            ti.Field("m_name").SetValue(backpackName.Value);
+            ti.Field("m_width").SetValue((int)Math.Min(8, backpackSize.Value.x));
+            ti.Field("m_height").SetValue((int)backpackSize.Value.y);
             backpackZDO = backpack.GetComponent<ZNetView>().GetZDO();
             ResetBackpackSector();
         }
@@ -364,7 +367,11 @@ namespace Backpack
                 {
                     context.Config.Reload();
                     context.Config.Save();
-
+                    if (Player.m_localPlayer && backpack)
+                    {
+                        backpack.transform.SetParent(Player.m_localPlayer.transform);
+                        InitBackpack();
+                    }
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;

@@ -130,7 +130,6 @@ namespace RepeatActions
 
                 if (___m_attackWasPressed && (((Attack)___m_character.GetType().GetField("m_currentAttack", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(___m_character))?.CanStartChainAttack() == true || !___m_character.InAttack()) && (ZInput.GetButton("Attack") || ZInput.GetButton("JoyAttack")) && !(bool)__instance.GetType().GetMethod("InInventoryEtc", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { }))
                 {
-                    Dbgl("resetting attack");
                     ___m_attackWasPressed = false;
                 }
             }
