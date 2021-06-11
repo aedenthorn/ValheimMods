@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace RecipeCustomization
 {
-    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.4.1")]
+    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;

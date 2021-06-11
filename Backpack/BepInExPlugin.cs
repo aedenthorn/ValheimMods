@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 
 namespace Backpack
 {
-    [BepInPlugin("aedenthorn.Backpack", "Backpack", "0.2.3")]
+    [BepInPlugin("aedenthorn.Backpack", "Backpack", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
