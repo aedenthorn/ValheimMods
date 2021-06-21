@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace RecipeCustomization
 {
-    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.3.0")]
+    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.5.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -43,7 +43,7 @@ namespace RecipeCustomization
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1245, "Nexus mod ID for updates");
-            nexusID.Value = 1162;
+            nexusID.Value = 1245;
 
             assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), typeof(BepInExPlugin).Namespace);
 
@@ -69,8 +69,8 @@ namespace RecipeCustomization
             yield break;
         }
 
-        [HarmonyPatch(typeof(InventoryGui), "Show")]
-        [HarmonyPriority(Priority.Last)]
+        //[HarmonyPatch(typeof(InventoryGui), "Show")]
+        //[HarmonyPriority(Priority.Last)]
         static class InventoryGui_Show_Patch
         {
             static void Postfix()
