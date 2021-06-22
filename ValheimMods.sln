@@ -190,7 +190,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomItemInfoDisplay", "Cu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildingRepair", "BuildingRepair\BuildingRepair.csproj", "{683CB9AD-97C5-4EEA-8E12-80086B3C5380}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapDetails", "MapDetails\MapDetails.csproj", "{01EF2E61-7968-4D38-9AAC-F719601F34C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapDetails", "MapDetails\MapDetails.csproj", "{01EF2E61-7968-4D38-9AAC-F719601F34C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackpackRedux", "BackpackRedux\BackpackRedux.csproj", "{B3F320B3-ECF4-4CCB-95E7-203794224C4F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -562,6 +564,10 @@ Global
 		{01EF2E61-7968-4D38-9AAC-F719601F34C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01EF2E61-7968-4D38-9AAC-F719601F34C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{01EF2E61-7968-4D38-9AAC-F719601F34C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3F320B3-ECF4-4CCB-95E7-203794224C4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3F320B3-ECF4-4CCB-95E7-203794224C4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3F320B3-ECF4-4CCB-95E7-203794224C4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3F320B3-ECF4-4CCB-95E7-203794224C4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
