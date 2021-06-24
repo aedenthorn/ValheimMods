@@ -2,6 +2,7 @@
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -9,7 +10,7 @@ using UnityEngine;
 
 namespace DiscardInventoryItem
 {
-    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard or Recycle Inventory Items", "0.6.0")]
+    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard or Recycle Inventory Items", "0.6.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -76,7 +77,7 @@ namespace DiscardInventoryItem
                             bool cancel = false;
                             if (epicLootAssembly != null && returnEnchantedResources.Value)
                             {
-                                isMagic = (bool)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("IsMagic", BindingFlags.Public | BindingFlags.Static).Invoke(null, new[] { ___m_dragItem });
+                                isMagic = (bool)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("IsMagic", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(ItemDrop.ItemData) }, null).Invoke(null, new[] { ___m_dragItem });
                             }
                             if (isMagic)
                             {

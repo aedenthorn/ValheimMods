@@ -1,11 +1,12 @@
 {
-    "id": "Base_Rare",
-    "name": "Rare",
-    "price": 150,
-    "type": "Rare",
-    "items": [
-        "ArmorBronzeLegs,1,10,choice",
-        "ArmorBronzeChest,1,10,choice",
+	"id": "Base_Rare",
+	"name": "Rare",
+	"description": "This is a rare chest.",
+	"price": 150,
+	"type": "Rare",
+	"items": [
+		"ArmorBronzeLegs,1,10,choice",
+		"ArmorBronzeChest,1,10,choice",
 		"HelmetBronze,1,10,choice",
 		"CapeTrollHide,1,10,choice",
 		"SledgeStagbreaker,1,5,choice",
@@ -20,5 +21,5 @@
 		"ArrowFire,100,10,chance",
 		"ArrowBronze,100,10,chance",
 		"ShieldWood,1,10,choice"
-    ]
+	]
 }

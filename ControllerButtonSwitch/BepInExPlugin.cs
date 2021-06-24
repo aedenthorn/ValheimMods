@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ControllerButtonSwitch
 {
-    [BepInPlugin("aedenthorn.ControllerButtonSwitch", "Controller Button Switch", "0.1.0")]
+    [BepInPlugin("aedenthorn.ControllerButtonSwitch", "Controller Button Switch", "0.1.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

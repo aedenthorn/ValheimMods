@@ -254,15 +254,19 @@ namespace ServerRewards
 
                     GameObject chest = null;
                     PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
+                    Traverse inventoryT = null;
+
                     if (useTombstone.Value)
                     {
                         chest = Instantiate(Player.m_localPlayer.m_tombstone, Player.m_localPlayer.GetCenterPoint() + Player.m_localPlayer.transform.forward, Player.m_localPlayer.transform.rotation);
-                        Traverse traverse = Traverse.Create(chest.GetComponent<Container>().GetInventory());
-                        traverse.Field("m_width").SetValue(8);
-                        int rows = items.Count() / 8;
+                        chest.GetComponent<Container>().m_name = command.packagename;
+                        inventoryT = Traverse.Create(chest.GetComponent<Container>().GetInventory());
+                        inventoryT.Field("m_name").SetValue(command.packagename);
+                        inventoryT.Field("m_width").SetValue(8);
+                        int rows = items.Count() / 8 + 2;
                         if (items.Count() % 8 != 0)
                             rows++;
-                        traverse.Field("m_height").SetValue(rows);
+                        inventoryT.Field("m_height").SetValue(rows);
 
                         TombStone tombstone = chest.GetComponent<TombStone>();
                         tombstone.Setup(command.packagename, playerProfile.GetPlayerID());
@@ -283,13 +287,30 @@ namespace ServerRewards
                             Dbgl($"Item {name} not found!");
                             continue;
                         }
-
+                        
                         int amount = int.Parse(nameAmount[1]);
 
                         if (useTombstone.Value)
                         {
-                            var item = prefab.GetComponent<ItemDrop>().m_itemData;
-                            chest.GetComponent<Container>().GetInventory().AddItem(item.m_shared.m_name, amount, item.m_quality, item.m_variant, Player.m_localPlayer.GetPlayerID(), Player.m_localPlayer.GetPlayerName());
+                            ItemDrop.ItemData item = prefab.GetComponent<ItemDrop>().m_itemData;
+
+                            double slotsNeed = amount / item.m_shared.m_maxStackSize / 8;
+                            inventoryT.Field("m_height").SetValue((int)inventoryT.Field("m_height").GetValue() + (int)Math.Round(slotsNeed, 0));
+                            while (amount >= item.m_shared.m_maxStackSize)
+                            {
+                                int stack = Mathf.Min(item.m_shared.m_maxStackSize, amount);
+
+                                //chest.GetComponent<Container>().GetInventory().AddItem(_newItem);
+                                chest.GetComponent<Container>().GetInventory().AddItem(name, stack, item.m_quality, item.m_variant, Player.m_localPlayer.GetPlayerID(), Player.m_localPlayer.GetPlayerName());
+                                amount = amount - stack;
+                            }
+
+                            if (amount > 0)
+                            {
+                                //chest.GetComponent<Container>().GetInventory().AddItem(_newItem2);
+                                chest.GetComponent<Container>().GetInventory().AddItem(name, amount, item.m_quality, item.m_variant, Player.m_localPlayer.GetPlayerID(), Player.m_localPlayer.GetPlayerName());
+                            }
+
                             itemStrings.Add($"{Localization.instance.Localize(item.m_shared.m_name)} {nameAmount[0]}");
                         }
                         else
@@ -317,9 +338,12 @@ namespace ServerRewards
 
 
                     }
-                    if(useTombstone.Value)
+                    if (useTombstone.Value)
+                    {
+                        inventoryT.Method("Changed").GetValue();
                         chest.GetComponent<ZNetView>().GetZDO().Set("ServerReward", string.Format(packageInfoString.Value, command.packagename, playerProfile.GetName()) + "\r\n" + string.Join("\r\n", itemStrings));
-
+                    }
+                
                 }
                 else if (command.command == "SendStoreInfo")
                 {

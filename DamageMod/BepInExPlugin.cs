@@ -1,17 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace DamageMod
 {
-    [BepInPlugin("aedenthorn.DamageMod", "Damage Mod", "0.2.0")]
+    [BepInPlugin("aedenthorn.DamageMod", "Damage Mod", "0.2.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -91,10 +86,8 @@ namespace DamageMod
                 if (!modEnabled.Value)
                     return;
 
-                var attacker = Utils.GetPrefabName(hit.GetAttacker().gameObject);
+                var attacker = hit.GetAttacker() ? Utils.GetPrefabName(hit.GetAttacker().gameObject) : "";
                 var defender = Utils.GetPrefabName(__instance.gameObject);
-
-                Dbgl($"attacker: {attacker} defender {defender} pre dmg {hit.GetTotalDamage()}");
 
                 if (__instance.IsPlayer())
                     hit.ApplyModifier(playerDamageMult.Value);
@@ -113,8 +106,6 @@ namespace DamageMod
                     Dbgl($"Applying mult of {mult2} for attacker {attacker}");
                     hit.ApplyModifier(mult2);
                 }
-
-                Dbgl($"post dmg {hit.GetTotalDamage()}");
             }
         }
 

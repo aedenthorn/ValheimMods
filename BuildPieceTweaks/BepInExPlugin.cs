@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace BuildPieceTweaks
 {
-    [BepInPlugin("aedenthorn.BuildPieceTweaks", "Build Piece Tweaks", "0.2.2")]
+    [BepInPlugin("aedenthorn.BuildPieceTweaks", "Build Piece Tweaks", "0.2.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
