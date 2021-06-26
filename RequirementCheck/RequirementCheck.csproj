@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(SolutionDir)\valheim.targets" />
-  <ItemGroup Label="ModConfigEnforcer">
-	<Reference Include="ModConfigEnforcer_DLL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(BepInExPath)\plugins\ModConfigEnforcer.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
   <PropertyGroup>
     <TargetFramework>net460</TargetFramework>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.18.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ServerSync">
+      <HintPath>..\..\ServerSync\bin\Debug\ServerSync.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>
