@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(SolutionDir)\valheim.targets" />
+  <ItemGroup Label="ModConfigEnforcer">
+	<Reference Include="ModConfigEnforcer_DLL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(BepInExPath)\plugins\ModConfigEnforcer.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net460</TargetFramework>
+  </PropertyGroup>
+</Project>
