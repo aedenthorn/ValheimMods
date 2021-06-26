@@ -1,54 +1,74 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
-using ModConfigEnforcer;
+using ServerSync;
 using System;
 using System.Reflection;
 using UnityEngine;
 
 namespace RequirementCheck
 {
-    [BepInPlugin("aedenthorn.RequirementCheck", "Requirement Check", "0.1.0")]
+    [BepInPlugin(BepInExPlugin.GUID, BepInExPlugin.ModName, BepInExPlugin.Version)]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
+        public const string Version = "0.1.0";
+        public const string ModName = "Requirement Check";
+        public const string GUID = "aedenthorn.RequirementCheck";
+        public static ServerSync.ConfigSync configSync = new ServerSync.ConfigSync(GUID) { DisplayName = ModName, CurrentVersion = Version };
         private static BepInExPlugin context;
-
-        public static ConfigVariable<bool> modEnabled;
-        public static ConfigVariable<bool> isDebug;
-        public static ConfigVariable<int> nexusID;
-        public static ConfigVariable<string> mineKeyReqList;
-        public static ConfigVariable<string> mineItemReqList;
-        public static ConfigVariable<string> craftKeyReqList;
-        public static ConfigVariable<string> learnKeyReqList;
-        public static ConfigVariable<string> pickupKeyReqList;
-        public static ConfigVariable<string> equipKeyReqList;
-        public static ConfigVariable<string> skillKeyReqList;
-        public static ConfigVariable<string> teleportKeyReqList;
-        public static ConfigVariable<string> teleportItemReqList;
-        public static ConfigVariable<string> tameKeyReqList;
-        public static ConfigVariable<string> tameItemReqList;
+        private static ConfigEntry<bool> serverConfigLocked;
+        public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> isDebug;
+        public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<string> mineKeyReqList;
+        public static ConfigEntry<string> mineItemReqList;
+        public static ConfigEntry<string> craftKeyReqList;
+        public static ConfigEntry<string> learnKeyReqList;
+        public static ConfigEntry<string> pickupKeyReqList;
+        public static ConfigEntry<string> equipKeyReqList;
+        public static ConfigEntry<string> skillKeyReqList;
+        public static ConfigEntry<string> teleportKeyReqList;
+        public static ConfigEntry<string> teleportItemReqList;
+        public static ConfigEntry<string> tameKeyReqList;
+        public static ConfigEntry<string> tameItemReqList;
         
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
+        ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
+        {
+            ConfigEntry<T> configEntry = Config.Bind(group, name, value, description);
+
+            SyncedConfigEntry<T> syncedConfigEntry = configSync.AddConfigEntry(configEntry);
+            syncedConfigEntry.SynchronizedConfig = synchronizedSetting;
+
+            return configEntry;
+        }
+
+        ConfigEntry<T> config<T>(string group, string name, T value, string description, bool synchronizedSetting = true) => config(group, name, value, new ConfigDescription(description), synchronizedSetting);
+
+
         private void Awake()
         {
             context = this;
-            ConfigManager.RegisterMod(Info.Metadata.Name, Config);
-            modEnabled = ConfigManager.RegisterModConfigVariable<bool>(Info.Metadata.Name, "Enabled", true, "General", "Enable this mod.", false);
-            isDebug = ConfigManager.RegisterModConfigVariable<bool>(Info.Metadata.Name, "IsDebug", false, "General", "Enable this mod.", true);
-            nexusID = ConfigManager.RegisterModConfigVariable<int>(Info.Metadata.Name, "NexusID", 1340, "General", "Nexus mod ID for updates", true);
+            serverConfigLocked = config("General", "Lock Configuration", false, "Lock Configuration");
+            configSync.AddLockingConfigEntry<bool>(serverConfigLocked);
 
-            teleportKeyReqList = ConfigManager.RegisterModConfigVariable<string>(Info.Metadata.Name, "TeleportKeyReqList", "", "Lists", "Comma-separated list of global key requirements for teleportation", false);
-            teleportItemReqList = ConfigManager.RegisterModConfigVariable<string>(Info.Metadata.Name, "TeleportItemReqList", "", "Lists", "Comma-separated list of carried item requirements for teleportation", false);
-            skillKeyReqList = ConfigManager.RegisterModConfigVariable<string>(Info.Metadata.Name, "SkillKeyReqList", "", "Lists", "Comma-separated list of item:key global key requirements for upgrading a skill", false);
-            equipKeyReqList = ConfigManager.RegisterModConfigVariable<string>(Info.Metadata.Name, "EquipKeyReqList", "", "Lists", "Comma-separated list of item:key global key requirements for equipping up an item", false);
-            pickupKeyReqList = ConfigManager.RegisterModConfigVariable<string>(Info.Metadata.Name, "PickupKeyReqList", "", "Lists", "Comma-separated list of item:key global key requirements for picking up an item", false);
-            craftKeyReqList = ConfigManager.RegisterModConfigVariable<string>(Info.Metadata.Name, "CraftKeyReqList", "", "Lists", "Comma-separated list of item:key global key requirements for crafting an item", false);
-            learnKeyReqList = ConfigManager.RegisterModConfigVariable<string>(Info.Metadata.Name, "LearnKeyReqList", "", "Lists", "Comma-separated list of item:key global key requirement for learning a recipe", false);
-            mineKeyReqList = ConfigManager.RegisterModConfigVariable<string>(Info.Metadata.Name, "MineKeyReqList", "", "Lists", "Comma-separated list of node:key mining global key requirements", false);
-            mineItemReqList = ConfigManager.RegisterModConfigVariable<string>(Info.Metadata.Name, "MineItemReqList", "", "Lists", "Comma-separated list of node:item mining held item requirements", false);
+            modEnabled = config("General", "Enabled", true, "Enable this mod", true);
+            isDebug = config("General", "IsDebug", false, "Enable this mod.", true);
+            nexusID = config("NexusID","General", 1340, "Nexus mod ID for updates", true);
+
+            teleportKeyReqList = config("TeleportKeyReqList", "", "Lists", "Comma-separated list of global key requirements for teleportation", false);
+            teleportItemReqList = config("TeleportItemReqList", "", "Lists", "Comma-separated list of carried item requirements for teleportation", false);
+            skillKeyReqList = config("SkillKeyReqList", "", "Lists", "Comma-separated list of item:key global key requirements for upgrading a skill", false);
+            equipKeyReqList = config("EquipKeyReqList", "", "Lists", "Comma-separated list of item:key global key requirements for equipping up an item", false);
+            pickupKeyReqList = config("PickupKeyReqList", "", "Lists", "Comma-separated list of item:key global key requirements for picking up an item", false);
+            craftKeyReqList = config("CraftKeyReqList", "", "Lists", "Comma-separated list of item:key global key requirements for crafting an item", false);
+            learnKeyReqList = config("LearnKeyReqList", "", "Lists", "Comma-separated list of item:key global key requirement for learning a recipe", false);
+            mineKeyReqList = config("MineKeyReqList", "", "Lists", "Comma-separated list of node:key mining global key requirements", false);
+            mineItemReqList = config("MineItemReqList", "", "Lists", "Comma-separated list of node:item mining held item requirements", false);
 
             Dbgl($"mod awake");
 
