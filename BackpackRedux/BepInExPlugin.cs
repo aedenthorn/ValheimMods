@@ -91,7 +91,7 @@ namespace BackpackRedux
         private void OnDestroy()
         {
             Dbgl("Destroying plugin");
-            harmony?.UnpatchAll();
+            harmony?.UnpatchSelf();
         }
 
         private void Update()
