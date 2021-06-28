@@ -5,17 +5,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ServerSync;
 using System.Reflection;
 using UnityEngine;
 
 namespace LockableDoors
 {
-    [BepInPlugin(BepInExPlugin.GUID, BepInExPlugin.ModName, BepInExPlugin.Version)]
+    [BepInPlugin("aedenthorn.LockableDoors", "Lockable Doors", "0.2.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
-        private ConfigEntry<bool> serverConfigLocked;
+
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
@@ -32,69 +31,44 @@ namespace LockableDoors
         public static ConfigEntry<string> doorNames;
         public static ConfigEntry<string> defaultName;
         public static ConfigEntry<bool> promptNameOnCreate;
+        public static GameObject aedenkey;
 
         private static Dictionary<Vector3, Guid> newDoors = new Dictionary<Vector3, Guid>();
         private static Dictionary<string, string> doorNameDict = new Dictionary<string, string>();
 
         private static Sprite icon = null;
-        private static GameObject aedenkey;
-        public const string Version = "0.2.2";
-        public const string ModName = "Lockable Doors";
-        public const string GUID = "aedenthorn.LockableDoors";
-        public static ServerSync.ConfigSync configSync = new ServerSync.ConfigSync(GUID) { DisplayName = ModName, CurrentVersion = Version };
+
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
-        {
-            ConfigEntry<T> configEntry = Config.Bind(group, name, value, description);
-
-            SyncedConfigEntry<T> syncedConfigEntry = configSync.AddConfigEntry(configEntry);
-            syncedConfigEntry.SynchronizedConfig = synchronizedSetting;
-
-            return configEntry;
-        }
-
-        ConfigEntry<T> config<T>(string group, string name, T value, string description, bool synchronizedSetting = true) => config(group, name, value, new ConfigDescription(description), synchronizedSetting);
-
         private void Awake()
         {
 
             context = this;
+            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug logs");
+            nexusID = Config.Bind<int>("General", "NexusID", 1346, "Nexus mod ID for updates");
 
-            serverConfigLocked = config("General", "Lock Configuration", false, "Lock Configuration", true);
-            configSync.AddLockingConfigEntry<bool>(serverConfigLocked);
-            modEnabled = config<bool>("General", "Enabled", true, "Enable this mod", true);
-            isDebug = config<bool>("General", "IsDebug", false, "Enable debug logs", true);
-            nexusID = config<int>("General", "NexusID", 1346, "Nexus mod ID for updates", true);
-
-            modKey = config<string>("Strings", "LockModKey", "left ctrl", "Modifier key used to create and lock/unlock a lockable door when interacting.", true);
-            renameModKey = config<string>("Strings", "RenameModKey", "left alt", "Modifier key used to rename a lockable door when interacting.", true);
-            doorName = config<string>("Strings", "DoorName", "{0} Door [Locked:{1}]", "Name of door - replaces {0} with the door coordinates or name and {1} with locked status.", true);
-            keyName = config<string>("Strings", "KeyName", "{0} Door Key", "Name of key - replaces {0} with the door coordinates.", true);
-            keyDescription = config<string>("Strings", "KeyDescription", "Opens {0} Door.", "Description of key in tooltip - replaces {0} with the door name.", true);
-            lockedMessage = config<string>("Strings", "LockedMessage", "Door locked: {0}", "Message to show when locking/unlocking the door. Replaces {0} with true or false.", true);
-            namePrompt = config<string>("Strings", "NamePrompt", "Enter Name for Door:", "Prompt to show when naming a door / key pair.", true);
-            defaultName = config<string>("Strings", "DefaultName", "Locked", "Default name for a door if left blank.", true);
+            modKey = Config.Bind<string>("Strings", "LockModKey", "left ctrl", "Modifier key used to create and lock/unlock a lockable door when interacting.");
+            renameModKey = Config.Bind<string>("Strings", "RenameModKey", "left alt", "Modifier key used to rename a lockable door when interacting.");
+            doorName = Config.Bind<string>("Strings", "DoorName", "{0} Door [Locked:{1}]", "Name of door - replaces {0} with the door coordinates or name and {1} with locked status.");
+            keyName = Config.Bind<string>("Strings", "KeyName", "{0} Door Key", "Name of key - replaces {0} with the door coordinates.");
+            keyDescription = Config.Bind<string>("Strings", "KeyDescription", "Opens {0} Door.", "Description of key in tooltip - replaces {0} with the door name.");
+            lockedMessage = Config.Bind<string>("Strings", "LockedMessage", "Door locked: {0}", "Message to show when locking/unlocking the door. Replaces {0} with true or false.");
+            namePrompt = Config.Bind<string>("Strings", "NamePrompt", "Enter Name for Door:", "Prompt to show when naming a door / key pair.");
+            defaultName = Config.Bind<string>("Strings", "DefaultName", "Locked", "Default name for a door if left blank.");
             
-            needKeyToClose = config<bool>("Toggles", "NeedKeyToClose", false, "Require key in order to close a door as well as open it.", true);
-            promptNameOnCreate = config<bool>("Toggles", "PromptNameOnCreate", true, "Prompt to enter a name for the door / key pair on creation.", true);
+            needKeyToClose = Config.Bind<bool>("Toggles", "NeedKeyToClose", false, "Require key in order to close a door as well as open it.");
+            promptNameOnCreate = Config.Bind<bool>("Toggles", "PromptNameOnCreate", true, "Prompt to enter a name for the door / key pair on creation.");
             
-            doorNames = config<string>("ZAuto", "DoorNames", "", "List of doorName:coord pairs, populated when renaming your doors.", true);
-            
+            doorNames = Config.Bind<string>("ZAuto", "DoorNames", "", "List of doorName:coord pairs, populated when renaming your doors.");
             LoadAssets();
             LoadDoorNames();
 
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
-        }
-
-        private static void LoadAssets()
-        {
-            AssetBundle assetBundle = GetAssetBundleFromResources("aedenkey");
-            aedenkey = assetBundle.LoadAsset<GameObject>("DoorKey");
         }
         public static void TryRegisterFabs(ZNetScene zNetScene)
         {
@@ -114,6 +88,34 @@ namespace LockableDoors
             using (var stream = execAssembly.GetManifestResourceStream(resourceName))
             {
                 return AssetBundle.LoadFromStream(stream);
+            }
+        }
+        public static void LoadAssets()
+        {
+            AssetBundle assetBundle = GetAssetBundleFromResources("aedenkey");
+            aedenkey = assetBundle.LoadAsset<GameObject>("DoorKey");
+            assetBundle?.Unload(false);
+
+        }
+        public static void RegisterItems()
+        {
+            if (ObjectDB.instance.m_items.Count == 0 || ObjectDB.instance.GetItemPrefab("Amber") == null)
+            {
+                Debug.Log("Waiting for game to initialize before adding prefabs.");
+                return;
+            }
+            var itemDrop = aedenkey.GetComponent<ItemDrop>();
+            if (itemDrop != null)
+            {
+                if (ObjectDB.instance.GetItemPrefab(aedenkey.name.GetStableHashCode()) == null)
+                {
+                    Debug.Log("Loading ItemDrops");
+                    ObjectDB.instance.m_items.Add(aedenkey);
+                }
+            }
+            if (itemDrop == null)
+            {
+                Debug.Log("There is no object with ItemDrop attempted to be insterted to objectDB this is bad...");
             }
         }
         private static void LoadDoorNames()
@@ -183,7 +185,38 @@ namespace LockableDoors
                 }
             }
         }
-        
+
+        [HarmonyPatch(typeof(ZNetScene), "Awake")]
+        public static class ZNetScene_Awake_Patch
+        {
+            public static bool Prefix(ZNetScene __instance)
+            {
+                TryRegisterFabs(__instance);
+                Debug.Log("Loading the stuff");
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(ObjectDB), "Awake")]
+        public static class ObjectDB_Awake_Patch
+        {
+            public static void Postfix()
+            {
+                Debug.Log("Trying to register Items");
+                RegisterItems();
+                
+            }
+        }
+        [HarmonyPatch(typeof(ObjectDB), "CopyOtherDB")]
+        public static class ObjectDB_CopyOtherDB_Patch
+        {
+            public static void Postfix()
+            {
+                Debug.Log("Trying to register Items");
+                RegisterItems();
+                
+            }
+        }
         [HarmonyPatch(typeof(Door), "UpdateState")]
         static class Door_UpdateState_Patch
         {
@@ -349,57 +382,6 @@ namespace LockableDoors
                     icon = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.zero);
                 }
                 __result = icon;
-            }
-        }
-        public static void RegisterItems()
-        {
-            if (ObjectDB.instance.m_items.Count == 0 || ObjectDB.instance.GetItemPrefab("Amber") == null)
-            {
-                Debug.Log("Waiting for game to initialize before adding prefabs.");
-                return;
-            }
-            var itemDrop = aedenkey.GetComponent<ItemDrop>();
-            if (itemDrop != null)
-            {
-                if (ObjectDB.instance.GetItemPrefab(aedenkey.name.GetStableHashCode()) == null)
-                {
-                    Debug.Log("Loading ItemDrops");
-                    ObjectDB.instance.m_items.Add(aedenkey);
-                }
-            }
-            if (itemDrop == null)
-            {
-                Debug.Log("Item Drop is null avoiding loading of custom item into ObjectDB");
-            }
-        }
-
-        [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        public static class ZNetScene_Awake_Patch
-        {
-            public static bool Prefix(ZNetScene __instance)
-            {
-                TryRegisterFabs(__instance);
-                Debug.Log("Loading the stuff");
-                return true;
-            }
-        }
-
-        [HarmonyPatch(typeof(ObjectDB), "Awake")]
-        public static class ObjectDB_Awake_Patch
-        {
-            public static void Postfix()
-            {
-                Debug.Log("Trying to register Items");
-                RegisterItems();
-            }
-        }
-        [HarmonyPatch(typeof(ObjectDB), "CopyOtherDB")]
-        public static class ObjectDB_CopyOtherDB_Patch
-        {
-            public static void Postfix()
-            {
-                Debug.Log("Trying to register Items");
-                RegisterItems();
             }
         }
 
