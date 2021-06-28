@@ -31,6 +31,7 @@ namespace LockableDoors
         public static ConfigEntry<string> doorNames;
         public static ConfigEntry<string> defaultName;
         public static ConfigEntry<bool> promptNameOnCreate;
+        public static GameObject aedenkey;
 
         private static Dictionary<Vector3, Guid> newDoors = new Dictionary<Vector3, Guid>();
         private static Dictionary<string, string> doorNameDict = new Dictionary<string, string>();
@@ -63,13 +64,60 @@ namespace LockableDoors
             promptNameOnCreate = Config.Bind<bool>("Toggles", "PromptNameOnCreate", true, "Prompt to enter a name for the door / key pair on creation.");
             
             doorNames = Config.Bind<string>("ZAuto", "DoorNames", "", "List of doorName:coord pairs, populated when renaming your doors.");
-
+            LoadAssets();
             LoadDoorNames();
 
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
+        public static void TryRegisterFabs(ZNetScene zNetScene)
+        {
+            if (zNetScene == null || zNetScene.m_prefabs == null || zNetScene.m_prefabs.Count <= 0)
+            {
+                return;
+            }
+            zNetScene.m_prefabs.Add(aedenkey);
 
+        }
+        private static AssetBundle GetAssetBundleFromResources(string filename)
+        {
+            var execAssembly = Assembly.GetExecutingAssembly();
+            var resourceName = execAssembly.GetManifestResourceNames()
+                .Single(str => str.EndsWith(filename));
+
+            using (var stream = execAssembly.GetManifestResourceStream(resourceName))
+            {
+                return AssetBundle.LoadFromStream(stream);
+            }
+        }
+        public static void LoadAssets()
+        {
+            AssetBundle assetBundle = GetAssetBundleFromResources("aedenkey");
+            aedenkey = assetBundle.LoadAsset<GameObject>("DoorKey");
+            assetBundle?.Unload(false);
+
+        }
+        public static void RegisterItems()
+        {
+            if (ObjectDB.instance.m_items.Count == 0 || ObjectDB.instance.GetItemPrefab("Amber") == null)
+            {
+                Debug.Log("Waiting for game to initialize before adding prefabs.");
+                return;
+            }
+            var itemDrop = aedenkey.GetComponent<ItemDrop>();
+            if (itemDrop != null)
+            {
+                if (ObjectDB.instance.GetItemPrefab(aedenkey.name.GetStableHashCode()) == null)
+                {
+                    Debug.Log("Loading ItemDrops");
+                    ObjectDB.instance.m_items.Add(aedenkey);
+                }
+            }
+            if (itemDrop == null)
+            {
+                Debug.Log("There is no object with ItemDrop attempted to be insterted to objectDB this is bad...");
+            }
+        }
         private static void LoadDoorNames()
         {
             if (doorNames.Value.Length == 0)
@@ -108,7 +156,7 @@ namespace LockableDoors
         }
         private static bool IsDoorKey(ItemDrop.ItemData i)
         {
-            return i.m_shared.m_name == "$item_cryptkey" && i.m_crafterID == 0 && i.m_crafterName.Length == 36;
+            return i.m_shared.m_name == "$item_aeden_doorkey" && i.m_crafterID == 0 && i.m_crafterName.Length == 36;
         }
 
         [HarmonyPatch(typeof(Player), "PlacePiece")]
@@ -130,14 +178,45 @@ namespace LockableDoors
                     if(promptNameOnCreate.Value)
                         RenameDoor(guid + "");
 
-                    GameObject keyPrefab = ZNetScene.instance.GetPrefab("CryptKey");
+                    GameObject keyPrefab = ZNetScene.instance.GetPrefab("DoorKey");
                     GameObject go = Instantiate(keyPrefab, Player.m_localPlayer.transform.position + Vector3.up, Quaternion.identity);
                     go.GetComponent<ItemDrop>().m_itemData.m_crafterName = guid+"";
                     Dbgl($"Spawned door key for door {guid} at {pos}");
                 }
             }
         }
-        
+
+        [HarmonyPatch(typeof(ZNetScene), "Awake")]
+        public static class ZNetScene_Awake_Patch
+        {
+            public static bool Prefix(ZNetScene __instance)
+            {
+                TryRegisterFabs(__instance);
+                Debug.Log("Loading the stuff");
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(ObjectDB), "Awake")]
+        public static class ObjectDB_Awake_Patch
+        {
+            public static void Postfix()
+            {
+                Debug.Log("Trying to register Items");
+                RegisterItems();
+                
+            }
+        }
+        [HarmonyPatch(typeof(ObjectDB), "CopyOtherDB")]
+        public static class ObjectDB_CopyOtherDB_Patch
+        {
+            public static void Postfix()
+            {
+                Debug.Log("Trying to register Items");
+                RegisterItems();
+                
+            }
+        }
         [HarmonyPatch(typeof(Door), "UpdateState")]
         static class Door_UpdateState_Patch
         {
