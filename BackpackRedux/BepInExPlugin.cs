@@ -13,7 +13,7 @@ using Debug = UnityEngine.Debug;
 
 namespace BackpackRedux
 {
-    [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.3.0")]
+    [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.3.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -88,11 +88,6 @@ namespace BackpackRedux
             }
         }
 
-        private void OnDestroy()
-        {
-            Dbgl("Destroying plugin");
-            harmony?.UnpatchSelf();
-        }
 
         private void Update()
         {
@@ -192,13 +187,12 @@ namespace BackpackRedux
                     return;
                 }
 
-                //if(backpack != null && ___m_currentContainer == backpack.GetComponent<Container>())
-                if(___m_currentContainer == backpackContainer)
+                if (___m_currentContainer != null && ___m_currentContainer == backpackContainer)
                 {
                     backpackInventory = backpackContainer.GetInventory();
                     ___m_currentContainer = null;
                 }
-                else if(CanOpenBackpack())
+                else if (CanOpenBackpack())
                 {
                     OpenBackpack();
                 }

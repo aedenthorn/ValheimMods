@@ -9,7 +9,7 @@ using UnityEngine;
 namespace RequirementCheck
 {
 
-    [BepInPlugin("aedenthorn.RequirementCheck", "Requirement Check", "0.1.1")]
+    [BepInPlugin("aedenthorn.RequirementCheck", "Requirement Check", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigSync configSync;
