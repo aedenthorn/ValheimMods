@@ -109,10 +109,6 @@ namespace DeathTweaks
 
         }
 
-        private void OnDestroy()
-        {
-            harmony?.UnpatchSelf();
-        }
         [HarmonyPatch(typeof(Player), "OnDeath")]
         [HarmonyPriority(Priority.First)]
         static class OnDeath_Patch
