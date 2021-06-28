@@ -1,6 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
-using BepInEx.Configuration;
+using AuthoritativeConfig;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -49,9 +49,14 @@ namespace DeathTweaks
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
+        public new AuthoritativeConfig.Config Config
+        {
+            get { return AuthoritativeConfig.Config.Instance; }
+            set { }
+        }
         private void Awake()
         {
-            
+            Config.init(this, true);
             foreach (int i in Enum.GetValues(typeof(ItemDrop.ItemData.ItemType)))
             {
                 typeEnums.Add(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), i));
@@ -378,8 +383,6 @@ namespace DeathTweaks
                 string text = __instance.m_input.text;
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
-                    context.Config.Reload();
-                    context.Config.Save();
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
                     return false;
