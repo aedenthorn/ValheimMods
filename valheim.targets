@@ -115,6 +115,15 @@
     </Reference>
   </ItemGroup>
 
+  <!-- Add ServerSync reference -->
+  <ItemGroup Label="ServerSync">
+    <Reference Include="ServerSync">
+      <HintPath>..\..\ServerSync\bin\Debug\ServerSync.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
   <!-- Add Unity references -->
   <ItemGroup Label="Unity">
     <Reference Include="UnityEngine">
