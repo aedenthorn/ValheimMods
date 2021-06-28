@@ -1,12 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Target Name="PreBuild" AfterTargets="PreBuildEvent">
-	<ItemGroup>
-	  <ServerSync Include="..\..\ServerSync\bin\Debug\ServerSync.dll" />
-	</ItemGroup>
-    <Copy SourceFiles="@(ServerSync)" DestinationFolder="$(TargetDir)..\Release\%(RecursiveDir)"></Copy>
-  </Target>
+  <ItemGroup>
+    <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.18.2" />
+  </ItemGroup>
   <Import Project="$(SolutionDir)\valheim.targets" />
-  <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
-  </PropertyGroup>
 </Project>

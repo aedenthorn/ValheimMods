@@ -8,16 +8,18 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="aedenkey" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.18.2" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="aedenkey" />
+    <EmbeddedResource Include="LockableDoors\aedenkey" />
   </ItemGroup>
   <ItemGroup>
     <None Update="LockableDoors\icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="LockableDoors\aedenkey">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -196,7 +196,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackpackRedux", "BackpackRe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequirementCheck", "RequirementCheck\RequirementCheck.csproj", "{CFBE6C20-076E-4427-BA49-557753ECDB09}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LockableDoors", "LockedDoors\LockableDoors.csproj", "{A8848F4C-E3C6-49DC-98F9-3E2065B24B46}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LockableDoors", "LockableDoors\LockableDoors.csproj", "{A8848F4C-E3C6-49DC-98F9-3E2065B24B46}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

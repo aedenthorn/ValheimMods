@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace LockableDoors
 {
-    [BepInPlugin("aedenthorn.LockableDoors", "Lockable Doors", "0.2.2")]
+    [BepInPlugin("aedenthorn.LockableDoors", "Lockable Doors", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
