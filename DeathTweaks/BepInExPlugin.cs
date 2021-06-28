@@ -11,13 +11,10 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.7.0")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.8.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        public const string Version = "0.7.0";
-        public const string ModName = "Death Tweaks";
-        public const string GUID = "aedenthorn.DeathTweaks";
-        public static ServerSync.ConfigSync configSync = new ServerSync.ConfigSync(GUID) { DisplayName = ModName, CurrentVersion = Version };
+        public static ConfigSync configSync;
         public static ConfigEntry<bool> modEnabled;
         private ConfigEntry<bool> serverConfigLocked;
         public static ConfigEntry<bool> isDebug;
@@ -67,7 +64,9 @@ namespace DeathTweaks
         ConfigEntry<T> config<T>(string group, string name, T value, string description, bool synchronizedSetting = true) => config(group, name, value, new ConfigDescription(description), synchronizedSetting);
         private void Awake()
         {
-            
+
+            configSync = new ConfigSync(Info.Metadata.GUID) { DisplayName = Info.Metadata.Name, CurrentVersion = Info.Metadata.Version.ToString() };
+
             foreach (int i in Enum.GetValues(typeof(ItemDrop.ItemData.ItemType)))
             {
                 typeEnums.Add(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), i));
