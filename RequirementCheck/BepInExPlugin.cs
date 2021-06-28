@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace RequirementCheck
 {
-    [BepInPlugin("aedenthorn.RequirementCheck", "Requirement Check", "0.1.0")]
+    [BepInPlugin("aedenthorn.RequirementCheck", "Requirement Check", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -302,7 +302,7 @@ namespace RequirementCheck
 
         private static bool CheckNameKeyReq(string name, string nameKeyList)
         {
-            if (nameKeyList.Length > 0)
+            if (nameKeyList.Length > 0 && ZoneSystem.instance)
             {
                 foreach (string nameKeyString in nameKeyList.Split(','))
                 {

@@ -194,7 +194,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapDetails", "MapDetails\Ma
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackpackRedux", "BackpackRedux\BackpackRedux.csproj", "{B3F320B3-ECF4-4CCB-95E7-203794224C4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequirementCheck", "RequirementCheck\RequirementCheck.csproj", "{CFBE6C20-076E-4427-BA49-557753ECDB09}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequirementCheck", "RequirementCheck\RequirementCheck.csproj", "{CFBE6C20-076E-4427-BA49-557753ECDB09}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LockableDoors", "LockedDoors\LockableDoors.csproj", "{A8848F4C-E3C6-49DC-98F9-3E2065B24B46}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -574,6 +576,10 @@ Global
 		{CFBE6C20-076E-4427-BA49-557753ECDB09}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CFBE6C20-076E-4427-BA49-557753ECDB09}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CFBE6C20-076E-4427-BA49-557753ECDB09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8848F4C-E3C6-49DC-98F9-3E2065B24B46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8848F4C-E3C6-49DC-98F9-3E2065B24B46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8848F4C-E3C6-49DC-98F9-3E2065B24B46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8848F4C-E3C6-49DC-98F9-3E2065B24B46}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
