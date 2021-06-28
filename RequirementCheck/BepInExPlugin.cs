@@ -12,10 +12,7 @@ namespace RequirementCheck
     [BepInPlugin("aedenthorn.RequirementCheck", "Requirement Check", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        public const string Version = "0.1.0";
-        public const string ModName = "Requirement Check";
-        public const string GUID = "aedenthorn.RequirementCheck";
-        public static ServerSync.ConfigSync configSync = new ServerSync.ConfigSync(GUID) { DisplayName = ModName, CurrentVersion = Version };
+        public static ConfigSync configSync;
         private static BepInExPlugin context;
         private static ConfigEntry<bool> serverConfigLocked;
         public static ConfigEntry<bool> modEnabled;
@@ -40,6 +37,8 @@ namespace RequirementCheck
         }
         ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
         {
+            configSync = new ConfigSync(Info.Metadata.GUID) { DisplayName = Info.Metadata.Name, CurrentVersion = Info.Metadata.Version.ToString() };
+
             ConfigEntry<T> configEntry = Config.Bind(group, name, value, description);
 
             SyncedConfigEntry<T> syncedConfigEntry = configSync.AddConfigEntry(configEntry);

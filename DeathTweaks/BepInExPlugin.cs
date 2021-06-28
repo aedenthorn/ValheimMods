@@ -64,7 +64,6 @@ namespace DeathTweaks
         ConfigEntry<T> config<T>(string group, string name, T value, string description, bool synchronizedSetting = true) => config(group, name, value, new ConfigDescription(description), synchronizedSetting);
         private void Awake()
         {
-
             configSync = new ConfigSync(Info.Metadata.GUID) { DisplayName = Info.Metadata.Name, CurrentVersion = Info.Metadata.Version.ToString() };
 
             foreach (int i in Enum.GetValues(typeof(ItemDrop.ItemData.ItemType)))
