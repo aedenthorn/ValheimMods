@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace ItemStorageComponent
@@ -15,19 +16,22 @@ namespace ItemStorageComponent
             guid = oldGuid;
             meta = new ItemStorageMeta()
             {
-                itemName = item.m_shared.m_name.Replace("$", "")
+                itemId = item.m_shared.m_name.Replace("$", ""),
+                itemName = Localization.instance.Localize(item.m_shared.m_name)
             };
-            inventory = new Inventory(item.m_shared.m_name.Replace("$", ""), null, meta.width, meta.height);
-            BepInExPlugin.Dbgl($"Created new item storage {meta.itemName} {oldGuid}");
+            inventory = new Inventory(meta.itemName, null, meta.width, meta.height);
+            BepInExPlugin.Dbgl($"Created new item storage {meta.itemId} {oldGuid}");
         }
         public ItemStorage(string itemFile)
         {
             string[] parts = Path.GetFileNameWithoutExtension(itemFile).Split('_');
-            string templateFile = Path.Combine(BepInExPlugin.templatesPath, parts[0] + ".json");
+            
+            guid = parts[parts.Length - 1];
+            string itemId = string.Join("_", parts.Take(parts.Length - 1));
+            string templateFile = Path.Combine(BepInExPlugin.templatesPath, itemId + ".json");
 
-            BepInExPlugin.Dbgl($"Loading item storage {parts[0]} {parts[1]}");
+            BepInExPlugin.Dbgl($"Loading item storage {itemId} {guid}");
 
-            guid = parts[1];
             if (File.Exists(templateFile))
             {
                 BepInExPlugin.Dbgl("Loading template data");
@@ -35,11 +39,7 @@ namespace ItemStorageComponent
             }
             else
             {
-                BepInExPlugin.Dbgl("Creating new template data");
-                meta = new ItemStorageMeta()
-                {
-                    itemName = parts[0]
-                };
+                throw new Exception("Template not found");
             }
 
             inventory = new Inventory(meta.itemName, null, meta.width, meta.height);
@@ -52,10 +52,12 @@ namespace ItemStorageComponent
                 BepInExPlugin.Dbgl($"Loaded existing inventory with {inventory.NrOfItems()} items");
             }
         }
+
     }
 
     public class ItemStorageMeta
     {
+        public string itemId;
         public string itemName;
         public int width = 4;
         public int height = 2;

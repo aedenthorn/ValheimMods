@@ -138,7 +138,7 @@ namespace ItemStorageComponent
                 try
                 {
                     ItemStorageMeta meta = JsonUtility.FromJson<ItemStorageMeta>(File.ReadAllText(templateFile));
-                    itemStorageMetaDict[meta.itemName] = meta;
+                    itemStorageMetaDict[Path.GetFileNameWithoutExtension(templateFile)] = meta;
                 }
                 catch (Exception ex)
                 {
@@ -203,7 +203,7 @@ namespace ItemStorageComponent
         {
             static bool Prefix(ItemDrop.ItemData item, InventoryGrid.Modifier mod)
             {
-                return !modEnabled.Value || (requireEquipped.Value && !item.m_equiped)  || (requireExistingTemplate.Value && !itemStorageMetaDict.ContainsKey(item.m_shared.m_name.Replace("$",""))) || item == null || item.m_shared.m_maxStackSize > 1 || mod != InventoryGrid.Modifier.Split;
+                return !modEnabled.Value || item == null || (requireEquipped.Value && !item.m_equiped)  || (requireExistingTemplate.Value && !itemStorageMetaDict.ContainsKey(item.m_shared.m_name.Replace("$",""))) || item.m_shared.m_maxStackSize > 1 || mod != InventoryGrid.Modifier.Split;
             }
         }                
 
@@ -221,16 +221,16 @@ namespace ItemStorageComponent
         }
         private static void SaveInventory(ItemStorage itemStorage)
         {
-            Dbgl($"Saving {itemStorage.inventory.GetAllItems().Count} items from inventory for item {itemStorage.guid}, type {itemStorage.meta.itemName}");
+            Dbgl($"Saving {itemStorage.inventory.GetAllItems().Count} items from inventory for item {itemStorage.guid}, type {itemStorage.meta.itemId}");
 
             ZPackage zpackage = new ZPackage();
             itemStorage.inventory.Save(zpackage);
 
             string data = zpackage.GetBase64();
-            File.WriteAllText(Path.Combine(itemsPath, itemStorage.meta.itemName + "_" + itemStorage.guid), data);
+            File.WriteAllText(Path.Combine(itemsPath, itemStorage.meta.itemId + "_" + itemStorage.guid), data);
 
             string json = JsonUtility.ToJson(itemStorage.meta);
-            File.WriteAllText(Path.Combine(templatesPath, itemStorage.meta.itemName + ".json"), json);
+            File.WriteAllText(Path.Combine(templatesPath, itemStorage.meta.itemId + ".json"), json);
         }
 
 
