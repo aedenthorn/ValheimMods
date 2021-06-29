@@ -198,7 +198,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequirementCheck", "Require
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LockableDoors", "LockableDoors\LockableDoors.csproj", "{A8848F4C-E3C6-49DC-98F9-3E2065B24B46}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ItemStorageComponent", "ItemStorageComponent\ItemStorageComponent.csproj", "{0ED8CD74-BB01-4F5B-AB14-7D88515A0882}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ItemStorageComponent", "ItemStorageComponent\ItemStorageComponent.csproj", "{0ED8CD74-BB01-4F5B-AB14-7D88515A0882}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EquipMultipleUtilityItems", "EquipMultipleUtilityItems\EquipMultipleUtilityItems.csproj", "{83CA0D39-50F6-450B-A596-5D3535675FD7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -586,6 +588,10 @@ Global
 		{0ED8CD74-BB01-4F5B-AB14-7D88515A0882}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0ED8CD74-BB01-4F5B-AB14-7D88515A0882}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0ED8CD74-BB01-4F5B-AB14-7D88515A0882}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83CA0D39-50F6-450B-A596-5D3535675FD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83CA0D39-50F6-450B-A596-5D3535675FD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83CA0D39-50F6-450B-A596-5D3535675FD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83CA0D39-50F6-450B-A596-5D3535675FD7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

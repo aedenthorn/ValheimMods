@@ -16,7 +16,7 @@ namespace ItemStorageComponent
             guid = oldGuid;
             meta = new ItemStorageMeta()
             {
-                itemId = item.m_shared.m_name.Replace("$", ""),
+                itemId = item.m_dropPrefab.name,
                 itemName = Localization.instance.Localize(item.m_shared.m_name)
             };
             inventory = new Inventory(meta.itemName, null, meta.width, meta.height);

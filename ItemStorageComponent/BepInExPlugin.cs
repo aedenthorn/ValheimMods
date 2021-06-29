@@ -1,12 +1,10 @@
 ﻿using BepInEx;
-using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -47,9 +45,9 @@ namespace ItemStorageComponent
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 1333, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 1347, "Nexus mod ID for updates");
             
-            requireExistingTemplate = Config.Bind<bool>("Variables", "RequireExistingTemplate", true, "Storage template for item must exist to open inventory");
+            requireExistingTemplate = Config.Bind<bool>("Variables", "RequireExistingTemplate", true, "Storage template for item must exist to create inventory. (Otherwise a new template will be created)");
             requireEquipped = Config.Bind<bool>("Variables", "RequireEquipped", true, "Item must be equipped to open inventory");
             modKey = Config.Bind<string>("Variables", "ModKey", "left alt", "Modifier key to selected item's storage. Follow https://docs.unity3d.com/Manual/class-InputManager.html");
 
@@ -71,9 +69,9 @@ namespace ItemStorageComponent
 
         private static void OpenItemStorage(ItemDrop.ItemData item)
         {
-            if(requireExistingTemplate.Value && !itemStorageMetaDict.ContainsKey(item.m_shared.m_name.Replace("$", "")))
+            if(requireExistingTemplate.Value && !itemStorageMetaDict.ContainsKey(item.m_dropPrefab.name))
             {
-                Dbgl($"Template file required for {item.m_shared.m_name.Replace("$", "")}");
+                Dbgl($"Template file required for {item.m_dropPrefab.name}");
                 return;
             }
             
@@ -173,6 +171,11 @@ namespace ItemStorageComponent
             playerContainer = null;
             itemStorage = null;
         }
+        
+        private static bool CanBeContainer(ItemDrop.ItemData item)
+        {
+            return item != null && (!requireEquipped.Value || item.m_equiped) && (!requireExistingTemplate.Value || itemStorageMetaDict.ContainsKey(item.m_dropPrefab.name)) && item.m_shared.m_maxStackSize <= 1 && (item.m_crafterID != 0 || item.m_crafterName == "");
+        }
 
         [HarmonyPatch(typeof(FejdStartup), "Start")]
         static class FejdStartup_Start_Patch
@@ -203,7 +206,7 @@ namespace ItemStorageComponent
         {
             static bool Prefix(ItemDrop.ItemData item, InventoryGrid.Modifier mod)
             {
-                return !modEnabled.Value || item == null || (requireEquipped.Value && !item.m_equiped)  || (requireExistingTemplate.Value && !itemStorageMetaDict.ContainsKey(item.m_shared.m_name.Replace("$",""))) || item.m_shared.m_maxStackSize > 1 || mod != InventoryGrid.Modifier.Split;
+                return !modEnabled.Value || !CanBeContainer(item) || mod != InventoryGrid.Modifier.Split;
             }
         }                
 
@@ -255,7 +258,19 @@ namespace ItemStorageComponent
                     }
                 }
             }
-        }   
+        }
+
+        [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool) })]
+        static class GetTooltip_Patch
+        {
+            static void Postfix(ItemDrop.ItemData item, ref string __result)
+            {
+                if (!modEnabled.Value || !item.m_crafterName.Contains("_") || item.m_crafterName.Split('_')[item.m_crafterName.Split('_').Length - 1].Length != 36)
+                    return;
+
+                __result = __result.Replace(item.m_crafterName, item.m_crafterName.Split('_')[0]);
+            }
+        }
 
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch

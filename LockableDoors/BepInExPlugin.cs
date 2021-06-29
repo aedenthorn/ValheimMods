@@ -31,6 +31,7 @@ namespace LockableDoors
         public static ConfigEntry<string> doorNames;
         public static ConfigEntry<string> defaultName;
         public static ConfigEntry<bool> promptNameOnCreate;
+        public static ConfigEntry<int> maxDoorNames;
         public static GameObject aedenkey;
 
         private static Dictionary<Vector3, Guid> newDoors = new Dictionary<Vector3, Guid>();
@@ -62,6 +63,8 @@ namespace LockableDoors
             
             needKeyToClose = Config.Bind<bool>("Toggles", "NeedKeyToClose", false, "Require key in order to close a door as well as open it.");
             promptNameOnCreate = Config.Bind<bool>("Toggles", "PromptNameOnCreate", true, "Prompt to enter a name for the door / key pair on creation.");
+            
+            maxDoorNames = Config.Bind<int>("Variables", "maxDoorNames", 20, "Max door names before removing old names.");
             
             doorNames = Config.Bind<string>("ZAuto", "DoorNames", "", "List of doorName:coord pairs, populated when renaming your doors.");
             LoadAssets();
@@ -138,6 +141,8 @@ namespace LockableDoors
             {
                 names.Add(kvp.Key + ":" + kvp.Value);
             }
+            if (names.Count > maxDoorNames.Value)
+                names.RemoveAt(0);
             doorNames.Value = string.Join(";", names);
         }
         private static string GetDoorName(string guid)
@@ -243,7 +248,7 @@ namespace LockableDoors
                     return true;
 
                 string guid = ___m_nview.GetZDO().GetString("DoorGUID");
-
+                Dbgl($"trying to open door {___m_nview.GetZDO().GetString("DoorGUID")}");
                 if (AedenthornUtils.CheckKeyHeld(modKey.Value) && (character as Player).GetInventory().GetAllItems().Exists(i => i.m_crafterName == guid))
                 {
                     ___m_nview.GetZDO().Set("DoorLocked", !___m_nview.GetZDO().GetBool("DoorLocked"));
@@ -264,6 +269,8 @@ namespace LockableDoors
                 }
                 else if(___m_nview.GetZDO().GetBool("DoorLocked") && (needKeyToClose.Value || ___m_nview.GetZDO().GetInt("state", 0) == 0))
                 {
+                    Dbgl($"Trying to open door {___m_nview.GetZDO().GetString("DoorGUID")} {(character as Player).GetInventory().GetAllItems().Find(i => i.m_crafterName == ___m_nview.GetZDO().GetString("DoorGUID"))?.m_crafterName}");
+
                     if(!(character as Player).GetInventory().GetAllItems().Exists(i => i.m_crafterName == ___m_nview.GetZDO().GetString("DoorGUID") ))
                     {
                         __instance.m_lockedEffects.Create(__instance.transform.position, __instance.transform.rotation, null, 1f);
