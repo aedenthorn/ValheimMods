@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ItemStorageComponent
 {
-    [BepInPlugin("aedenthorn.ItemStorageComponent", "Item Storage Component", "0.1.0")]
+    [BepInPlugin("aedenthorn.ItemStorageComponent", "Item Storage Component", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -23,7 +23,6 @@ namespace ItemStorageComponent
 
         public static ConfigEntry<bool> requireEquipped;
         public static ConfigEntry<bool> requireExistingTemplate;
-        public static ConfigEntry<string> modKey;
 
         //private static GameObject backpack;
         private static ItemStorage itemStorage;
@@ -46,10 +45,10 @@ namespace ItemStorageComponent
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1347, "Nexus mod ID for updates");
-            
+            nexusID.Value = 1347;
+
             requireExistingTemplate = Config.Bind<bool>("Variables", "RequireExistingTemplate", true, "Storage template for item must exist to create inventory. (Otherwise a new template will be created)");
             requireEquipped = Config.Bind<bool>("Variables", "RequireEquipped", true, "Item must be equipped to open inventory");
-            modKey = Config.Bind<string>("Variables", "ModKey", "left alt", "Modifier key to selected item's storage. Follow https://docs.unity3d.com/Manual/class-InputManager.html");
 
             if (!modEnabled.Value)
                 return;
@@ -147,7 +146,7 @@ namespace ItemStorageComponent
 
         private static void OnSelectedItem(InventoryGrid grid, ItemDrop.ItemData item, Vector2i pos, InventoryGrid.Modifier mod)
         {
-            if (!modEnabled.Value || item?.m_shared.m_maxStackSize > 1 || mod != InventoryGrid.Modifier.Split)
+            if (!modEnabled.Value || !CanBeContainer(item) || mod != InventoryGrid.Modifier.Split)
                 return;
             bool same = false;
             if (InventoryGui.instance.IsContainerOpen() && itemStorage != null)
@@ -174,7 +173,7 @@ namespace ItemStorageComponent
         
         private static bool CanBeContainer(ItemDrop.ItemData item)
         {
-            return item != null && (!requireEquipped.Value || item.m_equiped) && (!requireExistingTemplate.Value || itemStorageMetaDict.ContainsKey(item.m_dropPrefab.name)) && item.m_shared.m_maxStackSize <= 1 && (item.m_crafterID != 0 || item.m_crafterName == "");
+            return item != null && (!requireEquipped.Value || item.m_equiped) && (!requireExistingTemplate.Value || itemStorageMetaDict.ContainsKey(item.m_dropPrefab.name)) && item.m_shared.m_maxStackSize <= 1;
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Start")]
@@ -206,7 +205,9 @@ namespace ItemStorageComponent
         {
             static bool Prefix(ItemDrop.ItemData item, InventoryGrid.Modifier mod)
             {
-                return !modEnabled.Value || !CanBeContainer(item) || mod != InventoryGrid.Modifier.Split;
+                var result = !modEnabled.Value || !CanBeContainer(item) || mod != InventoryGrid.Modifier.Split;
+                //Dbgl("result " + result + " " + !modEnabled.Value + " " + !CanBeContainer(item) + " "+(mod != InventoryGrid.Modifier.Split));
+                return result;
             }
         }                
 
@@ -224,16 +225,24 @@ namespace ItemStorageComponent
         }
         private static void SaveInventory(ItemStorage itemStorage)
         {
+            string itemFile = Path.Combine(itemsPath, itemStorage.meta.itemId + "_" + itemStorage.guid);
+            if (!File.Exists(itemFile) && itemStorage.inventory.NrOfItems() == 0)
+                return;
+
             Dbgl($"Saving {itemStorage.inventory.GetAllItems().Count} items from inventory for item {itemStorage.guid}, type {itemStorage.meta.itemId}");
 
             ZPackage zpackage = new ZPackage();
             itemStorage.inventory.Save(zpackage);
 
             string data = zpackage.GetBase64();
-            File.WriteAllText(Path.Combine(itemsPath, itemStorage.meta.itemId + "_" + itemStorage.guid), data);
+            File.WriteAllText(itemFile, data);
 
-            string json = JsonUtility.ToJson(itemStorage.meta);
-            File.WriteAllText(Path.Combine(templatesPath, itemStorage.meta.itemId + ".json"), json);
+            string templateFile = Path.Combine(templatesPath, itemStorage.meta.itemId + ".json");
+            if (!File.Exists(templateFile))
+            {
+                string json = JsonUtility.ToJson(itemStorage.meta);
+                File.WriteAllText(templateFile, json);
+            }
         }
 
 
@@ -254,7 +263,10 @@ namespace ItemStorageComponent
                     foreach(ItemDrop.ItemData item in __instance.GetAllItems())
                     {
                         if(item.m_crafterName.Contains("_") && itemStorageDict.ContainsKey(item.m_crafterName.Split('_')[1]))
+                        {
+
                             __result += itemStorageDict[item.m_crafterName.Split('_')[1]].inventory.GetTotalWeight() * itemStorageDict[item.m_crafterName.Split('_')[1]].meta.weightMult;
+                        }
                     }
                 }
             }
