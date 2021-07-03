@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.2.0")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.2.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -169,8 +169,8 @@ namespace ExtendedPlayerInventory
                 if (AedenthornUtils.IgnoreKeyPresses(true) || !addEquipmentRow.Value)
                     return;
 
-                if (AedenthornUtils.CheckKeyDown("9"))
-                    CreateTombStone();
+                //if (AedenthornUtils.CheckKeyDown("9"))
+                    //CreateTombStone();
 
                 int which;
                 if (AedenthornUtils.CheckKeyDown(hotKey1.Value))
