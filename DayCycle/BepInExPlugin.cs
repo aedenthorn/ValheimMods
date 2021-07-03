@@ -1,21 +1,20 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System;
 using System.Reflection;
 using UnityEngine;
 
 namespace DayCycle
 {
-    [BepInPlugin("aedenthorn.DayCycle", "DayCycle", "0.7.0")]
+    [BepInPlugin("aedenthorn.DayCycle", "DayCycle", "0.7.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
         private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
-        public static ConfigEntry<float> dayStart;
-        public static ConfigEntry<float> nightStart;
+        //public static ConfigEntry<float> dayStart;
+        //public static ConfigEntry<float> nightStart;
         public static ConfigEntry<float> dayRate;
         public static ConfigEntry<float> nightRate;
         public static ConfigEntry<int> nexusID;
@@ -32,8 +31,8 @@ namespace DayCycle
             context = this;
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            dayStart = Config.Bind<float>("General", "DayStart", 0.25f, "Fraction of the 24 hours when the day begins");
-            nightStart = Config.Bind<float>("General", "NightStart", 0.75f, "Fraction of the 24 hours when the night begins");
+            //dayStart = Config.Bind<float>("General", "DayStart", 0.25f, "Fraction of the 24 hours when the day begins");
+            //nightStart = Config.Bind<float>("General", "NightStart", 0.75f, "Fraction of the 24 hours when the night begins");
             dayRate = Config.Bind<float>("General", "DayRate", 0.5f, "Rate at which the day progresses (0.5 = half speed, etc)");
             nexusID = Config.Bind<int>("General", "NexusID", 98, "Nexus mod ID for updates");
 
@@ -69,7 +68,7 @@ namespace DayCycle
                 ___m_dayLengthSec = (long)(Mathf.Round(vanillaDayLengthSec / dayRate.Value));
             }
         }
-
+        /*
         [HarmonyPatch(typeof(EnvMan), "IsDay")]
         static class EnvMan_IsDay_Patch
         {
@@ -104,7 +103,7 @@ namespace DayCycle
             }
         }
 
-        [HarmonyPatch(typeof(EnvMan), "SetEnv")]
+        //[HarmonyPatch(typeof(EnvMan), "SetEnv")]
         static class EnvMan_SetEnv_Patch
         {
             static void Prefix(EnvMan __instance, ref float dayInt, ref float nightInt, ref float morningInt, ref float eveningInt, float ___m_smoothDayFraction)
@@ -171,7 +170,7 @@ namespace DayCycle
                 fraction = newFraction;
             }
         }
-
+        */
         [HarmonyPatch(typeof(Console), "InputText")]
         static class InputText_Patch
         {

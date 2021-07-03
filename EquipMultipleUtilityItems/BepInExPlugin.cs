@@ -8,7 +8,7 @@ using Debug = UnityEngine.Debug;
 
 namespace EquipMultipleUtilityItems
 {
-    [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.2.0")]
+    [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.2.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -124,11 +124,11 @@ namespace EquipMultipleUtilityItems
         {
             static bool Prefix(Humanoid __instance, ItemDrop.ItemData item, bool triggerEquipEffects, Inventory ___m_inventory, ref bool __result, ref ItemDrop.ItemData ___m_utilityItem)
             {
-                Dbgl($"trying to equip item {item.m_shared.m_name}");
+                //Dbgl($"trying to equip item {item.m_shared.m_name}");
                 if (!modEnabled.Value || item == null || item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Utility ||  !__instance.IsPlayer() || !___m_inventory.ContainsItem(item) || __instance.InAttack() || __instance.InDodge() || (__instance.IsPlayer() && !__instance.IsDead() && __instance.IsSwiming() && !__instance.IsOnGround()) || (item.m_shared.m_useDurability && item.m_durability <= 0f) || (item.m_shared.m_dlc.Length > 0 && !DLCMan.instance.IsDLCInstalled(item.m_shared.m_dlc)))
                     return true;
 
-                Dbgl($"can equip {item.m_shared.m_name}");
+                //Dbgl($"can equip {item.m_shared.m_name}");
 
                 int count = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility).Count;
                 if (count >= maxEquippedItems.Value)
@@ -138,7 +138,7 @@ namespace EquipMultipleUtilityItems
                 }
                 if(___m_utilityItem == null)
                 {
-                    Dbgl($"setting as utility item {item.m_shared.m_name}");
+                    //Dbgl($"setting as utility item {item.m_shared.m_name}");
 
                     ___m_utilityItem = item;
                 }
@@ -149,7 +149,7 @@ namespace EquipMultipleUtilityItems
                     typeof(Humanoid).GetMethod("TriggerEquipEffect", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { item });
                 }
                 __result = true;
-                Dbgl($"Equipped {item.m_shared.m_name}");
+                //Dbgl($"Equipped {item.m_shared.m_name}");
                 return false;
             }
         }                
@@ -171,10 +171,24 @@ namespace EquipMultipleUtilityItems
                         continue;
                     ___m_seman.AddStatusEffect(item.m_shared.m_equipStatusEffect, false);
                 }
-                Dbgl($"added {list.Count} effects");
+                //Dbgl($"added {list.Count} effects");
             }
         }                
         
+        [HarmonyPatch(typeof(Humanoid), "UnequipAllItems")]
+        static class UnequipAllItems_Patch
+        {
+            static void Postfix(Humanoid __instance)
+            {
+                if (!modEnabled.Value || !__instance.IsPlayer())
+                    return;
+
+                var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
+                foreach (ItemDrop.ItemData item in list)
+                    __instance.UnequipItem(item, false);
+            }
+        }
+                    
         [HarmonyPatch(typeof(Humanoid), "IsItemEquiped")]
         static class IsItemEquiped_Patch
         {

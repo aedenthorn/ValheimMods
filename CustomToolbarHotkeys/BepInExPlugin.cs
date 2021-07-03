@@ -146,10 +146,16 @@ namespace CustomToolbarHotkeys
 
                 for(int i = 0; i < 8; i++)
                 {
-                    if(___m_playerGrid.m_gridRoot.transform.GetChild(i)?.Find("binding"))
-                        ___m_playerGrid.m_gridRoot.transform.GetChild(i).Find("binding").GetComponent<Text>().text = showHotkeys.Value ? hotkeys[i].Value : "";
+                    try
+                    {
+                        if (___m_playerGrid.m_gridRoot.transform.GetChild(i)?.Find("binding"))
+                            ___m_playerGrid.m_gridRoot.transform.GetChild(i).Find("binding").GetComponent<Text>().text = showHotkeys.Value ? hotkeys[i].Value : "";
+                    }
+                    catch
+                    {
+                        return;
+                    }
                 }
-
             }
         }
 
