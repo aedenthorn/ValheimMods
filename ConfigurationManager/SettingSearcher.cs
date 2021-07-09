@@ -50,6 +50,7 @@ namespace ConfigurationManager
                 {
                     BepInExPlugin.Dbgl($"plugin: {plugin.Info.Metadata.Name} enabled {plugin.enabled}");
                 }
+                //BepInExPlugin.Dbgl($"plugin: {plugin.Info.Metadata.Name} enabled {plugin.enabled}");
 
                 var type = plugin.GetType();
 

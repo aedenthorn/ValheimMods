@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomWeaponStats
 {
-    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.4.3")]
+    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.5.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -55,16 +55,27 @@ namespace CustomWeaponStats
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        static class ZNetScene_Awake_Patch
+        [HarmonyPatch(typeof(ObjectDB), "CopyOtherDB")]
+        static class CopyOtherDB_Patch
         {
-            static void Postfix(ZNetScene __instance)
+            static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
-                LoadAllWeaponData(__instance);
+                LoadAllWeaponData(true);
             }
+        }
 
+        [HarmonyPatch(typeof(InventoryGui), "Show")]
+        [HarmonyPriority(Priority.Last)]
+        static class InventoryGui_Show_Patch
+        {
+            static void Postfix()
+            {
+                if (!modEnabled.Value)
+                    return;
+                LoadAllWeaponData(false);
+            }
         }
 
         [HarmonyPatch(typeof(ItemDrop), "Awake")]
@@ -104,7 +115,7 @@ namespace CustomWeaponStats
         [HarmonyPatch(typeof(Attack), "Start")]
         static class Attack_Start_Patch
         {
-            static void Prefix(ref ItemDrop.ItemData weapon, ref ItemDrop.ItemData.SharedData __state)
+            static void Prefix(ref ItemDrop.ItemData weapon, ref WeaponState __state)
             {
                 if (!modEnabled.Value)
                     return;
@@ -113,7 +124,7 @@ namespace CustomWeaponStats
 
                 Dbgl($"pre damage {weapon.m_shared.m_damages.m_slash}");
 
-                __state = weapon.m_shared;
+                __state = new WeaponState(weapon);
 
                 weapon.m_shared.m_useDurabilityDrain *= globalUseDurabilityMultiplier.Value;
                 weapon.m_shared.m_holdDurationMin *= globalHoldDurationMinMultiplier.Value;
@@ -134,26 +145,68 @@ namespace CustomWeaponStats
 
                 Dbgl($"post damage {weapon.m_shared.m_damages.m_slash}");
             }
-            static void Postfix(ref ItemDrop.ItemData weapon, ItemDrop.ItemData.SharedData __state)
+            static void Postfix(ref ItemDrop.ItemData weapon, WeaponState __state)
             {
                 if (!modEnabled.Value)
                     return;
 
-                weapon.m_shared = __state;
+                weapon.m_shared.m_useDurabilityDrain = __state.useDurabilityDrain;
+                weapon.m_shared.m_holdDurationMin = __state.holdDurationMin;
+                weapon.m_shared.m_holdStaminaDrain = __state.holdStaminaDrain;
+                weapon.m_shared.m_attackForce = __state.attackForce;
+                weapon.m_shared.m_backstabBonus = __state.backstabBonus;
+                weapon.m_shared.m_damages.m_damage = __state.damage;
+                weapon.m_shared.m_damages.m_blunt = __state.blunt;
+                weapon.m_shared.m_damages.m_slash = __state.slash;
+                weapon.m_shared.m_damages.m_pierce = __state.pierce;
+                weapon.m_shared.m_damages.m_chop = __state.chop;
+                weapon.m_shared.m_damages.m_pickaxe = __state.pickaxe;
+                weapon.m_shared.m_damages.m_fire = __state.fire;
+                weapon.m_shared.m_damages.m_frost = __state.frost;
+                weapon.m_shared.m_damages.m_lightning = __state.lightning;
+                weapon.m_shared.m_damages.m_poison = __state.poison;
+                weapon.m_shared.m_damages.m_spirit = __state.spirit;
             }
         }
 
-        private static void LoadAllWeaponData(ZNetScene scene)
+        private static void LoadAllWeaponData(bool reload)
         {
-            weaponDatas = GetWeaponDataFromFiles();
+            if(reload)
+                weaponDatas = GetWeaponDataFromFiles();
+            
             foreach (var weapon in weaponDatas)
             {
-                GameObject go = scene.GetPrefab(weapon.name);
+                GameObject go = ObjectDB.instance.GetItemPrefab(weapon.name);
                 if (go == null)
                     continue;
-                ItemDrop.ItemData item = go.GetComponent<ItemDrop>().m_itemData;
-                SetWeaponData(ref item, weapon);
-                go.GetComponent<ItemDrop>().m_itemData = item;
+                var item = go.GetComponent<ItemDrop>()?.m_itemData;
+
+                if (go.GetComponent<ItemDrop>()?.m_itemData == null)
+                    continue;
+                
+                SetWeaponData(ref go.GetComponent<ItemDrop>().m_itemData, weapon);
+
+                for(int i = 0; i < ObjectDB.instance.m_recipes.Count; i++)
+                {
+                    var recipe = ObjectDB.instance.m_recipes[i];
+                    if (!(recipe.m_item == null) && recipe.m_item.m_itemData.m_shared.m_name == item.m_shared.m_name)
+                    {
+                        SetWeaponData(ref recipe.m_item.m_itemData, weapon);
+                        ObjectDB.instance.m_recipes[i] = recipe;
+                    }
+                }
+                if (Player.m_localPlayer)
+                {
+                    var inv = Player.m_localPlayer.GetInventory().GetAllItems();
+                    for (int i = 0; i < inv.Count; i++)
+                    {
+                        var invItem = inv[i];
+                        if (invItem.m_shared.m_name == item.m_shared.m_name)
+                            SetWeaponData(ref invItem, weapon);
+
+                        inv[i] = invItem;
+                    }
+                }
             }
         }
 
@@ -326,8 +379,7 @@ namespace CustomWeaponStats
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reload"))
                 {
                     weaponDatas = GetWeaponDataFromFiles();
-                    if(ZNetScene.instance)
-                        LoadAllWeaponData(ZNetScene.instance);
+                    LoadAllWeaponData(true);
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} reloaded weapon stats from files" }).GetValue();
                     return false;

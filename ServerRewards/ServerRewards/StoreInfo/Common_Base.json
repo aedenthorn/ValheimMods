@@ -1,6 +1,7 @@
 {
     "id": "Base_Common",
     "name": "Common",
+    "description": "This is a common chest.",
     "price": 50,
     "type": "Common",
     "items": [

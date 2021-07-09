@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BuildingDemolish
 {
-    [BepInPlugin("aedenthorn.BuildingDemolish", "BuildingDemolish", "0.3.2")]
+    [BepInPlugin("aedenthorn.BuildingDemolish", "Building Demolish", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -57,65 +57,70 @@ namespace BuildingDemolish
         {
             if (!AedenthornUtils.IgnoreKeyPresses(true) && AedenthornUtils.CheckKeyDown(hotKey.Value)) 
             {
-                Player player = Player.m_localPlayer;
-                Dbgl($"Ka-boom");
-                Collider[] array = Physics.OverlapSphere(player.transform.position, destroyRadius.Value, destroyMask);
-                for (int i = 0; i < array.Length; i++)
+                int count = DemolishPieces(destroyRadius.Value);
+                Dbgl($"Demolished {count} pieces.");
+            }
+        }
+
+        private static int DemolishPieces(float radius)
+        {
+            Player player = Player.m_localPlayer;
+            if (!player)
+                return 0;
+            int count = 0;
+            Collider[] array = Physics.OverlapSphere(player.transform.position, radius, destroyMask);
+            for (int i = 0; i < array.Length; i++)
+            {
+                Piece piece = array[i].GetComponentInParent<Piece>();
+                if (piece)
                 {
-                    Piece piece = array[i].GetComponentInParent<Piece>();
-                    if (piece)
+                    if (!piece.IsCreator() && (piece.GetCreator() != 0 || !allowDestroyUncreated.Value))
                     {
-                        if (!piece.IsCreator() && (piece.GetCreator() != 0 || !allowDestroyUncreated.Value))
-                        {
-                            continue;
-                        }
-                        if (!piece.m_canBeRemoved)
-                        {
-                            continue;
-                        }
-                        if (Location.IsInsideNoBuildLocation(piece.transform.position))
-                        {
-                            continue;
-                        }
-                        if (!PrivateArea.CheckAccess(piece.transform.position, 0f, true, false))
-                        {
-                            continue;
-                        }
-                        if (requireCraftingStation.Value && !Traverse.Create(player).Method("CheckCanRemovePiece", new object[] { piece }).GetValue<bool>())
-                        {
-                            continue;
-                        }
-                        ZNetView component = piece.GetComponent<ZNetView>();
-                        if (component == null)
-                        {
-                            continue;
-                        }
-                        if (!piece.CanBeRemoved())
-                        {
-                            continue;
-                        }
-                        WearNTear component2 = piece.GetComponent<WearNTear>();
-                        if (component2)
-                        {
-                            component2.Remove();
-                        }
-                        else
-                        {
-                            component.ClaimOwnership();
-                            piece.DropResources();
-                            piece.m_placeEffect.Create(piece.transform.position, piece.transform.rotation, piece.gameObject.transform, 1f);
-                            player.m_removeEffects.Create(piece.transform.position, Quaternion.identity, null, 1f);
-                            ZNetScene.instance.Destroy(piece.gameObject);
-                        }
-                        ItemDrop.ItemData rightItem = player.GetRightItem();
-                        if (rightItem != null)
-                        {
-                            player.FaceLookDirection();
-                            Traverse.Create(player).Field("m_zanim").GetValue<ZSyncAnimation>().SetTrigger(rightItem.m_shared.m_attack.m_attackAnimation);
-                        }
+                        continue;
                     }
+                    if (!piece.m_canBeRemoved)
+                    {
+                        continue;
+                    }
+                    if (Location.IsInsideNoBuildLocation(piece.transform.position))
+                    {
+                        continue;
+                    }
+                    if (!PrivateArea.CheckAccess(piece.transform.position, 0f, true, false))
+                    {
+                        continue;
+                    }
+                    if (requireCraftingStation.Value && !Traverse.Create(player).Method("CheckCanRemovePiece", new object[] { piece }).GetValue<bool>())
+                    {
+                        continue;
+                    }
+                    ZNetView component = piece.GetComponent<ZNetView>();
+                    if (component == null)
+                    {
+                        continue;
+                    }
+                    if (!piece.CanBeRemoved())
+                    {
+                        continue;
+                    }
+                    count++;
+                    WearNTear component2 = piece.GetComponent<WearNTear>();
+                    if (component2)
+                    {
+                        component2.Remove();
+                    }
+                    else
+                    {
+                        component.ClaimOwnership();
+                        piece.DropResources();
+                        piece.m_placeEffect.Create(piece.transform.position, piece.transform.rotation, piece.gameObject.transform, 1f);
+                        player.m_removeEffects.Create(piece.transform.position, Quaternion.identity, null, 1f);
+                        ZNetScene.instance.Destroy(piece.gameObject);
+                    }
+
                 }
             }
+            return count;
         }
 
         [HarmonyPatch(typeof(Console), "InputText")]
@@ -126,14 +131,31 @@ namespace BuildingDemolish
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("buildingdemolish reset"))
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     context.Config.Reload();
                     context.Config.Save();
-                    //if (debugEnabled.Value)
-                    //    Player.m_debugMode = true;
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    return false;
+                }
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} demolish"))
+                {
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "config reloaded" }).GetValue();
+                    int count = DemolishPieces(destroyRadius.Value);
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} demolished {count} pieces" }).GetValue();
+                    return false;
+                }
+                if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} demolish "))
+                {
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    if(int.TryParse(text.Split(' ')[2], out int radius))
+                    {
+                        int count = DemolishPieces(radius);
+                        Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} demolished {count} pieces" }).GetValue();
+                    }
+                    else
+                        Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} syntax error" }).GetValue();
                     return false;
                 }
                 return true;

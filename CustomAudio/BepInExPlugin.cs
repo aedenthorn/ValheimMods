@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.3.0")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.3.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -370,13 +370,13 @@ namespace CustomAudio
                     }
                     if (customAmbientList.ContainsKey(___m_randomAmbients[i].m_name + "_day"))
                     {
-                        Dbgl($"replacing ambient day list by name: {___m_randomAmbients[i].m_name}");
-                        ___m_randomAmbients[i].m_randomAmbientClipsDay = new List<AudioClip>(customAmbientList[___m_randomAmbients[i].m_name].Values.ToList());
+                        Dbgl($"replacing ambient day list by name: {___m_randomAmbients[i].m_name}_day");
+                        ___m_randomAmbients[i].m_randomAmbientClipsDay = new List<AudioClip>(customAmbientList[___m_randomAmbients[i].m_name + "_day"].Values.ToList());
                     }
                     else if (customAmbientList.ContainsKey(___m_randomAmbients[i].m_name + "_night"))
                     {
-                        Dbgl($"replacing ambient night list by name: {___m_randomAmbients[i].m_name}");
-                        ___m_randomAmbients[i].m_randomAmbientClipsNight = new List<AudioClip>(customAmbientList[___m_randomAmbients[i].m_name].Values.ToList());
+                        Dbgl($"replacing ambient night list by name: {___m_randomAmbients[i].m_name + "_night"}");
+                        ___m_randomAmbients[i].m_randomAmbientClipsNight = new List<AudioClip>(customAmbientList[___m_randomAmbients[i].m_name + "_night"].Values.ToList());
                     }
                     else if (customAmbientList.ContainsKey(___m_randomAmbients[i].m_name))
                     {

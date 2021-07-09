@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -8,7 +9,7 @@ using UnityEngine;
 
 namespace RecipeCustomization
 {
-    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.1.1")]
+    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.5.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -42,24 +43,13 @@ namespace RecipeCustomization
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1245, "Nexus mod ID for updates");
-            nexusID.Value = 1162;
+            nexusID.Value = 1245;
 
             assetPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), typeof(BepInExPlugin).Namespace);
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        [HarmonyPatch(typeof(ObjectDB), "CopyOtherDB")]
-        static class CopyOtherDB_Patch
-        {
-            static void Postfix()
-            {
-                if (!modEnabled.Value)
-                    return;
-                LoadAllRecipeData();
-            }
-        }
-        
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
         [HarmonyPriority(Priority.Last)]
         static class ZNetScene_Awake_Patch
@@ -68,14 +58,34 @@ namespace RecipeCustomization
             {
                 if (!modEnabled.Value)
                     return;
-                LoadAllRecipeData();
+                context.StartCoroutine(DelayedLoadRecipes());
+                LoadAllRecipeData(true);
+            }
+        }
+        public static IEnumerator DelayedLoadRecipes()
+        {
+            yield return null;
+            LoadAllRecipeData(true);
+            yield break;
+        }
+
+        //[HarmonyPatch(typeof(InventoryGui), "Show")]
+        //[HarmonyPriority(Priority.Last)]
+        static class InventoryGui_Show_Patch
+        {
+            static void Postfix()
+            {
+                if (!modEnabled.Value)
+                    return;
+                LoadAllRecipeData(false);
             }
         }
 
 
-        private static void LoadAllRecipeData()
+        private static void LoadAllRecipeData(bool reload)
         {
-            GetRecipeDataFromFiles();
+            if(reload)
+                GetRecipeDataFromFiles();
             foreach (var data in recipeDatas)
             {
                 SetRecipeData(data);
@@ -118,10 +128,17 @@ namespace RecipeCustomization
                 return;
             }
 
-            for (int i = 0; i < ObjectDB.instance.m_recipes.Count; i++)
+            for (int i = ObjectDB.instance.m_recipes.Count - 1; i > 0; i--)
             {
-                if (ObjectDB.instance.m_recipes[i].m_item?.m_itemData.m_shared.m_name == go.GetComponent<ItemDrop>()?.m_itemData.m_shared.m_name)
+                if (ObjectDB.instance.m_recipes[i].m_item?.m_itemData.m_shared.m_name == go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name)
                 {
+                    if (data.disabled)
+                    {
+                        Dbgl($"Removing recipe for {data.name} from the game");
+                        ObjectDB.instance.m_recipes.RemoveAt(i);
+                        return;
+                    }
+
                     ObjectDB.instance.m_recipes[i].m_amount = data.amount;
                     ObjectDB.instance.m_recipes[i].m_minStationLevel = data.minStationLevel;
                     ObjectDB.instance.m_recipes[i].m_craftingStation = GetCraftingStation(data.craftingStation);
@@ -149,6 +166,24 @@ namespace RecipeCustomization
             {
                 Dbgl($"Item data for {data.name} not found!");
                 return;
+            }
+
+            if (data.disabled)
+            {
+                Dbgl($"Removing recipe for {data.name} from the game");
+
+                ItemDrop hammer = ObjectDB.instance.GetItemPrefab("Hammer")?.GetComponent<ItemDrop>();
+                if (hammer && hammer.m_itemData.m_shared.m_buildPieces.m_pieces.Contains(go))
+                {
+                    hammer.m_itemData.m_shared.m_buildPieces.m_pieces.Remove(go);
+                    return;
+                }
+                ItemDrop hoe = ObjectDB.instance.GetItemPrefab("Hoe")?.GetComponent<ItemDrop>();
+                if (hoe && hoe.m_itemData.m_shared.m_buildPieces.m_pieces.Contains(go))
+                {
+                    hoe.m_itemData.m_shared.m_buildPieces.m_pieces.Remove(go);
+                    return;
+                }
             }
 
             go.GetComponent<Piece>().m_craftingStation = GetCraftingStation(data.craftingStation);
@@ -280,7 +315,7 @@ namespace RecipeCustomization
                 {
                     GetRecipeDataFromFiles();
                     if(ObjectDB.instance)
-                        LoadAllRecipeData();
+                        LoadAllRecipeData(true);
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} reloaded recipes from files" }).GetValue();
                     return false;
