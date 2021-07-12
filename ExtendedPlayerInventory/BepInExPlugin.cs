@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.2.1")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.2.3")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -137,6 +137,34 @@ namespace ExtendedPlayerInventory
                 //Dbgl($"tombstone Awake {__instance.GetComponent<Container>().GetInventory()?.GetHeight()}");
             }
         }
+                     
+        [HarmonyPatch(typeof(TombStone), "Interact")]
+        static class TombStone_Interact_Patch
+        {
+            static void Prefix(TombStone __instance, Container ___m_container)
+            {
+                if (!modEnabled.Value)
+                    return;
+                Dbgl("TombStone_Interact");
+
+                int height = extraRows.Value + (addEquipmentRow.Value ? 5 : 4);
+
+                __instance.GetComponent<Container>().m_height = height;
+
+                Traverse t = Traverse.Create(___m_container);
+                string dataString = t.Field("m_nview").GetValue<ZNetView>().GetZDO().GetString("items", "");
+                if (string.IsNullOrEmpty(dataString))
+                {
+                    return;
+                }
+                ZPackage pkg = new ZPackage(dataString);
+                t.Field("m_loading").SetValue(true);
+                t.Field("m_inventory").GetValue<Inventory>().Load(pkg);
+                t.Field("m_loading").SetValue(false);
+                t.Field("m_lastRevision").SetValue(t.Field("m_nview").GetValue<ZNetView>().GetZDO().m_dataRevision);
+                t.Field("m_lastDataString").SetValue(dataString);
+            }
+        }
                 
         [HarmonyPatch(typeof(Inventory), "MoveInventoryToGrave")]
         static class MoveInventoryToGrave_Patch
@@ -150,7 +178,6 @@ namespace ExtendedPlayerInventory
                 Dbgl($"inv: {__instance.GetHeight()} orig: {original.GetHeight()}");
             }
         }
-        
 
         [HarmonyPatch(typeof(Player), "Update")]
         static class Player_Update_Patch
@@ -243,23 +270,19 @@ namespace ExtendedPlayerInventory
                             )
                             continue;
 
-                        if (which > -1 && items[i].m_shared.m_itemType == typeEnums[which] && equipItems[which] != items[i]) // in right slot and new
+                        if (which > -1 && items[i].m_shared.m_itemType == typeEnums[which] && equipItems[which] != items[i] && Player.m_localPlayer.EquipItem(items[i], false)) // in right slot and new
+                            continue;
+
+                        // in wrong slot or unequipped in slot or can't equip
+                        Vector2i newPos = (Vector2i)typeof(Inventory).GetMethod("FindEmptySlot", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inv, new object[] { true });
+                        if (newPos.x < 0 || newPos.y < 0 || newPos.y == inv.GetHeight() - 1)
                         {
-                            if(!Player.m_localPlayer.IsItemQueued(items[i]))
-                                typeof(Player).GetMethod("QueueEquipItem", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Player.m_localPlayer, new object[] { items[i] });
+                            Player.m_localPlayer.DropItem(inv, items[i], items[i].m_stack);
                         }
-                        else // in wrong slot or unequipped in slot
+                        else
                         {
-                            Vector2i newPos = (Vector2i)typeof(Inventory).GetMethod("FindEmptySlot", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inv, new object[] { true });
-                            if (newPos.x < 0 || newPos.y < 0 || newPos.y == inv.GetHeight() - 1)
-                            {
-                                Player.m_localPlayer.DropItem(inv, items[i], items[i].m_stack);
-                            }
-                            else
-                            {
-                                items[i].m_gridPos = newPos;
-                                ___m_playerGrid.UpdateInventory(inv, Player.m_localPlayer, null);
-                            }
+                            items[i].m_gridPos = newPos;
+                            ___m_playerGrid.UpdateInventory(inv, Player.m_localPlayer, null);
                         }
                     }
                 }
@@ -418,7 +441,7 @@ namespace ExtendedPlayerInventory
         }
         
         [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(ItemDrop.ItemData) })]
-        static class Inventory_AddItem_Patch
+        static class Inventory_AddItem_Patch1
         {
             static bool Prefix(Inventory __instance, ref bool __result, List<ItemDrop.ItemData> ___m_inventory, ItemDrop.ItemData item)
             {
@@ -438,6 +461,26 @@ namespace ExtendedPlayerInventory
                 typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { });
                 __result = true;
                 return false;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(int), typeof(int) })]
+        static class Inventory_AddItem_Patch2
+        {
+            static void Prefix(Inventory __instance, ref int ___m_width, ref int ___m_height, int x, int y)
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                if (x >= ___m_width)
+                {
+                    ___m_width = x + 1;
+                }
+                if (y >= ___m_height)
+                {
+                    ___m_height = y + 1;
+                }
             }
         }
 
@@ -487,7 +530,7 @@ namespace ExtendedPlayerInventory
         {
             static void Postfix(Hud __instance)
             {
-                if (!modEnabled.Value || !addEquipmentRow.Value || Player.m_localPlayer == null || InventoryGui.IsVisible() == true)
+                if (!modEnabled.Value || !addEquipmentRow.Value || Player.m_localPlayer == null)
                     return;
 
                 float gameScale = GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;

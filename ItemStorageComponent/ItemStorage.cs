@@ -1,4 +1,6 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -37,7 +39,7 @@ namespace ItemStorageComponent
                 BepInExPlugin.Dbgl("Loading template data");
                 meta = JsonUtility.FromJson<ItemStorageMeta>(File.ReadAllText(templateFile));
             }
-            else
+            else if(BepInExPlugin.requireExistingTemplate.Value)
             {
                 throw new Exception("Template not found");
             }
@@ -59,6 +61,8 @@ namespace ItemStorageComponent
     {
         public string itemId;
         public string itemName;
+        public string[] allowedItems = new string[0];
+        public string[] disallowedItems = new string[0];
         public int width = 4;
         public int height = 2;
         public float weightMult = 1f;

@@ -199,7 +199,6 @@ namespace EquipMultipleUtilityItems
                 __result = item.m_equiped;
             }
         }
-                
 
         [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool) })]
         static class GetTooltip_Patch

@@ -5,13 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 namespace ItemStorageComponent
 {
-    [BepInPlugin("aedenthorn.ItemStorageComponent", "Item Storage Component", "0.2.0")]
+    [BepInPlugin("aedenthorn.ItemStorageComponent", "Item Storage Component", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -282,6 +283,98 @@ namespace ItemStorageComponent
 
                 __result = __result.Replace(item.m_crafterName, item.m_crafterName.Split('_')[0]);
             }
+        }
+        
+        [HarmonyPatch(typeof(Inventory), "CanAddItem", new Type[] { typeof(GameObject), typeof(int) })]
+        static class CanAddItem_Patch1
+        {
+            static bool Prefix(ref bool __result, Inventory __instance, GameObject prefab)
+            {
+                if (!modEnabled.Value)
+                    return true;
+
+                if (!ItemIsAllowed(__instance.GetName(), prefab.name))
+                {
+                    __result = false;
+                    return false;
+                }
+                return true;
+            }
+        }
+        [HarmonyPatch(typeof(Inventory), "CanAddItem", new Type[] { typeof(ItemDrop.ItemData), typeof(int) })]
+        static class CanAddItem_Patch2
+        {
+            static bool Prefix(ref bool __result, Inventory __instance, ItemDrop.ItemData item)
+            {
+                if (!modEnabled.Value || item.m_dropPrefab == null)
+                    return true;
+
+                if (!ItemIsAllowed(__instance.GetName(), item.m_dropPrefab.name))
+                {
+                    __result = false;
+                    return false;
+                }
+                return true;
+            }
+        }
+                
+        [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(ItemDrop.ItemData) })]
+        static class AddItem_Patch1
+        {
+            static bool Prefix(ref bool __result, Inventory __instance, ItemDrop.ItemData item)
+            {
+                if (!modEnabled.Value || item.m_dropPrefab == null)
+                    return true;
+
+                if (!ItemIsAllowed(__instance.GetName(), item.m_dropPrefab.name))
+                {
+                    __result = false;
+                    return false;
+                }
+                return true;
+            }
+        }                
+        [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(int), typeof(int) })]
+        static class AddItem_Patch2
+        {
+            static bool Prefix(ref bool __result, Inventory __instance, ItemDrop.ItemData item)
+            {
+                if (!modEnabled.Value || item.m_dropPrefab == null)
+                    return true;
+
+                if (!ItemIsAllowed(__instance.GetName(), item.m_dropPrefab.name))
+                {
+                    __result = false;
+                    return false;
+                }
+                return true;
+            }
+        }
+        [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(string), typeof(int), typeof(float), typeof(Vector2i), typeof(bool), typeof(int), typeof(int), typeof(long), typeof(string) })]
+        static class AddItem_Patch3
+        {
+            static bool Prefix(ref bool __result, Inventory __instance, string name)
+            {
+                if (!modEnabled.Value)
+                    return true;
+
+                if (!ItemIsAllowed(__instance.GetName(), name))
+                {
+                    __result = false;
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        private static bool ItemIsAllowed(string inventoryName, string itemName)
+        {
+            if (!itemStorageDict.Values.ToList().Exists(i => i.meta.itemName == inventoryName))
+                return true;
+            //var mis = itemStorageDict.Values.ToList().First(i => i.meta.itemName == inventoryName);
+            //Dbgl($"{mis.meta.itemName} inventory found, allowed items: {string.Join(", ", mis.meta.allowedItems)} - contains item {itemName}? {mis.meta.allowedItems.Contains(itemName)}, disallowed items: {string.Join(", ", mis.meta.disallowedItems)} - contains item {itemName}? {mis.meta.disallowedItems.Contains(itemName)}" );
+
+            return !itemStorageDict.Values.ToList().Exists(i => i.meta.itemName == inventoryName && ((i.meta.allowedItems.Length > 0 && !i.meta.allowedItems.Contains(itemName)) || (i.meta.allowedItems.Length == 0 && i.meta.disallowedItems.Length > 0 && i.meta.disallowedItems.Contains(itemName))));
         }
 
         [HarmonyPatch(typeof(Console), "InputText")]
