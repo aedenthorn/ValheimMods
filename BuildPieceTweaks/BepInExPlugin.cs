@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace BuildPieceTweaks
 {
-    [BepInPlugin("aedenthorn.BuildPieceTweaks", "Build Piece Tweaks", "0.2.3")]
+    [BepInPlugin("aedenthorn.BuildPieceTweaks", "Build Piece Tweaks", "0.2.5")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -310,6 +310,7 @@ namespace BuildPieceTweaks
                 pieceData.health = wnt.m_health;
                 pieceData.noRoofWear = wnt.m_noRoofWear;
                 pieceData.noSupportWear = wnt.m_noSupportWear;
+                pieceData.materialType = wnt.m_materialType;
                 pieceData.supports = wnt.m_supports;
                 pieceData.comOffset = wnt.m_comOffset;
                 pieceData.hitNoise = wnt.m_hitNoise;
@@ -416,7 +417,7 @@ namespace BuildPieceTweaks
                     if (pieceData == null)
                         return false;
                     CheckModFolder();
-                    File.WriteAllText(Path.Combine(assetPath, pieceData.name + ".json"), JsonUtility.ToJson(pieceData));
+                    File.WriteAllText(Path.Combine(assetPath, pieceData.name + ".json"), JsonUtility.ToJson(pieceData, true));
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} saved piece data to {pieceName}.json" }).GetValue();
                     return false;

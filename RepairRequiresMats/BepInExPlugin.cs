@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace RepairRequiresMats
 {
-    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.3.0")]
+    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.3.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static bool isDebug = true;
@@ -44,9 +44,6 @@ namespace RepairRequiresMats
             materialRequirementMult = Config.Bind<float>("General", "MaterialRequirementMult", 0.5f, "Multiplier for amount of each material required.");
             nexusID = Config.Bind<int>("General", "NexusID", 215, "Nexus mod ID for updates");
 
-            if (!modEnabled.Value)
-                return;
-
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
         }
@@ -63,6 +60,9 @@ namespace RepairRequiresMats
         {
             static void Postfix(UITooltip __instance, UITooltip ___m_current, GameObject ___m_tooltip)
             {
+
+                if (!modEnabled.Value)
+                    return;
                 if (___m_current == __instance && ___m_tooltip != null && ___m_current.transform.name == "RepairButton")
                 {
                     ___m_tooltip.transform.position = Input.mousePosition + new Vector3(-200,-100);
@@ -77,6 +77,8 @@ namespace RepairRequiresMats
         {
             static void Postfix(InventoryGui __instance, ref List<ItemDrop.ItemData> ___m_tempWornItems)
             {
+                if (!modEnabled.Value)
+                    return;
 
                 if (!___m_tempWornItems.Any())
                     return;
@@ -153,6 +155,9 @@ namespace RepairRequiresMats
         {
             static void Postfix(ItemDrop.ItemData item, ref bool __result)
             {
+                if (!modEnabled.Value)
+                    return;
+
                 if (modEnabled.Value && Environment.StackTrace.Contains("RepairOneItem") && !Environment.StackTrace.Contains("HaveRepairableItems") && __result == true && item?.m_shared != null && Player.m_localPlayer != null && orderedWornItems.Count > 0)
                 {
                     if (orderedWornItems[0] != item)
@@ -199,7 +204,7 @@ namespace RepairRequiresMats
             bool isMagic = false;
             if (epicLootAssembly != null)
             {
-                isMagic = (bool)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("IsMagic", BindingFlags.Public | BindingFlags.Static).Invoke(null, new[] { item });
+                isMagic = (bool)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("IsMagic", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(ItemDrop.ItemData) }, null).Invoke(null, new[] { item });
             }
             if (isMagic)
             {

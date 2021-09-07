@@ -13,7 +13,7 @@ using Debug = UnityEngine.Debug;
 
 namespace BackpackRedux
 {
-    [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.3.1")]
+    [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.3.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -155,10 +155,12 @@ namespace BackpackRedux
         {
             static void Prefix(FejdStartup __instance, List<PlayerProfile> ___m_profiles)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || ___m_profiles == null)
                     return;
 
                 var profile = ___m_profiles.Find(p => p.GetFilename() == (string)typeof(Game).GetField("m_profileFilename", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null));
+                if (profile == null)
+                    return;
                 backpackFileName = Path.GetFileNameWithoutExtension(profile.GetFilename()) + "_backpack";
                 LoadBackpackInventory();
             }

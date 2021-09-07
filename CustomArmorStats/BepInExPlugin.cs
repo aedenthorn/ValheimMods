@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace CustomArmorStats
 {
-    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.2.2")]
+    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.2.5")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -111,6 +111,31 @@ namespace CustomArmorStats
                 if (!modEnabled.Value)
                     return;
                 __result *= globalArmorMovementModMult.Value;
+            }
+        }
+        
+        [HarmonyPatch(typeof(Player), "GetJogSpeedFactor")]
+        static class GetJogSpeedFactor_Patch
+        {
+            static bool Prefix(ref float __result, float ___m_equipmentMovementModifier)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                __result = 1 + ___m_equipmentMovementModifier * globalArmorMovementModMult.Value;
+                return false;
+            }
+        }
+                
+        [HarmonyPatch(typeof(Player), "GetRunSpeedFactor")]
+        static class GetRunSpeedFactor_Patch
+        {
+            static bool Prefix(Skills ___m_skills, float ___m_equipmentMovementModifier, ref float __result)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                float skillFactor = ___m_skills.GetSkillFactor(Skills.SkillType.Run);
+                __result = (1f + skillFactor * 0.25f) * (1f + ___m_equipmentMovementModifier * 1.5f * globalArmorMovementModMult.Value);
+                return false;
             }
         }
         
@@ -435,7 +460,7 @@ namespace CustomArmorStats
                     if (armorData == null)
                         return false;
                     CheckModFolder();
-                    File.WriteAllText(Path.Combine(assetPath, armorData.name + ".json"), JsonUtility.ToJson(armorData));
+                    File.WriteAllText(Path.Combine(assetPath, armorData.name + ".json"), JsonUtility.ToJson(armorData, true));
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} saved armor data to {armor}.json" }).GetValue();
                     return false;
