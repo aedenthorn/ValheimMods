@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.2.3")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.2.4")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -256,6 +256,30 @@ namespace ExtendedPlayerInventory
                 var back = t.Field("m_shoulderItem").GetValue<ItemDrop.ItemData>();
                 var utility = t.Field("m_utilityItem").GetValue<ItemDrop.ItemData>();
 
+
+                int width = inv.GetWidth();
+                int offset = width * (inv.GetHeight() - 1);
+
+                if (helmet != null)
+                    t.Field("m_helmetItem").GetValue<ItemDrop.ItemData>().m_gridPos = new Vector2i(offset % width, offset / width);
+                offset++;
+
+                if (chest != null)
+                    t.Field("m_chestItem").GetValue<ItemDrop.ItemData>().m_gridPos = new Vector2i(offset % width, offset / width);
+                offset++;
+
+                if (legs != null)
+                    t.Field("m_legItem").GetValue<ItemDrop.ItemData>().m_gridPos = new Vector2i(offset % width, offset / width);
+                offset++;
+
+                if (back != null)
+                    t.Field("m_shoulderItem").GetValue<ItemDrop.ItemData>().m_gridPos = new Vector2i(offset % width, offset / width);
+                offset++;
+
+                if (utility != null)
+                    t.Field("m_utilityItem").GetValue<ItemDrop.ItemData>().m_gridPos = new Vector2i(offset % width, offset / width);
+
+
                 for (int i = 0; i < items.Count; i++)
                 {
                     //Dbgl($"{items[i].m_gridPos} {inv.GetHeight() - 1},0 {items[i] != helmet}");
@@ -290,28 +314,6 @@ namespace ExtendedPlayerInventory
 
                 if (!___m_animator.GetBool("visible"))
                     return;
-
-                int width = inv.GetWidth();
-                int offset = width * (inv.GetHeight() - 1);
-
-                if (helmet != null)
-                    t.Field("m_helmetItem").GetValue<ItemDrop.ItemData>().m_gridPos = new Vector2i(offset % width, offset / width);
-                offset++;
-
-                if (chest != null)
-                    t.Field("m_chestItem").GetValue<ItemDrop.ItemData>().m_gridPos = new Vector2i(offset % width, offset / width);
-                offset++;
-
-                if (legs != null)
-                    t.Field("m_legItem").GetValue<ItemDrop.ItemData>().m_gridPos = new Vector2i(offset % width, offset / width);
-                offset++;
-
-                if (back != null)
-                    t.Field("m_shoulderItem").GetValue<ItemDrop.ItemData>().m_gridPos = new Vector2i(offset % width, offset / width);
-                offset++;
-
-                if (utility != null)
-                    t.Field("m_utilityItem").GetValue<ItemDrop.ItemData>().m_gridPos = new Vector2i(offset % width, offset / width);
 
 
                 __instance.m_player.Find("Bkg").GetComponent<RectTransform>().anchorMin = new Vector2(0, (extraRows.Value + (addEquipmentRow.Value && !displayEquipmentRowSeparate.Value ? 1 : 0)) * -0.25f);
