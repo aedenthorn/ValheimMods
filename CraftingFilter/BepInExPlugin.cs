@@ -12,7 +12,9 @@ using UnityEngine.UI;
 
 namespace CraftingFilter
 {
-    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.5.1")]
+    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.5.2")]
+    [BepInIncompatibility("DasSauerkraut.Terraheim")]
+    [BepInIncompatibility("DasSauerkraut.TerraheimItems")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
