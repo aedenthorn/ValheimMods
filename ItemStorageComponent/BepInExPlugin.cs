@@ -377,10 +377,10 @@ namespace ItemStorageComponent
             return !itemStorageDict.Values.ToList().Exists(i => i.meta.itemName == inventoryName && ((i.meta.allowedItems.Length > 0 && !i.meta.allowedItems.Contains(itemName)) || (i.meta.allowedItems.Length == 0 && i.meta.disallowedItems.Length > 0 && i.meta.disallowedItems.Contains(itemName))));
         }
 
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

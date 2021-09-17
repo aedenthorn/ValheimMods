@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Durability
 {
-    [BepInPlugin("aedenthorn.Durability", "Durability", "0.5.2")]
+    [BepInPlugin("aedenthorn.Durability", "Durability", "0.6.0")]
     public class Durability : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -105,13 +105,13 @@ namespace Durability
             }
         }
 
-        [HarmonyPatch(typeof(Humanoid), "DamageArmorDurability")]
+        [HarmonyPatch(typeof(Player), "DamageArmorDurability")]
         static class DamageArmorDurability_Patch
         {
-            static void Prefix(Humanoid __instance, ref float[] __state, ItemDrop.ItemData ___m_chestItem, ItemDrop.ItemData ___m_legItem, ItemDrop.ItemData ___m_shoulderItem, ItemDrop.ItemData ___m_helmetItem)
+            static void Prefix(Player __instance, ref float[] __state, ItemDrop.ItemData ___m_chestItem, ItemDrop.ItemData ___m_legItem, ItemDrop.ItemData ___m_shoulderItem, ItemDrop.ItemData ___m_helmetItem)
             {
                 __state = new float[4];
-                if (modEnabled.Value && __instance.IsPlayer())
+                if (modEnabled.Value)
                 {
                     __state[0] = ___m_chestItem?.m_durability ?? -1f;
                     __state[1] = ___m_legItem?.m_durability ?? -1f;
@@ -119,9 +119,9 @@ namespace Durability
                     __state[3] = ___m_helmetItem?.m_durability ?? -1f;
                 }
             }
-            static void Postfix(Humanoid __instance, float[] __state, ref ItemDrop.ItemData ___m_chestItem, ref ItemDrop.ItemData ___m_legItem, ref ItemDrop.ItemData ___m_shoulderItem, ref ItemDrop.ItemData ___m_helmetItem)
+            static void Postfix(Player __instance, float[] __state, ref ItemDrop.ItemData ___m_chestItem, ref ItemDrop.ItemData ___m_legItem, ref ItemDrop.ItemData ___m_shoulderItem, ref ItemDrop.ItemData ___m_helmetItem)
             {
-                if (modEnabled.Value && __instance.IsPlayer())
+                if (modEnabled.Value)
                 {
                     if(___m_chestItem != null && __state[0] > ___m_chestItem.m_durability)
                     {

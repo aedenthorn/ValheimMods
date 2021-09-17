@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace BuildPieceTweaks
 {
-    [BepInPlugin("aedenthorn.BuildPieceTweaks", "Build Piece Tweaks", "0.2.5")]
+    [BepInPlugin("aedenthorn.BuildPieceTweaks", "Build Piece Tweaks", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -334,10 +334,10 @@ namespace BuildPieceTweaks
             return pieceData;
         }
 
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

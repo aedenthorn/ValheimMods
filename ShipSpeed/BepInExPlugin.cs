@@ -185,10 +185,10 @@ namespace ShipSpeed
                 __result = Math.Min(1, __result);
             }
         }
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

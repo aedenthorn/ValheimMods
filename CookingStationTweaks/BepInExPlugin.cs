@@ -7,7 +7,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CookingStationTweaks
 {
-    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.2.0")]
+    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -61,13 +61,17 @@ namespace CookingStationTweaks
         [HarmonyPatch(typeof(CookingStation), "Awake")]
         static class CookingStation_Awake_Patch
         {
-            static void Prefix(CookingStation __instance)
+            static void Prefix(CookingStation __instance, ref ParticleSystem[] ___m_burntPS, ref ParticleSystem[] ___m_donePS, ref ParticleSystem[] ___m_ps, ref AudioSource[] ___m_as)
             {
                 if (!modEnabled.Value)
                     return;
 
                 int count = __instance.m_slots.Length;
                 List<Transform> newSlots = new List<Transform>(__instance.m_slots);
+
+                Transform burnt = null;
+                Transform done = null;
+
                 float target = Mathf.RoundToInt(count * slotMultiplier.Value);
                 Dbgl($"Cooking station {__instance.name} awake. Slots {count}, target {target}");
                 while(count < target)
@@ -104,6 +108,7 @@ namespace CookingStationTweaks
                             c.position = Vector3.Lerp(a.position, b.position, 0.5f);
                             newSlots.Insert(idx+1, c);
                         }
+
                         count++;
                         if (count >= target)
                             break;
@@ -116,6 +121,53 @@ namespace CookingStationTweaks
                 for (int i = 0; i < newSlots.Count; i++)
                     newSlots[i].name = "slot" + i;
                 __instance.m_slots = newSlots.ToArray();
+
+                ___m_ps = new ParticleSystem[__instance.m_slots.Length];
+                ___m_as = new AudioSource[__instance.m_slots.Length];
+
+
+                List<ParticleSystem> oldBurnt = new List<ParticleSystem>();
+                List<ParticleSystem> oldDone = new List<ParticleSystem>();
+                if (___m_burntPS.Length != 0)
+                {
+                    burnt = ___m_burntPS[0].transform;
+                    ___m_burntPS = new ParticleSystem[__instance.m_slots.Length];
+                }
+                if (___m_donePS.Length != 0)
+                {
+                    done = ___m_donePS[0].transform;
+                    ___m_donePS = new ParticleSystem[__instance.m_slots.Length];
+                }
+
+                for (int i = 0; i < __instance.m_slots.Length; i++)
+                {
+                    ___m_ps[i] = __instance.m_slots[i].GetComponent<ParticleSystem>();
+                    ___m_as[i] = __instance.m_slots[i].GetComponent<AudioSource>();
+                    if (burnt)
+                    {
+                        ___m_burntPS[i] = Instantiate(burnt, burnt.parent).GetComponent<ParticleSystem>();
+                        ___m_burntPS[i].name = "burnt" + i;
+                        ___m_burntPS[i].transform.localPosition = __instance.m_slots[i].localPosition;
+                        ParticleSystem.EmissionModule emissionModule = ___m_burntPS[i].emission;
+                        emissionModule.enabled = false;
+                    }
+                    if (done)
+                    {
+                        ___m_donePS[i] = Instantiate(done, done.parent).GetComponent<ParticleSystem>();
+                        ___m_donePS[i].name = "done" + i;
+                        ___m_donePS[i].transform.localPosition = __instance.m_slots[i].localPosition;
+                        ParticleSystem.EmissionModule emissionModule = ___m_donePS[i].emission;
+                        emissionModule.enabled = false;
+                    }
+                }
+                foreach(var ps in oldBurnt)
+                {
+                    Destroy(ps.gameObject);
+                }
+                foreach(var ps in oldDone)
+                {
+                    Destroy(ps.gameObject);
+                }
             }
         }
 
@@ -138,7 +190,7 @@ namespace CookingStationTweaks
                         {
                             if (autoPop.Value)
                             {
-                                Traverse.Create(__instance).Method("SpawnItem", new object[] { itemName }).GetValue();
+                                Traverse.Create(__instance).Method("SpawnItem", new object[] { itemName, i, __instance.m_slots[i].position }).GetValue();
                                 ___m_nview.GetZDO().Set("slot" + i, "");
                                 ___m_nview.GetZDO().Set("slot" + i, 0f);
                                 ___m_nview.InvokeRPC(ZNetView.Everybody, "SetSlotVisual", new object[] { i, "" });
@@ -150,10 +202,10 @@ namespace CookingStationTweaks
                 }
             }
         }
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -163,8 +215,8 @@ namespace CookingStationTweaks
                     context.Config.Reload();
                     context.Config.Save();
 
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    __instance.AddString(text);
+                    __instance.AddString($"{context.Info.Metadata.Name} config reloaded");
                     return false;
                 }
                 return true;

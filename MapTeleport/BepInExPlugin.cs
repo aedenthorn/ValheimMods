@@ -1,13 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
 namespace MapTeleport
 {
-    [BepInPlugin("aedenthorn.MapTeleport", "Map Teleport", "0.4.0")]
+    [BepInPlugin("aedenthorn.MapTeleport", "Map Teleport", "0.5.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -52,7 +51,7 @@ namespace MapTeleport
                 {
                     if (Player.m_localPlayer)
                     {
-                        typeof(Minimap).GetMethod("SetMapMode", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Minimap.instance, new object[] { 1 });
+                        __instance.SetMapMode(Minimap.MapMode.Small);
                         Minimap.instance.m_smallRoot.SetActive(true);
 
                         HeightmapBuilder.HMBuildData data = new HeightmapBuilder.HMBuildData(pos, 1, 1, false, WorldGenerator.instance);
@@ -67,10 +66,10 @@ namespace MapTeleport
                 return false;
             }
         }
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

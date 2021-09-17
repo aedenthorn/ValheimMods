@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace SleepWithoutSpawn
 {
-    [BepInPlugin("aedenthorn.SleepWithoutSpawn", "Sleep Without Spawn", "0.1.1")]
+    [BepInPlugin("aedenthorn.SleepWithoutSpawn", "Sleep Without Spawn", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -94,7 +94,7 @@ namespace SleepWithoutSpawn
                     __result = false;
                     return false;
                 }
-                human.AttachStart(__instance.m_spawnPoint, true, true, "attach_bed", new Vector3(0f, 0.5f, 0f));
+                human.AttachStart(__instance.m_spawnPoint, __instance.gameObject, true, true, false, "attach_bed", new Vector3(0f, 0.5f, 0f));
                 __result = false;
                 return false;
             }
@@ -102,10 +102,10 @@ namespace SleepWithoutSpawn
 
 
 
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

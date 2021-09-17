@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace DiscardDroppedItems
 {
-    [BepInPlugin("aedenthorn.DiscardDroppedItems", "Discard Dropped Items", "0.1.2")]
+    [BepInPlugin("aedenthorn.DiscardDroppedItems", "Discard Dropped Items", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

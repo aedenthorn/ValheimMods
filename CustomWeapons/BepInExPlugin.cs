@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomWeaponStats
 {
-    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.5.1")]
+    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.6.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -100,8 +100,8 @@ namespace CustomWeaponStats
             }
         }
 
-        [HarmonyPatch(typeof(Attack), "GetStaminaUsage")]
-        static class GetStaminaUsage_Patch
+        [HarmonyPatch(typeof(Attack), "GetAttackStamina")]
+        static class GetAttackStamina_Patch
         {
             static void Postfix(ref float __result)
             {
@@ -360,10 +360,10 @@ namespace CustomWeaponStats
             }
         }
 
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

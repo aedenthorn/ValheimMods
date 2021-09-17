@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BuildingDemolish
 {
-    [BepInPlugin("aedenthorn.BuildingDemolish", "Building Demolish", "0.4.0")]
+    [BepInPlugin("aedenthorn.BuildingDemolish", "Building Demolish", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -122,44 +122,44 @@ namespace BuildingDemolish
             }
             return count;
         }
-
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     context.Config.Reload();
                     context.Config.Save();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+
+                    __instance.AddString(text);
+                    __instance.AddString($"{context.Info.Metadata.Name} config reloaded");
                     return false;
                 }
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} demolish"))
                 {
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    __instance.AddString(text);
                     int count = DemolishPieces(destroyRadius.Value);
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} demolished {count} pieces" }).GetValue();
+                    __instance.AddString($"{context.Info.Metadata.Name} demolished {count} pieces");
                     return false;
                 }
                 if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} demolish "))
                 {
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    if(int.TryParse(text.Split(' ')[2], out int radius))
+                    __instance.AddString(text);
+                    if (int.TryParse(text.Split(' ')[2], out int radius))
                     {
                         int count = DemolishPieces(radius);
-                        Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} demolished {count} pieces" }).GetValue();
+                        __instance.AddString($"{context.Info.Metadata.Name} demolished {count} pieces");
                     }
                     else
-                        Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} syntax error" }).GetValue();
+                        __instance.AddString($"{context.Info.Metadata.Name} syntax error");
                     return false;
                 }
                 return true;
             }
         }
-    }
+   }
 }

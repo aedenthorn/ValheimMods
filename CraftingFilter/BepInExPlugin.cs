@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CraftingFilter
 {
-    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.5.1")]
+    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -377,11 +377,10 @@ namespace CraftingFilter
         }
 
 
-
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -390,9 +389,9 @@ namespace CraftingFilter
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    context.LoadCategories();
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+
+                    __instance.AddString(text);
+                    __instance.AddString($"{context.Info.Metadata.Name} config reloaded");
                     return false;
                 }
                 return true;

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace DayCycle
 {
-    [BepInPlugin("aedenthorn.DayCycle", "DayCycle", "0.7.1")]
+    [BepInPlugin("aedenthorn.DayCycle", "DayCycle", "0.8.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -171,21 +171,23 @@ namespace DayCycle
             }
         }
         */
-        [HarmonyPatch(typeof(Console), "InputText")]
+
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("daycycle reset"))
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
+
+                    __instance.AddString(text);
                     Traverse.Create(EnvMan.instance).Field("m_dayLengthSec").SetValue((long)Mathf.Round(vanillaDayLengthSec / dayRate.Value));
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "Day Cycle config reloaded" }).GetValue();
+                    __instance.AddString($"{context.Info.Metadata.Name} config reloaded");
                     return false;
                 }
                 return true;

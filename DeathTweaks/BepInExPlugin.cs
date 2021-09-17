@@ -111,7 +111,7 @@ namespace DeathTweaks
         [HarmonyPriority(Priority.First)]
         static class OnDeath_Patch
         {
-            static bool Prefix(Player __instance, Inventory ___m_inventory, ref float ___m_timeSinceDeath, float ___m_hardDeathCooldown, ZNetView ___m_nview, List<Player.Food> ___m_foods, Skills ___m_skills)
+            static bool Prefix(Player __instance, Inventory ___m_inventory, ref float ___m_timeSinceDeath, float ___m_hardDeathCooldown, ZNetView ___m_nview, List<Player.Food> ___m_foods, Skills ___m_skills, SEMan ___m_seman)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -245,8 +245,8 @@ namespace DeathTweaks
                 {
                     ___m_skills.OnDeath();
                 }
+                ___m_seman.RemoveAllStatusEffects(false);
                 Game.instance.RequestRespawn(10f);
-                
                 ___m_timeSinceDeath = 0;
 
                 if (!hardDeath)
@@ -255,6 +255,7 @@ namespace DeathTweaks
                 }
                 __instance.Message(MessageHud.MessageType.Center, "$msg_youdied", 0, null);
                 __instance.ShowTutorial("death", false);
+                Minimap.instance.AddPin(__instance.transform.position, Minimap.PinType.Death, string.Format("$hud_mapday {0}", EnvMan.instance.GetDay(ZNet.instance.GetTimeSeconds())), true, false, 0L);
                 string eventLabel = "biome:" + __instance.GetCurrentBiome().ToString();
                 Gogan.LogEvent("Game", "Death", eventLabel, 0L);
 
@@ -384,18 +385,22 @@ namespace DeathTweaks
             }
         }
 
-        [HarmonyPatch(typeof(Console), "InputText")]
+
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    context.Config.Reload();
+                    context.Config.Save();
+
+                    __instance.AddString(text);
+                    __instance.AddString($"{context.Info.Metadata.Name} config reloaded");
                     return false;
                 }
                 return true;

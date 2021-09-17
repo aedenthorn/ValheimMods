@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace CustomArmorStats
 {
-    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.2.5")]
+    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -92,8 +92,8 @@ namespace CustomArmorStats
             }
         }
 
-        [HarmonyPatch(typeof(Humanoid), "DamageArmorDurability")]
-        static class DamageArmorDurability_Patch
+        [HarmonyPatch(typeof(Player), "DamageArmorDurability")]
+        static class Player_DamageArmorDurability_Patch
         {
             static void Prefix(ref HitData hit)
             {
@@ -249,7 +249,7 @@ namespace CustomArmorStats
                     {
                         ___m_seman.RemoveStatusEffect("Wet", true);
                     }
-                    else if (water == HitData.DamageModifier.VeryResistant && !__instance.InWaterSwimDepth())
+                    else if (water == HitData.DamageModifier.VeryResistant && !__instance.InLiquidSwimDepth())
                     {
                         ___m_seman.RemoveStatusEffect("Wet", true);
                     }
@@ -408,10 +408,10 @@ namespace CustomArmorStats
             return armor;
         }
 
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

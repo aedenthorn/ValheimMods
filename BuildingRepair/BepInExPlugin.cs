@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BuildingRepair
 {
-    [BepInPlugin("aedenthorn.BuildingRepair", "Building Repair", "0.1.1")]
+    [BepInPlugin("aedenthorn.BuildingRepair", "Building Repair", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -98,44 +98,44 @@ namespace BuildingRepair
             Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(repairMessage.Value, count));
             return count;
         }
-
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    __instance.AddString(text);
                     context.Config.Reload();
                     context.Config.Save();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    __instance.AddString($"{context.Info.Metadata.Name} config reloaded");
                     return false;
                 }
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} repair"))
                 {
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    __instance.AddString(text);
                     int count = repairPieces(repairRadius.Value);
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} repaired {count} pieces" }).GetValue();
+                    __instance.AddString($"{context.Info.Metadata.Name} repaired {count} pieces");
                     return false;
                 }
                 if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} repair "))
                 {
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    if(int.TryParse(text.Split(' ')[2], out int radius))
+                    __instance.AddString(text);
+                    if (int.TryParse(text.Split(' ')[2], out int radius))
                     {
                         int count = repairPieces(radius);
-                        Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} repaired {count} pieces" }).GetValue();
+                        __instance.AddString($"{context.Info.Metadata.Name} repaired {count} pieces");
                     }
                     else
-                        Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} syntax error" }).GetValue();
+                        __instance.AddString($"{context.Info.Metadata.Name} syntax error");
                     return false;
                 }
                 return true;
             }
         }
+
     }
 }

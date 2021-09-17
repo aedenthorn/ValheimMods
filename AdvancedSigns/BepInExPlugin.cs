@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace AdvancedSigns
 {
-    [BepInPlugin("aedenthorn.AdvancedSigns", "Advanced Signs", "0.1.1")]
+    [BepInPlugin("aedenthorn.AdvancedSigns", "Advanced Signs", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -111,10 +111,10 @@ namespace AdvancedSigns
             return Font.CreateDynamicFontFromOSFont(fontName, fontSize);
         }
 
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -124,8 +124,8 @@ namespace AdvancedSigns
                     context.Config.Reload();
                     context.Config.Save();
 
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    __instance.AddString(text);
+                    __instance.AddString($"{context.Info.Metadata.Name} config reloaded");
                     return false;
                 }
                 return true;

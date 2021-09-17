@@ -4,11 +4,10 @@ using HarmonyLib;
 using System;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace BuildingDamageMod
 {
-    [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.3.2")]
+    [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -32,10 +31,10 @@ namespace BuildingDamageMod
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            creatorDamageMult = Config.Bind<float>("General", "CreatorDamagMult", 1f, "Multiply damage by creators by this much");
-            nonCreatorDamageMult = Config.Bind<float>("General", "NonCreatorDamagMult", 1f, "Multiply damage by non-creators by this much");
-            uncreatedDamageMult = Config.Bind<float>("General", "UncreatedDamagMult", 1f, "Multiply damage to uncreated buildings by this much");
-            naturalDamageMult = Config.Bind<float>("General", "NaturalDamagMult", 1f, "Multiply natural wear damage to buildings by this much");
+            creatorDamageMult = Config.Bind<float>("General", "CreatorDamageMult", 1f, "Multiply damage by creators by this much");
+            nonCreatorDamageMult = Config.Bind<float>("General", "NonCreatorDamageMult", 1f, "Multiply damage by non-creators by this much");
+            uncreatedDamageMult = Config.Bind<float>("General", "UncreatedDamageMult", 1f, "Multiply damage to uncreated buildings by this much");
+            naturalDamageMult = Config.Bind<float>("General", "NaturalDamageMult", 1f, "Multiply natural wear damage to buildings by this much");
             nexusID = Config.Bind<int>("General", "NexusID", 233, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
@@ -44,10 +43,10 @@ namespace BuildingDamageMod
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        [HarmonyPatch(typeof(Console), "InputText")]
+        [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
-            static bool Prefix(Console __instance)
+            static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
