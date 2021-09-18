@@ -13,7 +13,7 @@ namespace ServerRewards
         }
         public void UpdatePlayers(bool forced)
         {
-            if (!modEnabled.Value)
+            if (!modEnabled.Value || !ZNet.instance.IsServer())
                 return;
 
             Dbgl("Updating players");

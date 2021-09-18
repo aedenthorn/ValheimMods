@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace InstantMonsterDrop
 {
-    [BepInPlugin("aedenthorn.InstantMonsterDrop", "Instant Monster Drop", "0.3.3")]
+    [BepInPlugin("aedenthorn.InstantMonsterDrop", "Instant Monster Drop", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -76,7 +76,6 @@ namespace InstantMonsterDrop
 
             if (!nview.IsValid() || !nview.IsOwner())
             {
-                context.StartCoroutine(DropNow(ragdoll, nview, removeEffect));
                 yield break;
             }
             Dbgl($"dropping loot");
@@ -95,12 +94,11 @@ namespace InstantMonsterDrop
 
             if (!nview.IsValid() || !nview.IsOwner())
             {
-                context.StartCoroutine(DestroyNow(ragdoll, nview, m_removeEffect));
                 yield break;
             }
             Dbgl($"destroying ragdoll");
             Vector3 averageBodyPosition = ragdoll.GetAverageBodyPosition();
-            m_removeEffect.Create(averageBodyPosition, Quaternion.identity, null, 1f);
+            m_removeEffect.Create(averageBodyPosition, Quaternion.identity, null, 1f, -1);
             ZNetScene.instance.Destroy(ragdoll.gameObject);
         }
 

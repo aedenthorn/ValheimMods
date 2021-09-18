@@ -266,6 +266,46 @@ namespace CraftFromContainers
         }
 
 
+        [HarmonyPatch(typeof(CookingStation), "OnAddFuelSwitch")]
+        static class CookingStation_OnAddFuelSwitch_Patch
+        {
+            static bool Prefix(CookingStation __instance, ref bool __result, Humanoid user, ItemDrop.ItemData item, ZNetView ___m_nview)
+            {
+                Dbgl($"looking for fuel");
+
+                if (!modEnabled.Value || !AllowByKey() || item != null || (float)__instance.GetType().GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { }) > (float)(__instance.m_maxFuel - 1) || user.GetInventory().HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name))
+                    return true;
+
+                Dbgl($"missing fuel in player inventory");
+
+
+                List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
+
+                foreach (Container c in nearbyContainers)
+                {
+                    ItemDrop.ItemData fuelItem = c.GetInventory().GetItem(__instance.m_fuelItem.m_itemData.m_shared.m_name);
+                    if (fuelItem != null)
+                    {
+                        if (fuelDisallowTypes.Value.Split(',').Contains(fuelItem.m_dropPrefab.name))
+                        {
+                            Dbgl($"container at {c.transform.position} has {fuelItem.m_stack} {fuelItem.m_dropPrefab.name} but it's forbidden by config");
+                            continue;
+                        }
+
+                        Dbgl($"container at {c.transform.position} has {fuelItem.m_stack} {fuelItem.m_dropPrefab.name}, taking one");
+                        c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, 1);
+                        typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
+                        //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
+                        user.Message(MessageHud.MessageType.Center, "$msg_added " + __instance.m_fuelItem.m_itemData.m_shared.m_name, 0, null);
+                        ___m_nview.InvokeRPC("AddFuel", Array.Empty<object>());
+                        __result = true;
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
         [HarmonyPatch(typeof(CookingStation), "FindCookableItem")]
         static class CookingStation_FindCookableItem_Patch
         {
@@ -273,7 +313,7 @@ namespace CraftFromContainers
             {
                 Dbgl($"looking for cookable");
 
-                if (!AllowByKey() || __result != null || !((bool)typeof(CookingStation).GetMethod("IsFireLit", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) || ((int)typeof(CookingStation).GetMethod("GetFreeSlot", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) == -1)
+                if (!modEnabled.Value || !AllowByKey() || __result != null || !((bool)typeof(CookingStation).GetMethod("IsFireLit", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) || ((int)typeof(CookingStation).GetMethod("GetFreeSlot", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) == -1)
                     return;
 
                 Dbgl($"missing cookable in player inventory");
@@ -311,6 +351,9 @@ namespace CraftFromContainers
         {
             static void Postfix(Smelter __instance)
             {
+                if (!modEnabled.Value)
+                    return;
+
                 if(fillAllModKey.Value?.Length > 0)
                 {
                     if(__instance.m_addOreSwitch?.m_hoverText != null)
@@ -329,7 +372,7 @@ namespace CraftFromContainers
             static bool Prefix(Smelter __instance, Humanoid user, ItemDrop.ItemData item, ZNetView ___m_nview)
             {
                 bool pullAll = CheckKeyHeld(fillAllModKey.Value);
-                if ((!AllowByKey() && !pullAll) || item != null || Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre)
+                if (!modEnabled.Value || (!AllowByKey() && !pullAll) || item != null || Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre)
                     return true;
 
                 Inventory inventory = user.GetInventory();
@@ -435,7 +478,7 @@ namespace CraftFromContainers
             {
                 bool pullAll = CheckKeyHeld(fillAllModKey.Value);
                 Inventory inventory = user.GetInventory();
-                if ((!AllowByKey() && !pullAll)|| item != null || inventory == null || (inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && !pullAll))
+                if (!modEnabled.Value || (!AllowByKey() && !pullAll)|| item != null || inventory == null || (inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && !pullAll))
                     return true;
 
                 __result = true;
@@ -514,7 +557,7 @@ namespace CraftFromContainers
         {
             static void Postfix(InventoryGui __instance, Transform elementRoot, Piece.Requirement req, Player player, bool craft, int quality)
             {
-                if (!AllowByKey())
+                if (!modEnabled.Value || !AllowByKey())
                     return;
                 if (req.m_resItem != null)
                 {
@@ -548,7 +591,7 @@ namespace CraftFromContainers
         {
             static void Postfix(InventoryGui __instance, List<GameObject> ___m_recipeList)
             {
-                if (!AllowByKey() || ___m_recipeList.Count == 0)
+                if (!modEnabled.Value || !AllowByKey() || ___m_recipeList.Count == 0)
                     return;
                 foreach(GameObject go in ___m_recipeList)
                 {
@@ -563,7 +606,7 @@ namespace CraftFromContainers
         {
             static void Postfix(Player __instance, ref bool __result, Piece.Requirement[] resources, bool discover, int qualityLevel, HashSet<string> ___m_knownMaterial)
             {
-                if (__result || discover || !AllowByKey())
+                if (!modEnabled.Value || __result || discover || !AllowByKey())
                     return;
                 List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
 
@@ -591,7 +634,7 @@ namespace CraftFromContainers
         {
             static void Postfix(Player __instance, ref bool __result, Piece piece, Player.RequirementMode mode, HashSet<string> ___m_knownMaterial, Dictionary<string, int> ___m_knownStations)
             {
-                if (__result || __instance?.transform?.position == null || !AllowByKey())
+                if (!modEnabled.Value || __result || __instance?.transform?.position == null || !AllowByKey())
                     return;
 
                 //bool ignoreRange = false;
@@ -676,7 +719,7 @@ namespace CraftFromContainers
         {
             static bool Prefix(Player __instance, Piece.Requirement[] requirements, int qualityLevel)
             {
-                if (!AllowByKey())
+                if (!modEnabled.Value || !AllowByKey())
                     return true;
 
                 Inventory pInventory = __instance.GetInventory();
@@ -747,7 +790,7 @@ namespace CraftFromContainers
         {
             static void Postfix(Player __instance, bool flashGuardStone)
             {
-                if (!showGhostConnections.Value)
+                if (!modEnabled.Value || !showGhostConnections.Value)
                 {
                     return;
                 }
@@ -873,7 +916,7 @@ namespace CraftFromContainers
         {
             static bool Prefix(InventoryGui __instance, KeyValuePair<Recipe, ItemDrop.ItemData> ___m_selectedRecipe, ItemDrop.ItemData ___m_craftUpgradeItem)
             {
-                if (!AllowByKey() || !CheckKeyHeld(pullItemsKey.Value) || ___m_selectedRecipe.Key == null)
+                if (!modEnabled.Value || !AllowByKey() || !CheckKeyHeld(pullItemsKey.Value) || ___m_selectedRecipe.Key == null)
                     return true;
 
                 int qualityLevel = (___m_craftUpgradeItem != null) ? (___m_craftUpgradeItem.m_quality + 1) : 1;
@@ -895,7 +938,7 @@ namespace CraftFromContainers
             static bool Prefix(Player __instance, bool takeInput, float dt, PieceTable ___m_buildPieces, GameObject ___m_placementGhost)
             {
 
-                if (!AllowByKey() || !CheckKeyHeld(pullItemsKey.Value) || !__instance.InPlaceMode() || !takeInput || Hud.IsPieceSelectionVisible())
+                if (!modEnabled.Value || !AllowByKey() || !CheckKeyHeld(pullItemsKey.Value) || !__instance.InPlaceMode() || !takeInput || Hud.IsPieceSelectionVisible())
                 {
                     return true;
                 }

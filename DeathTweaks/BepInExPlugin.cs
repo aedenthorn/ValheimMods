@@ -11,10 +11,9 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.8.0")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.8.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        public static ConfigSync configSync;
         public static ConfigEntry<bool> modEnabled;
         private ConfigEntry<bool> serverConfigLocked;
         public static ConfigEntry<bool> isDebug;
@@ -45,57 +44,42 @@ namespace DeathTweaks
         private static List<string> typeEnums = new List<string>();
 
         private static Assembly quickSlotsAssembly;
-        private Harmony harmony;
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
-        {
-            ConfigEntry<T> configEntry = Config.Bind(group, name, value, description);
-
-            SyncedConfigEntry<T> syncedConfigEntry = configSync.AddConfigEntry(configEntry);
-            syncedConfigEntry.SynchronizedConfig = synchronizedSetting;
-
-            return configEntry;
-        }
-
-        ConfigEntry<T> config<T>(string group, string name, T value, string description, bool synchronizedSetting = true) => config(group, name, value, new ConfigDescription(description), synchronizedSetting);
         private void Awake()
         {
-            configSync = new ConfigSync(Info.Metadata.GUID) { DisplayName = Info.Metadata.Name, CurrentVersion = Info.Metadata.Version.ToString() };
-
             foreach (int i in Enum.GetValues(typeof(ItemDrop.ItemData.ItemType)))
             {
                 typeEnums.Add(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), i));
             }
 
             context = this;
-            modEnabled = config<bool>("General", "Enabled", true, "Enable this mod", true);
-            serverConfigLocked = config("General", "Lock Configuration", false, "Lock Configuration", true);
-            configSync.AddLockingConfigEntry<bool>(serverConfigLocked);
-            isDebug = config<bool>("General", "IsDebug", true, "Enable debug logs", true);
-            nexusID = config<int>("General", "NexusID", 1068, "Nexus mod ID for updates", true);
-            keepItemTypes = config<string>("ItemLists", "KeepItemTypes", "", $"List of items to keep (comma-separated). Leave empty if using DropItemTypes. Valid types: {string.Join(",", typeEnums)}", true);
-            dropItemTypes = config<string>("ItemLists", "DropItemTypes", "", $"List of items to drop (comma-separated). Leave empty if using KeepItemTypes. Valid types: {string.Join(",", typeEnums)}", true);
-            destroyItemTypes = config<string>("ItemLists", "DestroyItemTypes", "", $"List of items to destroy (comma-separated). Overrides other lists. Valid types: {string.Join(",", typeEnums)}", true);
-            keepAllItems = config<bool>("Toggles", "KeepAllItems", false, "Overrides all other item options if true.", true);
-            destroyAllItems = config<bool>("Toggles", "DestroyAllItems", false, "Overrides all other item options except KeepAllItems if true.", true);
-            keepEquippedItems = config<bool>("Toggles", "KeepEquippedItems", false, "Overrides item lists if true.", true);
-            keepHotbarItems = config<bool>("Toggles", "KeepHotbarItems", false, "Overrides item lists if true.", true);
-            useTombStone = config<bool>("Toggles", "UseTombStone", true, "Use tombstone (if false, drops items on ground).", true);
-            createDeathEffects = config<bool>("Toggles", "CreateDeathEffects", true, "Create death effects.", true);
-            keepFoodLevels = config<bool>("Toggles", "KeepFoodLevels", false, "Keep food levels.", true);
-            keepQuickSlotItems = config<bool>("Toggles", "KeepQuickSlotItems", false, "Keep QuickSlot items.", true);
+            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            serverConfigLocked = Config.Bind("General", "Lock Configuration", false, "Lock Configuration");
+            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
+            nexusID = Config.Bind<int>("General", "NexusID", 1068, "Nexus mod ID for updates");
+            keepItemTypes = Config.Bind<string>("ItemLists", "KeepItemTypes", "", $"List of items to keep (comma-separated). Leave empty if using DropItemTypes. Valid types: {string.Join(",", typeEnums)}");
+            dropItemTypes = Config.Bind<string>("ItemLists", "DropItemTypes", "", $"List of items to drop (comma-separated). Leave empty if using KeepItemTypes. Valid types: {string.Join(",", typeEnums)}");
+            destroyItemTypes = Config.Bind<string>("ItemLists", "DestroyItemTypes", "", $"List of items to destroy (comma-separated). Overrides other lists. Valid types: {string.Join(",", typeEnums)}");
+            keepAllItems = Config.Bind<bool>("Toggles", "KeepAllItems", false, "Overrides all other item options if true.");
+            destroyAllItems = Config.Bind<bool>("Toggles", "DestroyAllItems", false, "Overrides all other item options except KeepAllItems if true.");
+            keepEquippedItems = Config.Bind<bool>("Toggles", "KeepEquippedItems", false, "Overrides item lists if true.");
+            keepHotbarItems = Config.Bind<bool>("Toggles", "KeepHotbarItems", false, "Overrides item lists if true.");
+            useTombStone = Config.Bind<bool>("Toggles", "UseTombStone", true, "Use tombstone (if false, drops items on ground).");
+            createDeathEffects = Config.Bind<bool>("Toggles", "CreateDeathEffects", true, "Create death effects.");
+            keepFoodLevels = Config.Bind<bool>("Toggles", "KeepFoodLevels", false, "Keep food levels.");
+            keepQuickSlotItems = Config.Bind<bool>("Toggles", "KeepQuickSlotItems", false, "Keep QuickSlot items.");
             
-            useFixedSpawnCoordinates = config<bool>("Spawn", "UseFixedSpawnCoordinates", false, "Use fixed spawn coordinates.", true);
-            spawnAtStart = config<bool>("Spawn", "SpawnAtStart", false, "Respawn at start location.", true);
-            fixedSpawnCoordinates = config<Vector3>("Spawn", "FixedSpawnCoordinates", Vector3.zero, "Fixed spawn coordinates.", true);
+            useFixedSpawnCoordinates = Config.Bind<bool>("Spawn", "UseFixedSpawnCoordinates", false, "Use fixed spawn coordinates.");
+            spawnAtStart = Config.Bind<bool>("Spawn", "SpawnAtStart", false, "Respawn at start location.");
+            fixedSpawnCoordinates = Config.Bind<Vector3>("Spawn", "FixedSpawnCoordinates", Vector3.zero, "Fixed spawn coordinates.");
             
-            noSkillProtection = config<bool>("Skills", "NoSkillProtection", false, "Prevents skill protection after death.", true);
-            reduceSkills = config<bool>("Skills", "ReduceSkills", true, "Reduce skills.", true);
-            skillReduceFactor = config<float>("Skills", "SkillReduceFactor", 0.25f, "Reduce skills by this fraction.", true);
+            noSkillProtection = Config.Bind<bool>("Skills", "NoSkillProtection", false, "Prevents skill protection after death.");
+            reduceSkills = Config.Bind<bool>("Skills", "ReduceSkills", true, "Reduce skills.");
+            skillReduceFactor = Config.Bind<float>("Skills", "SkillReduceFactor", 0.25f, "Reduce skills by this fraction.");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
