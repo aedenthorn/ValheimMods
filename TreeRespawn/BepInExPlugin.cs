@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace TreeRespawn
 {
-    [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.7.0")]
+    [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.8.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

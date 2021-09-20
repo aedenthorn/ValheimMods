@@ -7,7 +7,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CookingStationTweaks
 {
-    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.3.0")]
+    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.4.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -18,6 +18,7 @@ namespace CookingStationTweaks
         public static ConfigEntry<bool> isDebug;
         
         public static ConfigEntry<float> slotMultiplier;
+        public static ConfigEntry<float> cookTimeMultiplier;
         public static ConfigEntry<bool> preventBurning;
         public static ConfigEntry<bool> autoPop;
 
@@ -32,12 +33,12 @@ namespace CookingStationTweaks
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 895, "Nexus mod ID for updates");
-
-
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Show debug messages in console");
-            preventBurning = Config.Bind<bool>("General", "PreventBurning", true, "Prevent burning.");
-            autoPop = Config.Bind<bool>("General", "AutoPop", true, "Automatically pop cooked items off the station.");
-            slotMultiplier = Config.Bind<float>("General", "SlotMultiplier", 2.5f, "Multiply number of cooking slots by this amount");
+
+            preventBurning = Config.Bind<bool>("Options", "PreventBurning", true, "Prevent burning.");
+            autoPop = Config.Bind<bool>("Options", "AutoPop", true, "Automatically pop cooked items off the station.");
+            slotMultiplier = Config.Bind<float>("Options", "SlotMultiplier", 2.5f, "Multiply number of cooking slots by this amount");
+            cookTimeMultiplier = Config.Bind<float>("Options", "CookTimeMultiplier", 0.1f, "Multiply cooking time by this amount");
 
             if (!modEnabled.Value)
                 return;
@@ -65,6 +66,14 @@ namespace CookingStationTweaks
             {
                 if (!modEnabled.Value)
                     return;
+
+                if(cookTimeMultiplier.Value != 1f)
+                {
+                    for(int i = 0; i < __instance.m_conversion.Count; i++)
+                    {
+                        __instance.m_conversion[i].m_cookTime *= cookTimeMultiplier.Value;
+                    }
+                }
 
                 int count = __instance.m_slots.Length;
                 List<Transform> newSlots = new List<Transform>(__instance.m_slots);
@@ -126,15 +135,19 @@ namespace CookingStationTweaks
                 ___m_as = new AudioSource[__instance.m_slots.Length];
 
 
-                List<ParticleSystem> oldBurnt = new List<ParticleSystem>();
-                List<ParticleSystem> oldDone = new List<ParticleSystem>();
+                List<ParticleSystem> oldBurnt = new List<ParticleSystem>(___m_burntPS);
+                List<ParticleSystem> oldDone = new List<ParticleSystem>(___m_donePS);
                 if (___m_burntPS.Length != 0)
                 {
+                    Dbgl("setting burnt");
+
                     burnt = ___m_burntPS[0].transform;
                     ___m_burntPS = new ParticleSystem[__instance.m_slots.Length];
                 }
                 if (___m_donePS.Length != 0)
                 {
+                    Dbgl("setting done");
+
                     done = ___m_donePS[0].transform;
                     ___m_donePS = new ParticleSystem[__instance.m_slots.Length];
                 }
@@ -176,20 +189,32 @@ namespace CookingStationTweaks
         {
             static void Postfix(CookingStation __instance, ZNetView ___m_nview)
             {
-                if (!modEnabled.Value || !___m_nview.IsValid() || !___m_nview.IsOwner() || !EffectArea.IsPointInsideArea(__instance.transform.position, EffectArea.Type.Burning, 0.25f))
+                Traverse traverse = Traverse.Create(__instance);
+
+                if (!modEnabled.Value || !___m_nview.IsValid() || !___m_nview.IsOwner() || (__instance.m_requireFire && !traverse.Method("IsFireLit").GetValue<bool>()) || (__instance.m_useFuel && traverse.Method("GetFuel").GetValue<float>() <= 0f))
                     return;
+
+                //Dbgl($"Updating {__instance.name}");
                 for (int i = 0; i < __instance.m_slots.Length; i++)
                 {
                     string itemName = ___m_nview.GetZDO().GetString("slot" + i, "");
+                    float cookedTime = ___m_nview.GetZDO().GetFloat("slot" + i, 0f);
+                    int status = ___m_nview.GetZDO().GetInt("slotstatus" + i, 0);
 
-                    float num = ___m_nview.GetZDO().GetFloat("slot" + i, 0f);
-                    if (itemName != "" && itemName != __instance.m_overCookedItem.name && itemName != null)
+                    if (itemName == "")
+                        continue;
+
+                    CookingStation.ItemConversion itemConversion = traverse.Method("GetItemConversion", new object[] { itemName }).GetValue<CookingStation.ItemConversion>();
+                    //Dbgl($"Updating slot {i} {cookedTime}/{itemConversion.m_cookTime} {status}");
+
+                    if (itemName != "" && status != 2)
                     {
-                        CookingStation.ItemConversion itemConversion = Traverse.Create(__instance).Method("GetItemConversion", new object[] { itemName }).GetValue<CookingStation.ItemConversion>();
-                        if (num > itemConversion.m_cookTime && itemName == itemConversion.m_to.name)
+                        //Dbgl($"Updating slot {i} {itemName} {cookedTime}");
+                        if (itemConversion != null && cookedTime > itemConversion.m_cookTime && itemName == itemConversion.m_to.name)
                         {
                             if (autoPop.Value)
                             {
+                                Dbgl($"Popping {__instance.name} slot {i} {itemName}");
                                 Traverse.Create(__instance).Method("SpawnItem", new object[] { itemName, i, __instance.m_slots[i].position }).GetValue();
                                 ___m_nview.GetZDO().Set("slot" + i, "");
                                 ___m_nview.GetZDO().Set("slot" + i, 0f);
@@ -202,6 +227,7 @@ namespace CookingStationTweaks
                 }
             }
         }
+
         [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch
         {
