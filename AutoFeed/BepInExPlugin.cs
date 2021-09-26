@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace AutoFeed
 {
-    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.5.0")]
+    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.6.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -43,7 +43,7 @@ namespace AutoFeed
             feedDisallowTypes = Config.Bind<string>("Config", "FeedDisallowTypes", "", "Types of item to disallow as feed, comma-separated.");
             animalDisallowTypes = Config.Bind<string>("Config", "AnimalDisallowTypes", "", "Types of creature to disallow to feed, comma-separated.");
             requireMove = Config.Bind<bool>("Config", "RequireMove", true, "Require animals to move to container to feed.");
-            requireOnlyFood = Config.Bind<bool>("Config", "RequireOnlyFood", false, "Don't allow feeding from containers that have non-food items as well.");
+            requireOnlyFood = Config.Bind<bool>("Config", "RequireOnlyFood", false, "Don't allow feeding from containers that have items that the animal will not eat as well.");
             moveProximity = Config.Bind<float>("Config", "MoveProximity", 2f, "How close to move towards the container if RequireMove is true.");
             
             toggleKey = Config.Bind<string>("General", "ToggleKey", "", "Key to toggle behaviour. Leave blank to disable the toggle key. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
@@ -82,7 +82,7 @@ namespace AutoFeed
             return result;
         }
 
-        public static List<Container> GetNearbyContainers(Vector3 center, float range)
+        public static List<Container> GetNearbyContainers(Vector3 center, float range, MonsterAI monsterAI)
         {
             try { 
                 List<Container> containers = new List<Container>();
@@ -98,7 +98,7 @@ namespace AutoFeed
                         {
                             foreach(ItemDrop.ItemData item in container.GetInventory().GetAllItems())
                             {
-                                if (item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Consumable)
+                                if(!monsterAI.m_consumeItems.Exists(i => i.m_itemData.m_shared.m_name == item.m_shared.m_name))
                                     continue;
                             }
                         }
@@ -129,7 +129,7 @@ namespace AutoFeed
                     return;
                 }
 
-                var nearbyContainers = GetNearbyContainers(___m_character.gameObject.transform.position, containerRange.Value);
+                var nearbyContainers = GetNearbyContainers(___m_character.gameObject.transform.position, containerRange.Value, __instance);
 
                 using (List<ItemDrop>.Enumerator enumerator = __instance.m_consumeItems.GetEnumerator())
                 {
@@ -139,6 +139,7 @@ namespace AutoFeed
                         {
                             if (Utils.DistanceXZ(c.transform.position, __instance.transform.position) < moveProximity.Value && Mathf.Abs(c.transform.position.y - __instance.transform.position.y) > moveProximity.Value)
                                 continue;
+
                             ItemDrop.ItemData item = c.GetInventory().GetItem(enumerator.Current.m_itemData.m_shared.m_name);
                             if (item != null)
                             {
@@ -171,6 +172,16 @@ namespace AutoFeed
 
             if (!tamable.IsHungry())
                 return;
+
+            if (requireOnlyFood.Value)
+            {
+                foreach (ItemDrop.ItemData temp in c.GetInventory().GetAllItems())
+                {
+                    if (!monsterAI.m_consumeItems.Exists(i => i.m_itemData.m_shared.m_name == temp.m_shared.m_name))
+                        return;
+                }
+            }
+
 
             if (requireMove.Value)
             {

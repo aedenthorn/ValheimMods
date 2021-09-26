@@ -7,7 +7,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CookingStationTweaks
 {
-    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.4.1")]
+    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.4.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -38,7 +38,7 @@ namespace CookingStationTweaks
             preventBurning = Config.Bind<bool>("Options", "PreventBurning", true, "Prevent burning.");
             autoPop = Config.Bind<bool>("Options", "AutoPop", true, "Automatically pop cooked items off the station.");
             slotMultiplier = Config.Bind<float>("Options", "SlotMultiplier", 2.5f, "Multiply number of cooking slots by this amount");
-            cookTimeMultiplier = Config.Bind<float>("Options", "CookTimeMultiplier", 0.1f, "Multiply cooking time by this amount");
+            cookTimeMultiplier = Config.Bind<float>("Options", "CookTimeMultiplier", 1f, "Multiply cooking time by this amount");
 
             if (!modEnabled.Value)
                 return;

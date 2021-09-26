@@ -2,19 +2,17 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.3.1")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -117,14 +115,7 @@ namespace CustomAudio
             {
                 //Dbgl($"\tchecking single file {Path.GetFileName(file)}");
 
-                if (Path.GetExtension(file).ToLower().Equals(".ogg"))
-                {
-                    PreloadClipCoroutine(file, AudioType.OGGVORBIS, customDict);
-                }
-                else if (Path.GetExtension(file).ToLower().Equals(".wav"))
-                {
-                    PreloadClipCoroutine(file, AudioType.WAV, customDict);
-                }
+                PreloadClipCoroutine(file, AudioType.UNKNOWN, customDict);
             }
             foreach (string folder in Directory.GetDirectories(path))
             {
@@ -135,14 +126,7 @@ namespace CustomAudio
                 foreach (string file in audioFiles)
                 {
                     //Dbgl($"\tchecking file {Path.GetFileName(file)}");
-                    if (Path.GetExtension(file).ToLower().Equals(".ogg"))
-                    {
-                        PreloadClipCoroutine(file, AudioType.OGGVORBIS, customDictDict[folderName]);
-                    }
-                    else if (Path.GetExtension(file).ToLower().Equals(".wav"))
-                    {
-                        PreloadClipCoroutine(file, AudioType.WAV, customDictDict[folderName]);
-                    }
+                    PreloadClipCoroutine(file, AudioType.UNKNOWN, customDictDict[folderName]);
                 }
             }
             foreach (string folder in Directory.GetDirectories(path))
