@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace RecipeCustomization
 {
-    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.5.0")]
+    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.5.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -59,7 +59,7 @@ namespace RecipeCustomization
                 if (!modEnabled.Value)
                     return;
                 context.StartCoroutine(DelayedLoadRecipes());
-                LoadAllRecipeData(true);
+                //LoadAllRecipeData(true);
             }
         }
         public static IEnumerator DelayedLoadRecipes()
@@ -68,19 +68,6 @@ namespace RecipeCustomization
             LoadAllRecipeData(true);
             yield break;
         }
-
-        //[HarmonyPatch(typeof(InventoryGui), "Show")]
-        //[HarmonyPriority(Priority.Last)]
-        static class InventoryGui_Show_Patch
-        {
-            static void Postfix()
-            {
-                if (!modEnabled.Value)
-                    return;
-                LoadAllRecipeData(false);
-            }
-        }
-
 
         private static void LoadAllRecipeData(bool reload)
         {
@@ -198,8 +185,10 @@ namespace RecipeCustomization
 
         private static CraftingStation GetCraftingStation(string name)
         {
-            if (name == "")
+            if (name == "" || name == null)
                 return null;
+
+            Dbgl("Looking for crafting station " + name);
 
             foreach (Recipe recipe in ObjectDB.instance.m_recipes)
             {
@@ -209,6 +198,15 @@ namespace RecipeCustomization
                     return recipe.m_craftingStation;
                 }
             }
+            foreach(GameObject piece in GetPieces())
+            {
+                if (piece.GetComponent<Piece>()?.m_craftingStation?.m_name == name)
+                {
+                    Dbgl("got crafting station " + name);
+                    return piece.GetComponent<Piece>().m_craftingStation;
+                }
+            }
+
             return null;
         }
         private static List<GameObject> GetPieces()
@@ -307,30 +305,36 @@ namespace RecipeCustomization
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
+                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} config reloaded" });
                     return false;
                 }
                 else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reload"))
                 {
                     GetRecipeDataFromFiles();
-                    if(ObjectDB.instance)
+                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
+                    if (ObjectDB.instance)
+                    {
                         LoadAllRecipeData(true);
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} reloaded recipes from files" }).GetValue();
+                        AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} reloaded recipes from files" });
+                    }
+                    else
+                    {
+                        AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} reloaded recipes from files" });
+                    }
                     return false;
                 }
                 else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} save "))
                 {
                     var t = text.Split(' ');
                     string file = t[t.Length - 1];
-                    RecipeData armorData = GetRecipeDataByName(file);
-                    if (armorData == null)
+                    RecipeData recipData = GetRecipeDataByName(file);
+                    if (recipData == null)
                         return false;
                     CheckModFolder();
-                    File.WriteAllText(Path.Combine(assetPath, armorData.name + ".json"), JsonUtility.ToJson(armorData));
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} saved recipe data to {file}.json" }).GetValue();
+                    File.WriteAllText(Path.Combine(assetPath, recipData.name + ".json"), JsonUtility.ToJson(recipData));
+                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
+                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} saved recipe data to {file}.json" });
                     return false;
                 }
                 else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} dump "))
@@ -341,8 +345,8 @@ namespace RecipeCustomization
                     if (recipeData == null)
                         return false;
                     Dbgl(JsonUtility.ToJson(recipeData));
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped {recipe}" }).GetValue();
+                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
+                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} dumped {recipe}" });
                     return false;
                 }
                 else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()}"))
@@ -352,8 +356,8 @@ namespace RecipeCustomization
                     + $"{context.Info.Metadata.Name} dump <ItemName>\r\n"
                     + $"{context.Info.Metadata.Name} save <ItemName>";
 
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { output }).GetValue();
+                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
+                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { output });
                     return false;
                 }
                 return true;

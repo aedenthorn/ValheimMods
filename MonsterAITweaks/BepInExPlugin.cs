@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 
 namespace MonsterAITweaks
 {
-    [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.3.2")]
+    [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -123,6 +123,7 @@ namespace MonsterAITweaks
 
                 __instance.m_viewRange *= viewRangeMult.Value;
                 __instance.m_viewAngle *= viewAngleMult.Value;
+                __instance.m_hearRange *= hearRangeMult.Value;
 
             }
         }

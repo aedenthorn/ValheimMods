@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.4.0")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.4.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -147,6 +147,9 @@ namespace CustomAudio
 
         private void PreloadClipCoroutine(string path, AudioType audioType, Dictionary<string, AudioClip> whichDict)
         {
+            if (path.EndsWith(".txt"))
+                return;
+
             Dbgl($"path: {path}");
             path = "file:///" + path.Replace("\\", "/");
             /*
@@ -163,44 +166,47 @@ namespace CustomAudio
             }
             */
 
-
-            var www = UnityWebRequestMultimedia.GetAudioClip(path, audioType);
-            www.SendWebRequest();
-            while (!www.isDone)
+            try
             {
-
-            }
-
-            //Dbgl($"checking downloaded {filename}");
-            if (www != null)
-            {
-                //Dbgl("www not null. errors: " + www.error);
-                DownloadHandlerAudioClip dac = ((DownloadHandlerAudioClip)www.downloadHandler);
-                if (dac != null)
+                var www = UnityWebRequestMultimedia.GetAudioClip(path, audioType);
+                www.SendWebRequest();
+                while (!www.isDone)
                 {
-                    AudioClip ac = dac.audioClip;
-                    if (ac != null)
+
+                }
+
+                //Dbgl($"checking downloaded {filename}");
+                if (www != null)
+                {
+                    //Dbgl("www not null. errors: " + www.error);
+                    DownloadHandlerAudioClip dac = ((DownloadHandlerAudioClip)www.downloadHandler);
+                    if (dac != null)
                     {
-                        string name = Path.GetFileNameWithoutExtension(path);
-                        ac.name = name;
-                        if (!whichDict.ContainsKey(name))
-                            whichDict[name] = ac;
-                        Dbgl($"Added audio clip {name} to dict");
+                        AudioClip ac = dac.audioClip;
+                        if (ac != null)
+                        {
+                            string name = Path.GetFileNameWithoutExtension(path);
+                            ac.name = name;
+                            if (!whichDict.ContainsKey(name))
+                                whichDict[name] = ac;
+                            Dbgl($"Added audio clip {name} to dict");
+                        }
+                        else
+                        {
+                            Dbgl("audio clip is null. data: " + dac.text);
+                        }
                     }
                     else
                     {
-                        Dbgl("audio clip is null. data: " + dac.text);
+                        Dbgl("DownloadHandler is null. bytes downloaded: " + www.downloadedBytes);
                     }
                 }
                 else
                 {
-                    Dbgl("DownloadHandler is null. bytes downloaded: " + www.downloadedBytes);
+                    Dbgl("www is null " + www.url);
                 }
             }
-            else
-            {
-                Dbgl("www is null " + www.url);
-            }
+            catch { }
         }
         public static string GetZSFXName(ZSFX zfx)
         {
