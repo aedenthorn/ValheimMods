@@ -204,6 +204,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EquipMultipleUtilityItems",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtendedPlayerInventory", "ExtendedPlayerInventory\ExtendedPlayerInventory.csproj", "{AB1E5CA2-0722-4A12-99B5-9EA15C00B532}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AICustomization", "AICustomization\AICustomization.csproj", "{DB0A4C79-B840-4431-954B-43C26A1CBFB4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -598,6 +600,10 @@ Global
 		{AB1E5CA2-0722-4A12-99B5-9EA15C00B532}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB1E5CA2-0722-4A12-99B5-9EA15C00B532}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB1E5CA2-0722-4A12-99B5-9EA15C00B532}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB0A4C79-B840-4431-954B-43C26A1CBFB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB0A4C79-B840-4431-954B-43C26A1CBFB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB0A4C79-B840-4431-954B-43C26A1CBFB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB0A4C79-B840-4431-954B-43C26A1CBFB4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,13 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
 namespace QuickCart
 {
-    [BepInPlugin("aedenthorn.QuickCart", "Quick Cart", "0.1.0")]
+    [BepInPlugin("aedenthorn.QuickCart", "Quick Cart", "0.2.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -52,8 +51,10 @@ namespace QuickCart
                 Vector3 position = Player.m_localPlayer.transform.position + Vector3.up;
                 foreach (Collider collider in Physics.OverlapSphere(position, attachDistance.Value))
                 {
-                    Vagon v = collider.transform.parent.gameObject.GetComponent<Vagon>();
-                    if (collider?.attachedRigidbody && v != null && Vector3.Distance(collider.ClosestPoint(position), position) < closest && (v.IsAttached(Player.m_localPlayer) || !v.InUse()))
+                    Vagon v = collider.gameObject.GetComponent<Vagon>();
+                    if(!v)
+                        v = collider.transform.parent?.gameObject.GetComponent<Vagon>();
+                    if (collider.attachedRigidbody && v && Vector3.Distance(collider.ClosestPoint(position), position) < closest && (v.IsAttached(Player.m_localPlayer) || !v.InUse()))
                     {
                         Dbgl("Got nearby cart");
                         closest = Vector3.Distance(collider.ClosestPoint(position), position);

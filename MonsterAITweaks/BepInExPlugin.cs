@@ -47,6 +47,7 @@ namespace MonsterAITweaks
         private static string[] fearFireList;
         private static string[] avoidFireList;
 
+
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)

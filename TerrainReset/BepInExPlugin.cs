@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace TerrainReset
 {
-    [BepInPlugin("aedenthorn.TerrainReset", "Terrain Reset", "0.6.0")]
+    [BepInPlugin("aedenthorn.TerrainReset", "Terrain Reset", "0.7.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
