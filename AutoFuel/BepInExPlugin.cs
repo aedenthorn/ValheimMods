@@ -26,6 +26,8 @@ namespace AutoFuel
         public static ConfigEntry<bool> refuelStandingTorches;
         public static ConfigEntry<bool> refuelWallTorches;
         public static ConfigEntry<bool> refuelFirePits;
+        public static ConfigEntry<bool> restrictKilnOutput;
+        public static ConfigEntry<int> restrictKilnOutputAmount;
         public static ConfigEntry<bool> leaveLastItem;
         public static ConfigEntry<bool> isOn;
         public static ConfigEntry<bool> modEnabled;
@@ -55,6 +57,8 @@ namespace AutoFuel
             refuelStandingTorches = Config.Bind<bool>("General", "RefuelStandingTorches", true, "Refuel standing torches");
             refuelWallTorches = Config.Bind<bool>("General", "RefuelWallTorches", true, "Refuel wall torches");
             refuelFirePits = Config.Bind<bool>("General", "RefuelFirePits", true, "Refuel fire pits");
+            restrictKilnOutput = Config.Bind<bool>("General", "RestrictKilnOutput", false, "Restrict kiln output");
+            restrictKilnOutputAmount = Config.Bind<int>("General", "RestrictKilnOutputAmount", 10, "Amount of coal to shut off kiln fueling");
             isOn = Config.Bind<bool>("General", "IsOn", true, "Behaviour is currently on or not");
             leaveLastItem = Config.Bind<bool>("General", "LeaveLastItem", false, "Don't use last of item in chest");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -258,6 +262,26 @@ namespace AutoFuel
 
             List<Container> nearbyOreContainers = GetNearbyContainers(__instance.transform.position, smelterOreRange.Value);
             List<Container> nearbyFuelContainers = GetNearbyContainers(__instance.transform.position, smelterFuelRange.Value);
+
+            if (__instance.name.Contains("charcoal_kiln") && restrictKilnOutput.Value) {
+                string outputName = __instance.m_conversion[0].m_to.m_itemData.m_shared.m_name;
+                int maxOutput = restrictKilnOutputAmount.Value - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>();
+                foreach (Container c in nearbyOreContainers)
+                {
+                    List<ItemDrop.ItemData> itemList = new List<ItemDrop.ItemData>();
+                    c.GetInventory().GetAllItems(outputName, itemList);
+
+                    foreach (var outputItem in itemList)
+                    {
+                        if (outputItem != null)
+                            maxOutput -= outputItem.m_stack;
+                    }
+                }
+                if (maxOutput < 0)
+                    maxOutput = 0;
+                if (maxOre > maxOutput)
+                    maxOre = maxOutput;
+            }
 
             Vector3 position = __instance.transform.position + Vector3.up;
             foreach (Collider collider in Physics.OverlapSphere(position, dropRange.Value, LayerMask.GetMask(new string[] { "item" })))
