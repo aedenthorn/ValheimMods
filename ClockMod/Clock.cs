@@ -208,10 +208,17 @@ namespace ClockMod
 
             int idx = Math.Min((int)(fuzzyStringArray.Length * fraction), fuzzyStringArray.Length - 1);
 
-            if (clockFormat.Value == "fuzzy")
-                return string.Format(clockString.Value, fuzzyStringArray[idx]);
+            try
+            {
+                if (clockFormat.Value == "fuzzy")
+                    return string.Format(clockString.Value, fuzzyStringArray[idx]);
 
-            return string.Format(clockString.Value, theTime.ToString(clockFormat.Value), fuzzyStringArray[idx], days.ToString());
+                return string.Format(clockString.Value, theTime.ToString(clockFormat.Value), fuzzyStringArray[idx], days.ToString());
+            }
+            catch
+            {
+                return clockString.Value.Replace("{0}", theTime.ToString(clockFormat.Value)).Replace("{1}", fuzzyStringArray[idx]).Replace("{2}", days.ToString());
+            }
         }
 
         private static string GetFuzzyFileName(string lang)

@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace RealClockMod
 {
-    [BepInPlugin("aedenthorn.RealClockMod", "Real Clock Mod", "0.3.1")]
+    [BepInPlugin("aedenthorn.RealClockMod", "Real Clock Mod", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -30,7 +30,7 @@ namespace RealClockMod
             DateTime theTime = DateTime.Now;
             float fraction = (theTime.Hour * 60 * 60 + theTime.Minute * 60 + theTime.Second) / 24 * 60 * 60;
 
-            return GetCurrentTimeString(theTime, fraction);
+            return GetCurrentTimeString(theTime, fraction, 0);
         }
     }
 }
