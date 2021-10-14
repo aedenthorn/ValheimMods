@@ -76,7 +76,6 @@ namespace TreeRespawn
             {
                 Dbgl($"destroyed destructible {__instance.name}");
 
-
                 string name = seedsDic.FirstOrDefault(s => __instance.name.StartsWith(s.Key)).Value;
 
                 if (name != null)
@@ -94,8 +93,8 @@ namespace TreeRespawn
                     }
                 }
             }
-
         }
+
         private static IEnumerator SpawnTree(GameObject prefab, Vector3 position)
         {
             Dbgl($"spawning new tree");

@@ -3,15 +3,13 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections;
-using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace TimeMod
 {
-    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.6.0")]
+    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

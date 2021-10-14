@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.9.2")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.9.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = false;
@@ -144,6 +144,9 @@ namespace AutoFuel
             {
                 await Task.Delay(delay);
 
+                if (!fireplace || !znview || !znview.IsValid() || !modEnabled.Value)
+                    return;
+
                 int maxFuel = (int)(fireplace.m_maxFuel - Mathf.Ceil(znview.GetZDO().GetFloat("fuel", 0f)));
 
                 List<Container> nearbyContainers = GetNearbyContainers(fireplace.transform.position, fireplaceRange.Value);
@@ -255,6 +258,9 @@ namespace AutoFuel
         {
 
             await Task.Delay(delay);
+
+            if (!__instance || !___m_nview || !___m_nview.IsValid() || !modEnabled.Value)
+                return;
 
             int maxOre = __instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>();
             int maxFuel = __instance.m_maxFuel - Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f));

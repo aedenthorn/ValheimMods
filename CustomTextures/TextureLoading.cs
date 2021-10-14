@@ -74,18 +74,37 @@ namespace CustomTextures
 
             List<GameObject> gos = new List<GameObject>();
 
-            GameObject root = Traverse.Create(ZNetScene.instance).Field("m_netSceneRoot").GetValue<GameObject>();
+            SkinnedMeshRenderer[] smrs = FindObjectsOfType<SkinnedMeshRenderer>();
+            MeshRenderer[] mrs = FindObjectsOfType<MeshRenderer>();
+            ParticleSystemRenderer[] psrs = FindObjectsOfType<ParticleSystemRenderer>();
+            LineRenderer[] lrs = FindObjectsOfType<LineRenderer>();
 
-            int count = root.transform.childCount;
-            for (int i = 0; i < count; i++)
+            foreach(var r in smrs)
             {
-                gos.Add(root.transform.GetChild(i).gameObject);
+                if(!gos.Contains(r.gameObject))
+                    gos.Add(r.gameObject);
+            }
+            foreach(var r in mrs)
+            {
+                if(!gos.Contains(r.gameObject))
+                    gos.Add(r.gameObject);
+            }
+            foreach(var r in psrs)
+            {
+                if(!gos.Contains(r.gameObject))
+                    gos.Add(r.gameObject);
+            }
+            foreach(var r in lrs)
+            {
+                if(!gos.Contains(r.gameObject))
+                    gos.Add(r.gameObject);
             }
 
 
             foreach (ClutterSystem.Clutter clutter in ClutterSystem.instance.m_clutter)
             {
-                gos.Add(clutter.m_prefab);
+                if (!gos.Contains(clutter.m_prefab))
+                    gos.Add(clutter.m_prefab);
             }
 
             gos.AddRange(Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>().Values);

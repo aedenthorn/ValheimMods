@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace RepairRequiresMats
 {
-    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.3.1")]
+    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static bool isDebug = true;
@@ -220,27 +220,27 @@ namespace RepairRequiresMats
                 }
             }
 
+            
             List<Piece.Requirement> reqs = new List<Piece.Requirement>();
             Recipe recipe = ScriptableObject.CreateInstance<Recipe>();
             for (int i = 0; i < fullReqs.Count; i++)
             {
 
-                var req = new Piece.Requirement()
-                {
-                    m_resItem = fullReqs[i].m_resItem,
-                    m_amountPerLevel = Mathf.FloorToInt(fullReqs[i].m_amountPerLevel * percent * materialRequirementMult.Value),
-                    m_amount = Mathf.FloorToInt(fullReqs[i].m_amount * percent * materialRequirementMult.Value),
-                };
+                var req = fullReqs[i];
 
                 int amount = 0;
                 for (int j = item.m_quality; j > 0; j--)
                 {
+                    //Dbgl($"{req.m_resItem.m_itemData.m_shared.m_name} req for level {j} {req.GetAmount(j)}");
                     amount += req.GetAmount(j);
                 }
+
+                amount = Mathf.FloorToInt(amount * percent * materialRequirementMult.Value);
 
 
                 if (amount > 0)
                 {
+                    //Dbgl($"total {req.m_resItem.m_itemData.m_shared.m_name} reqs for {item.m_shared.m_name}, dur {percent}: {amount}");
                     reqs.Add(req);
                 }
             }
