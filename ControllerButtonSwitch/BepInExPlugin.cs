@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ControllerButtonSwitch
 {
-    [BepInPlugin("aedenthorn.ControllerButtonSwitch", "Controller Button Switch", "0.2.0")]
+    [BepInPlugin("aedenthorn.ControllerButtonSwitch", "Controller Button Switch", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -186,21 +186,28 @@ namespace ControllerButtonSwitch
                 {
                     if (enumerator.Current.Key.Section == "Config")
                         continue;
-                    ButtonInfo info = new ButtonInfo(enumerator.Current.Key.Key, (ConfigEntry<string>)enumerator.Current.Value);
-                    if (Enum.TryParse<KeyCode>(info.key, out KeyCode keyCode))
-                        zInput.AddButton(info.button, keyCode, info.repeatDelay, info.repeatInterval);
-                    else
-                        zInput.AddButton(info.button, info.key, info.inverted, info.repeatDelay, info.repeatInterval);
+                    try
+                    {
+                        ButtonInfo info = new ButtonInfo(enumerator.Current.Key.Key, (ConfigEntry<string>)enumerator.Current.Value);
+                        if (Enum.TryParse<KeyCode>(info.key, out KeyCode keyCode))
+                            zInput.AddButton(info.button, keyCode, info.repeatDelay, info.repeatInterval);
+                        else
+                            zInput.AddButton(info.button, info.key, info.inverted, info.repeatDelay, info.repeatInterval);
+                    }
+                    catch(Exception ex)
+                    {
+                        Dbgl($"Error setting button {enumerator.Current.Key.Key}: {ex}");
+                    }
                 }
             }
             zInput.Save();
             Dbgl("Finished setting buttons");
         }
 
-        [HarmonyPatch(typeof(ZInput), "Load")]
-        static class ZInput_Load_Patch
+        [HarmonyPatch(typeof(ZInput), "Reset")]
+        static class ZInput_Reset_Patch
         {
-            static void Prefix(ZInput __instance)
+            static void Postfix()
             {
                 if (modEnabled.Value)
                     SetButtons();
