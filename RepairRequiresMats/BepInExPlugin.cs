@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace RepairRequiresMats
 {
-    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.4.0")]
+    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.4.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static bool isDebug = true;
@@ -37,12 +37,12 @@ namespace RepairRequiresMats
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            nexusID = Config.Bind<int>("General", "NexusID", 215, "Nexus mod ID for updates");
             showAllRepairsInToolTip = Config.Bind<bool>("General", "ShowAllRepairsInToolTip", true, "Show all repairs in tooltip when hovering over repair button.");
             titleTooltipColor = Config.Bind<string>("General", "TitleTooltipColor", "FFFFFFFF", "Color to use in tooltip title.");
             hasEnoughTooltipColor = Config.Bind<string>("General", "HasEnoughTooltipColor", "FFFFFFFF", "Color to use in tooltip for items with enough resources to repair.");
             notEnoughTooltipColor = Config.Bind<string>("General", "NotEnoughTooltipColor", "FF0000FF", "Color to use in tooltip for items with enough resources to repair.");
             materialRequirementMult = Config.Bind<float>("General", "MaterialRequirementMult", 0.5f, "Multiplier for amount of each material required.");
-            nexusID = Config.Bind<int>("General", "NexusID", 215, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
@@ -95,20 +95,33 @@ namespace RepairRequiresMats
                         unableRepairs.Add(new RepairItemData(item));
                         continue;
                     }
-                    Recipe recipe = RepairRecipe(item);
-                    if (recipe == null)
+                    List<Piece.Requirement> reqs = RepairReqs(item);
+                    if (reqs == null)
                     {
                         freeRepairs.Add(new RepairItemData(item));
                         continue;
                     }
                     List<string> reqstring = new List<string>();
-                    foreach (Piece.Requirement req in recipe.m_resources)
+                    foreach (Piece.Requirement req in reqs)
                     {
                         if (req.GetAmount(item.m_quality) == 0)
                             continue;
                         reqstring.Add($"{req.GetAmount(item.m_quality)}/{Player.m_localPlayer.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name)} {Localization.instance.Localize(req.m_resItem.m_itemData.m_shared.m_name)}");
                     }
-                    if (!Traverse.Create(Player.m_localPlayer).Method("HaveRequirements", new object[] { recipe.m_resources, false, 1 }).GetValue<bool>())
+                    bool enough = true;
+                    foreach (Piece.Requirement requirement in reqs)
+                    {
+                        if (requirement.m_resItem)
+                        {
+                            int amount = requirement.GetAmount(1);
+                            if (Player.m_localPlayer.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) < amount)
+                            {
+                                enough = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!enough)
                         notEnoughRepairs.Add(new RepairItemData(item, reqstring));
                     else
                         enoughRepairs.Add(new RepairItemData(item, reqstring));
@@ -165,21 +178,21 @@ namespace RepairRequiresMats
                         __result = false;
                         return;
                     }
-                    Recipe recipe = RepairRecipe(item, true);
-                    if (recipe == null)
+                    List<Piece.Requirement> reqs = RepairReqs(item, true);
+                    if (reqs == null)
                         return;
 
                     List<string> reqstring = new List<string>();
-                    foreach (Piece.Requirement req in recipe.m_resources)
+                    foreach (Piece.Requirement req in reqs)
                     {
                         if (req?.m_resItem?.m_itemData?.m_shared == null)
                             continue;
                         reqstring.Add($"{req.GetAmount(item.m_quality)}/{Player.m_localPlayer.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name)} {Localization.instance.Localize(req.m_resItem.m_itemData.m_shared.m_name)}");
                     }
                     string outstring;
-                    if (Traverse.Create(Player.m_localPlayer).Method("HaveRequirements", new object[] { recipe.m_resources, false, 1 }).GetValue<bool>())
+                    if (Traverse.Create(Player.m_localPlayer).Method("HaveRequirements", new object[] { reqs, false, 1 }).GetValue<bool>())
                     {
-                        Player.m_localPlayer.ConsumeResources(recipe.m_resources, item.m_quality);
+                        Player.m_localPlayer.ConsumeResources(reqs.ToArray(), item.m_quality);
                         outstring = $"Used {string.Join(", ", reqstring)} to repair {Localization.instance.Localize(item.m_shared.m_name)}";
                         __result = true;
                     }
@@ -195,11 +208,11 @@ namespace RepairRequiresMats
             }
         }
 
-        private static Recipe RepairRecipe(ItemDrop.ItemData item, bool log = false)
+        private static List<Piece.Requirement> RepairReqs(ItemDrop.ItemData item, bool log = false)
         {
             float percent = (item.GetMaxDurability() - item.m_durability) / item.GetMaxDurability();
             Recipe fullRecipe = ObjectDB.instance.GetRecipe(item);
-            var fullReqs = fullRecipe.m_resources.ToList();
+            var fullReqs = new List<Piece.Requirement>(fullRecipe.m_resources);
 
             bool isMagic = false;
             if (epicLootAssembly != null)
@@ -222,35 +235,41 @@ namespace RepairRequiresMats
 
             
             List<Piece.Requirement> reqs = new List<Piece.Requirement>();
-            Recipe recipe = ScriptableObject.CreateInstance<Recipe>();
             for (int i = 0; i < fullReqs.Count; i++)
             {
 
-                var req = fullReqs[i];
+                Piece.Requirement req = new Piece.Requirement() 
+                { 
+                    m_resItem = fullReqs[i].m_resItem,
+                    m_amount = fullReqs[i].m_amount,
+                    m_amountPerLevel = fullReqs[i].m_amountPerLevel,
+                    m_recover = fullReqs[i].m_recover
+                };
 
                 int amount = 0;
                 for (int j = item.m_quality; j > 0; j--)
                 {
-                    //Dbgl($"{req.m_resItem.m_itemData.m_shared.m_name} req for level {j} {req.GetAmount(j)}");
+                    //Dbgl($"{req.m_resItem.m_itemData.m_shared.m_name} req for level {j} {req.m_amount}, {req.m_amountPerLevel} {req.GetAmount(j)}");
                     amount += req.GetAmount(j);
                 }
 
-                amount = Mathf.FloorToInt(amount * percent * materialRequirementMult.Value);
+                int fraction = Mathf.RoundToInt(amount * percent * materialRequirementMult.Value);
 
 
-                if (amount > 0)
+                //Dbgl($"total {req.m_resItem.m_itemData.m_shared.m_name} reqs for {item.m_shared.m_name}, dur {item.m_durability}/{item.GetMaxDurability()} ({item.GetDurabilityPercentage()} {percent}): {fraction}/{amount}");
+                
+                if (fraction > 0)
                 {
-                    //Dbgl($"total {req.m_resItem.m_itemData.m_shared.m_name} reqs for {item.m_shared.m_name}, dur {percent}: {amount}");
+                    req.m_amount = fraction;
                     reqs.Add(req);
                 }
             }
-            recipe.m_resources = reqs.ToArray();
 
             if (!reqs.Any())
             {
                 return null;
             }
-            return recipe;
+            return reqs;
         }
 
 

@@ -1,14 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace CustomUI
 {
-    [BepInPlugin("aedenthorn.CustomUI", "Custom UI", "0.4.0")]
+    [BepInPlugin("aedenthorn.CustomUI", "Custom UI", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -153,7 +151,7 @@ namespace CustomUI
                     return;
 
                 float gameScale = GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;
-                int healthRot = 90 - (healthbarRotation.Value / 90 % 4 * 90);
+                int healthRot = healthbarRotation.Value / 90 % 4 * 90;
 
                 Vector3 mousePos = Input.mousePosition;
 
@@ -171,19 +169,10 @@ namespace CustomUI
 
                 Transform hudRoot = Hud.instance.transform.Find("hudroot");
 
-
                 Rect healthRect = Rect.zero;
                 switch (healthRot)
                 {
-                    case 90: // 0 - good
-                        healthRect = new Rect(
-                            (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x) * gameScale,
-                            (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y) * gameScale,
-                            hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value,
-                            hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value
-                        );
-                        break;
-                    case 0: // 90 - good
+                    case 0:
                         healthRect = new Rect(
                             (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x) * gameScale,
                             (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y) * gameScale - hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value,
@@ -191,20 +180,28 @@ namespace CustomUI
                             hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value
                         );
                         break;
-                    case -90: // 180
+                    case 90:
                         healthRect = new Rect(
-                            (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x) * gameScale - hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value,
-                            (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y) * gameScale - hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value,
+                            (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x) * gameScale,
+                            (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y) * gameScale,
                             hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value,
                             hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value
                         );
                         break;
-                    case -180: // 270
+                    case 180:
                         healthRect = new Rect(
                             (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x) * gameScale - hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value,
                             (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y) * gameScale,
                             hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value,
                             hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value
+                        );
+                        break;
+                    case 270:
+                        healthRect = new Rect(
+                            (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x) * gameScale - hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value,
+                            (hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y) * gameScale - hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value,
+                            hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.y * gameScale * healthbarScale.Value,
+                            hudRoot.Find("healthpanel").GetComponent<RectTransform>().sizeDelta.x * gameScale * healthbarScale.Value
                         );
                         break;
                 }
@@ -317,7 +314,7 @@ namespace CustomUI
         private static void SetElementPositions()
         {
             Transform hudRoot = Hud.instance.transform.Find("hudroot");
-            int healthRot = 90 - (healthbarRotation.Value / 90 % 4 * 90);
+            int healthRot = healthbarRotation.Value / 90 % 4 * 90;
 
             if (toolbarX.Value == 9999)
                 toolbarX.Value = hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMin.x * Screen.width;
@@ -349,10 +346,10 @@ namespace CustomUI
 
             hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition = new Vector2(healthbarX.Value, healthbarY.Value);
             hudRoot.Find("healthpanel").GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0, healthRot);
-            hudRoot.Find("healthpanel").Find("Health").Find("fast").Find("bar").Find("HealthText").GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0, -healthRot);
-            hudRoot.Find("healthpanel").Find("food0").GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0, -healthRot);
-            hudRoot.Find("healthpanel").Find("food1").GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0, -healthRot);
-            hudRoot.Find("healthpanel").Find("food2").GetComponent<RectTransform>().localEulerAngles = new Vector3(0, 0, -healthRot);
+            hudRoot.Find("healthpanel").Find("Health").Find("fast").Find("bar").Find("HealthText").GetComponent<RectTransform>().eulerAngles = Vector3.zero;
+            hudRoot.Find("healthpanel").Find("food0").GetComponent<RectTransform>().eulerAngles = Vector3.zero;
+            hudRoot.Find("healthpanel").Find("food1").GetComponent<RectTransform>().eulerAngles = Vector3.zero;
+            hudRoot.Find("healthpanel").Find("food2").GetComponent<RectTransform>().eulerAngles = Vector3.zero;
 
             hudRoot.Find("GuardianPower").GetComponent<RectTransform>().anchoredPosition = new Vector2(guardianX.Value, guardianY.Value);
 

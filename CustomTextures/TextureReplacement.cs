@@ -53,10 +53,50 @@ namespace CustomTextures
 
             logDump.Clear();
 
+            List<GameObject> gos = new List<GameObject>();
+
+            SkinnedMeshRenderer[] smrs = FindObjectsOfType<SkinnedMeshRenderer>();
+            MeshRenderer[] mrs = FindObjectsOfType<MeshRenderer>();
+            ParticleSystemRenderer[] psrs = FindObjectsOfType<ParticleSystemRenderer>();
+            LineRenderer[] lrs = FindObjectsOfType<LineRenderer>();
+
+            foreach (var r in smrs)
+            {
+                if (!gos.Contains(r.gameObject))
+                    gos.Add(r.gameObject);
+            }
+            foreach (var r in mrs)
+            {
+                if (!gos.Contains(r.gameObject))
+                    gos.Add(r.gameObject);
+            }
+            foreach (var r in psrs)
+            {
+                if (!gos.Contains(r.gameObject))
+                    gos.Add(r.gameObject);
+            }
+            foreach (var r in lrs)
+            {
+                if (!gos.Contains(r.gameObject))
+                    gos.Add(r.gameObject);
+            }
+
+
+            foreach (ClutterSystem.Clutter clutter in ClutterSystem.instance.m_clutter)
+            {
+                if (!gos.Contains(clutter.m_prefab))
+                    gos.Add(clutter.m_prefab);
+            }
+
+            gos.AddRange(Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>().Values);
+
             foreach (GameObject go in namedPrefabs.Values)
             {
-                ReplaceOneGameObjectTextures(go, go.name, "object");
+                if (!gos.Contains(go))
+                    gos.Add(go);
             }
+            ReplaceSceneTextures(gos.ToArray());
+
 
             if (logDump.Any())
                 Dbgl("\n" + string.Join("\n", logDump));
