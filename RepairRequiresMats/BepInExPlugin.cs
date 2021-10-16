@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace RepairRequiresMats
 {
-    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.4.1")]
+    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.4.3")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static bool isDebug = true;
@@ -104,16 +104,16 @@ namespace RepairRequiresMats
                     List<string> reqstring = new List<string>();
                     foreach (Piece.Requirement req in reqs)
                     {
-                        if (req.GetAmount(item.m_quality) == 0)
+                        if (req.m_amount == 0)
                             continue;
-                        reqstring.Add($"{req.GetAmount(item.m_quality)}/{Player.m_localPlayer.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name)} {Localization.instance.Localize(req.m_resItem.m_itemData.m_shared.m_name)}");
+                        reqstring.Add($"{req.m_amount}/{Player.m_localPlayer.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name)} {Localization.instance.Localize(req.m_resItem.m_itemData.m_shared.m_name)}");
                     }
                     bool enough = true;
                     foreach (Piece.Requirement requirement in reqs)
                     {
                         if (requirement.m_resItem)
                         {
-                            int amount = requirement.GetAmount(1);
+                            int amount = requirement.m_amount;
                             if (Player.m_localPlayer.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) < amount)
                             {
                                 enough = false;
@@ -187,12 +187,26 @@ namespace RepairRequiresMats
                     {
                         if (req?.m_resItem?.m_itemData?.m_shared == null)
                             continue;
-                        reqstring.Add($"{req.GetAmount(item.m_quality)}/{Player.m_localPlayer.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name)} {Localization.instance.Localize(req.m_resItem.m_itemData.m_shared.m_name)}");
+                        reqstring.Add($"{req.m_amount}/{Player.m_localPlayer.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name)} {Localization.instance.Localize(req.m_resItem.m_itemData.m_shared.m_name)}");
                     }
                     string outstring;
-                    if (Traverse.Create(Player.m_localPlayer).Method("HaveRequirements", new object[] { reqs, false, 1 }).GetValue<bool>())
+
+                    bool enough = true;
+                    foreach (Piece.Requirement requirement in reqs)
                     {
-                        Player.m_localPlayer.ConsumeResources(reqs.ToArray(), item.m_quality);
+                        if (requirement.m_resItem)
+                        {
+                            int amount = requirement.m_amount;
+                            if (Player.m_localPlayer.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) < amount)
+                            {
+                                enough = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (enough)
+                    {
+                        Player.m_localPlayer.ConsumeResources(reqs.ToArray(), 1);
                         outstring = $"Used {string.Join(", ", reqstring)} to repair {Localization.instance.Localize(item.m_shared.m_name)}";
                         __result = true;
                     }
