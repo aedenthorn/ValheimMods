@@ -22,6 +22,8 @@ namespace CustomContainerSizes
         private static ConfigEntry<int> privateChestHeight;
         private static ConfigEntry<int> reinforcedChestWidth;
         private static ConfigEntry<int> reinforcedChestHeight;
+        private static ConfigEntry<int> blackMetalChestWidth;
+        private static ConfigEntry<int> blackMetalChestHeight;
         private static ConfigEntry<int> karveChestWidth;
         private static ConfigEntry<int> karveChestHeight;
         private static ConfigEntry<int> wagonWidth;
@@ -48,6 +50,8 @@ namespace CustomContainerSizes
             privateChestHeight = Config.Bind<int>("Sizes", "PrivateChestHeight", 2, "Number of items tall for private chest containers");
             reinforcedChestWidth = Config.Bind<int>("Sizes", "ReinforcedChestWidth", 6, "Number of items wide for reinforced chest containers (max. 8)");
             reinforcedChestHeight = Config.Bind<int>("Sizes", "ReinforcedChestHeight", 4, "Number of items tall for reinforced chest containers");
+            blackMetalChestWidth = Config.Bind<int>("Sizes", "BlackMetalChestWidth", 8, "Number of items wide for black metal chest containers (max. 8)");
+            blackMetalChestHeight = Config.Bind<int>("Sizes", "BlackMetalChestHeight", 4, "Number of items tall for black metal chest containers");
             wagonWidth = Config.Bind<int>("Sizes", "WagonWidth", 6, "Number of items wide for chest containers (max. 8)");
             wagonHeight = Config.Bind<int>("Sizes", "WagonHeight", 3, "Number of items tall for chest containers");
             nexusID = Config.Bind<int>("General", "NexusID", 111, "Mod ID on the Nexus for update checks");
@@ -102,21 +106,28 @@ namespace CustomContainerSizes
                     typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, wagonWidth.Value);
                     typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, wagonHeight.Value);
                 }
-                else if (__instance.name.StartsWith("piece_chest_wood"))
+                else if (__instance.name.StartsWith("piece_chest_wood("))
                 {
                     Dbgl($"setting chest size to {chestWidth.Value},{chestHeight.Value}");
 
                     typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, chestWidth.Value);
                     typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, chestHeight.Value);
                 }
-                else if (__instance.name.StartsWith("piece_chest_private"))
+                else if (__instance.name.StartsWith("piece_chest_private("))
                 {
                     Dbgl($"setting private chest size to {privateChestWidth.Value},{privateChestHeight.Value}");
 
                     typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, privateChestWidth.Value);
                     typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, privateChestHeight.Value);
                 }
-                else if (__instance.name.StartsWith("piece_chest"))
+                else if (__instance.name.StartsWith("piece_chest_blackmetal("))
+                {
+                    Dbgl($"setting black metal chest size to {blackMetalChestWidth.Value},{blackMetalChestHeight.Value}");
+
+                    typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, blackMetalChestWidth.Value);
+                    typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, blackMetalChestHeight.Value);
+                }
+                else if (__instance.name.StartsWith("piece_chest("))
                 {
                     Dbgl($"setting reinforced chest size to {reinforcedChestWidth.Value},{reinforcedChestHeight.Value}");
 
