@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace QuestFramework
 {
-    [BepInPlugin("aedenthorn.QuestFramework", "Quest Framework", "0.1.0")]
+    [BepInPlugin("aedenthorn.QuestFramework", "Quest Framework", "0.1.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

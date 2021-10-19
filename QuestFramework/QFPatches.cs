@@ -1,5 +1,7 @@
 ﻿using BepInEx;
 using HarmonyLib;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace QuestFramework
 {
@@ -50,10 +52,16 @@ namespace QuestFramework
                 if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} end "))
                 {
                     AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
-                    if(QuestFrameworkAPI.RemoveQuest(text.Split(' ')[2]))
+                    List<string> keys = currentQuests.questDict.Keys.ToList();
+                    keys.Sort();
+                    string id = text.Split(' ')[2];
+                    if ((keys.Contains(id) && QuestFrameworkAPI.RemoveQuest(id)) || (int.TryParse(id, out int idx) && keys.Count > idx && QuestFrameworkAPI.RemoveQuest(keys[idx])))
+                    {
                         AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} quest removed" });
-                    else
+                    }
+                    else 
                         AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} error removing quest" });
+
                     return false;
                 }
                 if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} clear"))
@@ -66,9 +74,11 @@ namespace QuestFramework
                 if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} list"))
                 {
                     AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
-                    foreach(string key in currentQuests.questDict.Keys)
+                    List<string> keys = currentQuests.questDict.Keys.ToList();
+                    keys.Sort();
+                    for(int i = 0; i < keys.Count; i++)
                     {
-                        AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} {key}" });
+                        AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { i + " " + keys[i] });
                     }
                     return false;
                 }
