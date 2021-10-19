@@ -1,0 +1,261 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <AssemblyName>$(ProjectName)</AssemblyName>
+    <RootNamespace>$(ProjectName)</RootNamespace>
+    <TargetFramework>net462</TargetFramework>
+    <Platforms>AnyCPU</Platforms>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <GamePath><!-- Set GamePath manually --></GamePath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <!-- Find GamePath -->
+  <Choose>
+    <When Condition="($(OS) == 'Unix' OR $(OS) == 'OSX') AND $(GamePath) == ''">
+      <PropertyGroup>
+        <GamePath Condition="!Exists('$(GamePath)')">$(HOME)/.steam/steam/steamapps/common/Valheim</GamePath>
+        <GamePath Condition="!Exists('$(GamePath)')">$(HOME)/Library/Application Support/Steam/steamapps/common/Valheim/Contents/MacOS</GamePath>
+      </PropertyGroup>
+    </When>
+    <When Condition="($(OS) == 'Windows_NT') AND $(GamePath) == ''">
+      <PropertyGroup>
+        <GamePath Condition="!Exists('$(GamePath)')">$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 892970', 'InstallLocation', null, RegistryView.Registry64, RegistryView.Registry32))</GamePath>
+        <_SteamLibraryPath>$([MSBuild]::GetRegistryValueFromView('HKEY_CURRENT_USER\SOFTWARE\Valve\Steam', 'SteamPath', null, RegistryView.Registry32))</_SteamLibraryPath>
+        <GamePath Condition="!Exists('$(GamePath)') AND '$(_SteamLibraryPath)' != ''">$(_SteamLibraryPath)\steamapps\common\Valheim</GamePath>
+        <GamePath Condition="!Exists('$(GamePath)')">C:\Program Files\Steam\steamapps\common\Valheim</GamePath>
+        <GamePath Condition="!Exists('$(GamePath)')">C:\Program Files (x86)\Steam\steamapps\common\Valheim</GamePath>
+      </PropertyGroup>
+    </When>
+  </Choose>
+  
+  <!-- Manual overrides -->
+  <PropertyGroup>
+    <BepInExPath>$(GamePath)\BepInEx</BepInExPath>
+    <ManagedDataPath>$(GamePath)\valheim_Data\Managed</ManagedDataPath>
+    <UnityPath>$(GamePath)\unstripped_corlib</UnityPath>
+  </PropertyGroup>
+  
+  <!-- Set start action -->
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <StartAction>Program</StartAction>
+    <StartProgram>$(GamePath)\valheim.exe</StartProgram>
+    <StartArguments>-console</StartArguments>
+    <StartWorkingDirectory>$(GamePath)</StartWorkingDirectory>
+  </PropertyGroup>
+
+  <!-- Add BepInEx references -->
+  <ItemGroup Label="BepInEx">
+    <Reference Include="0Harmony20">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(BepInExPath)\core\0Harmony20.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="BepInEx">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(BepInExPath)\core\BepInEx.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Add valheim_data references -->
+  <ItemGroup Label="Valheim_Data">
+    <Reference Include="assembly_valheim">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\assembly_valheim.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="assembly_googleanalytics">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\assembly_googleanalytics.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="assembly_guiutils">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\assembly_guiutils.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="assembly_postprocessing">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\assembly_postprocessing.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="assembly_steamworks">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\assembly_steamworks.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="assembly_sunshafts">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\assembly_sunshafts.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="assembly_utils">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\assembly_utils.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Add ServerSync reference -->
+  <ItemGroup Label="ServerSync">
+    <Reference Include="ServerSync">
+      <HintPath>..\..\ServerSync\bin\Debug\ServerSync.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Add Unity references -->
+  <ItemGroup Label="Unity">
+    <Reference Include="UnityEngine">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AccessibilityModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.AccessibilityModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AIModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.AIModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.AnimationModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.AudioModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ClothModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.ClothModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.ParticleSystemModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ScreenCaptureModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.ScreenCaptureModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.UIModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.UIElementsModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.InputModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.JSONSerializeModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.ImageConversionModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.TerrainModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.TextCoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAudioModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.UnityWebRequestModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestWWWModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestTextureModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\UnityEngine.AssetBundleModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

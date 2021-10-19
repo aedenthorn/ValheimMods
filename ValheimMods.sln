@@ -206,7 +206,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtendedPlayerInventory", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AICustomization", "AICustomization\AICustomization.csproj", "{DB0A4C79-B840-4431-954B-43C26A1CBFB4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PreventBabySlaughter", "PreventBabySlaughter\PreventBabySlaughter.csproj", "{5A93EC88-9788-43E0-92EA-9496B86C26E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PreventBabySlaughter", "PreventBabySlaughter\PreventBabySlaughter.csproj", "{5A93EC88-9788-43E0-92EA-9496B86C26E6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CombatMusic", "CombatMusic\CombatMusic.csproj", "{42C550DD-AB81-427E-94FC-7F057941D6AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestFramework", "QuestFramework\QuestFramework.csproj", "{D464E26E-C684-4F58-AB02-1BC4CA32454B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AedenthornUtils", "AedenthornUtils\AedenthornUtils.csproj", "{EAED7B73-E459-489F-AC7D-4DACC3197D9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HaldorFetchQuests", "HaldorFetchQuests\HaldorFetchQuests.csproj", "{6C33BCCD-3BC1-4C47-9BAF-59BA4CC1A8A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -610,6 +618,22 @@ Global
 		{5A93EC88-9788-43E0-92EA-9496B86C26E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A93EC88-9788-43E0-92EA-9496B86C26E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A93EC88-9788-43E0-92EA-9496B86C26E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42C550DD-AB81-427E-94FC-7F057941D6AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42C550DD-AB81-427E-94FC-7F057941D6AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42C550DD-AB81-427E-94FC-7F057941D6AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42C550DD-AB81-427E-94FC-7F057941D6AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D464E26E-C684-4F58-AB02-1BC4CA32454B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D464E26E-C684-4F58-AB02-1BC4CA32454B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D464E26E-C684-4F58-AB02-1BC4CA32454B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D464E26E-C684-4F58-AB02-1BC4CA32454B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAED7B73-E459-489F-AC7D-4DACC3197D9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAED7B73-E459-489F-AC7D-4DACC3197D9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAED7B73-E459-489F-AC7D-4DACC3197D9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAED7B73-E459-489F-AC7D-4DACC3197D9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C33BCCD-3BC1-4C47-9BAF-59BA4CC1A8A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C33BCCD-3BC1-4C47-9BAF-59BA4CC1A8A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C33BCCD-3BC1-4C47-9BAF-59BA4CC1A8A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C33BCCD-3BC1-4C47-9BAF-59BA4CC1A8A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
