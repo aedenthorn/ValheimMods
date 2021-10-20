@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace HaldorFetchQuests
 {
-    [BepInPlugin("aedenthorn.HaldorFetchQuests", "Haldor Fetch Quests", "0.1.0")]
+    [BepInPlugin("aedenthorn.HaldorFetchQuests", "Haldor Fetch Quests", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

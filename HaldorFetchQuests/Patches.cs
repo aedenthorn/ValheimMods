@@ -184,6 +184,8 @@ namespace HaldorFetchQuests
                 Dbgl($"Adding {currentQuestDict.Count} quests to trader");
                 foreach (FetchQuestData fqd in currentQuestDict.Values)
                 {
+                    Dbgl($"{fqd.ID} reward {fqd.reward}");
+
                     ItemDrop id = new ItemDrop();
                     id.m_itemData.m_crafterName = fqd.ID;
                     ___m_trader.m_items.Add(new Trader.TradeItem()

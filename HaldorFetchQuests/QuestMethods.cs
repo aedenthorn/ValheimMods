@@ -16,6 +16,80 @@ namespace HaldorFetchQuests
         public static void RefreshCurrentQuests()
         {
             currentQuestDict.Clear();
+
+            if (Directory.Exists(Path.Combine(AedenthornUtils.GetAssetPath(context, true), "Quests")) && Directory.GetFiles(Path.Combine(AedenthornUtils.GetAssetPath(context, true), "Quests")).Length > 0)
+            {
+                List<FetchQuestData> fqdList = new List<FetchQuestData>();
+                foreach(string file in Directory.GetFiles(Path.Combine(AedenthornUtils.GetAssetPath(context, true), "Quests")))
+                {
+                    try
+                    {
+                        fqdList.Add(JsonUtility.FromJson<FetchQuestData>(File.ReadAllText(file)));
+                    }
+                    catch(Exception ex)
+                    {
+                        try
+                        {
+                            string[] lines = File.ReadAllLines(file);
+                            foreach(string line in lines)
+                            {
+                                fqdList.Add(JsonUtility.FromJson<FetchQuestData>(line));
+                            }
+                        }
+                        catch
+                        { 
+                            Dbgl($"Error reading quests from {file}:\n\n{ex}");
+                        }
+                    }
+                }
+                if(fqdList.Count > 0)
+                {
+                    AedenthornUtils.ShuffleList(fqdList);
+                    List<FetchQuestData> list = fqdList.Take(maxQuests.Value).ToList();
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        FetchQuestData fqd = list[i];
+                        if (fqd.amount <= 0)
+                        {
+                            fqd.amount = Random.Range(minAmount.Value, maxAmount.Value);
+                            fqd.reward *= fqd.amount;
+                        }
+                        fqd.reward = Mathf.RoundToInt(fqd.reward * (1 + (rewardFluctuation.Value * 2 * Random.value - rewardFluctuation.Value)));
+                        if (fqd.type == FetchType.Fetch)
+                        {
+                            try
+                            {
+                                fqd.thing = ObjectDB.instance.GetItemPrefab(fqd.thing).GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+                            }
+                            catch { }
+                        }
+                        else
+                        {
+                            try
+                            {
+                                fqd.thing = ZNetScene.instance.GetPrefab(fqd.thing).GetComponent<Character>().m_name;
+                            }
+                            catch { }
+                        }
+                        int idx = 0;
+                        fqd.ID = $"{typeof(BepInExPlugin).Namespace}|{fqd.type}|{fqd.amount}|{fqd.thing}|{fqd.reward}|{idx}";
+                        while (currentQuestDict.ContainsKey(fqd.ID) || QuestFrameworkAPI.IsQuestActive(fqd.ID))
+                        {
+                            fqd.ID = $"{typeof(BepInExPlugin).Namespace}|{fqd.type}|{fqd.amount}|{fqd.thing}|{fqd.reward}|{++idx}";
+                        }
+                        currentQuestDict.Add(fqd.ID, fqd);
+                        Dbgl($"Added quest {fqd.ID}, reward {fqd.reward}");
+                        Dbgl($"In dict quest {currentQuestDict[fqd.ID].ID}, reward {currentQuestDict[fqd.ID].reward}");
+                    }
+                    foreach(var kvp in currentQuestDict)
+                    {
+                        Dbgl($"Added quest {kvp.Key}, {kvp.Value.ID} reward {kvp.Value.reward}");
+                    }
+                    return;
+                }
+            }
+
+
             for (int i = 0; i < maxQuests.Value; i++)
             {
                 FetchType type = Random.value > killToFetchRatio.Value ? FetchType.Fetch : FetchType.Kill;
@@ -31,7 +105,7 @@ namespace HaldorFetchQuests
                     {
                         possibleKillList = ((Dictionary<int, GameObject>)AccessTools.Field(typeof(ZNetScene), "m_namedPrefabs").GetValue(ZNetScene.instance)).Values.ToList().FindAll(g => g.GetComponent<MonsterAI>() || g.GetComponent<AnimalAI>());
                     }
-                    go = possibleKillList[Random.Range(0, possibleKillList.Count - 1)];
+                    go = possibleKillList[Random.Range(0, possibleKillList.Count)];
                     reward = Mathf.RoundToInt(amount * go.GetComponent<Character>().m_health * killRewardMult.Value);
                     name = go.GetComponent<Character>().m_name;
                 }
@@ -41,7 +115,7 @@ namespace HaldorFetchQuests
                     {
                         possibleFetchList = ObjectDB.instance.m_items.FindAll(g => g.GetComponent<ItemDrop>() && (g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemType.Material || g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemType.Consumable) && !((Trader)AccessTools.Field(typeof(StoreGui), "m_trader").GetValue(StoreGui.instance)).m_items.Exists(t => t.m_prefab.m_itemData.m_shared.m_name == g.GetComponent<ItemDrop>().m_itemData.m_shared.m_name));
                     }
-                    go = possibleFetchList[Random.Range(0, possibleFetchList.Count - 1)];
+                    go = possibleFetchList[Random.Range(0, possibleFetchList.Count)];
 
                     int value = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_value;
                     if(value == 0)
@@ -56,6 +130,12 @@ namespace HaldorFetchQuests
 
                 reward = Mathf.RoundToInt(reward * (1 + (rewardFluctuation.Value * 2 * Random.value - rewardFluctuation.Value)));
 
+                int idx = 0;
+                string ID = $"{typeof(BepInExPlugin).Namespace}|{type}|{amount}|{name}|{reward}|{idx}";
+                while (currentQuestDict.ContainsKey(ID) || QuestFrameworkAPI.IsQuestActive(ID))
+                {
+                    ID = $"{typeof(BepInExPlugin).Namespace}|{type}|{amount}|{name}|{reward}|{++idx}";
+                }
 
                 FetchQuestData fqd = new FetchQuestData()
                 {
@@ -63,10 +143,11 @@ namespace HaldorFetchQuests
                     thing = name,
                     amount = amount,
                     reward = reward,
-                    ID = $"{typeof(BepInExPlugin).Namespace}|{type}|{amount}|{name}|{reward}" 
+                    ID = ID 
                 };
+
                 currentQuestDict.Add(fqd.ID, fqd);
-                Dbgl($"Added quest {fqd.ID}, reward {fqd.reward}");
+                Dbgl($"Added quest {fqd.ID}");
             }
         }
 
@@ -188,10 +269,19 @@ namespace HaldorFetchQuests
                 QuestData qd = dict[key];
 
                 if (qd.ID.StartsWith(typeof(BepInExPlugin).Namespace) && qd.currentStage == "StageTwo")
-                { 
-                    if((FetchType)qd.data["type"] == FetchType.Fetch)
+                {
+                    int emptySlots = Player.m_localPlayer.GetInventory().GetWidth() * Player.m_localPlayer.GetInventory().GetHeight() - Player.m_localPlayer.GetInventory().GetAllItems().Count;
+                    int stackSpace = (int)AccessTools.Method(typeof(Inventory), "FindFreeStackSpace").Invoke(Player.m_localPlayer.GetInventory(), new object[] { __instance.m_coinPrefab.m_itemData.m_shared.m_name });
+                    stackSpace += emptySlots * __instance.m_coinPrefab.m_itemData.m_shared.m_maxStackSize;
+                    if (stackSpace < (int)qd.data["reward"])
                     {
-                        if(Player.m_localPlayer.GetInventory().CountItems((string)qd.data["thing"]) < (int)qd.data["amount"])
+                        Dbgl($"No room for reward! {stackSpace} {(int)qd.data["reward"]}");
+                        Player.m_localPlayer.Message(MessageHud.MessageType.Center, "No room for reward!", 0, null);
+                        continue;
+                    }
+                    if ((FetchType)qd.data["type"] == FetchType.Fetch)
+                    {
+                        if (Player.m_localPlayer.GetInventory().CountItems((string)qd.data["thing"]) < (int)qd.data["amount"])
                         {
                             Dbgl($"not enough to complete quest!");
                             AdjustFetchQuests();
