@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\valheim.targets" />
+  <ItemGroup>
+    <Compile Remove="QuestAcceptWindow.cs" />
+  </ItemGroup>
+  <ItemGroup Label="QuestFramework">
+    <Reference Include="QuestFramework">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(BepInExPath)\plugins\QuestFramework.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

@@ -48,7 +48,7 @@ namespace CustomTextures
 
                 stopwatch.Restart();
 
-                ReplaceZNetSceneTextures(___m_namedPrefabs);
+                ReplaceZNetSceneTextures();
 
                 LogStopwatch("ZNetScene");
                 //stopwatch.Restart();

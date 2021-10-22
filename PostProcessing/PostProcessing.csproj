@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\valheim.targets" />
+  <ItemGroup>
+    <Compile Include="..\AedenthornUtils\AedenthornUtils.cs" Link="AedenthornUtils.cs" />
+  </ItemGroup>
+</Project>

@@ -10,7 +10,6 @@ using static ItemDrop.ItemData;
 
 namespace HaldorFetchQuests
 {
-
     public partial class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -21,7 +20,7 @@ namespace HaldorFetchQuests
             {
                 if (!modEnabled.Value)
                     return;
-                currentQuestDict.Clear();
+                currentQuestDict = null;
 
                 possibleKillList = ((Dictionary<int, GameObject>)AccessTools.Field(typeof(ZNetScene), "m_namedPrefabs").GetValue(ZNetScene.instance)).Values.ToList().FindAll(g => g.GetComponent<MonsterAI>() || g.GetComponent<AnimalAI>());
                 possibleFetchList = ObjectDB.instance.m_items.FindAll(g => g.GetComponent<ItemDrop>() && (g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemType.Material || g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemType.Consumable));
@@ -47,9 +46,10 @@ namespace HaldorFetchQuests
         {
             static void Prefix()
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || !ZNet.instance || !Player.m_localPlayer)
                     return;
-
+                if (currentQuestDict == null && !File.Exists(Path.Combine(AedenthornUtils.GetAssetPath(context, true), $"{Game.instance.GetPlayerProfile().GetName()}_{ZNet.instance.GetWorldName()}")))
+                        return;
                 using (Stream stream = File.Open(Path.Combine(AedenthornUtils.GetAssetPath(context, true), $"{Game.instance.GetPlayerProfile().GetName()}_{ZNet.instance.GetWorldName()}"), FileMode.Create))
                 {
                     var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
@@ -110,7 +110,7 @@ namespace HaldorFetchQuests
                     buyButtonText = __instance.m_buyButton.GetComponentInChildren<Text>().text;
                 }
 
-                if (currentQuestDict.ContainsKey(___m_selectedItem.m_prefab.m_itemData.m_crafterName))
+                if (currentQuestDict != null && currentQuestDict.ContainsKey(___m_selectedItem.m_prefab.m_itemData.m_crafterName))
                 {
                     __instance.m_buyButton.GetComponentInChildren<Text>().text = acceptButtonText.Value;
                     __instance.m_buyButton.interactable = true;
@@ -151,6 +151,7 @@ namespace HaldorFetchQuests
                             ___m_trader.m_items.RemoveAt(i);
                     }
                     AccessTools.Method(typeof(StoreGui), "FillList").Invoke(__instance, new object[] { });
+                    AdjustFetchQuests();
                     return false;
                 }
                 return true;
@@ -173,7 +174,7 @@ namespace HaldorFetchQuests
                 if (!modEnabled.Value)
                     return;
 
-                if(ZNet.instance.GetTimeSeconds() >= lastRefreshTime + questRefreshInterval.Value)
+                if(currentQuestDict == null || ZNet.instance.GetTimeSeconds() >= lastRefreshTime + questRefreshInterval.Value)
                 {
                     lastRefreshTime = ZNet.instance.GetTimeSeconds();
                     RefreshCurrentQuests();

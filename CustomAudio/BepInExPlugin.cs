@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.4.2")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.4.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -147,7 +147,7 @@ namespace CustomAudio
 
         private void PreloadClipCoroutine(string path, AudioType audioType, Dictionary<string, AudioClip> whichDict)
         {
-            if (path.EndsWith(".txt"))
+            if (path.EndsWith(".txt") || !path.Contains("."))
                 return;
 
             Dbgl($"path: {path}");

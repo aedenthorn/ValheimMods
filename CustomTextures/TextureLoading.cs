@@ -72,44 +72,7 @@ namespace CustomTextures
 
             ReplaceEnvironmentTextures();
 
-            List<GameObject> gos = new List<GameObject>();
-
-            SkinnedMeshRenderer[] smrs = FindObjectsOfType<SkinnedMeshRenderer>();
-            MeshRenderer[] mrs = FindObjectsOfType<MeshRenderer>();
-            ParticleSystemRenderer[] psrs = FindObjectsOfType<ParticleSystemRenderer>();
-            LineRenderer[] lrs = FindObjectsOfType<LineRenderer>();
-
-            foreach(var r in smrs)
-            {
-                if(!gos.Contains(r.gameObject))
-                    gos.Add(r.gameObject);
-            }
-            foreach(var r in mrs)
-            {
-                if(!gos.Contains(r.gameObject))
-                    gos.Add(r.gameObject);
-            }
-            foreach(var r in psrs)
-            {
-                if(!gos.Contains(r.gameObject))
-                    gos.Add(r.gameObject);
-            }
-            foreach(var r in lrs)
-            {
-                if(!gos.Contains(r.gameObject))
-                    gos.Add(r.gameObject);
-            }
-
-
-            foreach (ClutterSystem.Clutter clutter in ClutterSystem.instance.m_clutter)
-            {
-                if (!gos.Contains(clutter.m_prefab))
-                    gos.Add(clutter.m_prefab);
-            }
-
-            gos.AddRange(Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>().Values);
-
-            ReplaceSceneTextures(gos.ToArray());
+            ReplaceZNetSceneTextures();
 
             foreach (Player player in Player.GetAllPlayers())
             {

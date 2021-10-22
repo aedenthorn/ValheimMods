@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace CustomGraphicsSettings
 {
-    [BepInPlugin("aedenthorn.CustomGraphicsSettings", "Custom Graphics Settings", "0.5.0")]
+    [BepInPlugin("aedenthorn.CustomGraphicsSettings", "Custom Graphics Settings", "0.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -136,6 +136,17 @@ namespace CustomGraphicsSettings
             QualitySettings.vSyncCount = vSyncCount.Value;
         }
 
+
+        [HarmonyPatch(typeof(Settings), "ApplyQualitySettings")]
+        static class Settings_ApplyQualitySettings_Patch
+        {
+            static void Postfix()
+            {
+                if (!modEnabled.Value)
+                    return;
+                SetGraphicsSettings();
+            }
+        }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch

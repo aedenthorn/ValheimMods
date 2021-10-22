@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace AutoFeed
 {
-    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.6.1")]
+    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.6.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -170,7 +170,7 @@ namespace AutoFeed
         {
             await Task.Delay(delay);
 
-            if (!tamable.IsHungry())
+            if (tamable == null || !tamable.IsHungry())
                 return;
 
             if (requireOnlyFood.Value)

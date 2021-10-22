@@ -24,7 +24,7 @@ namespace QuestFramework
         {
             static void Prefix()
             {
-                if (!modEnabled.Value || currentQuests.questDict.Count == 0)
+                if (!modEnabled.Value || !ZNet.instance || !Player.m_localPlayer)
                     return;
                 SaveQuests(Game.instance.GetPlayerProfile().GetName(), ZNet.instance.GetWorldName());
             }
@@ -67,7 +67,7 @@ namespace QuestFramework
                 if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} clear"))
                 {
                     AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
-                    BepInExPlugin.currentQuests.questDict.Clear();
+                    currentQuests.questDict.Clear();
                     AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} quests cleared" });
                     return false;
                 }

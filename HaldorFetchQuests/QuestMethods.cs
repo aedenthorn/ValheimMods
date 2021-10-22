@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using HarmonyLib;
 using QuestFramework;
 using System;
@@ -15,7 +16,7 @@ namespace HaldorFetchQuests
     {
         public static void RefreshCurrentQuests()
         {
-            currentQuestDict.Clear();
+            currentQuestDict = new Dictionary<string, FetchQuestData>();
 
             if (Directory.Exists(Path.Combine(AedenthornUtils.GetAssetPath(context, true), "Quests")) && Directory.GetFiles(Path.Combine(AedenthornUtils.GetAssetPath(context, true), "Quests")).Length > 0)
             {
@@ -45,7 +46,7 @@ namespace HaldorFetchQuests
                 if(fqdList.Count > 0)
                 {
                     AedenthornUtils.ShuffleList(fqdList);
-                    List<FetchQuestData> list = fqdList.Take(maxQuests.Value).ToList();
+                    List<FetchQuestData> list = new List<FetchQuestData>(fqdList.Take(maxQuests.Value));
                     for (int i = 0; i < list.Count; i++)
                     {
                         FetchQuestData fqd = list[i];
@@ -78,12 +79,7 @@ namespace HaldorFetchQuests
                             fqd.ID = $"{typeof(BepInExPlugin).Namespace}|{fqd.type}|{fqd.amount}|{fqd.thing}|{fqd.reward}|{++idx}";
                         }
                         currentQuestDict.Add(fqd.ID, fqd);
-                        Dbgl($"Added quest {fqd.ID}, reward {fqd.reward}");
-                        Dbgl($"In dict quest {currentQuestDict[fqd.ID].ID}, reward {currentQuestDict[fqd.ID].reward}");
-                    }
-                    foreach(var kvp in currentQuestDict)
-                    {
-                        Dbgl($"Added quest {kvp.Key}, {kvp.Value.ID} reward {kvp.Value.reward}");
+                        Dbgl($"Added quest {fqd.ID}");
                     }
                     return;
                 }
@@ -120,9 +116,23 @@ namespace HaldorFetchQuests
                     int value = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_value;
                     if(value == 0)
                     {
-                        if (worthlessItemValue.Value <= 0)
-                            continue;
-                        value = worthlessItemValue.Value;
+                        if (Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))
+                        {
+                            var key = Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config.Keys.ToList().Find(c => c.Section.StartsWith("C_Items") && c.Section.EndsWith("." + go.name) && c.Key == "Sellable");
+                            if(key != null && (bool)Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config[key].BoxedValue)
+                            {
+                                key = Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config.Keys.ToList().Find(c => c.Section == key.Section && c.Key == "Sell Price");
+                                value = (int)Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config[key].BoxedValue;
+                                Dbgl($"Got Better Trader price for {go.name} of {value}; section {key.Section} key {key.Key}");
+                            }
+                        }
+                        if(value <= 0)
+                        {
+                            if (worthlessItemValue.Value <= 0)
+                                continue;
+                            else
+                                value = worthlessItemValue.Value;
+                        }
                     }
                     reward = Mathf.CeilToInt(amount * value * fetchRewardMult.Value);
                     name = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;

@@ -27,6 +27,9 @@ namespace QuestFramework
         }
         public static void SaveQuests(string player, string world)
         {
+            if (currentQuests.questDict.Count == 0 && !File.Exists(Path.Combine(AedenthornUtils.GetAssetPath(context, true), $"{player}_{world}")))
+                return;
+
             using (Stream stream = File.Open(Path.Combine(AedenthornUtils.GetAssetPath(context, true), $"{player}_{world}"), FileMode.Create))
             {
                 var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();

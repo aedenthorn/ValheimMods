@@ -71,5 +71,18 @@ namespace QuestFramework
             }
             return BepInExPlugin.currentQuests.questDict[questID].currentStage;
         }
+        public static string GetQuestString(string questID)
+        {
+            if (!BepInExPlugin.currentQuests.questDict.ContainsKey(questID))
+            {
+                BepInExPlugin.Dbgl($"Quest {questID} not active");
+                return null;
+            }
+            return BepInExPlugin.MakeQuestString(BepInExPlugin.currentQuests.questDict[questID]);
+        }
+        public static string GetQuestString(QuestData questData)
+        {
+            return BepInExPlugin.MakeQuestString(questData);
+        }
     }
 }

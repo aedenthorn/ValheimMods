@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -57,43 +58,50 @@ namespace QuestFramework
             List<string> questList = new List<string>();
             foreach(QuestData qd in currentQuests.questDict.Values)
             {
-                List<string> questString = new List<string>();
-                if (qd.name.Length > 0)
-                    questString.Add(questNameTemplate.Value.Replace("{name}", qd.name));
-                if(qd.desc.Length > 0)
-                    questString.Add(questDescTemplate.Value.Replace("{desc}", qd.desc));
-                
-                QuestStage qs = qd.questStages[qd.currentStage];
-                List<string> stageString = new List<string>();
-                if (qs.name.Length > 0)
-                    stageString.Add(stageNameTemplate.Value.Replace("{name}", qs.name));
-                if (qs.desc.Length > 0)
-                    stageString.Add(stageDescTemplate.Value.Replace("{desc}", qs.desc));
+                string questString = MakeQuestString(qd);
 
-                List<string> objectives = new List<string>();
-                foreach(QuestObjective qo in qs.objectives.Values)
-                {
-                    if (!qo.completed)
-                    {
-                        List<string> objString = new List<string>();
-                        if (qo.name.Length > 0)
-                            objString.Add(objectiveNameTemplate.Value.Replace("{name}", qo.name));
-                        if (qo.desc.Length > 0)
-                            objString.Add(objectiveDescTemplate.Value.Replace("{desc}", qo.desc));
-
-                        objectives.Add(string.Join("\n",objString));
-                    }
-                }
-                if(objectives.Count > 0)
-                    stageString.AddRange(objectives);
-                if (stageString.Count > 0)
-                    questString.AddRange(stageString);
-
-                questList.Add(string.Join("\n", questString));
+                questList.Add(questString);
             }
             newQuestString = output.Replace("{quests}", string.Join("\n\n", questList));
             Dbgl($"new quest string:\n\n{newQuestString}");
         }
+
+        public static string MakeQuestString(QuestData qd)
+        {
+            List<string> questLines = new List<string>();
+            if (qd.name.Length > 0)
+                questLines.Add(questNameTemplate.Value.Replace("{name}", qd.name));
+            if (qd.desc.Length > 0)
+                questLines.Add(questDescTemplate.Value.Replace("{desc}", qd.desc));
+
+            QuestStage qs = qd.questStages[qd.currentStage];
+            List<string> stageString = new List<string>();
+            if (qs.name.Length > 0)
+                stageString.Add(stageNameTemplate.Value.Replace("{name}", qs.name));
+            if (qs.desc.Length > 0)
+                stageString.Add(stageDescTemplate.Value.Replace("{desc}", qs.desc));
+
+            List<string> objectives = new List<string>();
+            foreach (QuestObjective qo in qs.objectives.Values)
+            {
+                if (!qo.completed)
+                {
+                    List<string> objString = new List<string>();
+                    if (qo.name.Length > 0)
+                        objString.Add(objectiveNameTemplate.Value.Replace("{name}", qo.name));
+                    if (qo.desc.Length > 0)
+                        objString.Add(objectiveDescTemplate.Value.Replace("{desc}", qo.desc));
+
+                    objectives.Add(string.Join("\n", objString));
+                }
+            }
+            if (objectives.Count > 0)
+                stageString.AddRange(objectives);
+            if (stageString.Count > 0)
+                questLines.AddRange(stageString);
+
+            return string.Join("\n", questLines);
+         }
 
         private void WindowBuilder(int id)
         {

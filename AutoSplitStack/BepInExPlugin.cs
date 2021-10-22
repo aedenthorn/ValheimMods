@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace AutoSplitStack
 {
-    [BepInPlugin("aedenthorn.AutoSplitStack", "AutoSplitStack", "0.1.2")]
+    [BepInPlugin("aedenthorn.AutoSplitStack", "AutoSplitStack", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

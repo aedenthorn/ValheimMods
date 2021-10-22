@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using HarmonyLib;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -47,10 +48,8 @@ namespace CustomTextures
                 Dbgl("\n" + string.Join("\n", logDump));
         }
 
-        private static void ReplaceZNetSceneTextures(Dictionary<int, GameObject> namedPrefabs)
+        private static void ReplaceZNetSceneTextures()
         {
-            Dbgl($"Checking {namedPrefabs.Count} prefabs");
-
             logDump.Clear();
 
             List<GameObject> gos = new List<GameObject>();
@@ -88,24 +87,14 @@ namespace CustomTextures
                     gos.Add(clutter.m_prefab);
             }
 
-            gos.AddRange(Traverse.Create(ZNetScene.instance).Field("m_namedPrefabs").GetValue<Dictionary<int, GameObject>>().Values);
-
-            foreach (GameObject go in namedPrefabs.Values)
+            var namedPrefabs = ((Dictionary<int, GameObject>)AccessTools.Field(typeof(ZNetScene), "m_namedPrefabs").GetValue(ZNetScene.instance)).Values;
+            foreach (GameObject go in namedPrefabs)
             {
                 if (!gos.Contains(go))
                     gos.Add(go);
             }
-            ReplaceSceneTextures(gos.ToArray());
 
-
-            if (logDump.Any())
-                Dbgl("\n" + string.Join("\n", logDump));
-
-        }
-        private static void ReplaceSceneTextures(GameObject[] gos)
-        {
-
-            Dbgl($"loading {gos.Length} scene textures");
+            Dbgl($"Checking {gos.Count} prefabs");
 
             foreach (GameObject gameObject in gos)
             {
@@ -114,9 +103,53 @@ namespace CustomTextures
                     continue;
 
                 ReplaceOneGameObjectTextures(gameObject, gameObject.name, "object");
-
             }
 
+            ReplaceSkyBoxTexture();
+
+            if (logDump.Any())
+                Dbgl("\n" + string.Join("\n", logDump));
+
+        }
+
+        private static void ReplaceSkyBoxTexture()
+        {
+            if (customTextures.ContainsKey("skybox_StarFieldTex"))
+            {
+                Cubemap original = RenderSettings.skybox.GetTexture("_StarFieldTex") as Cubemap;
+                Dbgl($"original skybox {RenderSettings.skybox.GetTexture("_StarFieldTex").width}x{RenderSettings.skybox.GetTexture("_StarFieldTex").height} {RenderSettings.skybox.GetTexture("_StarFieldTex").graphicsFormat} {RenderSettings.skybox.GetTexture("_StarFieldTex").filterMode}");
+
+                Cubemap cube = new Cubemap(original.width, TextureFormat.RGB24, false);
+
+                //Cubemap cube = new Cubemap(original.width, GraphicsFormat.RGBA_BC7_SRGB, flags);
+                //cube.filterMode = FilterMode.Trilinear;
+
+
+                Texture2D tex = LoadTexture("skybox_StarFieldTex", null, false);
+                var color = tex.GetPixels();
+                // For each side
+                for (int i = 0; i < 6; i++)
+                {
+                    /*
+                    Texture2D temp = new Texture2D(RenderSettings.skybox.GetTexture("_StarFieldTex").width, RenderSettings.skybox.GetTexture("_StarFieldTex").height);
+                    temp.SetPixels(cube.GetPixels((CubemapFace)i));
+                    temp.Apply();
+                    File.WriteAllBytes($"face{i}.png", ImageConversion.EncodeToPNG(temp));
+                    */
+                    cube.SetPixels(color, (CubemapFace)i);
+                    cube.Apply();
+                }
+                RenderSettings.skybox.SetTexture("_StarFieldTex", cube);
+                Dbgl($"set skybox texture");
+            }
+            if (customTextures.ContainsKey("skybox_MoonTex"))
+            {
+                Texture2D tex = LoadTexture("skybox_MoonTex", null, false);
+                var color = tex.GetPixels();
+                // For each side
+                RenderSettings.skybox.SetTexture("_MoonTex", tex);
+                Dbgl($"set moon texture");
+            }
         }
         private static void ReplaceZoneSystemTextures(ZoneSystem __instance)
         {

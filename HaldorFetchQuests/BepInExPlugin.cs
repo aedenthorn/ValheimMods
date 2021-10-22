@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace HaldorFetchQuests
 {
-    [BepInPlugin("aedenthorn.HaldorFetchQuests", "Haldor Fetch Quests", "0.2.0")]
+    [BepInPlugin("aedenthorn.HaldorFetchQuests", "Haldor Fetch Quests", "0.2.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -47,7 +47,7 @@ namespace HaldorFetchQuests
         public static double lastRefreshTime = 0;
 
         private static string buyButtonText = "";
-        public static Dictionary<string, FetchQuestData> currentQuestDict = new Dictionary<string, FetchQuestData>();
+        public static Dictionary<string, FetchQuestData> currentQuestDict;
         public static List<GameObject> possibleKillList = new List<GameObject>();
         public static List<GameObject> possibleFetchList = new List<GameObject>();
 

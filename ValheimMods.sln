@@ -210,11 +210,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PreventBabySlaughter", "Pre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CombatMusic", "CombatMusic\CombatMusic.csproj", "{42C550DD-AB81-427E-94FC-7F057941D6AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestFramework", "QuestFramework\QuestFramework.csproj", "{D464E26E-C684-4F58-AB02-1BC4CA32454B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuestFramework", "QuestFramework\QuestFramework.csproj", "{D464E26E-C684-4F58-AB02-1BC4CA32454B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AedenthornUtils", "AedenthornUtils\AedenthornUtils.csproj", "{EAED7B73-E459-489F-AC7D-4DACC3197D9A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AedenthornUtils", "AedenthornUtils\AedenthornUtils.csproj", "{EAED7B73-E459-489F-AC7D-4DACC3197D9A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HaldorFetchQuests", "HaldorFetchQuests\HaldorFetchQuests.csproj", "{6C33BCCD-3BC1-4C47-9BAF-59BA4CC1A8A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaldorFetchQuests", "HaldorFetchQuests\HaldorFetchQuests.csproj", "{6C33BCCD-3BC1-4C47-9BAF-59BA4CC1A8A9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HuginQuestFramework", "HuginQuestFramework\HuginQuestFramework.csproj", "{0841DB40-1807-4CBF-9F54-9548D36C581D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostProcessing", "PostProcessing\PostProcessing.csproj", "{836DB46B-86D6-47DD-8CF9-39BE99A17B13}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -634,6 +638,14 @@ Global
 		{6C33BCCD-3BC1-4C47-9BAF-59BA4CC1A8A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C33BCCD-3BC1-4C47-9BAF-59BA4CC1A8A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C33BCCD-3BC1-4C47-9BAF-59BA4CC1A8A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0841DB40-1807-4CBF-9F54-9548D36C581D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0841DB40-1807-4CBF-9F54-9548D36C581D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0841DB40-1807-4CBF-9F54-9548D36C581D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0841DB40-1807-4CBF-9F54-9548D36C581D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{836DB46B-86D6-47DD-8CF9-39BE99A17B13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{836DB46B-86D6-47DD-8CF9-39BE99A17B13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{836DB46B-86D6-47DD-8CF9-39BE99A17B13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{836DB46B-86D6-47DD-8CF9-39BE99A17B13}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
