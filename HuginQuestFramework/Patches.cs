@@ -233,8 +233,13 @@ namespace HuginQuestFramework
 
                 if(nextQuest == null && ZNet.instance.GetTimeSeconds() > questCheckInterval.Value + lastCheckTime)
                 {
+
                     Dbgl($"Checking for quest");
                     lastCheckTime = ZNet.instance.GetTimeSeconds();
+
+                    if (QuestFrameworkAPI.GetCurrentQuests().Keys.ToList().Exists(s => s.StartsWith(typeof(BepInExPlugin).Namespace)))
+                        return;
+
                     if(Random.value < questChance.Value)
                     {
                         nextQuest = MakeRandomQuest();

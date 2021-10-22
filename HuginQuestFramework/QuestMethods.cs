@@ -85,7 +85,7 @@ namespace HuginQuestFramework
                 var fetchList = ObjectDB.instance.m_items.FindAll(g => g.GetComponent<ItemDrop>() && (g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Material || g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Consumable));
                 foreach(GameObject go in fetchList)
                 {
-                    int value = GetItemValue(go.GetComponent<ItemDrop>().m_itemData, go.name);
+                    int value = GetItemValue(go.GetComponent<ItemDrop>());
                     if (value > 0)
                         possibleFetchList.Add(new GameObjectReward(go, value));
                 }
@@ -123,7 +123,7 @@ namespace HuginQuestFramework
                 {
                     key = Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config.Keys.ToList().Find(c => c.Section == key.Section && c.Key == "Sell Price");
                     value = (int)Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config[key].BoxedValue;
-                    Dbgl($"Got Better Trader price for {itemDrop.m_itemData.m_shared.m_name} of {value}; section {key.Section} key {key.Key}");
+                    //Dbgl($"Got Better Trader price for {itemDrop.m_itemData.m_shared.m_name} of {value}; section {key.Section} key {key.Key}");
                 }
             }
             if (value <= 0 && randomWorthlessItemValue.Value > 0)
@@ -137,11 +137,13 @@ namespace HuginQuestFramework
         {
             if(huginQuestDict.Count > 0)
             {
+                Dbgl("Making random custom quest");
                 int idx = Random.Range(0, huginQuestDict.Count);
                 return MakeQuestData(huginQuestDict[huginQuestDict.Keys.ToList()[idx]]);
             }
             else
             {
+                Dbgl("Making random quest");
                 float typeChance = Random.value * (randomFetchQuestWeight.Value + randomKillQuestWeight.Value + randomBuildQuestWeight.Value);
                 QuestType type;
                 if (typeChance <= randomFetchQuestWeight.Value)
@@ -156,6 +158,7 @@ namespace HuginQuestFramework
                 {
                     type = QuestType.Build;
                 }
+
                 int amount = Random.Range(minAmount.Value, maxAmount.Value);
 
                 GameObject go;
@@ -168,8 +171,8 @@ namespace HuginQuestFramework
                     go = possibleKillList[Random.Range(0, possibleKillList.Count)];
                     reward = Mathf.RoundToInt(amount * go.GetComponent<Character>().m_health * randomKillRewardMult.Value);
                     name = go.GetComponent<Character>().m_name;
-                    questName = randomKillQuestName.Value.Replace("{thing}", go.name);
-                    objectiveName = randomKillQuestObjectiveName.Value.Replace("{thing}", go.name);
+                    questName = randomKillQuestName.Value.Replace("{thing}", Localization.instance.Localize(name));
+                    objectiveName = randomKillQuestObjectiveName.Value.Replace("{thing}", Localization.instance.Localize(name));
                 }
                 else if(type == QuestType.Fetch)
                 {
@@ -177,17 +180,17 @@ namespace HuginQuestFramework
                     go = gor.gameObject;
                     reward = Mathf.CeilToInt(amount * gor.reward * randomFetchRewardMult.Value);
                     name = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-                    questName = randomFetchQuestName.Value.Replace("{thing}", go.name);
-                    objectiveName = randomFetchQuestObjectiveName.Value.Replace("{thing}", go.name);
+                    questName = randomFetchQuestName.Value.Replace("{thing}", Localization.instance.Localize(name));
+                    objectiveName = randomFetchQuestObjectiveName.Value.Replace("{thing}", Localization.instance.Localize(name));
                 }
                 else
                 {
                     GameObjectReward gor = possibleBuildList[Random.Range(0, possibleBuildList.Count)];
                     go = gor.gameObject;
                     reward = Mathf.CeilToInt(amount * gor.reward * randomBuildRewardMult.Value);
-                    name = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-                    questName = randomBuildQuestName.Value.Replace("{thing}", go.name);
-                    objectiveName = randomBuildQuestObjectiveName.Value.Replace("{thing}", go.name);
+                    name = go.name;
+                    questName = randomBuildQuestName.Value.Replace("{thing}", Localization.instance.Localize(go.GetComponent<Piece>().m_name));
+                    objectiveName = randomBuildQuestObjectiveName.Value.Replace("{thing}", Localization.instance.Localize(go.GetComponent<Piece>().m_name));
                 }
 
                 reward = Mathf.RoundToInt(reward * (1 + (rewardFluctuation.Value * 2 * Random.value - rewardFluctuation.Value)));
@@ -214,6 +217,7 @@ namespace HuginQuestFramework
                     rewardAmount = reward,
                     ID = ID
                 };
+                Dbgl($"Created {type} quest { fqd.ID }");
                 return MakeQuestData(fqd);
             }
         }

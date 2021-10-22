@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace HuginQuestFramework
 {
-    [BepInPlugin("aedenthorn.HuginQuestFramework", "Hugin Quest Framework", "0.1.0")]
+    [BepInPlugin("aedenthorn.HuginQuestFramework", "Hugin Quest Framework", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -97,7 +97,7 @@ namespace HuginQuestFramework
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            //nexusID = Config.Bind<int>("General", "NexusID", 1573, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 1588, "Nexus mod ID for updates");
 
             questCheckInterval = Config.Bind<float>("Options", "QuestCheckInterval", 60f * 60f, "Number of game seconds between checking for a new quest (default every game hour).");
             questChance = Config.Bind<float>("Options", "QuestChance", 0.1f, "Chance of a quest being offered on each interval.");
