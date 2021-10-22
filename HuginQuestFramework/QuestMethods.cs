@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using HarmonyLib;
 using QuestFramework;
 using System;
@@ -14,16 +15,16 @@ namespace HuginQuestFramework
     {
         public static void GetQuests()
         {
-            fetchQuestDict.Clear();
+            huginQuestDict.Clear();
 
             if (Directory.Exists(Path.Combine(AedenthornUtils.GetAssetPath(context, true), "Quests")) && Directory.GetFiles(Path.Combine(AedenthornUtils.GetAssetPath(context, true), "Quests")).Length > 0)
             {
-                List<FetchQuestData> fqdList = new List<FetchQuestData>();
+                List<HuginQuestData> fqdList = new List<HuginQuestData>();
                 foreach(string file in Directory.GetFiles(Path.Combine(AedenthornUtils.GetAssetPath(context, true), "Quests")))
                 {
                     try
                     {
-                        fqdList.Add(JsonUtility.FromJson<FetchQuestData>(File.ReadAllText(file)));
+                        fqdList.Add(JsonUtility.FromJson<HuginQuestData>(File.ReadAllText(file)));
                     }
                     catch(Exception ex)
                     {
@@ -32,7 +33,7 @@ namespace HuginQuestFramework
                             string[] lines = File.ReadAllLines(file);
                             foreach(string line in lines)
                             {
-                                fqdList.Add(JsonUtility.FromJson<FetchQuestData>(line));
+                                fqdList.Add(JsonUtility.FromJson<HuginQuestData>(line));
                             }
                         }
                         catch
@@ -45,7 +46,7 @@ namespace HuginQuestFramework
                 {
                     for (int i = 0; i < fqdList.Count; i++)
                     {
-                        FetchQuestData fqd = fqdList[i];
+                        HuginQuestData fqd = fqdList[i];
                         fqd.ID = typeof(BepInExPlugin).Namespace + "_" + fqd.ID;
                         if (fqd.amount <= 0)
                         {
@@ -71,14 +72,152 @@ namespace HuginQuestFramework
                         }
 
 
-                        fetchQuestDict[fqd.ID] = fqd;
+                        huginQuestDict[fqd.ID] = fqd;
                         Dbgl($"Added quest {fqd.ID}");
                     }
                 }
             }
+            if(huginQuestDict.Count == 0)
+            {
+                possibleKillList = ((Dictionary<int, GameObject>)AccessTools.Field(typeof(ZNetScene), "m_namedPrefabs").GetValue(ZNetScene.instance)).Values.ToList().FindAll(g => g.GetComponent<MonsterAI>() || g.GetComponent<AnimalAI>());
+
+                possibleFetchList.Clear();
+                var fetchList = ObjectDB.instance.m_items.FindAll(g => g.GetComponent<ItemDrop>() && (g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Material || g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Consumable));
+                foreach(GameObject go in fetchList)
+                {
+                    int value = GetItemValue(go.GetComponent<ItemDrop>().m_itemData, go.name);
+                    if (value > 0)
+                        possibleFetchList.Add(new GameObjectReward(go, value));
+                }
+
+                possibleBuildList.Clear();
+
+                ItemDrop hammer = ObjectDB.instance.GetItemPrefab("Hammer")?.GetComponent<ItemDrop>();
+                var buildList = new List<GameObject>(hammer.m_itemData.m_shared.m_buildPieces.m_pieces); 
+                ItemDrop hoe = ObjectDB.instance.GetItemPrefab("Hoe")?.GetComponent<ItemDrop>();
+                buildList.AddRange(hoe.m_itemData.m_shared.m_buildPieces.m_pieces);
+                foreach (GameObject go in buildList)
+                {
+                    var reqs = go.GetComponent<Piece>().m_resources;
+                    int value = 0;
+                    foreach(var req in reqs)
+                    {
+                        value += GetItemValue(req.m_resItem) * req.m_amount;
+                    }
+                    if (value > 0)
+                        possibleBuildList.Add(new GameObjectReward(go, value));
+                }
+
+                Dbgl($"got {possibleFetchList.Count} possible fetch items, {possibleKillList.Count} possible kill items, and {possibleBuildList.Count} possible build items");
+
+            }
         }
 
-        public static QuestData MakeQuestData(FetchQuestData fqd)
+        private static int GetItemValue(ItemDrop itemDrop)
+        {
+            int value = itemDrop.m_itemData.m_shared.m_value;
+            if (Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))
+            {
+                var key = Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config.Keys.ToList().Find(c => c.Section.StartsWith("C_Items") && c.Section.EndsWith("." + itemDrop.name) && c.Key == "Sellable");
+                if (key != null && (bool)Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config[key].BoxedValue)
+                {
+                    key = Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config.Keys.ToList().Find(c => c.Section == key.Section && c.Key == "Sell Price");
+                    value = (int)Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config[key].BoxedValue;
+                    Dbgl($"Got Better Trader price for {itemDrop.m_itemData.m_shared.m_name} of {value}; section {key.Section} key {key.Key}");
+                }
+            }
+            if (value <= 0 && randomWorthlessItemValue.Value > 0)
+            {
+                value = randomWorthlessItemValue.Value;
+            }
+            return value;
+        }
+
+        public static QuestData MakeRandomQuest()
+        {
+            if(huginQuestDict.Count > 0)
+            {
+                int idx = Random.Range(0, huginQuestDict.Count);
+                return MakeQuestData(huginQuestDict[huginQuestDict.Keys.ToList()[idx]]);
+            }
+            else
+            {
+                float typeChance = Random.value * (randomFetchQuestWeight.Value + randomKillQuestWeight.Value + randomBuildQuestWeight.Value);
+                QuestType type;
+                if (typeChance <= randomFetchQuestWeight.Value)
+                {
+                    type = QuestType.Fetch;
+                }
+                else if (typeChance <= randomFetchQuestWeight.Value + randomKillQuestWeight.Value)
+                {
+                    type = QuestType.Kill;
+                }
+                else
+                {
+                    type = QuestType.Build;
+                }
+                int amount = Random.Range(minAmount.Value, maxAmount.Value);
+
+                GameObject go;
+                int reward;
+                string name;
+                string questName;
+                string objectiveName;
+                if (type == QuestType.Kill)
+                {
+                    go = possibleKillList[Random.Range(0, possibleKillList.Count)];
+                    reward = Mathf.RoundToInt(amount * go.GetComponent<Character>().m_health * randomKillRewardMult.Value);
+                    name = go.GetComponent<Character>().m_name;
+                    questName = randomKillQuestName.Value.Replace("{thing}", go.name);
+                    objectiveName = randomKillQuestObjectiveName.Value.Replace("{thing}", go.name);
+                }
+                else if(type == QuestType.Fetch)
+                {
+                    GameObjectReward gor = possibleFetchList[Random.Range(0, possibleFetchList.Count)];
+                    go = gor.gameObject;
+                    reward = Mathf.CeilToInt(amount * gor.reward * randomFetchRewardMult.Value);
+                    name = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+                    questName = randomFetchQuestName.Value.Replace("{thing}", go.name);
+                    objectiveName = randomFetchQuestObjectiveName.Value.Replace("{thing}", go.name);
+                }
+                else
+                {
+                    GameObjectReward gor = possibleBuildList[Random.Range(0, possibleBuildList.Count)];
+                    go = gor.gameObject;
+                    reward = Mathf.CeilToInt(amount * gor.reward * randomBuildRewardMult.Value);
+                    name = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+                    questName = randomBuildQuestName.Value.Replace("{thing}", go.name);
+                    objectiveName = randomBuildQuestObjectiveName.Value.Replace("{thing}", go.name);
+                }
+
+                reward = Mathf.RoundToInt(reward * (1 + (rewardFluctuation.Value * 2 * Random.value - rewardFluctuation.Value)));
+
+                int idx = 0;
+                string ID = $"{typeof(BepInExPlugin).Namespace}|{type}|{amount}|{name}|{reward}|{idx}";
+                while (QuestFrameworkAPI.IsQuestActive(ID))
+                {
+                    ID = $"{typeof(BepInExPlugin).Namespace}|{type}|{amount}|{name}|{reward}|{++idx}";
+                }
+
+                HuginQuestData fqd = new HuginQuestData()
+                {
+                    questName = questName,
+                    questDesc = "",
+                    stageName = objectiveName,
+                    stageDesc = randomQuestRewardText.Value.Replace("{rewardName}", "Gold"),
+                    objectiveName = randomQuestProgressText.Value,
+                    objectiveDesc = "",
+                    type = type,
+                    thing = name,
+                    amount = amount,
+                    rewardName = "Gold",
+                    rewardAmount = reward,
+                    ID = ID
+                };
+                return MakeQuestData(fqd);
+            }
+        }
+        public static QuestData MakeQuestData(HuginQuestData fqd)
         {
             QuestData qd = new QuestData()
             {

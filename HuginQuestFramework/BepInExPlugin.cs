@@ -20,11 +20,26 @@ namespace HuginQuestFramework
         public static ConfigEntry<int> maxQuests;
         public static ConfigEntry<float> questCheckInterval;
         public static ConfigEntry<float> questChance;
+        public static ConfigEntry<float> randomFetchQuestWeight;
+        public static ConfigEntry<float> randomKillQuestWeight;
+        public static ConfigEntry<float> randomBuildQuestWeight;
+        public static ConfigEntry<float> randomFetchRewardMult;
+        public static ConfigEntry<float> randomKillRewardMult;
+        public static ConfigEntry<float> randomBuildRewardMult;
+        public static ConfigEntry<int> randomWorthlessItemValue;
         public static ConfigEntry<int> minAmount;
         public static ConfigEntry<int> maxAmount;
         public static ConfigEntry<int> maxReward;
         public static ConfigEntry<float> rewardFluctuation;
         
+        public static ConfigEntry<string> randomFetchQuestName;
+        public static ConfigEntry<string> randomKillQuestName;
+        public static ConfigEntry<string> randomBuildQuestName;
+        public static ConfigEntry<string> randomFetchQuestObjectiveName;
+        public static ConfigEntry<string> randomKillQuestObjectiveName;
+        public static ConfigEntry<string> randomBuildQuestObjectiveName;
+        public static ConfigEntry<string> randomQuestRewardText;
+        public static ConfigEntry<string> randomQuestProgressText;
         public static ConfigEntry<string> questDeclinedDialogue;
         public static ConfigEntry<string> questAcceptedDialogue;
         public static ConfigEntry<string> noRoomDialogue;
@@ -41,6 +56,7 @@ namespace HuginQuestFramework
         public static ConfigEntry<string> completeString;
         public static ConfigEntry<string> killQuestString;
         public static ConfigEntry<string> fetchQuestString;
+        
 
         private static BepInExPlugin context;
         
@@ -61,8 +77,10 @@ namespace HuginQuestFramework
         public static Transform questDialogueSubtitleTransform;
         public static Transform questDialogueTitleTransform;
 
-        public static Dictionary<string, FetchQuestData> fetchQuestDict = new Dictionary<string, FetchQuestData>();
-
+        public static Dictionary<string, HuginQuestData> huginQuestDict = new Dictionary<string, HuginQuestData>();
+        public static List<GameObject> possibleKillList = new List<GameObject>();
+        public static List<GameObjectReward> possibleFetchList = new List<GameObjectReward>();
+        public static List<GameObjectReward> possibleBuildList = new List<GameObjectReward>();
         public enum QuestType
         {
             Fetch,
@@ -85,11 +103,27 @@ namespace HuginQuestFramework
             questChance = Config.Bind<float>("Options", "QuestChance", 0.1f, "Chance of a quest being offered on each interval.");
             maxQuests = Config.Bind<int>("Options", "MaxQuests", 1, "Number of quests to allow at once.");
 
-            minAmount = Config.Bind<int>("Options", "MinAmount", 3, "Minimum number of things in quest.");
-            maxAmount = Config.Bind<int>("Options", "MaxAmount", 10, "Maximum number of things in quest.");
+            randomFetchQuestWeight = Config.Bind<float>("Random", "RandomFetchQuestWeight", 1f, "Chance of a random quest being a fetch quest.");
+            randomKillQuestWeight = Config.Bind<float>("Random", "RandomKillQuestWeight", 1f, "Chance of a random quest being a kill quest.");
+            randomBuildQuestWeight = Config.Bind<float>("Random", "RandomBuildQuestWeight", 1f, "Chance of a random quest being a build quest.");
+            randomFetchRewardMult = Config.Bind<float>("Random", "RandomFetchRewardMult", 10f, "Multiple of item cost as reward for random fetch quests.");
+            randomKillRewardMult = Config.Bind<float>("Random", "RandomKillRewardMult", 0.2f, "Multiple of creature max health as reward for random kill quests.");
+            randomBuildRewardMult = Config.Bind<float>("Random", "RandomBuildRewardMult", 5f, "Multiple of build ingredients cost as reward for random build quests.");
+            randomWorthlessItemValue = Config.Bind<int>("Random", "RandomWorthlessItemValue", 1, "Fetch value of items that have no specified value.");
+
+            minAmount = Config.Bind<int>("Options", "MinAmount", 3, "Minimum number of things in quests without specified amounts.");
+            maxAmount = Config.Bind<int>("Options", "MaxAmount", 10, "Maximum number of things in quest without specified amounts.");
             
             rewardFluctuation = Config.Bind<float>("Options", "RewardFluctuation", 0.5f, "Reward can fluctuate by this much fraction.");
 
+            randomFetchQuestName = Config.Bind<string>("Text", "RandomFetchQuestName", "{thing} Collector", "Name of random fetch quests.");
+            randomKillQuestName = Config.Bind<string>("Text", "RandomKillQuestName", "{thing} Killer", "Name of random kill quests.");
+            randomBuildQuestName = Config.Bind<string>("Text", "RandomBuildQuestName", "{thing} Builder", "Name of random build quests.");
+            randomFetchQuestObjectiveName = Config.Bind<string>("Text", "RandomFetchQuestObjectiveName", "Fetch {amount} {thing}", "Objective name of random fetch quests.");
+            randomKillQuestObjectiveName = Config.Bind<string>("Text", "RandomKillQuestObjectiveName", "Kill {amount} {thing}", "Objective name of random kill quests.");
+            randomBuildQuestObjectiveName = Config.Bind<string>("Text", "RandomBuildQuestObjectiveName", "Build {amount} {thing}", "Objective name of random build quests.");
+            randomQuestProgressText = Config.Bind<string>("Text", "RandomQuestProgressText", "Progress {progress}/{amount}", "Progress text of random quests.");
+            randomQuestRewardText = Config.Bind<string>("Text", "RandomQuestRewardText", "Hugin will reward you {rewardAmount} {rewardName}", "Progress text of random quests.");
             questAcceptedDialogue = Config.Bind<string>("Text", "QuestAcceptedDialogue", "May you be victorious in your endeavor...", "Hugin's dialogue when accepting a quest.");
             questDeclinedDialogue = Config.Bind<string>("Text", "QuestDeclinedDialogue", "Perhaps next time...", "Hugin's dialogue when declining a quest.");
             noRoomDialogue = Config.Bind<string>("Text", "CompletedDialogue", "You have no room for your reward...", "Hugin's dialogue if you have no room for your reward.");

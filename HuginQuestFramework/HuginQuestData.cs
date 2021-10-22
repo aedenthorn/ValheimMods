@@ -4,7 +4,7 @@ using static HuginQuestFramework.BepInExPlugin;
 namespace HuginQuestFramework
 {
     [Serializable]
-    public class FetchQuestData
+    public class HuginQuestData
     {
         public string questName = "";
         public string questDesc = "";

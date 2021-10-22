@@ -237,8 +237,7 @@ namespace HuginQuestFramework
                     lastCheckTime = ZNet.instance.GetTimeSeconds();
                     if(Random.value < questChance.Value)
                     {
-                        int idx = Random.Range(0, fetchQuestDict.Count);
-                        nextQuest = MakeQuestData(fetchQuestDict[fetchQuestDict.Keys.ToList()[idx]]);
+                        nextQuest = MakeRandomQuest();
                     }
                 }
             }
