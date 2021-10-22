@@ -1,10 +1,14 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using HarmonyLib;
 using QuestFramework;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using static ItemDrop.ItemData;
 
@@ -168,16 +172,21 @@ namespace HaldorFetchQuests
                     if (___m_trader.m_items[i].m_prefab.m_itemData.m_crafterName.StartsWith(typeof(BepInExPlugin).Namespace))
                         ___m_trader.m_items.RemoveAt(i);
                 }
+                if(currentQuestDict == null || ZNet.instance.GetTimeSeconds() >= lastRefreshTime + questRefreshInterval.Value)
+                {
+                    lastRefreshTime = ZNet.instance.GetTimeSeconds();
+                    RefreshCurrentQuests();
+                }
             }
             static void Postfix(StoreGui __instance, Trader ___m_trader, List<GameObject> ___m_itemList)
             {
                 if (!modEnabled.Value)
                     return;
 
-                if(currentQuestDict == null || ZNet.instance.GetTimeSeconds() >= lastRefreshTime + questRefreshInterval.Value)
+
+                if (Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))
                 {
-                    lastRefreshTime = ZNet.instance.GetTimeSeconds();
-                    RefreshCurrentQuests();
+                    return;
                 }
 
                 int i = ___m_trader.m_items.Count;
@@ -185,9 +194,9 @@ namespace HaldorFetchQuests
                 Dbgl($"Adding {currentQuestDict.Count} quests to trader");
                 foreach (FetchQuestData fqd in currentQuestDict.Values)
                 {
-                    Dbgl($"{fqd.ID} reward {fqd.reward}");
+                    Dbgl($"{fqd.ID}");
 
-                    ItemDrop id = new ItemDrop();
+                    ItemDrop id = new GameObject().AddComponent<ItemDrop>();
                     id.m_itemData.m_crafterName = fqd.ID;
                     ___m_trader.m_items.Add(new Trader.TradeItem()
                     {
@@ -202,11 +211,11 @@ namespace HaldorFetchQuests
                     buttonObject.SetActive(true);
                     (buttonObject.transform as RectTransform).anchoredPosition = new Vector2(0f, i++ * -__instance.m_itemSpacing);
                     Image component = buttonObject.transform.Find("icon").GetComponent<Image>();
-                    if(fqd.type == FetchType.Fetch)
+                    if (fqd.type == FetchType.Fetch)
                     {
                         component.sprite = ObjectDB.instance.m_items.Find(g => g.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == fqd.thing).GetComponent<ItemDrop>().m_itemData.m_shared.m_icons[0];
                     }
-                    component.color =  active ? new Color(1f, 0f, 1f, 0f) : Color.white;
+                    component.color = active ? new Color(1f, 0f, 1f, 0f) : Color.white;
 
                     string name = fqd.type == FetchType.Fetch ? fetchQuestString.Value : killQuestString.Value;
                     Text nameText = buttonObject.transform.Find("name").GetComponent<Text>();
@@ -219,8 +228,8 @@ namespace HaldorFetchQuests
                     tooltip.m_topic = name;
                     tooltip.m_text = desc;
                     Text rewardText = Utils.FindChild(buttonObject.transform, "price").GetComponent<Text>();
-                    rewardText.text = fqd.reward+"";
-                    if(active)
+                    rewardText.text = fqd.reward + "";
+                    if (active)
                         rewardText.color = Color.grey;
 
                     buttonObject.GetComponent<Button>().onClick.AddListener(delegate
@@ -257,6 +266,117 @@ namespace HaldorFetchQuests
                 }
                 return true;
             }
+        }
+
+        private static bool BetterTrader_ItemElementUI_UpdateTradePrice_Prefix(Text ___tradePriceSliderText)
+        {
+            if (!modEnabled.Value)
+                return true;
+
+            string id = ((Trader.TradeItem)AccessTools.Field(typeof(StoreGui), "m_selectedItem").GetValue(StoreGui.instance))?.m_prefab.m_itemData.m_crafterName;
+
+            if (id == null || !currentQuestDict.ContainsKey(id))
+                return true;
+
+            ___tradePriceSliderText.text = "0c";
+            return false;
+        }
+        
+        private static void BetterTrader_ItemElementUI_UpdateTint_Prefix(object __instance, ref bool tinted)
+        {
+            if (!modEnabled.Value || (((Text)AccessTools.Field(__instance.GetType(), "itemNameText").GetValue(__instance)).text != fetchQuestString.Value && ((Text)AccessTools.Field(__instance.GetType(), "itemNameText").GetValue(__instance)).text != killQuestString.Value))
+                return;
+
+            tinted = false;
+        }
+
+        private static bool BetterTrader_ItemElementUI_SetSelectionIndicatorActive_Prefix(object __instance)
+        {
+            if (!modEnabled.Value || (((Text)AccessTools.Field(__instance.GetType(), "itemNameText").GetValue(__instance)).text != fetchQuestString.Value && ((Text)AccessTools.Field(__instance.GetType(), "itemNameText").GetValue(__instance)).text != killQuestString.Value))
+                return true;
+
+            return false;
+        }
+
+        private static void BetterTrader_ItemElementUIListView_SetupElements_Prefix(object __instance, List<object> itemElements)
+        {
+            if (!modEnabled.Value || (int)AccessTools.Field(itemElements[0].GetType(), "type").GetValue(itemElements[0]) != 0)
+                return;
+            Dbgl($"adding items to better trader");
+
+            for(int i = 0; i < currentQuestDict.Values.Count(); i++)
+            {
+                int idx = i;
+                var fqd = currentQuestDict.Values.ElementAt(idx);
+                ItemDrop.ItemData itemData;
+                if (fqd.type == FetchType.Fetch)
+                {
+                    itemData = ObjectDB.instance.m_items.Find(g => g.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == fqd.thing).GetComponent<ItemDrop>().m_itemData;
+                }
+                else
+                {
+                    itemData = ObjectDB.instance.GetItemPrefab("SwordBronze").GetComponent<ItemDrop>().m_itemData;
+                }
+                string name = fqd.type == FetchType.Fetch ? fetchQuestString.Value : killQuestString.Value;
+                string desc = fqd.type == FetchType.Fetch ? fetchQuestDescString.Value : killQuestDescString.Value;
+                desc = desc.Replace("{amount}", fqd.amount + "").Replace("{thing}", Localization.instance.Localize(fqd.thing));
+
+                object itemElement = betterTraderAssembly.CreateInstance("BetterTrader.ItemElement", true, BindingFlags.Public | BindingFlags.Instance, null, new object[] { name, itemData.m_shared.m_icons[0], fqd.reward, desc, AccessTools.Field(itemElements[0].GetType(), "type").GetValue(itemElements[0]) }, null, null);
+
+                AccessTools.Field(itemElement.GetType(), "itemData").SetValue(itemElement, itemData);
+                
+                UnityAction action = delegate ()
+                {
+                    OnClickBetterTraderItem(fqd, itemElement);
+                };
+
+                AccessTools.Field(itemElement.GetType(), "buttonAction").SetValue(itemElement, action);
+
+                UnityAction action2 = delegate ()
+                {
+                    OnBuyBetterTraderItem(fqd);
+                };
+
+
+                itemElements.Add(itemElement);
+            }
+        }
+
+        private static void OnBuyBetterTraderItem(FetchQuestData fqd)
+        {
+
+            QuestFrameworkAPI.AddQuest(MakeQuestData(currentQuestDict[fqd.ID]));
+            Player.m_localPlayer.Message(MessageHud.MessageType.Center, startString.Value, 0, null);
+            Trader trader = (Trader)AccessTools.Field(typeof(StoreGui), "m_trader").GetValue(StoreGui.instance);
+            trader.OnBought((Trader.TradeItem)AccessTools.Field(typeof(StoreGui), "m_selectedItem").GetValue(StoreGui.instance));
+            StoreGui.instance.m_buyEffects.Create(StoreGui.instance.transform.position, Quaternion.identity, null, 1f, -1);
+            Dbgl($"Quest {fqd.ID} started");
+            currentQuestDict.Remove(fqd.ID);
+            for (int i = trader.m_items.Count - 1; i >= 0; i--)
+            {
+                if (fqd.ID  == trader.m_items[i].m_prefab.m_itemData.m_crafterName)
+                    trader.m_items.RemoveAt(i);
+            }
+            AccessTools.Method(typeof(StoreGui), "FillList").Invoke(StoreGui.instance, new object[] { });
+            AdjustFetchQuests();
+        }
+
+        private static void OnClickBetterTraderItem(FetchQuestData fqd, object itemElement)
+        {
+            Dbgl($"Clicked better trader item {fqd.ID}");
+            ItemDrop id = new GameObject().AddComponent<ItemDrop>();
+            id.m_itemData.m_crafterName = fqd.ID;
+            id.m_itemData.m_shared = new SharedData();
+            Trader.TradeItem value = new Trader.TradeItem()
+            {
+                m_prefab = id,
+                m_stack = 1,
+                m_price = 0
+            };
+            AccessTools.Field(betterTraderAssembly.GetType("BetterTrader.ItemElementUIListView"), "selectedItemElement").SetValue(null, itemElement);
+            object currentItemElement = AccessTools.Field(betterTraderAssembly.GetType("BetterTrader.ItemElementUI"), "CurrentItemElement").GetValue(null);
+            AccessTools.Method(currentItemElement.GetType(), "UpdateTradePrice").Invoke(currentItemElement, new object[] { });
+            AccessTools.Field(typeof(StoreGui), "m_selectedItem").SetValue(StoreGui.instance, value);
         }
     }
 }

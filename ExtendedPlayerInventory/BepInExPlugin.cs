@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.3.1")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.3.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -423,7 +423,7 @@ namespace ExtendedPlayerInventory
             {
                 if (!modEnabled.Value || !addEquipmentRow.Value || __instance != Player.m_localPlayer.GetInventory())
                     return true;
-                Dbgl("GetEmptySlots");
+                //Dbgl("GetEmptySlots");
                 int count = ___m_inventory.FindAll(i => i.m_gridPos.y < ___m_height - 1).Count;
                 __result = (___m_height - 1) * ___m_width - count;
                 return false;

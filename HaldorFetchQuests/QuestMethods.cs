@@ -46,40 +46,42 @@ namespace HaldorFetchQuests
                 if(fqdList.Count > 0)
                 {
                     AedenthornUtils.ShuffleList(fqdList);
-                    List<FetchQuestData> list = new List<FetchQuestData>(fqdList.Take(maxQuests.Value));
-                    for (int i = 0; i < list.Count; i++)
+                    using(List<FetchQuestData>.Enumerator enumerator = new List<FetchQuestData>(fqdList.Take(maxQuests.Value)).GetEnumerator())
                     {
-                        FetchQuestData fqd = list[i];
-                        if (fqd.amount <= 0)
+                        while (enumerator.MoveNext())
                         {
-                            fqd.amount = Random.Range(minAmount.Value, maxAmount.Value);
-                            fqd.reward *= fqd.amount;
-                        }
-                        fqd.reward = Mathf.RoundToInt(fqd.reward * (1 + (rewardFluctuation.Value * 2 * Random.value - rewardFluctuation.Value)));
-                        if (fqd.type == FetchType.Fetch)
-                        {
-                            try
+                            FetchQuestData fqd = enumerator.Current;
+                            if (fqd.amount <= 0)
                             {
-                                fqd.thing = ObjectDB.instance.GetItemPrefab(fqd.thing).GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+                                fqd.amount = Random.Range(minAmount.Value, maxAmount.Value);
+                                fqd.reward *= fqd.amount;
                             }
-                            catch { }
-                        }
-                        else
-                        {
-                            try
+                            fqd.reward = Mathf.RoundToInt(fqd.reward * (1 + (rewardFluctuation.Value * 2 * Random.value - rewardFluctuation.Value)));
+                            if (fqd.type == FetchType.Fetch)
                             {
-                                fqd.thing = ZNetScene.instance.GetPrefab(fqd.thing).GetComponent<Character>().m_name;
+                                try
+                                {
+                                    fqd.thing = ObjectDB.instance.GetItemPrefab(fqd.thing).GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+                                }
+                                catch { }
                             }
-                            catch { }
+                            else
+                            {
+                                try
+                                {
+                                    fqd.thing = ZNetScene.instance.GetPrefab(fqd.thing).GetComponent<Character>().m_name;
+                                }
+                                catch { }
+                            }
+                            int idx = 0;
+                            fqd.ID = $"{typeof(BepInExPlugin).Namespace}|{fqd.type}|{fqd.amount}|{fqd.thing}|{fqd.reward}|{idx}";
+                            while (currentQuestDict.ContainsKey(fqd.ID) || QuestFrameworkAPI.IsQuestActive(fqd.ID))
+                            {
+                                fqd.ID = $"{typeof(BepInExPlugin).Namespace}|{fqd.type}|{fqd.amount}|{fqd.thing}|{fqd.reward}|{++idx}";
+                            }
+                            currentQuestDict.Add(fqd.ID, fqd);
+                            Dbgl($"Added quest {fqd.ID}");
                         }
-                        int idx = 0;
-                        fqd.ID = $"{typeof(BepInExPlugin).Namespace}|{fqd.type}|{fqd.amount}|{fqd.thing}|{fqd.reward}|{idx}";
-                        while (currentQuestDict.ContainsKey(fqd.ID) || QuestFrameworkAPI.IsQuestActive(fqd.ID))
-                        {
-                            fqd.ID = $"{typeof(BepInExPlugin).Namespace}|{fqd.type}|{fqd.amount}|{fqd.thing}|{fqd.reward}|{++idx}";
-                        }
-                        currentQuestDict.Add(fqd.ID, fqd);
-                        Dbgl($"Added quest {fqd.ID}");
                     }
                     return;
                 }
@@ -91,9 +93,8 @@ namespace HaldorFetchQuests
                 FetchType type = Random.value > killToFetchRatio.Value ? FetchType.Fetch : FetchType.Kill;
                 int amount = Random.Range(minAmount.Value, maxAmount.Value);
 
-                GameObject go;
-                int reward;
-                string name;
+                int reward = 0;
+                string name = "";
 
                 if (type == FetchType.Kill)
                 {
@@ -101,7 +102,7 @@ namespace HaldorFetchQuests
                     {
                         possibleKillList = ((Dictionary<int, GameObject>)AccessTools.Field(typeof(ZNetScene), "m_namedPrefabs").GetValue(ZNetScene.instance)).Values.ToList().FindAll(g => g.GetComponent<MonsterAI>() || g.GetComponent<AnimalAI>());
                     }
-                    go = possibleKillList[Random.Range(0, possibleKillList.Count)];
+                    GameObject go = possibleKillList[Random.Range(0, possibleKillList.Count)];
                     reward = Mathf.RoundToInt(amount * go.GetComponent<Character>().m_health * killRewardMult.Value);
                     name = go.GetComponent<Character>().m_name;
                 }
@@ -111,31 +112,40 @@ namespace HaldorFetchQuests
                     {
                         possibleFetchList = ObjectDB.instance.m_items.FindAll(g => g.GetComponent<ItemDrop>() && (g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemType.Material || g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemType.Consumable) && !((Trader)AccessTools.Field(typeof(StoreGui), "m_trader").GetValue(StoreGui.instance)).m_items.Exists(t => t.m_prefab.m_itemData.m_shared.m_name == g.GetComponent<ItemDrop>().m_itemData.m_shared.m_name));
                     }
-                    go = possibleFetchList[Random.Range(0, possibleFetchList.Count)];
 
-                    int value = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_value;
-                    if(value == 0)
+                    AedenthornUtils.ShuffleList(possibleFetchList);
+                    foreach(var go in possibleFetchList)
                     {
-                        if (Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))
+                        int value = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_value;
+                        if (value == 0)
                         {
-                            var key = Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config.Keys.ToList().Find(c => c.Section.StartsWith("C_Items") && c.Section.EndsWith("." + go.name) && c.Key == "Sellable");
-                            if(key != null && (bool)Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config[key].BoxedValue)
+                            if (Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))
                             {
-                                key = Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config.Keys.ToList().Find(c => c.Section == key.Section && c.Key == "Sell Price");
-                                value = (int)Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config[key].BoxedValue;
-                                Dbgl($"Got Better Trader price for {go.name} of {value}; section {key.Section} key {key.Key}");
+                                var key = Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config.Keys.ToList().Find(c => c.Section.StartsWith("C_Items") && c.Section.EndsWith("." + go.name) && c.Key == "Sellable");
+                                if (key != null && (bool)Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config[key].BoxedValue)
+                                {
+                                    key = Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config.Keys.ToList().Find(c => c.Section == key.Section && c.Key == "Sell Price");
+                                    value = (int)Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.Config[key].BoxedValue;
+                                    Dbgl($"Got Better Trader price for {go.name} of {value}; section {key.Section} key {key.Key}");
+                                }
+                            }
+                            if (value <= 0)
+                            {
+                                if (worthlessItemValue.Value <= 0)
+                                    continue;
+                                else
+                                    value = worthlessItemValue.Value;
                             }
                         }
-                        if(value <= 0)
-                        {
-                            if (worthlessItemValue.Value <= 0)
-                                continue;
-                            else
-                                value = worthlessItemValue.Value;
-                        }
+                        reward = Mathf.CeilToInt(amount * value * fetchRewardMult.Value);
+                        name = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+                        break;
                     }
-                    reward = Mathf.CeilToInt(amount * value * fetchRewardMult.Value);
-                    name = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+                    if(reward == 0)
+                    {
+                        Dbgl($"No possible fetch items???");
+                        continue;
+                    }
                 }
 
                 reward = Mathf.RoundToInt(reward * (1 + (rewardFluctuation.Value * 2 * Random.value - rewardFluctuation.Value)));

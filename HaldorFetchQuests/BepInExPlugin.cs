@@ -1,14 +1,16 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
 using QuestFramework;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
 namespace HaldorFetchQuests
 {
-    [BepInPlugin("aedenthorn.HaldorFetchQuests", "Haldor Fetch Quests", "0.2.3")]
+    [BepInPlugin("aedenthorn.HaldorFetchQuests", "Haldor Fetch Quests", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -50,6 +52,7 @@ namespace HaldorFetchQuests
         public static Dictionary<string, FetchQuestData> currentQuestDict;
         public static List<GameObject> possibleKillList = new List<GameObject>();
         public static List<GameObject> possibleFetchList = new List<GameObject>();
+        public static Assembly betterTraderAssembly;
 
         public enum FetchType
         {
@@ -97,8 +100,31 @@ namespace HaldorFetchQuests
             if (!modEnabled.Value)
                 return;
 
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
+        }
+        private void Start()
+        {
+            var harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+            if(Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))
+            {
+                betterTraderAssembly = Chainloader.PluginInfos["Menthus.bepinex.plugins.BetterTrader"].Instance.GetType().Assembly;
+                harmony.Patch(
+                    original: AccessTools.Method(betterTraderAssembly.GetType("BetterTrader.ItemElementUI"), "UpdateTradePrice"),
+                    prefix: new HarmonyMethod(typeof(BepInExPlugin), nameof(BepInExPlugin.BetterTrader_ItemElementUI_UpdateTradePrice_Prefix))
+                );
+                harmony.Patch(
+                    original: AccessTools.Method(betterTraderAssembly.GetType("BetterTrader.ItemElementUI"), "UpdateTint"),
+                    prefix: new HarmonyMethod(typeof(BepInExPlugin), nameof(BepInExPlugin.BetterTrader_ItemElementUI_UpdateTint_Prefix))
+                );
+                harmony.Patch(
+                    original: AccessTools.Method(betterTraderAssembly.GetType("BetterTrader.ItemElementUI"), "SetSelectionIndicatorActive"),
+                    prefix: new HarmonyMethod(typeof(BepInExPlugin), nameof(BepInExPlugin.BetterTrader_ItemElementUI_SetSelectionIndicatorActive_Prefix))
+                );
+                harmony.Patch(
+                    original: AccessTools.Method(betterTraderAssembly.GetType("BetterTrader.ItemElementUIListView"), "SetupElements"),
+                    prefix: new HarmonyMethod(typeof(BepInExPlugin), nameof(BepInExPlugin.BetterTrader_ItemElementUIListView_SetupElements_Prefix))
+                );
+            }
         }
     }
 }
