@@ -207,13 +207,13 @@ namespace HuginQuestFramework
                     questName = questName,
                     questDesc = "",
                     stageName = objectiveName,
-                    stageDesc = randomQuestRewardText.Value.Replace("{rewardName}", "Gold"),
+                    stageDesc = randomQuestRewardText.Value.Replace("{rewardName}", "gold coins"),
                     objectiveName = randomQuestProgressText.Value,
                     objectiveDesc = "",
                     type = type,
                     thing = name,
                     amount = amount,
-                    rewardName = "Gold",
+                    rewardName = "Coins",
                     rewardAmount = reward,
                     ID = ID
                 };
@@ -394,6 +394,8 @@ namespace HuginQuestFramework
         {
             if (qd.currentStage == "StageTwo")
             {
+                if ((string)qd.data["rewardName"] == "Gold")
+                        qd.data["rewardName"] = "Coins";
                 ItemDrop itemDrop = ObjectDB.instance.GetItemPrefab((string)qd.data["rewardName"])?.GetComponent<ItemDrop>();
                 if (!itemDrop)
                 {
