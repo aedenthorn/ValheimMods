@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace HuginQuestFramework
 {
-    [BepInPlugin("aedenthorn.HuginQuestFramework", "Hugin Quest Framework", "0.2.2")]
+    [BepInPlugin("aedenthorn.HuginQuestFramework", "Hugin Quest Framework", "0.2.4")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -126,7 +126,7 @@ namespace HuginQuestFramework
             randomQuestRewardText = Config.Bind<string>("Text", "RandomQuestRewardText", "Hugin will reward you {rewardAmount} {rewardName}", "Progress text of random quests.");
             questAcceptedDialogue = Config.Bind<string>("Text", "QuestAcceptedDialogue", "May you be victorious in your endeavor...", "Hugin's dialogue when accepting a quest.");
             questDeclinedDialogue = Config.Bind<string>("Text", "QuestDeclinedDialogue", "Perhaps next time...", "Hugin's dialogue when declining a quest.");
-            noRoomDialogue = Config.Bind<string>("Text", "CompletedDialogue", "You have no room for your reward...", "Hugin's dialogue if you have no room for your reward.");
+            noRoomDialogue = Config.Bind<string>("Text", "NoRoomDialogue", "You have no room for your reward...", "Hugin's dialogue if you have no room for your reward.");
             completedDialogue = Config.Bind<string>("Text", "CompletedDialogue", "Well done... until next we meet!", "Hugin's dialogue after completing quest.");
             haveRewardDialogue = Config.Bind<string>("Text", "HaveRewardDialogue", "Come take your reward...", "Hugin's dialogue when there's a completed quest.");
             haveQuestDialogue = Config.Bind<string>("Text", "HaveQuestDialogue", "I have a quest for you...", "Hugin's dialogue when there's a quest.");

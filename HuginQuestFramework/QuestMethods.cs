@@ -372,7 +372,11 @@ namespace HuginQuestFramework
                         if ((int)qd.data["progress"] >= (int)qd.data["amount"])
                             qd.currentStage = "StageTwo";
                         else
+                        {
                             qd.currentStage = "StageOne";
+                            if (finishedQuest != null && finishedQuest.ID == qd.ID)
+                                finishedQuest = null;
+                        }
                         
                         QuestFrameworkAPI.AddQuest(qd, true);
                     }
@@ -420,6 +424,8 @@ namespace HuginQuestFramework
                     {
                         currentText.m_topic = "It seems you have not completed your quest...";
                         Dbgl($"not enough to complete quest!");
+                        if (finishedQuest != null && finishedQuest.ID == qd.ID)
+                            finishedQuest = null;
                         AdjustFetchQuests();
                         return;
                     }
@@ -427,6 +433,7 @@ namespace HuginQuestFramework
                 }
 
                 Player.m_localPlayer.GetInventory().AddItem(itemDrop.gameObject.name, (int)qd.data["rewardAmount"], itemDrop.m_itemData.m_quality, itemDrop.m_itemData.m_variant, 0L, "");
+                Player.m_localPlayer.ShowPickupMessage(itemDrop.m_itemData, (int)qd.data["rewardAmount"]);
                 Player.m_localPlayer.Message(MessageHud.MessageType.Center, completeString.Value, 0, null);
                 QuestFrameworkAPI.RemoveQuest(qd.ID);
                 finishedQuest = null;

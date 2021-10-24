@@ -310,6 +310,7 @@ namespace HaldorFetchQuests
                         Player.m_localPlayer.GetInventory().RemoveItem((string)qd.data["thing"], (int)qd.data["amount"]);
                     }
                     Player.m_localPlayer.GetInventory().AddItem(__instance.m_coinPrefab.gameObject.name, (int)qd.data["reward"], __instance.m_coinPrefab.m_itemData.m_quality, __instance.m_coinPrefab.m_itemData.m_variant, 0L, "");
+                    Player.m_localPlayer.ShowPickupMessage(__instance.m_coinPrefab.m_itemData, (int)qd.data["reward"]);
                     Player.m_localPlayer.Message(MessageHud.MessageType.Center, completeString.Value, 0, null);
                     QuestFrameworkAPI.RemoveQuest(qd.ID);
                     Dbgl($"Haldor quest {qd.ID} completed");

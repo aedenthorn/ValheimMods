@@ -5,18 +5,14 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace AutoStore
+namespace QuickStore
 {
-    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.4.1")]
+    [BepInPlugin("aedenthorn.QuickStore", "Quick Store", "0.1.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
 
-        public static ConfigEntry<float> dropRangeChests;
-        public static ConfigEntry<float> dropRangePersonalChests;
-        public static ConfigEntry<float> dropRangeReinforcedChests;
-        public static ConfigEntry<float> dropRangeCarts;
-        public static ConfigEntry<float> dropRangeShips;
+        public static ConfigEntry<float> storeRangePlayer;
         public static ConfigEntry<string> itemDisallowTypes;
         public static ConfigEntry<string> itemAllowTypes;
         public static ConfigEntry<string> itemDisallowTypesChests;
@@ -31,12 +27,10 @@ namespace AutoStore
         public static ConfigEntry<string> itemAllowTypesCarts;
         public static ConfigEntry<string> itemDisallowTypesShips;
         public static ConfigEntry<string> itemAllowTypesShips;
+        public static ConfigEntry<string> storedString;
 
-        public static ConfigEntry<string> toggleKey;
-        public static ConfigEntry<string> toggleString;
-
+        public static ConfigEntry<string> storeHotkey;
         public static ConfigEntry<bool> mustHaveItemToPull;
-        public static ConfigEntry<bool> isOn;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
@@ -50,33 +44,28 @@ namespace AutoStore
         private void Awake()
         {
             context = this;
-            dropRangeChests = Config.Bind<float>("General", "DropRangeChests", 5f, "The maximum range to pull dropped items");
-            dropRangePersonalChests = Config.Bind<float>("General", "DropRangePersonalChests", 5f, "The maximum range to pull dropped items");
-            dropRangeReinforcedChests = Config.Bind<float>("General", "DropRangeReinforcedChests", 5f, "The maximum range to pull dropped items");
-            dropRangeCarts = Config.Bind<float>("General", "DropRangeCarts", 5f, "The maximum range to pull dropped items");
-            dropRangeShips = Config.Bind<float>("General", "DropRangeShips", 5f, "The maximum range to pull dropped items");
+            storeHotkey = Config.Bind<string>("General", "StoreHotkey", ".", "Hotkey to store your inventory into nearby containers. Use https://docs.unity3d.com/Manual/class-InputManager.html syntax.");
+            storeRangePlayer = Config.Bind<float>("General", "StoreRange", 5f, "The maximum distance from the player to store items");
             itemDisallowTypes = Config.Bind<string>("General", "ItemDisallowTypes", "", "Types of item to disallow pulling for, comma-separated.");
             itemAllowTypes = Config.Bind<string>("General", "ItemAllowTypes", "", "Types of item to only allow pulling for, comma-separated. Overrides ItemDisallowTypes");
             itemDisallowTypesChests = Config.Bind<string>("General", "ItemDisallowTypesChests", "", "Types of item to disallow pulling for, comma-separated.");
             itemAllowTypesChests = Config.Bind<string>("General", "ItemAllowTypesChests", "", "Types of item to only allow pulling for, comma-separated. Overrides ItemDisallowTypesChests");
             itemDisallowTypesPersonalChests = Config.Bind<string>("General", "ItemDisallowTypesPersonalChests", "", "Types of item to disallow pulling for, comma-separated.");
             itemAllowTypesPersonalChests = Config.Bind<string>("General", "ItemAllowTypesPersonalChests", "", "Types of item to only allow pulling for, comma-separated. Overrides ItemDisallowTypesPersonalChests");
-            itemDisallowTypesReinforcedChests = Config.Bind<string>("General", "ItemDisallowTypesReinforcedChests", "", "Types of item to disallow pulling for, comma-separated.");
-            itemAllowTypesReinforcedChests = Config.Bind<string>("General", "ItemAllowTypesReinforcedChests", "", "Types of item to only allow pulling for, comma-separated. Overrides ItemDisallowTypesReinforcedChests");
             itemDisallowTypesBlackMetalChests = Config.Bind<string>("General", "ItemDisallowTypesBlackMetalChests", "", "Types of item to disallow pulling for, comma-separated.");
             itemAllowTypesBlackMetalChests = Config.Bind<string>("General", "ItemAllowTypesBlackMetalChests", "", "Types of item to only allow pulling for, comma-separated. Overrides ItemDisallowTypesBlackMetalChests");
+            itemDisallowTypesReinforcedChests = Config.Bind<string>("General", "ItemDisallowTypesReinforcedChests", "", "Types of item to disallow pulling for, comma-separated.");
+            itemAllowTypesReinforcedChests = Config.Bind<string>("General", "ItemAllowTypesReinforcedChests", "", "Types of item to only allow pulling for, comma-separated. Overrides ItemDisallowTypesReinforcedChests");
             itemDisallowTypesCarts = Config.Bind<string>("General", "ItemDisallowTypesCarts", "", "Types of item to disallow pulling for, comma-separated.");
             itemAllowTypesCarts = Config.Bind<string>("General", "ItemAllowTypesCarts", "", "Types of item to only allow pulling for, comma-separated. Overrides ItemDisallowTypesCarts");
             itemDisallowTypesShips = Config.Bind<string>("General", "ItemDisallowTypesShips", "", "Types of item to disallow pulling for, comma-separated.");
             itemAllowTypesShips = Config.Bind<string>("General", "ItemAllowTypesShips", "", "Types of item to only allow pulling for, comma-separated. Overrides ItemDisallowTypesShips");
-            toggleString = Config.Bind<string>("General", "ToggleString", "Auto Pull: {0}", "Text to show on toggle. {0} is replaced with true/false");
-            toggleKey = Config.Bind<string>("General", "ToggleKey", "", "Key to toggle behaviour. Leave blank to disable the toggle key. Use https://docs.unity3d.com/Manual/class-InputManager.html syntax.");
-            mustHaveItemToPull = Config.Bind<bool>("General", "MustHaveItemToPull", false, "If true, a container must already have at least one of the item to pull.");
-            isOn = Config.Bind<bool>("General", "IsOn", true, "Behaviour is currently on or not");
+            mustHaveItemToPull = Config.Bind<bool>("General", "MustHaveItemToPull", true, "If true, a container must already have at least one of the item to pull.");
+            storedString = Config.Bind<string>("General", "StoredString", "Stored {0} items in {1} containers", "Text to show after items are stored.");
             
             
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            nexusID = Config.Bind<int>("General", "NexusID", 174, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 1595, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
@@ -88,11 +77,47 @@ namespace AutoStore
         {
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses())
                 return;
-            if (AedenthornUtils.CheckKeyDown(toggleKey.Value))
-            {
-                isOn.Value = !isOn.Value;
-                Config.Save();
-                Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(toggleString.Value, isOn.Value), 0, null);
+            if (AedenthornUtils.CheckKeyDown(storeHotkey.Value))
+            {                        
+                Dbgl("Trying to store items from player inventory.");
+
+                int total = 0;
+                int containers = 0;
+
+                Vector3 position = Player.m_localPlayer.transform.position + Vector3.up;
+                foreach (Collider collider in Physics.OverlapSphere(position, storeRangePlayer.Value, LayerMask.GetMask(new string[] { "piece" })))
+                {
+                    if (!collider)
+                        continue;
+                    Container c = null;
+                    if (collider.transform.parent)
+                        c = collider.transform.parent.GetComponent<Container>();
+                    if(!c && collider.transform.parent?.parent)
+                        c = collider.transform.parent.parent.GetComponent<Container>();
+                    if(c && !c.IsInUse() && (bool)AccessTools.Method(typeof(Container), "CheckAccess").Invoke(c, new object[] { Player.m_localPlayer.GetPlayerID() } ))
+                    {
+                        Dbgl($"In {c.name}.");
+                        var items = Player.m_localPlayer.GetInventory().GetAllItems();
+                        for (int i = items.Count - 1; i >= 0; i--)
+                        {
+                            var item = items[i];
+                            if (item.m_equiped)
+                                continue;
+                            int originalAmount = item.m_stack;
+                            TryStoreItem(c, ref item);
+                            if (item.m_stack < originalAmount)
+                            {
+                                total += originalAmount - item.m_stack;
+                                containers++;
+                                Player.m_localPlayer.GetInventory().RemoveItem(item, originalAmount - item.m_stack);
+                                Dbgl($"stored {originalAmount - item.m_stack} {item.m_shared.m_name} into {c.name}");
+                            }
+                        }
+                        //Dbgl($"nearby item name: {item.m_itemData.m_dropPrefab.name}");
+                    }
+                }
+                if(total > 0)
+                    Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(storedString.Value, total, containers), 0, null);
             }
 
         }
@@ -159,74 +184,11 @@ namespace AutoStore
             return true;
         }
 
-        private static float ContainerRange(Container container)
-        {
-            if (container.GetInventory() == null)
-                return -1f;
-
-            Ship ship = container.gameObject.transform.parent?.GetComponent<Ship>();
-            if (ship != null)
-            {
-
-                return dropRangeShips.Value;
-            }
-            else if (container.m_wagon)
-            {
-                return dropRangeCarts.Value;
-            }
-            else if (container.name.StartsWith("piece_chest_wood"))
-            {
-                return dropRangeChests.Value;
-            }
-            else if (container.name.StartsWith("piece_chest_private"))
-            {
-                return dropRangePersonalChests.Value;
-            }
-            else if (container.name.StartsWith("piece_chest"))
-            {
-                return dropRangeReinforcedChests.Value;
-            }
-            return -1f;
-        }
-
-        [HarmonyPatch(typeof(Container), "CheckForChanges")]
-        static class Container_CheckForChanges_Patch
-        {
-            static void Postfix(Container __instance, ZNetView ___m_nview)
-            {
-                if (!isOn.Value || ___m_nview == null || ___m_nview.GetZDO() == null)
-                    return;
-
-                Vector3 position = __instance.transform.position + Vector3.up;
-                foreach (Collider collider in Physics.OverlapSphere(position, ContainerRange(__instance), LayerMask.GetMask(new string[] { "item" })))
-                {
-                    if (collider?.attachedRigidbody)
-                    {
-                        ItemDrop item = collider.attachedRigidbody.GetComponent<ItemDrop>();
-
-                        if (item?.GetComponent<ZNetView>()?.IsValid() != true || !item.GetComponent<ZNetView>().IsOwner())
-                            continue;
-                        //Dbgl($"nearby item name: {item.m_itemData.m_dropPrefab.name}");
-                        if (TryStoreItem(__instance, ref item.m_itemData))
-                        {
-                            AccessTools.Method(typeof(ItemDrop), "Save").Invoke(item, new object[] { });
-                            if (item.GetComponent<ZNetView>() == null)
-                                DestroyImmediate(item.gameObject);
-                            else
-                                ZNetScene.instance.Destroy(item.gameObject);
-                        }
-                    }
-                }
-            }
-        }
-
         private static bool TryStoreItem(Container __instance, ref ItemDrop.ItemData item)
         {
 
             if (DisallowItem(__instance, item))
                 return false;
-
-            Dbgl($"auto storing {item.m_dropPrefab.name} from ground");
 
             while (item.m_stack > 1 && __instance.GetInventory().CanAddItem(item, 1))
             {
@@ -234,7 +196,6 @@ namespace AutoStore
                 ItemDrop.ItemData newItem = item.Clone();
                 newItem.m_stack = 1;
                 __instance.GetInventory().AddItem(newItem);
-                Traverse.Create(item).Method("Save").GetValue();
                 typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { });
                 typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance.GetInventory(), new object[] { });
             }
