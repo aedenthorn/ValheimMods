@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections;
@@ -64,7 +65,7 @@ namespace RecipeCustomization
         }
         public static IEnumerator DelayedLoadRecipes()
         {
-            yield return null;
+            yield return new WaitForSeconds(0.1f);
             LoadAllRecipeData(true);
             yield break;
         }
@@ -244,8 +245,22 @@ namespace RecipeCustomization
             Recipe recipe = ObjectDB.instance.GetRecipe(item);
             if (!recipe)
             {
-                Dbgl("Recipe not found!");
-                return null;
+                if (Chainloader.PluginInfos.ContainsKey("com.jotunn.jotunn"))
+                {
+                    object itemManager = Chainloader.PluginInfos["com.jotunn.jotunn"].Instance.GetType().Assembly.GetType("Jotunn.Managers.ItemManager").GetProperty("Instance", BindingFlags.Public | BindingFlags.Static).GetValue(null);
+                    object cr = AccessTools.Method(itemManager.GetType(), "GetRecipe").Invoke(itemManager, new[] { item.m_shared.m_name });
+                    if (cr != null)
+                    {
+                        recipe = (Recipe)AccessTools.Property(cr.GetType(), "Recipe").GetValue(cr);
+                        Dbgl($"Jotunn recipe: {item.m_shared.m_name} {recipe != null}");
+                    }
+                }
+
+                if (!recipe) 
+                { 
+                    Dbgl($"Recipe not found for item {item.m_shared.m_name}!");
+                    return null;
+                }
             }
 
             var data = new RecipeData()

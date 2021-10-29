@@ -30,7 +30,7 @@ namespace MapPinExport
             
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 1595, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 1596, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;

@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace LockableDoors
 {
-    [BepInPlugin("aedenthorn.LockableDoors", "Lockable Doors", "0.3.0")]
+    [BepInPlugin("aedenthorn.LockableDoors", "Lockable Doors", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -273,7 +273,7 @@ namespace LockableDoors
 
                     if(!(character as Player).GetInventory().GetAllItems().Exists(i => i.m_crafterName == ___m_nview.GetZDO().GetString("DoorGUID") ))
                     {
-                        __instance.m_lockedEffects.Create(__instance.transform.position, __instance.transform.rotation, null, 1f);
+                        __instance.m_lockedEffects.Create(__instance.transform.position, __instance.transform.rotation);
                         character.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$msg_door_needkey", new string[]
                         {
                         GetDoorName(guid)

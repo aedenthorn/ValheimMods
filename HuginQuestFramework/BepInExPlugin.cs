@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace HuginQuestFramework
 {
-    [BepInPlugin("aedenthorn.HuginQuestFramework", "Hugin Quest Framework", "0.2.4")]
+    [BepInPlugin("aedenthorn.HuginQuestFramework", "Hugin Quest Framework", "0.2.5")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -106,7 +106,7 @@ namespace HuginQuestFramework
             randomFetchQuestWeight = Config.Bind<float>("Random", "RandomFetchQuestWeight", 1f, "Chance of a random quest being a fetch quest.");
             randomKillQuestWeight = Config.Bind<float>("Random", "RandomKillQuestWeight", 1f, "Chance of a random quest being a kill quest.");
             randomBuildQuestWeight = Config.Bind<float>("Random", "RandomBuildQuestWeight", 1f, "Chance of a random quest being a build quest.");
-            randomFetchRewardMult = Config.Bind<float>("Random", "RandomFetchRewardMult", 10f, "Multiple of item cost as reward for random fetch quests.");
+            randomFetchRewardMult = Config.Bind<float>("Random", "RandomFetchRewardMult", 3f, "Multiple of item cost as reward for random fetch quests.");
             randomKillRewardMult = Config.Bind<float>("Random", "RandomKillRewardMult", 0.2f, "Multiple of creature max health as reward for random kill quests.");
             randomBuildRewardMult = Config.Bind<float>("Random", "RandomBuildRewardMult", 5f, "Multiple of build ingredients cost as reward for random build quests.");
             randomWorthlessItemValue = Config.Bind<int>("Random", "RandomWorthlessItemValue", 1, "Fetch value of items that have no specified value.");

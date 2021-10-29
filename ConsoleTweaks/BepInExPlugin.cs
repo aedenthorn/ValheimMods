@@ -4,6 +4,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -11,7 +12,7 @@ using UnityEngine.UI;
 
 namespace ConsoleTweaks
 {
-    [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.4.0")]
+    [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -322,6 +323,13 @@ namespace ConsoleTweaks
                         Player.m_debugMode = true;
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
                     Traverse.Create(__instance).Method("AddString", new object[] { "console tweaks config reloaded" }).GetValue();
+                    return false;
+                }
+                if (text.ToLower().Equals("consoletweaks spawnlist"))
+                {
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    File.WriteAllLines(Path.Combine(AedenthornUtils.GetAssetPath(context, true), "spawnlist.txt"), spawnStrings);
+                    Traverse.Create(__instance).Method("AddString", new object[] { "spawn list dumped to BepInEx\\plugins\\ConsoleTweaks\\spawnlist.txt" }).GetValue();
                     return false;
                 }
                 return true;

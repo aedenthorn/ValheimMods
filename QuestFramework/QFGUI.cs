@@ -20,7 +20,7 @@ namespace QuestFramework
 
         private void OnGUI()
         {
-            if (currentQuests.questDict.Count == 0 ||
+            if (Minimap.IsOpen() || Console.IsVisible() || TextInput.IsVisible() || ZNet.instance?.InPasswordDialog() == true || Chat.instance?.HasFocus() == true || StoreGui.IsVisible() || InventoryGui.IsVisible() || Menu.IsVisible() || TextViewer.instance?.IsVisible() == true || currentQuests.questDict.Count == 0 ||
                 (!showHUD.Value && !toggleHUDKeyOnPress.Value) ||
                 (toggleHUDKeyOnPress.Value && (!AedenthornUtils.CheckKeyHeld(toggleHUDKey.Value) || !AedenthornUtils.CheckKeyHeld(toggleHUDKeyMod.Value)))
                )
