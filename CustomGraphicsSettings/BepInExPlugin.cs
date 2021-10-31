@@ -6,14 +6,14 @@ using UnityEngine;
 
 namespace CustomGraphicsSettings
 {
-    [BepInPlugin("aedenthorn.CustomGraphicsSettings", "Custom Graphics Settings", "0.6.0")]
+    [BepInPlugin("aedenthorn.CustomGraphicsSettings", "Custom Graphics Settings", "0.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
-        public static ConfigEntry<int> anisotropicFiltering;
+        public static ConfigEntry<AnisotropicFiltering> anisotropicFiltering;
         public static ConfigEntry<int> antiAliasing;
         public static ConfigEntry<int> asyncUploadBufferSize;
         public static ConfigEntry<bool> asyncUploadPersistentBuffer;
@@ -31,12 +31,12 @@ namespace CustomGraphicsSettings
         public static ConfigEntry<Vector3> shadowCascade4Split;
         public static ConfigEntry<int> shadowCascades;
         public static ConfigEntry<int> shadowDistance;
-        public static ConfigEntry<int> shadowmaskMode;
+        public static ConfigEntry<ShadowmaskMode> shadowmaskMode;
         public static ConfigEntry<int> shadowNearPlaneOffset;
-        public static ConfigEntry<int> shadowProjection;
-        public static ConfigEntry<int> shadowResolution;
-        public static ConfigEntry<int> shadows;
-        public static ConfigEntry<int> skinWeights;
+        public static ConfigEntry<ShadowProjection> shadowProjection;
+        public static ConfigEntry<ShadowResolution> shadowResolution;
+        public static ConfigEntry<ShadowQuality> shadows;
+        public static ConfigEntry<SkinWeights> skinWeights;
         public static ConfigEntry<bool> softParticles;
         public static ConfigEntry<bool> softVegetation;
         public static ConfigEntry<bool> streamingMipmapsActive;
@@ -45,6 +45,9 @@ namespace CustomGraphicsSettings
         public static ConfigEntry<int> streamingMipmapsMaxLevelReduction;
         public static ConfigEntry<int> streamingMipmapsMemoryBudget;
         public static ConfigEntry<int> vSyncCount;
+        
+        public static ConfigEntry<string> hotkey;
+        public static ConfigEntry<bool> reloadOnChange;
 
         private static BepInExPlugin context;
 
@@ -58,7 +61,10 @@ namespace CustomGraphicsSettings
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 169, "Nexus mod ID for updates");
-            anisotropicFiltering = Config.Bind<int>("QualitySettings", "anisotropicFiltering", 2, "Global anisotropic filtering mode.");
+            hotkey = Config.Bind<string>("Options", "Hotkey", "", "Hotkey to reload settings from config");
+            reloadOnChange = Config.Bind<bool>("Options", "ReloadOnChange", true, "Reload graphics settings when config values are changed");
+
+            anisotropicFiltering = Config.Bind<AnisotropicFiltering>("QualitySettings", "anisotropicFiltering", AnisotropicFiltering.ForceEnable, "Global anisotropic filtering mode.");
             antiAliasing = Config.Bind<int>("QualitySettings", "antiAliasing", 0, "Set The AA Filtering option.");
             asyncUploadBufferSize = Config.Bind<int>("QualitySettings", "asyncUploadBufferSize", 4, "Asynchronous texture and mesh data upload provides timesliced async texture and mesh data upload on the render thread with tight control over memory and timeslicing. There are no allocations except for the ones which driver has to do. To read data and upload texture and mesh data, Unity re-uses a ringbuffer whose size can be controlled.Use asyncUploadBufferSize to set the buffer size for asynchronous texture and mesh data uploads. The size is in megabytes. The minimum value is 2 and the maximum value is 512. The buffer resizes automatically to fit the largest texture currently loading. To avoid re-sizing of the buffer, which can incur performance cost, set the value approximately to the size of biggest texture used in the Scene.");
             asyncUploadPersistentBuffer = Config.Bind<bool>("QualitySettings", "asyncUploadPersistentBuffer", true, "This flag controls if the async upload pipeline's ring buffer remains allocated when there are no active loading operations. Set this to true, to make the ring buffer allocation persist after all upload operations have completed. If you have issues with excessive memory usage, you can set this to false. This means you reduce the runtime memory footprint, but memory fragmentation can occur. The default value is true.");
@@ -76,12 +82,12 @@ namespace CustomGraphicsSettings
             shadowCascade4Split = Config.Bind<Vector3>("QualitySettings", "shadowCascade4Split", new Vector3(0.1f, 0.2f, 0.5f), "The normalized cascade start position for a 4 cascade setup. Each member of the vector defines the normalized position of the coresponding cascade with respect to Zero.");
             shadowCascades = Config.Bind<int>("QualitySettings", "shadowCascades", 4, "Number of cascades to use for directional light shadows.");
             shadowDistance = Config.Bind<int>("QualitySettings", "shadowDistance", 150, "Shadow drawing distance.");
-            shadowmaskMode = Config.Bind<int>("QualitySettings", "shadowmaskMode", 1, "The rendering mode of Shadowmask.");
+            shadowmaskMode = Config.Bind<ShadowmaskMode>("QualitySettings", "shadowmaskMode", ShadowmaskMode.Shadowmask, "The rendering mode of Shadowmask.");
             shadowNearPlaneOffset = Config.Bind<int>("QualitySettings", "shadowNearPlaneOffset", 3, "Offset shadow frustum near plane.");
-            shadowProjection = Config.Bind<int>("QualitySettings", "shadowProjection", 1, "Directional light shadow projection.");
-            shadowResolution = Config.Bind<int>("QualitySettings", "shadowResolution", 2, "The default resolution of the shadow maps.");
-            shadows = Config.Bind<int>("QualitySettings", "shadows", 2, "Realtime Shadows type to be used.");
-            skinWeights = Config.Bind<int>("QualitySettings", "skinWeights", 2, "The maximum number of bone weights that can affect a vertex, for all skinned meshes in the project.");
+            shadowProjection = Config.Bind<ShadowProjection>("QualitySettings", "shadowProjection", ShadowProjection.StableFit, "Directional light shadow projection.");
+            shadowResolution = Config.Bind<ShadowResolution>("QualitySettings", "shadowResolution", ShadowResolution.Medium, "The default resolution of the shadow maps.");
+            shadows = Config.Bind<ShadowQuality>("QualitySettings", "shadows", ShadowQuality.HardOnly, "Realtime Shadows type to be used.");
+            skinWeights = Config.Bind<SkinWeights>("QualitySettings", "skinWeights", SkinWeights.TwoBones, "The maximum number of bone weights that can affect a vertex, for all skinned meshes in the project.");
             softParticles = Config.Bind<bool>("QualitySettings", "softParticles", true, "Should soft blending be used for particles?");
             softVegetation = Config.Bind<bool>("QualitySettings", "softVegetation", true, "Use a two-pass shader for the vegetation in the terrain engine.");
             streamingMipmapsActive = Config.Bind<bool>("QualitySettings", "streamingMipmapsActive", true, "Enable automatic streaming of texture mipmap levels based on their distance from all active cameras.");
@@ -91,18 +97,74 @@ namespace CustomGraphicsSettings
             streamingMipmapsMemoryBudget = Config.Bind<int>("QualitySettings", "streamingMipmapsMemoryBudget", 512, "The total amount of memory to be used by streaming and non-streaming textures.");
             vSyncCount = Config.Bind<int>("QualitySettings", "vSyncCount", 1, "The VSync Count.");
 
-            if (!modEnabled.Value)
-                return;
-
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
             SetGraphicsSettings();
 
+            foreach(var setting in Config)
+            {
+                if(setting.Key.Section == "QualitySettings")
+                {
+                    if(setting.Value is ConfigEntry<bool>)
+                    {
+                        (setting.Value as ConfigEntry<bool>).SettingChanged += BepInExPlugin_SettingChanged;
+
+                    }
+                    else if(setting.Value is ConfigEntry<int>)
+                    {
+                        (setting.Value as ConfigEntry<int>).SettingChanged += BepInExPlugin_SettingChanged;
+                    }
+                    else if(setting.Value is ConfigEntry<float>)
+                    {
+                        (setting.Value as ConfigEntry<float>).SettingChanged += BepInExPlugin_SettingChanged;
+                    }
+                    else if(setting.Value is ConfigEntry<AnisotropicFiltering>)
+                    {
+                        (setting.Value as ConfigEntry<AnisotropicFiltering>).SettingChanged += BepInExPlugin_SettingChanged;
+                    }
+                    else if(setting.Value is ConfigEntry<ShadowmaskMode>)
+                    {
+                        (setting.Value as ConfigEntry<ShadowmaskMode>).SettingChanged += BepInExPlugin_SettingChanged;
+                    }
+                    else if(setting.Value is ConfigEntry<ShadowProjection>)
+                    {
+                        (setting.Value as ConfigEntry<ShadowProjection>).SettingChanged += BepInExPlugin_SettingChanged;
+                    }
+                    else if(setting.Value is ConfigEntry<ShadowResolution>)
+                    {
+                        (setting.Value as ConfigEntry<ShadowResolution>).SettingChanged += BepInExPlugin_SettingChanged;
+                    }
+                    else if(setting.Value is ConfigEntry<ShadowQuality>)
+                    {
+                        (setting.Value as ConfigEntry<ShadowQuality>).SettingChanged += BepInExPlugin_SettingChanged;
+                    }
+                    else if(setting.Value is ConfigEntry<SkinWeights>)
+                    {
+                        (setting.Value as ConfigEntry<SkinWeights>).SettingChanged += BepInExPlugin_SettingChanged;
+                    }
+                }
+            }
+
+        }
+
+        private void Update()
+        {
+            if (modEnabled.Value && AedenthornUtils.CheckKeyDown(hotkey.Value))
+                SetGraphicsSettings();
+        }
+
+        private void BepInExPlugin_SettingChanged(object sender, System.EventArgs e)
+        {
+            if(modEnabled.Value && reloadOnChange.Value)
+                SetGraphicsSettings();
         }
 
         private static void SetGraphicsSettings()
         {
-            QualitySettings.anisotropicFiltering = (AnisotropicFiltering) anisotropicFiltering.Value;
+            if (!modEnabled.Value)
+                return;
+
+            QualitySettings.anisotropicFiltering = anisotropicFiltering.Value;
             QualitySettings.antiAliasing = antiAliasing.Value;
             QualitySettings.asyncUploadBufferSize = asyncUploadBufferSize.Value;
             QualitySettings.asyncUploadPersistentBuffer = asyncUploadPersistentBuffer.Value;
@@ -120,12 +182,12 @@ namespace CustomGraphicsSettings
             QualitySettings.shadowCascade4Split = shadowCascade4Split.Value;
             QualitySettings.shadowCascades = shadowCascades.Value;
             QualitySettings.shadowDistance = shadowDistance.Value;
-            QualitySettings.shadowmaskMode = (ShadowmaskMode) shadowmaskMode.Value;
+            QualitySettings.shadowmaskMode = shadowmaskMode.Value;
             QualitySettings.shadowNearPlaneOffset = shadowNearPlaneOffset.Value;
-            QualitySettings.shadowProjection = (ShadowProjection) shadowProjection.Value;
-            QualitySettings.shadowResolution = (ShadowResolution) shadowResolution.Value;
-            QualitySettings.shadows = (ShadowQuality) shadows.Value;
-            QualitySettings.skinWeights = (SkinWeights) skinWeights.Value;
+            QualitySettings.shadowProjection = shadowProjection.Value;
+            QualitySettings.shadowResolution = shadowResolution.Value;
+            QualitySettings.shadows = shadows.Value;
+            QualitySettings.skinWeights = skinWeights.Value;
             QualitySettings.softParticles = softParticles.Value;
             QualitySettings.softVegetation = softVegetation.Value;
             QualitySettings.streamingMipmapsActive = streamingMipmapsActive.Value;
