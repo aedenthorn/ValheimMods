@@ -13,7 +13,7 @@ using Debug = UnityEngine.Debug;
 
 namespace BackpackRedux
 {
-    [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.4.0")]
+    [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -31,6 +31,7 @@ namespace BackpackRedux
         public static ConfigEntry<float> backpackWeightMult;
         public static ConfigEntry<bool> dropInventoryOnDeath;
         public static ConfigEntry<bool> createTombStone;
+        public static ConfigEntry<bool> allowTeleportingMetal;
 
         //private static GameObject backpack;
         private static Container backpackContainer;
@@ -53,6 +54,7 @@ namespace BackpackRedux
 
 
             hotKey = Config.Bind<string>("General", "HotKey", "b", "Hotkey to open backpack.");
+            allowTeleportingMetal = Config.Bind<bool>("General", "AllowTeleportingMetal", false, "Allow teleporting even if backpack has unteleportable items.");
             backpackName = Config.Bind<string>("General", "BackpackName", "Backpack", "Display name for backpack.");
             backpackItem = Config.Bind<string>("General", "BackpackItem", "", "Required item to equip in order to open backpack. Leave blank to allow opening backpack without item equipped.");
             backpackSize = Config.Bind<Vector2>("General", "BackpackSize", new Vector2(6, 3), "Size of backpack (w,h).");
@@ -163,6 +165,19 @@ namespace BackpackRedux
                     return;
                 backpackFileName = Path.GetFileNameWithoutExtension(profile.GetFilename()) + "_backpack";
                 LoadBackpackInventory();
+            }
+        }
+                
+        [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.IsTeleportable))]
+        static class Humanoid_IsTeleportable_Patch
+        {
+            static void Postfix(Humanoid __instance, ref bool __result)
+            {
+                if (!modEnabled.Value || !__result || __instance != Player.m_localPlayer || backpackInventory == null)
+                    return;
+
+                if (!backpackInventory.IsTeleportable())
+                    __result = allowTeleportingMetal.Value;
             }
         }
                 
