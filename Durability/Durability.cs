@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Durability
 {
-    [BepInPlugin("aedenthorn.Durability", "Durability", "0.6.0")]
+    [BepInPlugin("aedenthorn.Durability", "Durability", "0.7.0")]
     public class Durability : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -29,6 +29,8 @@ namespace Durability
         public static ConfigEntry<float> shieldDurabilityLossMult;
         public static ConfigEntry<float> armorDurabilityLossMult;
        
+        public static ConfigEntry<bool> sharedArmorDurability;
+
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
@@ -51,6 +53,7 @@ namespace Durability
 
             shieldDurabilityLossMult = Config.Bind<float>("Durability", "ShieldDurabilityLossMult", 1f, "Shield durability loss multiplier.");
             armorDurabilityLossMult = Config.Bind<float>("Durability", "ArmorDurabilityLossMult", 1f, "Armor durability loss multiplier.");
+            sharedArmorDurability = Config.Bind<bool>("Options", "SharedArmorDurability", false, "If true, durability loss is shared between all armor worn.");
 
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -59,7 +62,7 @@ namespace Durability
             if (!modEnabled.Value)
                 return;
 
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), Info.Metadata.GUID);
         }
 
         [HarmonyPatch(typeof(ItemDrop), "Awake")]
@@ -119,35 +122,64 @@ namespace Durability
                     __state[3] = ___m_helmetItem?.m_durability ?? -1f;
                 }
             }
-            static void Postfix(Player __instance, float[] __state, ref ItemDrop.ItemData ___m_chestItem, ref ItemDrop.ItemData ___m_legItem, ref ItemDrop.ItemData ___m_shoulderItem, ref ItemDrop.ItemData ___m_helmetItem)
+            static void Postfix(Player __instance, float[] __state, ref ItemDrop.ItemData ___m_chestItem, ref ItemDrop.ItemData ___m_legItem, ref ItemDrop.ItemData ___m_shoulderItem, ref ItemDrop.ItemData ___m_helmetItem, HitData hit)
             {
                 if (modEnabled.Value)
                 {
-                    if(___m_chestItem != null && __state[0] > ___m_chestItem.m_durability)
-                    {
-                        Dbgl($"chest old {__state[0]} new {___m_chestItem.m_durability} final {__state[0] - (__state[0] - ___m_chestItem.m_durability) * armorDurabilityLossMult.Value}");
-                        ___m_chestItem.m_durability = Mathf.Max(0, __state[0] - (__state[0] - ___m_chestItem.m_durability) * armorDurabilityLossMult.Value);
-                    }
-                    if (___m_legItem != null && __state[1] > ___m_legItem.m_durability)
-                    {
-                        Dbgl($"leg old {__state[1]} new {___m_legItem.m_durability} final {__state[1] - (__state[1] - ___m_legItem.m_durability) * armorDurabilityLossMult.Value}");
-                        ___m_legItem.m_durability = Mathf.Max(0, __state[1] - (__state[1] - ___m_legItem.m_durability) * armorDurabilityLossMult.Value);
-                    }
-                    if (___m_shoulderItem != null && __state[2] > ___m_shoulderItem.m_durability)
-                    {
-                        Dbgl($"shoulder old {__state[2]} new {___m_shoulderItem.m_durability} final {__state[2] - (__state[2] - ___m_shoulderItem.m_durability) * armorDurabilityLossMult.Value}");
-                        ___m_shoulderItem.m_durability = __state[2] - (__state[2] - ___m_shoulderItem.m_durability) * armorDurabilityLossMult.Value;
-                    }
-                    if (___m_helmetItem != null && __state[3] > ___m_helmetItem.m_durability)
-                    {
-                        Dbgl($"helmet old {__state[3]} new {___m_helmetItem.m_durability} final {__state[3] - (__state[3] - ___m_helmetItem.m_durability) * armorDurabilityLossMult.Value}");
+                    float amount = (hit.GetTotalPhysicalDamage() + hit.GetTotalElementalDamage()) * armorDurabilityLossMult.Value;
+                    if (amount <= 0)
+                        return;
 
-                        ___m_helmetItem.m_durability = __state[3] - (__state[3] - ___m_helmetItem.m_durability) * armorDurabilityLossMult.Value;
+                    if (sharedArmorDurability.Value)
+                    {
+                        int count = 0;
+                        if (___m_chestItem != null)
+                            count++;
+                        if (___m_legItem != null)
+                            count++;
+                        if (___m_shoulderItem != null)
+                            count++;
+                        if (___m_helmetItem != null)
+                            count++;
+
+                        if (___m_chestItem != null)
+                            ___m_chestItem.m_durability = Mathf.Max(0, __state[0] - amount / count);
+                        if (___m_legItem != null)
+                            ___m_legItem.m_durability = Mathf.Max(0, __state[1] - amount / count);
+                        if (___m_shoulderItem != null)
+                            ___m_shoulderItem.m_durability = Mathf.Max(0, __state[2] - amount / count);
+                        if (___m_helmetItem != null)
+                            ___m_helmetItem.m_durability = Mathf.Max(0, __state[3] - amount / count);
+
+                    }
+                    else
+                    {
+                        if (___m_chestItem != null && __state[0] > ___m_chestItem.m_durability)
+                        {
+                            //Dbgl($"chest old {__state[0]} new {___m_chestItem.m_durability} final {__state[0] - amount}");
+                            ___m_chestItem.m_durability = Mathf.Max(0, __state[0] - amount);
+                        }
+                        if (___m_legItem != null && __state[1] > ___m_legItem.m_durability)
+                        {
+                            //Dbgl($"leg old {__state[1]} new {___m_legItem.m_durability} final {__state[1] - amount}");
+                            ___m_legItem.m_durability = Mathf.Max(0, __state[1] - amount);
+                        }
+                        if (___m_shoulderItem != null && __state[2] > ___m_shoulderItem.m_durability)
+                        {
+                            //Dbgl($"shoulder old {__state[2]} new {___m_shoulderItem.m_durability} final {__state[2] - amount}");
+                            ___m_shoulderItem.m_durability = Mathf.Max(0, __state[2] - amount);
+                        }
+                        if (___m_helmetItem != null && __state[3] > ___m_helmetItem.m_durability)
+                        {
+                            //Dbgl($"helmet old {__state[3]} new {___m_helmetItem.m_durability} final {__state[3] - amount}");
+
+                            ___m_helmetItem.m_durability = Mathf.Max(0, __state[3] - amount);
+                        }
                     }
                 }
             }
         }
-        
+
         [HarmonyPatch(typeof(Humanoid), "BlockAttack")]
         static class BlockAttack_Patch
         {

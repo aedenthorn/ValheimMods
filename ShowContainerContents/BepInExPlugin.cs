@@ -2,11 +2,12 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections.Generic;
+//using TMPro;
 using UnityEngine;
 
 namespace ShowContainerContents
 {
-    [BepInPlugin("aedenthorn.ShowContainerContents", "Show Container Contents", "0.2.0")]
+    [BepInPlugin("aedenthorn.ShowContainerContents", "Show Container Contents", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -22,6 +23,8 @@ namespace ShowContainerContents
         public static ConfigEntry<string> entryText;
         public static ConfigEntry<string> overFlowText;
         public static ConfigEntry<string> capacityText;
+
+        //public static TextMeshProUGUI textMeshPro;
 
         public enum SortType
         {
@@ -63,7 +66,40 @@ namespace ShowContainerContents
             harmony?.UnpatchAll();
         }
 
+        /*
+        [HarmonyPatch(typeof(Hud), "UpdateCrosshair")]
+        static class Hud_UpdateCrosshair_Patch
+        {
+            static void Prefix(Hud __instance, Player player)
+            {
+                if (!modEnabled.Value || TextViewer.instance?.IsVisible() == true)
+                    return;
 
+                if(player?.GetHoverObject()?.GetComponentInParent<Container>() == null)
+                {
+                    if (textMeshPro)
+                    {
+                        textMeshPro.text = "";
+                        __instance.m_hoverName.gameObject.SetActive(true);
+                    }
+                }
+                else
+                {
+                    if (!textMeshPro)
+                    {
+                        Dbgl($"Creating TMP");
+                        AccessTools.Field(typeof(TMP_Settings), "s_Instance").SetValue(null, ScriptableObject.CreateInstance(typeof(TMP_Settings)));
+                        GameObject go = Instantiate(new GameObject(), __instance.m_hoverName.transform);
+                        go.name = "TextMeshPro";
+                        textMeshPro = go.AddComponent<TextMeshProUGUI>();
+                        textMeshPro.font = new TMP_FontAsset();
+                    }
+                    textMeshPro.text = player.GetHoverObject().GetComponentInParent<Hoverable>().GetHoverText();
+                    __instance.m_hoverName.gameObject.SetActive(false);
+                }
+            } 
+        }
+        */
 
         [HarmonyPatch(typeof(Container), "GetHoverText")]
         static class GetHoverText_Patch
