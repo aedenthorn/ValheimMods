@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace CustomUI
 {
-    [BepInPlugin("aedenthorn.CustomUI", "Custom UI", "0.5.0")]
+    [BepInPlugin("aedenthorn.CustomUI", "Custom UI", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -41,6 +41,14 @@ namespace CustomUI
         public static ConfigEntry<float> quickSlotsY;
         public static ConfigEntry<float> quickSlotsScale;
 
+        public static ConfigEntry<float> buildingX;
+        public static ConfigEntry<float> buildingY;
+        public static ConfigEntry<float> buildingScale;
+
+        public static ConfigEntry<float> chatX;
+        public static ConfigEntry<float> chatY;
+        public static ConfigEntry<float> chatScale;
+
         public static ConfigEntry<string> modKeyOne;
         public static ConfigEntry<string> modKeyTwo;
         public static ConfigEntry<int> nexusID;
@@ -69,6 +77,8 @@ namespace CustomUI
             mapScale = Config.Bind<float>("Scale", "MapScale", 1f, "map scale");
             statusScale = Config.Bind<float>("Scale", "StatusScale", 1f, "status scale");
             quickSlotsScale = Config.Bind<float>("Scale", "QuickSlotsScale", 1f, "Quick slots scale");
+            buildingScale = Config.Bind<float>("Scale", "BuildingScale", 1f, "Building scale");
+            chatScale = Config.Bind<float>("Scale", "ChatScale", 1f, "Chat scale");
             
             toolbarX = Config.Bind<float>("ZCurrentPositions", "ToolbarX", 9999, "Current X of toolbar");
             toolbarY = Config.Bind<float>("ZCurrentPositions", "ToolbarY", 9999, "Current Y of toolbar");
@@ -87,6 +97,12 @@ namespace CustomUI
 
             statusX = Config.Bind<float>("ZCurrentPositions", "StatusX", 9999, "Current X of status");
             statusY = Config.Bind<float>("ZCurrentPositions", "StatusY", 9999, "Current Y of status");
+
+            chatX = Config.Bind<float>("ZCurrentPositions", "ChatX", 9999, "Current X of chat");
+            chatY = Config.Bind<float>("ZCurrentPositions", "ChatY", 9999, "Current Y of chat");
+
+            buildingX = Config.Bind<float>("ZCurrentPositions", "BuildingX", 9999, "Current X of building");
+            buildingY = Config.Bind<float>("ZCurrentPositions", "BuildingY", 9999, "Current Y of building");
 
             toolbarItemsPerRow.Value = Mathf.Clamp(toolbarItemsPerRow.Value, 1, 8);
 
@@ -254,6 +270,20 @@ namespace CustomUI
                         );
                     }
 
+                    Rect chatRect = new Rect(
+                        Screen.width + (Chat.instance.m_chatWindow.anchoredPosition.x + Chat.instance.m_chatWindow.rect.x * chatScale.Value) * gameScale,
+                        Chat.instance.m_chatWindow.anchoredPosition.y * gameScale,
+                        Chat.instance.m_chatWindow.sizeDelta.x * gameScale * chatScale.Value,
+                        Chat.instance.m_chatWindow.sizeDelta.y * gameScale * chatScale.Value
+                    );
+
+                    Rect buildRect = new Rect(
+                        Screen.width / 2 + (Hud.instance.m_pieceSelectionWindow.GetComponent<RectTransform>().anchoredPosition.x + Hud.instance.m_pieceSelectionWindow.GetComponent<RectTransform>().rect.x * buildingScale.Value) * gameScale,
+                        Screen.height / 2 + (Hud.instance.m_pieceSelectionWindow.GetComponent<RectTransform>().anchoredPosition.y + Hud.instance.m_pieceSelectionWindow.GetComponent<RectTransform>().rect.y * buildingScale.Value) * gameScale,
+                        Hud.instance.m_pieceSelectionWindow.GetComponent<RectTransform>().rect.width * gameScale * buildingScale.Value,
+                        Hud.instance.m_pieceSelectionWindow.GetComponent<RectTransform>().rect.height * gameScale * buildingScale.Value
+                    );
+
                     if (hotkeyRect.Contains(lastMousePos) && (currentlyDragging == "" || currentlyDragging == "HotKeyBar"))
                     {
                         //Dbgl("in hotkeybar");
@@ -297,10 +327,24 @@ namespace CustomUI
                         quickSlotsY.Value += (mousePos.y - lastMousePos.y) / gameScale;
                         currentlyDragging = "QuickSlots";
                     }
+                    else if (Chat.instance.m_chatWindow.gameObject.activeInHierarchy && chatRect.Contains(lastMousePos) && (currentlyDragging == "" || currentlyDragging == "Chat"))
+                    {
+                        //Dbgl("in QuickSlots");
+                        chatX.Value += (mousePos.x - lastMousePos.x) / gameScale;
+                        chatY.Value += (mousePos.y - lastMousePos.y) / gameScale;
+                        currentlyDragging = "Chat";
+                    }
+                    else if (Hud.instance.m_pieceSelectionWindow.activeSelf && buildRect.Contains(lastMousePos) && (currentlyDragging == "" || currentlyDragging == "Building"))
+                    {
+                        //Dbgl("in QuickSlots");
+                        buildingX.Value += (mousePos.x - lastMousePos.x) / gameScale;
+                        buildingY.Value += (mousePos.y - lastMousePos.y) / gameScale;
+                        currentlyDragging = "Building";
+                    }
                     else
                     {
-                        //Dbgl($"mouse {mousePos}, hotkey rect {hotkeyRect}, health rect {healthRect}, guardian rect {guardianRect}, map rect {mapRect}");
-                        //Dbgl($"mouse {mousePos} qs rect {quickSlotsRect}");
+                        //Dbgl($"mouse {mousePos}, hotkey rect {hotkeyRect}, health rect {healthRect}, guardian rect {guardianRect}, map rect {mapRect}, chat rect {chatRect}");
+                        Dbgl($"mouse {mousePos} build rect {buildRect} game scale {gameScale}");
                         currentlyDragging = "";
                     }
                 }
@@ -341,6 +385,16 @@ namespace CustomUI
             if (mapY.Value == 9999)
                 mapY.Value = hudRoot.Find("MiniMap").Find("small").GetComponent<RectTransform>().anchoredPosition.y;
 
+            if (chatX.Value == 9999)
+                chatX.Value = Chat.instance.m_chatWindow.anchoredPosition.x;
+            if (chatY.Value == 9999)
+                chatY.Value = Chat.instance.m_chatWindow.anchoredPosition.y;
+
+            if (buildingX.Value == 9999)
+                buildingX.Value = Hud.instance.m_pieceSelectionWindow.GetComponent<RectTransform>().anchoredPosition.x;
+            if (buildingY.Value == 9999)
+                buildingY.Value = Hud.instance.m_pieceSelectionWindow.GetComponent<RectTransform>().anchoredPosition.y;
+
             hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMax = new Vector2(hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMax.x, toolbarY.Value / Screen.height);
             hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMin = new Vector2(toolbarX.Value / Screen.width, hudRoot.Find("HotKeyBar").GetComponent<RectTransform>().anchorMin.y);
 
@@ -361,6 +415,12 @@ namespace CustomUI
             hudRoot.Find("GuardianPower").GetComponent<RectTransform>().localScale = new Vector3(guardianScale.Value, guardianScale.Value, 1);
             hudRoot.Find("StatusEffects").GetComponent<RectTransform>().localScale = new Vector3(statusScale.Value, statusScale.Value, 1);
             hudRoot.Find("MiniMap").Find("small").GetComponent<RectTransform>().localScale = new Vector3(mapScale.Value, mapScale.Value, 1);
+
+            Chat.instance.m_chatWindow.anchoredPosition = new Vector2(chatX.Value, chatY.Value);
+            Chat.instance.m_chatWindow.localScale = new Vector3(chatScale.Value, chatScale.Value, 1);
+
+            Hud.instance.m_pieceSelectionWindow.GetComponent<RectTransform>().anchoredPosition = new Vector2(buildingX.Value, buildingY.Value);
+            Hud.instance.m_pieceSelectionWindow.GetComponent<RectTransform>().localScale = new Vector3(buildingScale.Value, buildingScale.Value, 1);
 
 
             if (hudRoot.Find("QuickSlotsHotkeyBar")?.GetComponent<RectTransform>() != null)

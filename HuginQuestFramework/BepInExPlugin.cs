@@ -31,6 +31,7 @@ namespace HuginQuestFramework
         public static ConfigEntry<int> maxAmount;
         public static ConfigEntry<int> maxReward;
         public static ConfigEntry<float> rewardFluctuation;
+        public static ConfigEntry<bool> allowUnknownFetchMaterials;
         
         public static ConfigEntry<string> randomFetchQuestName;
         public static ConfigEntry<string> randomKillQuestName;
@@ -102,6 +103,7 @@ namespace HuginQuestFramework
             questCheckInterval = Config.Bind<float>("Options", "QuestCheckInterval", 60f * 60f, "Number of game seconds between checking for a new quest (default every game hour).");
             questChance = Config.Bind<float>("Options", "QuestChance", 0.1f, "Chance of a quest being offered on each interval.");
             maxQuests = Config.Bind<int>("Options", "MaxQuests", 1, "Number of quests to allow at once.");
+            allowUnknownFetchMaterials = Config.Bind<bool>("Options", "AllowUnknownFetchMaterials", true, "All fetch quests for unknown materials.");
 
             randomFetchQuestWeight = Config.Bind<float>("Random", "RandomFetchQuestWeight", 1f, "Chance of a random quest being a fetch quest.");
             randomKillQuestWeight = Config.Bind<float>("Random", "RandomKillQuestWeight", 1f, "Chance of a random quest being a kill quest.");
