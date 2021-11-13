@@ -180,23 +180,19 @@ namespace HaldorFetchQuests
             }
             static void Postfix(StoreGui __instance, Trader ___m_trader, List<GameObject> ___m_itemList)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))
                     return;
 
-
-                if (Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))
-                {
-                    return;
-                }
-
-                int i = ___m_trader.m_items.Count;
+                int index = ___m_trader.m_items.Count;
 
                 Dbgl($"Adding {currentQuestDict.Count} quests to trader");
-                foreach (FetchQuestData fqd in currentQuestDict.Values)
+                for(int i = 0; i < currentQuestDict.Count; i++)
                 {
-                    Dbgl($"{fqd.ID}");
+                    FetchQuestData fqd = currentQuestDict.Values.ToArray()[i];
 
-                    ItemDrop id = new GameObject().AddComponent<ItemDrop>();
+                    Dbgl($"{fqd.ID}");
+                    ItemDrop.ItemData data = new ItemDrop.ItemData() { m_shared = new SharedData() };
+                    ItemDrop id = new ItemDrop() { m_itemData = data };
                     id.m_itemData.m_crafterName = fqd.ID;
                     ___m_trader.m_items.Add(new Trader.TradeItem()
                     {
@@ -209,7 +205,7 @@ namespace HaldorFetchQuests
 
                     GameObject buttonObject = Instantiate(__instance.m_listElement, __instance.m_listRoot);
                     buttonObject.SetActive(true);
-                    (buttonObject.transform as RectTransform).anchoredPosition = new Vector2(0f, i++ * -__instance.m_itemSpacing);
+                    (buttonObject.transform as RectTransform).anchoredPosition = new Vector2(0f, index++ * -__instance.m_itemSpacing);
                     Image component = buttonObject.transform.Find("icon").GetComponent<Image>();
                     if (fqd.type == FetchType.Fetch)
                     {
@@ -364,9 +360,9 @@ namespace HaldorFetchQuests
         private static void OnClickBetterTraderItem(FetchQuestData fqd, object itemElement)
         {
             Dbgl($"Clicked better trader item {fqd.ID}");
-            ItemDrop id = new GameObject().AddComponent<ItemDrop>();
+            ItemDrop.ItemData data = new ItemDrop.ItemData() { m_shared = new SharedData() };
+            ItemDrop id = new ItemDrop() { m_itemData = data };
             id.m_itemData.m_crafterName = fqd.ID;
-            id.m_itemData.m_shared = new SharedData();
             Trader.TradeItem value = new Trader.TradeItem()
             {
                 m_prefab = id,

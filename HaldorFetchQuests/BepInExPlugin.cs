@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace HaldorFetchQuests
 {
-    [BepInPlugin("aedenthorn.HaldorFetchQuests", "Haldor Fetch Quests", "0.3.1")]
+    [BepInPlugin("aedenthorn.HaldorFetchQuests", "Haldor Fetch Quests", "0.3.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -41,7 +41,6 @@ namespace HaldorFetchQuests
         public static ConfigEntry<string> fetchQuestDescString;
         public static ConfigEntry<string> killQuestProgressString;
         public static ConfigEntry<string> fetchQuestProgressString;
-
         private static BepInExPlugin context;
         
         public static double lastRefreshTime = 0;
@@ -94,10 +93,6 @@ namespace HaldorFetchQuests
             fetchQuestDescString = Config.Bind<string>("Text", "FetchQuestDescString", "Bring {amount} {thing} to Haldor.", "Fetch quest string. {amount} is replaced with the amount to fetch. {thing} is replaced with the thing to fetch.");
             killQuestProgressString = Config.Bind<string>("Text", "KillQuestProgressString", "Killed {current}/{total}", "Kill quest progress string. {current} is replaced with the amount alread killed. {total} is replaced with the total amount to kill.");
             fetchQuestProgressString = Config.Bind<string>("Text", "FetchQuestProgressString", "Have {current}/{total}", "Fetch quest progress string. {current} is replaced with the amount carried. {total} is replaced with the total amount to fetch.");
-
-            if (!modEnabled.Value)
-                return;
-
 
         }
         private void Start()
