@@ -79,10 +79,10 @@ namespace HuginQuestFramework
             }
             if(huginQuestDict.Count == 0)
             {
-                possibleKillList = ((Dictionary<int, GameObject>)AccessTools.Field(typeof(ZNetScene), "m_namedPrefabs").GetValue(ZNetScene.instance)).Values.ToList().FindAll(g => g.GetComponent<MonsterAI>() || g.GetComponent<AnimalAI>());
+                possibleKillList = ((Dictionary<int, GameObject>)AccessTools.Field(typeof(ZNetScene), "m_namedPrefabs").GetValue(ZNetScene.instance)).Values.ToList().FindAll(g => g && g.GetComponent<MonsterAI>() || g.GetComponent<AnimalAI>());
 
                 possibleFetchList.Clear();
-                var fetchList = ObjectDB.instance.m_items.FindAll(g => g.GetComponent<ItemDrop>() && g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Material);
+                var fetchList = ObjectDB.instance.m_items.FindAll(g => g && g.GetComponent<ItemDrop>() && g.GetComponent<ItemDrop>().m_itemData?.m_shared?.m_itemType == ItemDrop.ItemData.ItemType.Material);
                 foreach(GameObject go in fetchList)
                 {
                     int value = GetItemValue(go.GetComponent<ItemDrop>());

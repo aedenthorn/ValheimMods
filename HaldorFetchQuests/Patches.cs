@@ -26,8 +26,8 @@ namespace HaldorFetchQuests
                     return;
                 currentQuestDict = null;
 
-                possibleKillList = ((Dictionary<int, GameObject>)AccessTools.Field(typeof(ZNetScene), "m_namedPrefabs").GetValue(ZNetScene.instance)).Values.ToList().FindAll(g => g.GetComponent<MonsterAI>() || g.GetComponent<AnimalAI>());
-                possibleFetchList = ObjectDB.instance.m_items.FindAll(g => g.GetComponent<ItemDrop>() && (g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemType.Material || g.GetComponent<ItemDrop>().m_itemData.m_shared.m_itemType == ItemType.Consumable));
+                possibleKillList = ((Dictionary<int, GameObject>)AccessTools.Field(typeof(ZNetScene), "m_namedPrefabs").GetValue(ZNetScene.instance)).Values.ToList().FindAll(g => g && g.GetComponent<MonsterAI>() || g.GetComponent<AnimalAI>());
+                possibleFetchList = ObjectDB.instance.m_items.FindAll(g => g && g.GetComponent<ItemDrop>() && (g.GetComponent<ItemDrop>().m_itemData?.m_shared?.m_itemType == ItemType.Material));
                 Dbgl($"got {possibleFetchList.Count} possible fetch items and {possibleKillList.Count} possible kill items");
 
 
