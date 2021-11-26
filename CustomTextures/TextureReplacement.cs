@@ -16,8 +16,17 @@ namespace CustomTextures
             logDump.Clear();
             ObjectDB objectDB = ObjectDB.instance;
 
-
-            Texture2D tex = LoadTexture("atlas_item_icons", objectDB.m_items[0]?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_icons[0]?.texture, false, true, true);
+            Texture2D vanilla = null;
+            foreach(var go in objectDB.m_items)
+            {
+                if(go?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_icons.Length > 0)
+                {
+                    vanilla = go.GetComponent<ItemDrop>().m_itemData.m_shared.m_icons[0].texture;
+                    Dbgl($"got atlass at item: {go.name}");
+                    break;
+                }
+            }
+            Texture2D tex = LoadTexture("atlas_item_icons", vanilla, false, true, true);
             Dbgl($"Replacing textures for {objectDB.m_items.Count} objects");
             foreach (GameObject go in objectDB.m_items)
             {
