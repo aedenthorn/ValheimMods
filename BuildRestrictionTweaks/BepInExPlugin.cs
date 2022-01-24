@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BuildRestrictionTweaks
 {
-    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.2.0")]
+    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.2.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private enum PlacementStatus
@@ -42,7 +42,7 @@ namespace BuildRestrictionTweaks
         public static ConfigEntry<bool> ignoreDungeonRestrictions;
 
         private static BepInExPlugin context;
-        
+        public static GameObject craftingStationObject;
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
@@ -76,11 +76,18 @@ namespace BuildRestrictionTweaks
         [HarmonyPatch(typeof(CraftingStation), "HaveBuildStationInRange")]
         static class CraftingStation_HaveBuildStationInRange_Patch
         {
-            static void Postfix(ref CraftingStation __result)
+            static void Postfix(ref CraftingStation __result, string name)
             {
-                if (!modEnabled.Value || (!ignoreMissingStation.Value && !alwaysValid.Value) || __result)
+                if (!modEnabled.Value || (!ignoreMissingStation.Value && !alwaysValid.Value) || __result != null)
                     return;
-                __result = new CraftingStation();
+                if (craftingStationObject)
+                    __result = craftingStationObject.GetComponent<CraftingStation>();
+                else
+                {
+                    craftingStationObject = new GameObject();
+                    DontDestroyOnLoad(craftingStationObject);
+                    __result = craftingStationObject.AddComponent<CraftingStation>();
+                }
             }
         }
         [HarmonyPatch(typeof(Player), "UpdatePlacementGhost")]
@@ -101,7 +108,7 @@ namespace BuildRestrictionTweaks
                     || (placementStatus == PlacementStatus.MoreSpace && ignoreSpaceRestrictions.Value)
                     || (placementStatus == PlacementStatus.NoTeleportArea && ignoreTeleportAreaRestrictions.Value)
                     || (placementStatus == PlacementStatus.ExtensionMissingStation && ignoreMissingStationExtension.Value)
-                    || (placementStatus == PlacementStatus.ExtensionMissingStation && ignoreBiomeRestrictions.Value)
+                    || (placementStatus == PlacementStatus.WrongBiome && ignoreBiomeRestrictions.Value)
                     || (placementStatus == PlacementStatus.NeedCultivated && ignoreCultivationRestrictions.Value)
                     || (placementStatus == PlacementStatus.NotInDungeon && ignoreDungeonRestrictions.Value)
                 )
