@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace QuickStore
 {
-    [BepInPlugin("aedenthorn.QuickStore", "Quick Store", "0.2.0")]
+    [BepInPlugin("aedenthorn.QuickStore", "Quick Store", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -27,6 +27,9 @@ namespace QuickStore
         public static ConfigEntry<string> itemAllowTypesCarts;
         public static ConfigEntry<string> itemDisallowTypesShips;
         public static ConfigEntry<string> itemAllowTypesShips;
+        public static ConfigEntry<string> itemDisallowTypesGeneric;
+        public static ConfigEntry<string> itemAllowTypesGeneric;
+
         public static ConfigEntry<string> itemDisallowCategories;
         public static ConfigEntry<string> itemAllowCategories;
         public static ConfigEntry<string> itemDisallowCategoriesChests;
@@ -41,7 +44,10 @@ namespace QuickStore
         public static ConfigEntry<string> itemAllowCategoriesCarts;
         public static ConfigEntry<string> itemDisallowCategoriesShips;
         public static ConfigEntry<string> itemAllowCategoriesShips;
+        public static ConfigEntry<string> itemDisallowCategoriesGeneric;
+        public static ConfigEntry<string> itemAllowCategoriesGeneric;
         public static ConfigEntry<string> storedString;
+        public static ConfigEntry<string> genericContainerNamePrefixes;
 
         public static ConfigEntry<string> storeHotkey;
         public static ConfigEntry<bool> mustHaveItemToPull;
@@ -77,21 +83,33 @@ namespace QuickStore
             itemAllowTypesCarts = Config.Bind<string>("General", "ItemAllowTypesCarts", "", "Types of item to only allow pulling for, comma-separated. Overrides ItemDisallowTypesCarts");
             itemDisallowTypesShips = Config.Bind<string>("General", "ItemDisallowTypesShips", "", "Types of item to disallow pulling for, comma-separated.");
             itemAllowTypesShips = Config.Bind<string>("General", "ItemAllowTypesShips", "", "Types of item to only allow pulling for, comma-separated. Overrides ItemDisallowTypesShips");
+            itemDisallowTypesGeneric = Config.Bind<string>("General", "ItemDisallowTypesGeneric", "", "Types of item to disallow pulling for, comma-separated.");
+            itemAllowTypesGeneric = Config.Bind<string>("General", "ItemAllowTypesGeneric", "", "Types of item to only allow pulling for, comma-separated. Overrides ItemDisallowTypesGeneric");
             
             itemDisallowCategories = Config.Bind<string>("General", "ItemDisallowCategories", "", "Categories of item to disallow pulling for, comma-separated.");
             itemAllowCategories = Config.Bind<string>("General", "ItemAllowCategories", "", "Categories of item to only allow pulling for, comma-separated. Overrides ItemDisallowCategories");
+
             itemDisallowCategoriesChests = Config.Bind<string>("General", "ItemDisallowCategoriesChests", "", "Categories of item to disallow pulling for, comma-separated.");
             itemAllowCategoriesChests = Config.Bind<string>("General", "ItemAllowCategoriesChests", "", "Categories of item to only allow pulling for, comma-separated. Overrides ItemDisallowCategoriesChests");
+
             itemDisallowCategoriesPersonalChests = Config.Bind<string>("General", "ItemDisallowCategoriesPersonalChests", "", "Categories of item to disallow pulling for, comma-separated.");
             itemAllowCategoriesPersonalChests = Config.Bind<string>("General", "ItemAllowCategoriesPersonalChests", "", "Categories of item to only allow pulling for, comma-separated. Overrides ItemDisallowCategoriesPersonalChests");
+
             itemDisallowCategoriesBlackMetalChests = Config.Bind<string>("General", "ItemDisallowCategoriesBlackMetalChests", "", "Categories of item to disallow pulling for, comma-separated.");
             itemAllowCategoriesBlackMetalChests = Config.Bind<string>("General", "ItemAllowCategoriesBlackMetalChests", "", "Categories of item to only allow pulling for, comma-separated. Overrides ItemDisallowCategoriesBlackMetalChests");
+
             itemDisallowCategoriesReinforcedChests = Config.Bind<string>("General", "ItemDisallowCategoriesReinforcedChests", "", "Categories of item to disallow pulling for, comma-separated.");
             itemAllowCategoriesReinforcedChests = Config.Bind<string>("General", "ItemAllowCategoriesReinforcedChests", "", "Categories of item to only allow pulling for, comma-separated. Overrides ItemDisallowCategoriesReinforcedChests");
+
             itemDisallowCategoriesCarts = Config.Bind<string>("General", "ItemDisallowCategoriesCarts", "", "Categories of item to disallow pulling for, comma-separated.");
             itemAllowCategoriesCarts = Config.Bind<string>("General", "ItemAllowCategoriesCarts", "", "Categories of item to only allow pulling for, comma-separated. Overrides ItemDisallowCategoriesCarts");
+
             itemDisallowCategoriesShips = Config.Bind<string>("General", "ItemDisallowCategoriesShips", "", "Categories of item to disallow pulling for, comma-separated.");
             itemAllowCategoriesShips = Config.Bind<string>("General", "ItemAllowCategoriesShips", "", "Categories of item to only allow pulling for, comma-separated. Overrides ItemDisallowCategoriesShips");
+            
+            itemDisallowCategoriesGeneric = Config.Bind<string>("General", "ItemDisallowCategoriesGeneric", "", "Categories of item to disallow pulling for, comma-separated.");
+            itemAllowCategoriesGeneric = Config.Bind<string>("General", "ItemAllowCategoriesGeneric", "", "Categories of item to only allow pulling for, comma-separated. Overrides ItemDisallowCategoriesGeneric");
+            genericContainerNamePrefixes = Config.Bind<string>("General", "GenericContainerNamePrefixes", "Container_", "Container name prefixes to use for pulling, comma-separated");
             
             mustHaveItemToPull = Config.Bind<bool>("General", "MustHaveItemToPull", true, "If true, a container must already have at least one of the item to pull.");
             storedString = Config.Bind<string>("General", "StoredString", "Stored {0} items in {1} containers", "Text to show after items are stored.");
@@ -130,7 +148,7 @@ namespace QuickStore
                         c = collider.transform.parent.parent.GetComponent<Container>();
                     if(c && !c.IsInUse() && (bool)AccessTools.Method(typeof(Container), "CheckAccess").Invoke(c, new object[] { Player.m_localPlayer.GetPlayerID() } ))
                     {
-                        Dbgl($"In {c.name}.");
+                        Dbgl($"Storing in {c.name}.");
                         var items = Player.m_localPlayer.GetInventory().GetAllItems();
                         for (int i = items.Count - 1; i >= 0; i--)
                         {
@@ -249,6 +267,39 @@ namespace QuickStore
 
                 return false;
             }
+            else if (container.name.StartsWith("piece_chest"))
+            {
+                if (itemAllowTypesReinforcedChests.Value != null && itemAllowTypesReinforcedChests.Value.Length > 0 && !itemAllowTypesReinforcedChests.Value.Split(',').Contains(name))
+                    return true;
+                if (itemDisallowTypesReinforcedChests.Value.Split(',').Contains(name))
+                    return true;
+                if (itemAllowCategoriesReinforcedChests.Value != null && itemAllowCategoriesReinforcedChests.Value.Length > 0 && !itemAllowCategoriesReinforcedChests.Value.Split(',').Contains(cat))
+                    return true;
+                if (itemDisallowCategoriesReinforcedChests.Value.Split(',').Contains(cat))
+                    return true;
+
+                return false;
+            }
+            else if(genericContainerNamePrefixes.Value.Length > 0)
+            {
+                foreach(var str in genericContainerNamePrefixes.Value.Split(','))
+                {
+                    if (container.name.StartsWith(str))
+                    {
+                        if (itemAllowTypesGeneric.Value != null && itemAllowTypesGeneric.Value.Length > 0 && !itemAllowTypesGeneric.Value.Split(',').Contains(name))
+                            return true;
+                        if (itemDisallowTypesGeneric.Value.Split(',').Contains(name))
+                            return true;
+                        if (itemAllowCategoriesGeneric.Value != null && itemAllowCategoriesGeneric.Value.Length > 0 && !itemAllowCategoriesGeneric.Value.Split(',').Contains(cat))
+                            return true;
+                        if (itemDisallowCategoriesGeneric.Value.Split(',').Contains(cat))
+                            return true;
+
+                        return false;
+                    }
+                }
+            }
+
             return true;
         }
 

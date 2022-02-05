@@ -15,34 +15,46 @@ public class AedenthornUtils
     {
         try
         {
-            return Input.GetKeyDown(value.ToLower());
+            foreach(var str in value.Split(','))
+            {
+                if(Input.GetKeyDown(str.ToLower()))
+                    return true;
+            }
         }
         catch
         {
-            return false;
         }
+        return false;
     }
     public static bool CheckKeyUp(string value)
     {
         try
         {
-            return Input.GetKeyUp(value.ToLower());
+            foreach (var str in value.Split(','))
+            {
+                if (Input.GetKeyUp(str.ToLower()))
+                    return true;
+            }
         }
         catch
         {
-            return false;
         }
+        return false;
     }
     public static bool CheckKeyHeld(string value, bool req = true)
     {
         try
         {
-            return Input.GetKey(value.ToLower());
+            foreach (var str in value.Split(','))
+            {
+                if (Input.GetKey(str.ToLower()))
+                    return true;
+            }
         }
         catch
         {
-            return !req;
         }
+        return !req;
     }
 
     public static void ShuffleList<T>(List<T> list)

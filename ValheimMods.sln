@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31005.135
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TorchMod", "TorchMod\TorchMod.csproj", "{4679AA01-DD8C-473E-A88F-2B1D7A7306DC}"
 EndProject
@@ -224,7 +224,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickStore", "QuickStore\Qu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapPinExport", "MapPinExport\MapPinExport.csproj", "{323AB4E9-12C2-4680-9D2F-1A1C66C45FF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildRestrictionTweaks", "BuildRestrictionTweaks\BuildRestrictionTweaks.csproj", "{E024A64C-242E-4E07-A9CE-3B19028C3240}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildRestrictionTweaks", "BuildRestrictionTweaks\BuildRestrictionTweaks.csproj", "{E024A64C-242E-4E07-A9CE-3B19028C3240}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CartographyTableMapRestrict", "CartographyTableMapRestrict\CartographyTableMapRestrict.csproj", "{EA37AB73-1EA7-4994-86B0-031854D737A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -664,6 +666,10 @@ Global
 		{E024A64C-242E-4E07-A9CE-3B19028C3240}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E024A64C-242E-4E07-A9CE-3B19028C3240}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E024A64C-242E-4E07-A9CE-3B19028C3240}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA37AB73-1EA7-4994-86B0-031854D737A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA37AB73-1EA7-4994-86B0-031854D737A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA37AB73-1EA7-4994-86B0-031854D737A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA37AB73-1EA7-4994-86B0-031854D737A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

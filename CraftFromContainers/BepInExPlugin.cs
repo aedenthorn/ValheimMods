@@ -190,7 +190,7 @@ namespace CraftFromContainers
             static void Prefix(InventoryGui __instance, Animator ___m_animator)
             {
                 if (Player.m_localPlayer && wasAllowed != AllowByKey() && ___m_animator.GetBool("visible"))
-                    Traverse.Create(__instance).Method("UpdateCraftingPanel", new object[] { false }).GetValue();
+                    AccessTools.Method(typeof(InventoryGui), "UpdateCraftingPanel").Invoke(__instance, new object[] { false });
             }
         }
 
