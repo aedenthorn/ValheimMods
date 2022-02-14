@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace CartographyTableMapRestrict
 {
-    [BepInPlugin("aedenthorn.CartographyTableMapRestrict", "Cartography Table Map Restrict", "0.1.0")]
+    [BepInPlugin("aedenthorn.CartographyTableMapRestrict", "Cartography Table Map Restrict", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -31,9 +31,6 @@ namespace CartographyTableMapRestrict
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 1739, "Nexus mod ID for updates");
 
-            if (!modEnabled.Value)
-                return;
-
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
         [HarmonyPatch(typeof(Minimap), "Update")]
@@ -56,6 +53,14 @@ namespace CartographyTableMapRestrict
                 if (!modEnabled.Value || Player.m_localPlayer == null || item != null)
                     return;
                 Minimap.instance.SetMapMode(Minimap.MapMode.Large);
+            }
+        }
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.ShowPointOnMap))]
+        static class Minimap_ShowPointOnMap_Patch
+        {
+            static bool Prefix()
+            {
+                return false;
             }
         }
     }
