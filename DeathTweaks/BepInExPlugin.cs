@@ -40,6 +40,10 @@ namespace DeathTweaks
         public static ConfigEntry<string> dropItemTypes;
         public static ConfigEntry<string> destroyItemTypes;
 
+        public static ConfigEntry<string> keepItemNames;
+        public static ConfigEntry<string> dropItemNames;
+        public static ConfigEntry<string> destroyItemNames;
+
         private static BepInExPlugin context;
         private static List<string> typeEnums = new List<string>();
 
@@ -64,6 +68,11 @@ namespace DeathTweaks
             keepItemTypes = Config.Bind<string>("ItemLists", "KeepItemTypes", "", $"List of items to keep (comma-separated). Leave empty if using DropItemTypes. Valid types: {string.Join(",", typeEnums)}");
             dropItemTypes = Config.Bind<string>("ItemLists", "DropItemTypes", "", $"List of items to drop (comma-separated). Leave empty if using KeepItemTypes. Valid types: {string.Join(",", typeEnums)}");
             destroyItemTypes = Config.Bind<string>("ItemLists", "DestroyItemTypes", "", $"List of items to destroy (comma-separated). Overrides other lists. Valid types: {string.Join(",", typeEnums)}");
+
+            keepItemNames = Config.Bind<string>("ItemLists", "KeepItems", "", $"List of items to keep (comma-separated). Use Item names, for example: Iron,IronScrap,BronzeOre");
+            dropItemNames = Config.Bind<string>("ItemLists", "DropItems", "", $"List of items to drop (comma-separated). Use Item names, for example: Iron,IronScrap,BronzeOre");
+            destroyItemNames = Config.Bind<string>("ItemLists", "DestroyItems", "", $"List of items to destroy (comma-separated). Overrides other lists. Use Item names, for example: Iron,IronScrap,BronzeOre");
+
             keepAllItems = Config.Bind<bool>("Toggles", "KeepAllItems", false, "Overrides all other item options if true.");
             destroyAllItems = Config.Bind<bool>("Toggles", "DestroyAllItems", false, "Overrides all other item options except KeepAllItems if true.");
             keepEquippedItems = Config.Bind<bool>("Toggles", "KeepEquippedItems", false, "Overrides item lists if true.");
@@ -165,6 +174,16 @@ namespace DeathTweaks
                                         continue;
                                     }
                                 }
+                                if (destroyItemNames.Value.Length > 0)
+                                {
+                                    string[] destroyTypes = destroyItemNames.Value.Split(',');
+                                    if (destroyTypes.Contains(item.m_dropPrefab.name))
+                                    {
+                                        keepItems.RemoveAt(j);
+                                        continue;
+                                    }
+                                }
+
 
                                 if (keepItemTypes.Value.Length > 0)
                                 {
@@ -172,10 +191,28 @@ namespace DeathTweaks
                                     if (keepTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
                                         continue;
                                 }
+                                else if (keepItemNames.Value.Length > 0)
+                                {
+                                    string[] keepTypes = keepItemTypes.Value.Split(',');
+                                    if (keepTypes.Contains(item.m_dropPrefab.name))
+                                        continue;
+                                }
+
+
                                 else if (dropItemTypes.Value.Length > 0)
                                 {
                                     string[] dropTypes = dropItemTypes.Value.Split(',');
                                     if (dropTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
+                                    {
+                                        dropItems.Add(item);
+                                        keepItems.RemoveAt(j);
+                                    }
+                                    continue;
+                                }
+                                else if (dropItemNames.Value.Length > 0)
+                                {
+                                    string[] dropTypes = dropItemNames.Value.Split(',');
+                                    if (dropTypes.Contains(item.m_dropPrefab.name))
                                     {
                                         dropItems.Add(item);
                                         keepItems.RemoveAt(j);
