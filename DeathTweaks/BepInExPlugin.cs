@@ -14,6 +14,9 @@ namespace DeathTweaks
     [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.8.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
+        private static readonly ServerSync.ConfigSync configSync = new ServerSync.ConfigSync("aedenthorn.DeathTweaks") 
+        { DisplayName = "Death Tweaks", CurrentVersion = "0.8.1",
+        MinimumRequiredVersion = "1.2.0" };
         public static ConfigEntry<bool> modEnabled;
         private ConfigEntry<bool> serverConfigLocked;
         public static ConfigEntry<bool> isDebug;
@@ -59,40 +62,55 @@ namespace DeathTweaks
             {
                 typeEnums.Add(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), i));
             }
-
+            
             context = this;
-            modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            serverConfigLocked = Config.Bind("General", "Lock Configuration", false, "Lock Configuration");
-            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 1068, "Nexus mod ID for updates");
-            keepItemTypes = Config.Bind<string>("ItemLists", "KeepItemTypes", "", $"List of items to keep (comma-separated). Leave empty if using DropItemTypes. Valid types: {string.Join(",", typeEnums)}");
-            dropItemTypes = Config.Bind<string>("ItemLists", "DropItemTypes", "", $"List of items to drop (comma-separated). Leave empty if using KeepItemTypes. Valid types: {string.Join(",", typeEnums)}");
-            destroyItemTypes = Config.Bind<string>("ItemLists", "DestroyItemTypes", "", $"List of items to destroy (comma-separated). Overrides other lists. Valid types: {string.Join(",", typeEnums)}");
+            modEnabled = config("General", "Enabled", true, "Enable this mod");
+            serverConfigLocked = config("General", "Lock Configuration", false, "Lock Configuration");
+            configSync.AddLockingConfigEntry(serverConfigLocked);
+            isDebug = config("General", "IsDebug", true, "Enable debug logs");
+            nexusID = config("General", "NexusID", 1068, "Nexus mod ID for updates");
+            keepItemTypes = config("ItemLists", "KeepItemTypes", "", $"List of items to keep (comma-separated). Leave empty if using DropItemTypes. Valid types: {string.Join(",", typeEnums)}");
+            dropItemTypes = config("ItemLists", "DropItemTypes", "", $"List of items to drop (comma-separated). Leave empty if using KeepItemTypes. Valid types: {string.Join(",", typeEnums)}");
+            destroyItemTypes = config("ItemLists", "DestroyItemTypes", "", $"List of items to destroy (comma-separated). Overrides other lists. Valid types: {string.Join(",", typeEnums)}");
 
-            keepItemNames = Config.Bind<string>("ItemLists", "KeepItems", "", $"List of items to keep (comma-separated). Use Item names, for example: Iron,IronScrap,BronzeOre");
-            dropItemNames = Config.Bind<string>("ItemLists", "DropItems", "", $"List of items to drop (comma-separated). Use Item names, for example: Iron,IronScrap,BronzeOre");
-            destroyItemNames = Config.Bind<string>("ItemLists", "DestroyItems", "", $"List of items to destroy (comma-separated). Overrides other lists. Use Item names, for example: Iron,IronScrap,BronzeOre");
+            keepItemNames = config("ItemLists", "KeepItems", "", $"List of items to keep (comma-separated). Use Item names, for example: Iron,IronScrap,BronzeOre");
+            dropItemNames = config("ItemLists", "DropItems", "", $"List of items to drop (comma-separated). Use Item names, for example: Iron,IronScrap,BronzeOre");
+            destroyItemNames = config("ItemLists", "DestroyItems", "", $"List of items to destroy (comma-separated). Overrides other lists. Use Item names, for example: Iron,IronScrap,BronzeOre");
 
-            keepAllItems = Config.Bind<bool>("Toggles", "KeepAllItems", false, "Overrides all other item options if true.");
-            destroyAllItems = Config.Bind<bool>("Toggles", "DestroyAllItems", false, "Overrides all other item options except KeepAllItems if true.");
-            keepEquippedItems = Config.Bind<bool>("Toggles", "KeepEquippedItems", false, "Overrides item lists if true.");
-            keepHotbarItems = Config.Bind<bool>("Toggles", "KeepHotbarItems", false, "Overrides item lists if true.");
-            useTombStone = Config.Bind<bool>("Toggles", "UseTombStone", true, "Use tombstone (if false, drops items on ground).");
-            createDeathEffects = Config.Bind<bool>("Toggles", "CreateDeathEffects", true, "Create death effects.");
-            keepFoodLevels = Config.Bind<bool>("Toggles", "KeepFoodLevels", false, "Keep food levels.");
-            keepQuickSlotItems = Config.Bind<bool>("Toggles", "KeepQuickSlotItems", false, "Keep QuickSlot items.");
+            keepAllItems = config("Toggles", "KeepAllItems", false, "Overrides all other item options if true.");
+            destroyAllItems = config("Toggles", "DestroyAllItems", false, "Overrides all other item options except KeepAllItems if true.");
+            keepEquippedItems = config("Toggles", "KeepEquippedItems", false, "Overrides item lists if true.");
+            keepHotbarItems = config("Toggles", "KeepHotbarItems", false, "Overrides item lists if true.");
+            useTombStone = config("Toggles", "UseTombStone", true, "Use tombstone (if false, drops items on ground).");
+            createDeathEffects = config("Toggles", "CreateDeathEffects", true, "Create death effects.");
+            keepFoodLevels = config("Toggles", "KeepFoodLevels", false, "Keep food levels.");
+            keepQuickSlotItems = config("Toggles", "KeepQuickSlotItems", false, "Keep QuickSlot items.");
             
-            useFixedSpawnCoordinates = Config.Bind<bool>("Spawn", "UseFixedSpawnCoordinates", false, "Use fixed spawn coordinates.");
-            spawnAtStart = Config.Bind<bool>("Spawn", "SpawnAtStart", false, "Respawn at start location.");
-            fixedSpawnCoordinates = Config.Bind<Vector3>("Spawn", "FixedSpawnCoordinates", Vector3.zero, "Fixed spawn coordinates.");
+            useFixedSpawnCoordinates = config("Spawn", "UseFixedSpawnCoordinates", false, "Use fixed spawn coordinates.");
+            spawnAtStart = config("Spawn", "SpawnAtStart", false, "Respawn at start location.");
+            fixedSpawnCoordinates = config("Spawn", "FixedSpawnCoordinates", Vector3.zero, "Fixed spawn coordinates.");
             
-            noSkillProtection = Config.Bind<bool>("Skills", "NoSkillProtection", false, "Prevents skill protection after death.");
-            reduceSkills = Config.Bind<bool>("Skills", "ReduceSkills", true, "Reduce skills.");
-            skillReduceFactor = Config.Bind<float>("Skills", "SkillReduceFactor", 0.25f, "Reduce skills by this fraction.");
+            noSkillProtection = config("Skills", "NoSkillProtection", false, "Prevents skill protection after death.");
+            reduceSkills = config("Skills", "ReduceSkills", true, "Reduce skills.");
+            skillReduceFactor = config("Skills", "SkillReduceFactor", 0.25f, "Reduce skills by this fraction.");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
         }
+        
+        ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
+{
+    ConfigEntry<T> configEntry = Config.Bind(group, name, value, description);
+
+    SyncedConfigEntry<T> syncedConfigEntry = configSync.AddConfigEntry(configEntry);
+    syncedConfigEntry.SynchronizedConfig = synchronizedSetting;
+
+    return configEntry;
+}
+
+ConfigEntry<T> config<T>(string group, string name, T value, string description, bool synchronizedSetting = true) => config(group, name, value, new ConfigDescription(description), synchronizedSetting);
+
+
         private void Start()
         {
             if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.equipmentandquickslots"))
