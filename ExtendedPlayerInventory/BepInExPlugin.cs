@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.3.2")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.3.3")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -91,8 +91,6 @@ namespace ExtendedPlayerInventory
             quickAccessX = Config.Bind<float>("ZCurrentPositions", "quickAccessX", 9999, "Current X of Quick Slots");
             quickAccessY = Config.Bind<float>("ZCurrentPositions", "quickAccessY", 9999, "Current Y of Quick Slots");
 
-            if (!modEnabled.Value)
-                return;
 
             hotkeys = new ConfigEntry<string>[]
             {
@@ -238,6 +236,8 @@ namespace ExtendedPlayerInventory
 
         private static void ArrangeEquipment()
         {
+            if (!modEnabled.Value)
+                return;
             Traverse t = Traverse.Create(Player.m_localPlayer);
 
             Inventory inv = Player.m_localPlayer.GetInventory();
@@ -594,7 +594,7 @@ namespace ExtendedPlayerInventory
                 if (!modEnabled.Value || !addEquipmentRow.Value || Player.m_localPlayer == null)
                     return;
 
-                float gameScale = GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;
+                float gameScale = GameObject.Find("LoadingGUI").GetComponent<CanvasScaler>().scaleFactor;
 
                 Vector3 mousePos = Input.mousePosition;
 

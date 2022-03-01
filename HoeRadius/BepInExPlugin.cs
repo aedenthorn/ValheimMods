@@ -53,7 +53,7 @@ namespace HoeRadius
         }
         private void Update()
         {
-            if (!modEnabled.Value || !Player.m_localPlayer || !Player.m_localPlayer.InPlaceMode() || Hud.IsPieceSelectionVisible())
+            if (false && !modEnabled.Value || !Player.m_localPlayer || !Player.m_localPlayer.InPlaceMode() || Hud.IsPieceSelectionVisible())
             {
                 if(lastOriginalRadius != 0)
                 {

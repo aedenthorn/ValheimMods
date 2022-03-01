@@ -1,12 +1,13 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Reflection;
 using UnityEngine;
 
 namespace HelmetHairToggle
 {
-    [BepInPlugin("aedenthorn.HelmetHairToggle", "Helmet Hair Toggle", "0.3.0")]
+    [BepInPlugin("aedenthorn.HelmetHairToggle", "Helmet Hair Toggle", "0.3.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -84,14 +85,15 @@ namespace HelmetHairToggle
             }
         }
 
-        [HarmonyPatch(typeof(VisEquipment), "HelmetHidesHair")]
-        static class HelmetHidesHair_Patch
+        [HarmonyPatch(typeof(VisEquipment), "HelmetHides")]
+        static class HelmetHides_Patch
         {
-            static bool Prefix(ref bool __result)
+            static bool Prefix(ref bool hideHair, ref bool hideBeard)
             {
-                if (!modEnabled.Value || !showHair.Value)
+                if (!modEnabled.Value)
                     return true;
-                __result = false;
+                hideHair = !showHair.Value;
+                hideBeard = !showBeard.Value;
                 return false;
             }
         }

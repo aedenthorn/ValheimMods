@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ControllerButtonSwitch
 {
-    [BepInPlugin("aedenthorn.ControllerButtonSwitch", "Controller Button Switch", "0.3.0")]
+    [BepInPlugin("aedenthorn.ControllerButtonSwitch", "Controller Button Switch", "0.3.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -189,7 +189,7 @@ namespace ControllerButtonSwitch
                     try
                     {
                         ButtonInfo info = new ButtonInfo(enumerator.Current.Key.Key, (ConfigEntry<string>)enumerator.Current.Value);
-                        if (Enum.TryParse<KeyCode>(info.key, out KeyCode keyCode))
+                        if (Enum.TryParse(info.key, out KeyCode keyCode))
                             zInput.AddButton(info.button, keyCode, info.repeatDelay, info.repeatInterval);
                         else
                             zInput.AddButton(info.button, info.key, info.inverted, info.repeatDelay, info.repeatInterval);

@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "0.9.0")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "0.9.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -201,7 +201,7 @@ namespace Compass
                 angle *= -Mathf.Deg2Rad;
 
                 Rect rect = compassObject.GetComponent<Image>().sprite.rect;
-                float imageScale = GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;
+                float imageScale = GameObject.Find("LoadingGUI").GetComponent<CanvasScaler>().scaleFactor;
 
                 compassObject.GetComponent<RectTransform>().localPosition = Vector3.right * (rect.width / 2) * angle / (2f * Mathf.PI) - new Vector3(rect.width * 0.125f, 0, 0);
 

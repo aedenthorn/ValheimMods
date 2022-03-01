@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace CustomUI
 {
-    [BepInPlugin("aedenthorn.CustomUI", "Custom UI", "0.6.0")]
+    [BepInPlugin("aedenthorn.CustomUI", "Custom UI", "0.6.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -106,8 +106,6 @@ namespace CustomUI
 
             toolbarItemsPerRow.Value = Mathf.Clamp(toolbarItemsPerRow.Value, 1, 8);
 
-            if (!modEnabled.Value)
-                return;
             harmony = new Harmony(Info.Metadata.GUID);
             harmony.PatchAll();
         }
@@ -166,7 +164,7 @@ namespace CustomUI
                 if (!modEnabled.Value || Player.m_localPlayer == null || InventoryGui.IsVisible() == true)
                     return;
 
-                float gameScale = GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;
+                float gameScale = GameObject.Find("LoadingGUI").GetComponent<CanvasScaler>().scaleFactor;
                 int healthRot = healthbarRotation.Value / 90 % 4 * 90;
 
                 Vector3 mousePos = Input.mousePosition;
