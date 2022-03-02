@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CraftingFilter
 {
-    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.6.0")]
+    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.6.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -280,7 +280,7 @@ namespace CraftingFilter
                 List<Recipe> recipes = new List<Recipe>();
                 Player.m_localPlayer.GetAvailableRecipes(ref recipes);
 
-                float gameScale = GameObject.Find("GUI").GetComponent<CanvasScaler>().scaleFactor;
+                float gameScale = GameObject.Find("LoadingGUI").GetComponent<CanvasScaler>().scaleFactor;
                 Vector2 pos = InventoryGui.instance.m_tabCraft.gameObject.transform.GetComponent<RectTransform>().position;
                 float height = InventoryGui.instance.m_tabCraft.gameObject.transform.GetComponent<RectTransform>().rect.height * gameScale;
 
