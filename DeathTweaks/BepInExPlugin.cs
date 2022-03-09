@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.9.0")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.9.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -264,7 +264,7 @@ namespace DeathTweaks
 
                 if (hardDeath && reduceSkills.Value)
                 {
-                    ___m_skills.OnDeath();
+                    ___m_skills.LowerAllSkills(skillReduceFactor.Value);
                 }
                 ___m_seman.RemoveAllStatusEffects(false);
                 Game.instance.RequestRespawn(10f);
@@ -293,58 +293,6 @@ namespace DeathTweaks
                 if (!modEnabled.Value || !noSkillProtection.Value)
                     return true;
                 __result = true;
-                return false;
-            }
-        }
-
-        [HarmonyPatch(typeof(Skills), "LowerAllSkills")]
-        static class LowerAllSkills_Patch
-        {
-            static bool Prefix(float factor, Dictionary<Skills.SkillType, Skills.Skill> ___m_skillData, Player ___m_player)
-            {
-                if (!modEnabled.Value)
-                    return true;
-
-                factor = skillReduceFactor.Value;
-
-                foreach (KeyValuePair<Skills.SkillType, Skills.Skill> keyValuePair in ___m_skillData)
-                {
-                    float level = keyValuePair.Value.m_level;
-                    float accum = keyValuePair.Value.m_accumulator;
-                    float total = 0;
-                    keyValuePair.Value.m_level = 0;
-                    var nextLevelReq = typeof(Skills.Skill).GetMethod("GetNextLevelRequirement", BindingFlags.NonPublic | BindingFlags.Instance);
-                    for (int i = 0; i < level; i++)
-                    {
-                        total += (float)nextLevelReq.Invoke(keyValuePair.Value, new object[] { });
-                        keyValuePair.Value.m_level += 1;
-                    }
-                    total += accum;
-
-                    //Dbgl($"skill {keyValuePair.Key} total xp {total}, level {level}, next level: {accum} / {nextLevelReq.Invoke(keyValuePair.Value, new object[] { })}");
-
-                    total *= (1 - skillReduceFactor.Value);
-
-                    float newTotal = 0;
-                    keyValuePair.Value.m_level = 0;
-                    while(true)
-                    {
-                        float add = (float)nextLevelReq.Invoke(keyValuePair.Value, new object[] { });
-                        //Dbgl($"xp at level {keyValuePair.Value.m_level}: {newTotal}, xp to level {keyValuePair.Value.m_level + 1}: add");
-                        if(newTotal + add <= total)
-                        {
-                            newTotal += add;
-                            keyValuePair.Value.m_level += 1;
-                        }
-                        else
-                        {
-                            keyValuePair.Value.m_accumulator = total - newTotal;
-                            break;
-                        }
-                    }
-                    //Dbgl($"skill {keyValuePair.Key} new total xp {total}, level {keyValuePair.Value.m_level}, next level: {keyValuePair.Value.m_accumulator} / {nextLevelReq.Invoke(keyValuePair.Value, new object[] { })}");
-                }
-                ___m_player.Message(MessageHud.MessageType.TopLeft, "$msg_skills_lowered", 0, null);
                 return false;
             }
         }

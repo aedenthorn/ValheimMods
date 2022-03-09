@@ -78,8 +78,8 @@ namespace PreventBabySlaughter
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} config reloaded" });
+                    __instance.AddString( text );
+                    __instance.AddString( $"{context.Info.Metadata.Name} config reloaded" );
                     return false;
                 }
                 return true;

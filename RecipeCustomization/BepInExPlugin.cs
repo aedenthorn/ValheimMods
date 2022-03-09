@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RecipeCustomization
 {
-    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.5.1")]
+    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.5.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -320,22 +320,22 @@ namespace RecipeCustomization
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} config reloaded" });
+                    __instance.AddString( text );
+                    __instance.AddString( $"{context.Info.Metadata.Name} config reloaded" );
                     return false;
                 }
                 else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reload"))
                 {
                     GetRecipeDataFromFiles();
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
+                    __instance.AddString( text );
                     if (ObjectDB.instance)
                     {
                         LoadAllRecipeData(true);
-                        AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} reloaded recipes from files" });
+                        __instance.AddString( $"{context.Info.Metadata.Name} reloaded recipes from files" );
                     }
                     else
                     {
-                        AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} reloaded recipes from files" });
+                        __instance.AddString( $"{context.Info.Metadata.Name} reloaded recipes from files" );
                     }
                     return false;
                 }
@@ -348,8 +348,8 @@ namespace RecipeCustomization
                         return false;
                     CheckModFolder();
                     File.WriteAllText(Path.Combine(assetPath, recipData.name + ".json"), JsonUtility.ToJson(recipData));
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} saved recipe data to {file}.json" });
+                    __instance.AddString( text );
+                    __instance.AddString( $"{context.Info.Metadata.Name} saved recipe data to {file}.json" );
                     return false;
                 }
                 else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} dump "))
@@ -360,8 +360,8 @@ namespace RecipeCustomization
                     if (recipeData == null)
                         return false;
                     Dbgl(JsonUtility.ToJson(recipeData));
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { $"{context.Info.Metadata.Name} dumped {recipe}" });
+                    __instance.AddString( text );
+                    __instance.AddString( $"{context.Info.Metadata.Name} dumped {recipe}" );
                     return false;
                 }
                 else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()}"))
@@ -371,8 +371,8 @@ namespace RecipeCustomization
                     + $"{context.Info.Metadata.Name} dump <ItemName>\r\n"
                     + $"{context.Info.Metadata.Name} save <ItemName>";
 
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { text });
-                    AccessTools.Method(typeof(Terminal), "AddString").Invoke(__instance, new object[] { output });
+                    __instance.AddString( text );
+                    __instance.AddString( output );
                     return false;
                 }
                 return true;

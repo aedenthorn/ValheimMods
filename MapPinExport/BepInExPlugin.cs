@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace MapPinExport
 {
-    [BepInPlugin("aedenthorn.MapPinExport", "Map Pin Export", "0.2.0")]
+    [BepInPlugin("aedenthorn.MapPinExport", "Map Pin Export", "0.2.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -51,6 +51,10 @@ namespace MapPinExport
                     string file = text.Length > $"{typeof(BepInExPlugin).Namespace.ToLower()} export ".Length ? text.Substring($"{typeof(BepInExPlugin).Namespace.ToLower()} export ".Length) + ".txt" : "pindump.txt";
 
                     var pinList = new List<Minimap.PinData>((List<Minimap.PinData>)AccessTools.DeclaredField(typeof(Minimap), "m_pins").GetValue(Minimap.instance));
+                    if (text.StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} export ") && int.TryParse(text.Split(' ')[2], out int radius))
+                    {
+                        pinList = pinList.Where(p => Vector3.Distance(Player.m_localPlayer.transform.position, p.m_pos) <= radius).ToList();
+                    }
 
                     pinList.Sort(delegate (Minimap.PinData x, Minimap.PinData y)
                     {
