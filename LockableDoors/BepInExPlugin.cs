@@ -401,14 +401,17 @@ namespace LockableDoors
                     return true;
 
                 string text = __instance.m_input.text;
+                // -- "lockabledoors reset" console command
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
+                    // -- Investigate--
                     context.Config.Reload();
                     context.Config.Save();
                     icon = null;
-                    LoadDoorNames();
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    LoadDoorNames();  // stack trace error
+                    // --translated changes from other recent commits
+                    __instance.AddString( text );
+                    __instance.AddString( $"{context.Info.Metadata.Name} config reloaded" );
                     return false;
                 }
                 return true;
