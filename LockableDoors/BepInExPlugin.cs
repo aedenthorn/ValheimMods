@@ -127,6 +127,7 @@ namespace LockableDoors
             if (doorNames.Value.Length == 0)
                 return;
 
+        doorNameDict.Clear();  // Empty the dictionary
             foreach (string guidName in doorNames.Value.Split(';'))
             {
                 string[] parts = guidName.Split(':');
