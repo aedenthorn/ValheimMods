@@ -122,6 +122,7 @@ namespace LockableDoors
             }
         }
         private static void LoadDoorNames()
+        // stack trace ArgumentException: An item with the same key...
         {
             if (doorNames.Value.Length == 0)
                 return;
@@ -404,12 +405,10 @@ namespace LockableDoors
                 // -- "lockabledoors reset" console command
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
-                    // -- Investigate--
                     context.Config.Reload();
                     context.Config.Save();
                     icon = null;
-                    LoadDoorNames();  // stack trace ArgumentException: An item with the same key...
-                    // ... @ dictionary.TryInsert, .Add
+                    LoadDoorNames();
                     // --translated changes from other recent commits
                     __instance.AddString( text );
                     __instance.AddString( $"{context.Info.Metadata.Name} config reloaded" );
