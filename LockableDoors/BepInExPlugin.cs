@@ -42,7 +42,7 @@ namespace LockableDoors
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
-                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
+                Debug.Log(($"{context.Info.Metadata.Name}: ") + (pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
         private void Awake()
         {
@@ -122,7 +122,6 @@ namespace LockableDoors
             }
         }
         private static void LoadDoorNames()
-        // stack trace ArgumentException: An item with the same key...
         {
             if (doorNames.Value.Length == 0)
                 return;
@@ -148,6 +147,7 @@ namespace LockableDoors
             doorNames.Value = string.Join(";", names);
         }
         private static string GetDoorName(string guid)
+        // Returns a dict entry after null checks 
         {
             return doorNameDict.ContainsKey(guid) && doorNameDict[guid].Length > 0 ? doorNameDict[guid] : defaultName.Value;
         }
