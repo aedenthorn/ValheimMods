@@ -104,7 +104,7 @@ namespace LockableDoors
         {
             if (ObjectDB.instance.m_items.Count == 0 || ObjectDB.instance.GetItemPrefab("Amber") == null)
             {
-                Debug.Log("Waiting for game to initialize before adding prefabs.");
+                Debug.Log( $"{context.Info.Metadata.Name}: Waiting for game to initialize before adding prefabs." );
                 return;
             }
             var itemDrop = aedenkey.GetComponent<ItemDrop>();
@@ -112,13 +112,13 @@ namespace LockableDoors
             {
                 if (ObjectDB.instance.GetItemPrefab(aedenkey.name.GetStableHashCode()) == null)
                 {
-                    Debug.Log("Loading ItemDrops");
+                    Debug.Log( $"{context.Info.Metadata.Name}: Loading ItemDrops" );
                     ObjectDB.instance.m_items.Add(aedenkey);
                 }
             }
             if (itemDrop == null)
             {
-                Debug.Log("There is no object with ItemDrop attempted to be insterted to objectDB this is bad...");
+                Debug.Log( $"{context.Info.Metadata.Name}: ItemDrop == null attempted insterted to objectDB this is bad..." );
             }
         }
         private static void LoadDoorNames()
@@ -134,10 +134,10 @@ namespace LockableDoors
                 doorNameDict.Add(parts[0], parts[1]);
             }
         }
-
         public static void SetDoorName(string guid, string text)
         {
-            doorNameDict[guid] = text;
+            doorNameDict[guid] = text; // (Over)write Key Value Pair
+            // -- Rewrite the save string used for the config file
             List<string> names = new List<string>();
             foreach(var kvp in doorNameDict)
             {
@@ -198,8 +198,8 @@ namespace LockableDoors
         {
             public static bool Prefix(ZNetScene __instance)
             {
+                Debug.Log( $"{context.Info.Metadata.Name}: [ZNetScene Awake] TryRegisterFabs() called, loading..." );
                 TryRegisterFabs(__instance);
-                Debug.Log("Loading the stuff");
                 return true;
             }
         }
@@ -209,7 +209,7 @@ namespace LockableDoors
         {
             public static void Postfix()
             {
-                Debug.Log("Trying to register Items");
+                Debug.Log( $"{context.Info.Metadata.Name}: [ObjectDB Awake] Trying to RegisterItems()" );
                 RegisterItems();
                 
             }
@@ -219,7 +219,7 @@ namespace LockableDoors
         {
             public static void Postfix()
             {
-                Debug.Log("Trying to register Items");
+                Debug.Log( $"{context.Info.Metadata.Name}: [ObjectDB CopyOtherDB] Trying to RegisterItems()" );
                 RegisterItems();
                 
             }
