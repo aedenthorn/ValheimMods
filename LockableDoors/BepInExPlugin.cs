@@ -408,7 +408,8 @@ namespace LockableDoors
                     context.Config.Reload();
                     context.Config.Save();
                     icon = null;
-                    LoadDoorNames();  // stack trace error
+                    LoadDoorNames();  // stack trace ArgumentException: An item with the same key...
+                    // ... @ dictionary.TryInsert, .Add
                     // --translated changes from other recent commits
                     __instance.AddString( text );
                     __instance.AddString( $"{context.Info.Metadata.Name} config reloaded" );
