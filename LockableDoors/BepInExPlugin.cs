@@ -42,7 +42,7 @@ namespace LockableDoors
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
-                Debug.Log(($"{context.Info.Metadata.Name}: ") + (pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
+                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
         private void Awake()
         {
