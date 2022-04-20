@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
@@ -32,6 +32,7 @@ namespace LockableDoors
         public static ConfigEntry<string> defaultName;
         public static ConfigEntry<bool> promptNameOnCreate;
         public static ConfigEntry<int> maxDoorNames;
+        public static ConfigEntry<bool> regenKeys;
         public static GameObject aedenkey;
 
         private static Dictionary<Vector3, Guid> newDoors = new Dictionary<Vector3, Guid>();
@@ -40,6 +41,8 @@ namespace LockableDoors
         private static Sprite icon = null;
 
         public static void Dbgl(string str = "", bool pref = true)
+        /* "pref"ace Debug.Log with plugin name. Saves typing later.
+        Specify pref = false for typical log behavior. */
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
@@ -65,6 +68,7 @@ namespace LockableDoors
             promptNameOnCreate = Config.Bind<bool>("Toggles", "PromptNameOnCreate", true, "Prompt to enter a name for the door / key pair on creation.");
             
             maxDoorNames = Config.Bind<int>("Variables", "maxDoorNames", 20, "Max door names before removing old names.");
+            regenKeys = Config.Bind<bool>("Toggles", "regenKeys", false, "Spawns a new key for any lockable doors interacted with.");
             
             doorNames = Config.Bind<string>("ZAuto", "DoorNames", "", "List of doorName:coord pairs, populated when renaming your doors.");
             LoadAssets();
@@ -104,7 +108,7 @@ namespace LockableDoors
         {
             if (ObjectDB.instance.m_items.Count == 0 || ObjectDB.instance.GetItemPrefab("Amber") == null)
             {
-                Debug.Log( $"{context.Info.Metadata.Name}: Waiting for game to initialize before adding prefabs." );
+                Dbgl("Waiting for game to initialize before adding prefabs.");
                 return;
             }
             var itemDrop = aedenkey.GetComponent<ItemDrop>();
@@ -112,13 +116,13 @@ namespace LockableDoors
             {
                 if (ObjectDB.instance.GetItemPrefab(aedenkey.name.GetStableHashCode()) == null)
                 {
-                    Debug.Log( $"{context.Info.Metadata.Name}: Loading ItemDrops" );
+                    Dbgl("Loading ItemDrops");
                     ObjectDB.instance.m_items.Add(aedenkey);
                 }
             }
             if (itemDrop == null)
             {
-                Debug.Log( $"{context.Info.Metadata.Name}: ItemDrop == null attempted insterted to objectDB this is bad..." );
+                Dbgl("ItemDrop == null attempted insterted to objectDB this is bad...");
             }
         }
         private static void LoadDoorNames()
@@ -153,6 +157,7 @@ namespace LockableDoors
         }
 
         public static void RenameDoor(string guid)
+        // Receives GUID, handles text input
         {
             MyTextReceiver tr = new MyTextReceiver(guid);
 
@@ -165,9 +170,16 @@ namespace LockableDoors
         {
             return i.m_shared.m_name == "$item_aeden_doorkey" && i.m_crafterID == 0 && i.m_crafterName.Length == 36;
         }
+        public static void GenDrop()
+        // IDEAL GOAL: Spawn a new Key item drop for each KVP in memory, or allow selection/single rekeys
+        {
+            // foreach(var kvp in doorNameDict)  generate a key drop
+            regenKeys =  regenKeys ? false : true // For now, we'll just toggle this config and hook into door interaction.
+        }
 
         [HarmonyPatch(typeof(Player), "PlacePiece")]
         static class Player_PlacePiece_Patch
+        // Player building hook
         {
             static void Postfix(bool __result, Piece piece, GameObject ___m_placementGhost)
             {
@@ -198,7 +210,7 @@ namespace LockableDoors
         {
             public static bool Prefix(ZNetScene __instance)
             {
-                Debug.Log( $"{context.Info.Metadata.Name}: [ZNetScene Awake] TryRegisterFabs() called, loading..." );
+                Dbgl("[ZNetScene Awake] TryRegisterFabs() called, loading...");
                 TryRegisterFabs(__instance);
                 return true;
             }
@@ -209,7 +221,7 @@ namespace LockableDoors
         {
             public static void Postfix()
             {
-                Debug.Log( $"{context.Info.Metadata.Name}: [ObjectDB Awake] Trying to RegisterItems()" );
+                Dbgl("[ObjectDB Awake] Trying to RegisterItems()");
                 RegisterItems();
                 
             }
@@ -219,7 +231,7 @@ namespace LockableDoors
         {
             public static void Postfix()
             {
-                Debug.Log( $"{context.Info.Metadata.Name}: [ObjectDB CopyOtherDB] Trying to RegisterItems()" );
+                Dbgl("[ObjectDB CopyOtherDB] Trying to RegisterItems()");
                 RegisterItems();
                 
             }
@@ -413,6 +425,13 @@ namespace LockableDoors
                     // --translated changes from other recent commits
                     __instance.AddString( text );
                     __instance.AddString( $"{context.Info.Metadata.Name} config reloaded" );
+                    return false;
+                }
+                // --"lockable doors gendrop" console command - I want to respawn all existing KVP as new item drops
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} gendrop"))
+                {
+                    // LoadDoorNames();
+                    GenDrop();
                     return false;
                 }
                 return true;
