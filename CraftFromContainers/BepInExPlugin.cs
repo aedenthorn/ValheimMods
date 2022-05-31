@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.2.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.2.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -43,6 +43,11 @@ namespace CraftFromContainers
         public static ConfigEntry<int> nexusID;
 
         public static List<Container> containerList = new List<Container>();
+
+        public static bool odinsQolInstalled;
+        public static float itemStackSizeMultiplier;
+        public static float itemWeightReduction;
+        public static bool odinsQoLChecked;
         private static BepInExPlugin context = null;
 
         public class ConnectionParams
@@ -925,7 +930,7 @@ namespace CraftFromContainers
                     return true;
                 }
                 Dbgl($"pulling resources to player inventory for crafting item {___m_selectedRecipe.Key.m_item.m_itemData.m_shared.m_name}");
-
+                CheckOdinsQOLConfig();
                 PullResources(Player.m_localPlayer, ___m_selectedRecipe.Key.m_resources, qualityLevel);
                 return false;
             }
@@ -955,6 +960,7 @@ namespace CraftFromContainers
                             if (placementStatus == 0)
                             {
                                 Dbgl($"pulling resources to player inventory for piece {selectedPiece.name}");
+                                CheckOdinsQOLConfig();
                                 PullResources(__instance, selectedPiece.m_resources, 0);
                             }
                         }
@@ -1007,6 +1013,22 @@ namespace CraftFromContainers
 
                                 ItemDrop.ItemData sendItem = item.Clone();
                                 sendItem.m_stack = stackAmount;
+
+                                if (odinsQolInstalled)
+                                {
+                                    if (itemStackSizeMultiplier > 0)
+                                    {
+                                        sendItem.m_shared.m_weight = ApplyModifierValue(sendItem.m_shared.m_weight, itemWeightReduction);
+
+                                        if (sendItem.m_shared.m_maxStackSize > 1)
+                                            if (itemStackSizeMultiplier >= 1)
+                                                sendItem.m_shared.m_maxStackSize = (int)ApplyModifierValue(requirement.m_resItem.m_itemData.m_shared.m_maxStackSize, itemStackSizeMultiplier);
+                                    }
+                                }
+                                else
+                                {
+                                    sendItem.m_shared.m_maxStackSize = requirement.m_resItem.m_itemData.m_shared.m_maxStackSize;
+                                }
 
                                 pInventory.AddItem(sendItem);
 
@@ -1226,6 +1248,52 @@ namespace CraftFromContainers
 
                 return codes;
             }
+        }
+
+        public static void CheckOdinsQOLConfig()
+        {
+            if (!odinsQoLChecked)
+            {
+                odinsQoLChecked = true;
+                itemStackSizeMultiplier = 0;
+                itemWeightReduction = 0;
+                GameObject? bepInExManager = GameObject.Find("BepInEx_Manager");
+                BaseUnityPlugin[]? plugins = bepInExManager.GetComponentsInChildren<BaseUnityPlugin>();
+                foreach (BaseUnityPlugin? plugin in plugins)
+                {
+                    if (plugin.Info.Metadata.GUID == "com.odinplusqol.mod")
+                    {
+                        odinsQolInstalled = BepInExPlugin.modEnabled.Value;
+                        Debug.Log("Found OdinPlusQoL");
+                        foreach (ConfigDefinition key in plugin.Config.Keys)
+                        {
+                            if (key.Key == "Item Stack Increase")
+                            {
+                                itemStackSizeMultiplier = (float)plugin.Config[key].BoxedValue;
+                            }
+                            if (key.Key == "Item Weight Increase")
+                            {
+                                itemWeightReduction = (float)plugin.Config[key].BoxedValue;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static float ApplyModifierValue(float targetValue, float value)
+        {
+            if (value <= -100)
+                value = -100;
+
+            float newValue;
+
+            if (value >= 0)
+                newValue = targetValue + targetValue / 100 * value;
+            else
+                newValue = targetValue - targetValue / 100 * (value * -1);
+
+            return newValue;
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
