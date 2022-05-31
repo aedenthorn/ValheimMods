@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -9,7 +10,7 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "0.9.3")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "1.0.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = false;
@@ -101,10 +102,10 @@ namespace AutoFuel
 
                 foreach (Collider collider in Physics.OverlapSphere(center, Mathf.Max(range, 0), LayerMask.GetMask(new string[] { "piece" })))
                 {
-                    Container container = collider.transform.parent?.parent?.gameObject?.GetComponent<Container>();
-                    if (container?.GetComponent<ZNetView>()?.IsValid() != true)
+                    Container container = GetContainer(collider.transform);
+                    if (container is null || container.GetComponent<ZNetView>()?.IsValid() != true)
                         continue;
-                    if (container?.transform?.position != null && (container.name.StartsWith("piece_chest") || container.name.StartsWith("Container")) && container.GetInventory() != null)
+                    if (container.GetInventory() != null)
                     {
                         containers.Add(container);
                     }
@@ -117,6 +118,17 @@ namespace AutoFuel
             }
         }
 
+        private static Container GetContainer(Transform transform)
+        {
+            while(transform != null)
+            {
+                Container c = transform.GetComponent<Container>();
+                if (c != null)
+                    return c;
+                transform = transform.parent;
+            }
+            return null;
+        }
 
         [HarmonyPatch(typeof(Fireplace), "UpdateFireplace")]
         static class Fireplace_UpdateFireplace_Patch

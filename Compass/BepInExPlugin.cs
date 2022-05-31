@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "1.0.0")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "1.1.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -25,6 +25,8 @@ namespace Compass
         public static ConfigEntry<bool> usePlayerDirection;
         public static ConfigEntry<bool> showCenterMarker;
         public static ConfigEntry<string> compassFile;
+        public static ConfigEntry<string> overlayFile;
+        public static ConfigEntry<string> underlayFile;
         public static ConfigEntry<string> maskFile;
         public static ConfigEntry<string> centerFile;
         public static ConfigEntry<Color> compassColor;
@@ -44,11 +46,12 @@ namespace Compass
         public static GameObject compassObject;
         public static GameObject pinsObject;
         public static GameObject centerObject;
+        public static GameObject parentObject;
 
         public static float lastAngle;
         public static bool dbgl;
-        private static string[] ignoredTypes;
-        private static string[] ignoredNames;
+        public static string[] ignoredTypes;
+        public static string[] ignoredNames;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -76,6 +79,8 @@ namespace Compass
             //unlimitedRangeMarkerNames = Config.Bind<string>("Markers", "UnlimitedRangeMarkerNames", "", "Ignore max range limits for markers with these names (comma-separated).");
 
             compassFile = Config.Bind<string>("Files", "CompassFile", "compass.png", "Compass file to use in Compass folder");
+            overlayFile = Config.Bind<string>("Files", "OverlayFile", "", "Overlay file to use in Compass folder. This file is just an arbitrary graphic to show on top of the compass, e.g. a frame.");
+            underlayFile = Config.Bind<string>("Files", "UnderlayFile", "", "Underlay file to use in Compass folder. This file is just an arbitrary graphic to show below the compass, e.g. a frame.");
             maskFile = Config.Bind<string>("Files", "MaskFile", "mask.png", "Mask file to use in Compass folder");
             centerFile = Config.Bind<string>("Files", "CenterFile", "center.png", "Center file to use in Compass folder");
 
@@ -116,6 +121,7 @@ namespace Compass
         [HarmonyPatch(typeof(Hud), "Awake")]
         static class Hud_Awake_Patch
         {
+
             static void Postfix(Hud __instance)
             {
                 string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Compass");
@@ -138,20 +144,100 @@ namespace Compass
                 Sprite maskSprite = Sprite.Create(maskTex, new Rect(0, 0, halfWidth, maskTex.height), Vector2.zero);
                 Sprite centerSprite = Sprite.Create(centerTex, new Rect(0, 0, centerTex.width, centerTex.height), Vector2.zero);
 
+
+                Sprite overlaySprite = null;
+                Sprite underlaySprite = null;
+
+                Texture2D overlayTex = null;
+                if(overlayFile.Value.Length > 0)
+                {
+                    try
+                    {
+                        overlayTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, true);
+                        byte[] overlayData = File.ReadAllBytes(Path.Combine(path, overlayFile.Value));
+                        overlayTex.LoadImage(overlayData);
+                        overlaySprite = Sprite.Create(overlayTex, new Rect(0, 0, overlayTex.width, overlayTex.height), Vector2.zero);
+                    }
+                    catch
+                    {
+                        Dbgl($"Invalid overlay file");
+                    }
+                }
+                
+                Texture2D underlayTex = null;
+                if(underlayFile.Value.Length > 0)
+                {
+                    try
+                    {
+                        underlayTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, true);
+                        byte[] underlayData = File.ReadAllBytes(Path.Combine(path, underlayFile.Value));
+                        underlayTex.LoadImage(underlayData);
+                        underlaySprite = Sprite.Create(underlayTex, new Rect(0, 0, underlayTex.width, underlayTex.height), Vector2.zero);
+                    }
+                    catch
+                    {
+                        Dbgl($"Invalid underlay file");
+                    }
+                }
+
+
+                
+                // Parent Object
+
+                parentObject = new GameObject();
+                parentObject.name = "Compass";
+                RectTransform prt = parentObject.AddComponent<RectTransform>();
+                prt.SetParent(__instance.m_rootObject.transform);
+
+
+                // Overlay object
+
+                if(overlayTex != null)
+                {
+                    GameObject overlayObject = new GameObject();
+                    overlayObject.name = "Overlay";
+                    RectTransform ort = overlayObject.AddComponent<RectTransform>();
+                    ort.SetParent(parentObject.transform);
+                    ort.localScale = Vector3.one * compassScale.Value;
+                    ort.sizeDelta = new Vector2(overlayTex.width, overlayTex.height);
+                    ort.anchoredPosition = Vector2.zero;
+                    Image overlayImage = overlayObject.AddComponent<Image>();
+                    overlayImage.sprite = overlaySprite;
+                    overlayImage.preserveAspect = true;
+                }
+                
+
+                // Underlay object
+
+                if(underlayTex != null)
+                {
+                    GameObject underlayObject = new GameObject();
+                    underlayObject.name = "Underlay";
+                    RectTransform ort = underlayObject.AddComponent<RectTransform>();
+                    ort.SetParent(parentObject.transform);
+                    ort.localScale = Vector3.one * compassScale.Value;
+                    ort.sizeDelta = new Vector2(underlayTex.width, underlayTex.height);
+                    ort.anchoredPosition = Vector2.zero;
+                    Image underlayImage = underlayObject.AddComponent<Image>();
+                    underlayImage.sprite = underlaySprite;
+                    underlayImage.preserveAspect = true;
+                }
+
                 // Mask object
 
-                GameObject parent = new GameObject();
-                parent.name = "Compass";
-                RectTransform prt = parent.AddComponent<RectTransform>();
-                prt.SetParent(__instance.m_rootObject.transform);
-                prt.sizeDelta = new Vector2(halfWidth, texture.height);
-                prt.localScale = Vector3.one * compassScale.Value;
+                GameObject maskObject = new GameObject();
+                maskObject.name = "Mask";
+                RectTransform mrt = maskObject.AddComponent<RectTransform>();
+                mrt.SetParent(parentObject.transform);
+                mrt.sizeDelta = new Vector2(halfWidth, texture.height);
+                mrt.localScale = Vector3.one * compassScale.Value;
+                mrt.anchoredPosition = Vector2.zero;
 
-                Image maskImage = parent.AddComponent<Image>();
+                Image maskImage = maskObject.AddComponent<Image>();
                 maskImage.sprite = maskSprite;
                 maskImage.preserveAspect = true;
 
-                Mask mask = parent.AddComponent<Mask>();
+                Mask mask = maskObject.AddComponent<Mask>();
                 mask.showMaskGraphic = false;
 
                 // Compass object
@@ -160,7 +246,7 @@ namespace Compass
                 compassObject.name = "Image";
 
                 RectTransform rt = compassObject.AddComponent<RectTransform>();
-                rt.SetParent(parent.transform);
+                rt.SetParent(maskObject.transform);
                 rt.localScale = Vector3.one;
                 rt.anchoredPosition = Vector2.zero;
                 rt.sizeDelta = new Vector2(texture.width, texture.height);
@@ -175,7 +261,7 @@ namespace Compass
                 centerObject.name = "CenterImage";
 
                 RectTransform crt = centerObject.AddComponent<RectTransform>();
-                crt.SetParent(parent.transform);
+                crt.SetParent(maskObject.transform);
                 crt.localScale = Vector3.one;
                 crt.anchoredPosition = Vector2.zero;
                 crt.sizeDelta = new Vector2(centerTex.width, centerTex.height);
@@ -189,7 +275,7 @@ namespace Compass
                 pinsObject = new GameObject();
                 pinsObject.name = "Pins";
                 rt = pinsObject.AddComponent<RectTransform>();
-                rt.SetParent(parent.transform);
+                rt.SetParent(maskObject.transform);
                 rt.localScale = Vector3.one;
                 rt.anchoredPosition = Vector2.zero;
                 rt.sizeDelta = new Vector2(halfWidth, texture.height);
@@ -226,8 +312,8 @@ namespace Compass
                 compassObject.GetComponent<RectTransform>().localPosition = Vector3.right * (rect.width / 2) * angle / (2f * Mathf.PI) - new Vector3(rect.width * 0.125f, 0, 0);
 
                 compassObject.GetComponent<Image>().color = compassColor.Value;
-                compassObject.transform.parent.GetComponent<RectTransform>().localScale = Vector3.one * compassScale.Value;
-                compassObject.transform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, (Screen.height / imageScale - compassObject.GetComponent<Image>().sprite.texture.height * compassScale.Value) / 2) - Vector2.up * compassYOffset.Value;
+                parentObject.GetComponent<RectTransform>().localScale = Vector3.one * compassScale.Value;
+                parentObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, (Screen.height / imageScale - compassObject.GetComponent<Image>().sprite.texture.height * compassScale.Value) / 2) - Vector2.up * compassYOffset.Value;
 
                 centerObject.GetComponent<Image>().color = centerColor.Value;
                 centerObject.SetActive(showCenterMarker.Value);
