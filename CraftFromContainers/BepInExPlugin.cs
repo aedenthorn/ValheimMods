@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
@@ -47,7 +48,6 @@ namespace CraftFromContainers
         public static bool odinsQolInstalled;
         public static float itemStackSizeMultiplier;
         public static float itemWeightReduction;
-        public static bool odinsQoLChecked;
         private static BepInExPlugin context = null;
 
         public class ConnectionParams
@@ -146,6 +146,18 @@ namespace CraftFromContainers
                 }
             }
             return containers;
+        }
+
+        [HarmonyPatch(typeof(FejdStartup), "Awake")]
+        static class FejdStartup_Awake_Patch
+        {
+
+            static void Postfix(FejdStartup __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+                CheckOdinsQOLConfig();
+            }
         }
 
         [HarmonyPatch(typeof(Container), "Awake")]
@@ -930,7 +942,6 @@ namespace CraftFromContainers
                     return true;
                 }
                 Dbgl($"pulling resources to player inventory for crafting item {___m_selectedRecipe.Key.m_item.m_itemData.m_shared.m_name}");
-                CheckOdinsQOLConfig();
                 PullResources(Player.m_localPlayer, ___m_selectedRecipe.Key.m_resources, qualityLevel);
                 return false;
             }
@@ -960,7 +971,6 @@ namespace CraftFromContainers
                             if (placementStatus == 0)
                             {
                                 Dbgl($"pulling resources to player inventory for piece {selectedPiece.name}");
-                                CheckOdinsQOLConfig();
                                 PullResources(__instance, selectedPiece.m_resources, 0);
                             }
                         }
@@ -1252,29 +1262,24 @@ namespace CraftFromContainers
 
         public static void CheckOdinsQOLConfig()
         {
-            if (!odinsQoLChecked)
+            itemStackSizeMultiplier = 0;
+            itemWeightReduction = 0;
+            Dictionary<string, PluginInfo> pluginInfos = Chainloader.PluginInfos;
+            foreach (PluginInfo plugin in pluginInfos.Values)
             {
-                odinsQoLChecked = true;
-                itemStackSizeMultiplier = 0;
-                itemWeightReduction = 0;
-                GameObject? bepInExManager = GameObject.Find("BepInEx_Manager");
-                BaseUnityPlugin[]? plugins = bepInExManager.GetComponentsInChildren<BaseUnityPlugin>();
-                foreach (BaseUnityPlugin? plugin in plugins)
+                if (plugin?.Metadata.GUID == "com.odinplusqol.mod")
                 {
-                    if (plugin.Info.Metadata.GUID == "com.odinplusqol.mod")
+                    odinsQolInstalled = modEnabled.Value;
+                    Debug.Log("Found OdinPlusQoL");
+                    foreach (ConfigDefinition key in plugin.Instance.Config.Keys)
                     {
-                        odinsQolInstalled = BepInExPlugin.modEnabled.Value;
-                        Debug.Log("Found OdinPlusQoL");
-                        foreach (ConfigDefinition key in plugin.Config.Keys)
+                        if (key.Key == "Item Stack Increase")
                         {
-                            if (key.Key == "Item Stack Increase")
-                            {
-                                itemStackSizeMultiplier = (float)plugin.Config[key].BoxedValue;
-                            }
-                            if (key.Key == "Item Weight Increase")
-                            {
-                                itemWeightReduction = (float)plugin.Config[key].BoxedValue;
-                            }
+                            itemStackSizeMultiplier = (float)plugin.Instance.Config[key].BoxedValue;
+                        }
+                        if (key.Key == "Item Weight Increase")
+                        {
+                            itemWeightReduction = (float)plugin.Instance.Config[key].BoxedValue;
                         }
                     }
                 }
