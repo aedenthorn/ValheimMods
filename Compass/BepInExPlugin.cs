@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "0.9.1")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "1.0.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -37,12 +37,18 @@ namespace Compass
         public static ConfigEntry<float> maxMarkerDistance;
         public static ConfigEntry<float> minMarkerScale;
         public static ConfigEntry<string> ignoredMarkerNames;
+        public static ConfigEntry<string> ignoredMarkerTypes;
         //public static ConfigEntry<string> unlimitedRangeMarkerNames;
         
 
         public static GameObject compassObject;
         public static GameObject pinsObject;
         public static GameObject centerObject;
+
+        public static float lastAngle;
+        public static bool dbgl;
+        private static string[] ignoredTypes;
+        private static string[] ignoredNames;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -66,6 +72,7 @@ namespace Compass
             maxMarkerDistance = Config.Bind<float>("Markers", "MaxMarkerDistance", 100, "Max marker distance to show on map in metres");
             minMarkerScale = Config.Bind<float>("Markers", "MinMarkerScale", 0.25f, "Marker scale at max marker distance (before applying MarkerScale)");
             ignoredMarkerNames = Config.Bind<string>("Markers", "IgnoredMarkerNames", "Silver,Obsidian,Copper,Tin", "Ignore markers with these names (comma-separated). End a string with * to denote a prefix. Default list is pins added by AutoMapPins");
+            ignoredMarkerTypes = Config.Bind<string>("Markers", "IgnoredMarkerTypes", "", "Ignore markers with these types (comma-separated). Possible types include: Icon0,Icon1,Icon2,Icon3,Death,Bed,Icon4,Shout,None,Boss,Player,RandomEvent,Ping,EventArea");
             //unlimitedRangeMarkerNames = Config.Bind<string>("Markers", "UnlimitedRangeMarkerNames", "", "Ignore max range limits for markers with these names (comma-separated).");
 
             compassFile = Config.Bind<string>("Files", "CompassFile", "compass.png", "Compass file to use in Compass folder");
@@ -76,6 +83,11 @@ namespace Compass
             centerColor = Config.Bind<Color>("Colors", "CenterColor", new Color(1,1,0,0.5f), "Center marker color");
             markerColor = Config.Bind<Color>("Colors", "MarkerColor", Color.white, "Marker color");
 
+            ignoredMarkerNames.SettingChanged += IgnoredMarkerNames_SettingChanged;
+            ignoredMarkerTypes.SettingChanged += IgnoredMarkerTypes_SettingChanged;
+
+            ignoredTypes = ignoredMarkerTypes.Value.Split(',');
+            ignoredNames = ignoredMarkerNames.Value.Split(',');
 
 
             if (!modEnabled.Value)
@@ -83,6 +95,16 @@ namespace Compass
 
             harmony = new Harmony(Info.Metadata.GUID);
             harmony.PatchAll();
+        }
+
+        private void IgnoredMarkerTypes_SettingChanged(object sender, EventArgs e)
+        {
+            ignoredTypes = ignoredMarkerTypes.Value.Split(',');
+        }
+
+        private void IgnoredMarkerNames_SettingChanged(object sender, EventArgs e)
+        {
+            ignoredNames = ignoredMarkerNames.Value.Split(',');
         }
 
         private void OnDestroy()
@@ -177,8 +199,6 @@ namespace Compass
             }
         }
 
-        public static float lastAngle;
-        public static bool dbgl;
 
         [HarmonyPatch(typeof(Hud), "Update")]
         static class Hud_Update_Patch
@@ -214,10 +234,11 @@ namespace Compass
 
                 int count = pinsObject.transform.childCount;
                 List<string> oldPins = new List<string>();
-                for (int i = 0; i < count; i++)
-                    oldPins.Add(pinsObject.transform.GetChild(i).name);
+                foreach (Transform t in pinsObject.transform)
+                    oldPins.Add(t.name);
 
-                var pinList = new List<Minimap.PinData>(AccessTools.DeclaredField(typeof(Minimap), "m_pins").GetValue(Minimap.instance) as List<Minimap.PinData>);
+                var pinList = new List<Minimap.PinData>();
+                pinList.AddRange(AccessTools.DeclaredField(typeof(Minimap), "m_pins").GetValue(Minimap.instance) as List<Minimap.PinData>);
 
                 pinList.AddRange((AccessTools.DeclaredField(typeof(Minimap), "m_locationPins").GetValue(Minimap.instance) as Dictionary<Vector3, Minimap.PinData>).Values);
                 
@@ -231,7 +252,6 @@ namespace Compass
                     pinList.Add(deathPin);
                 }
 
-                string[] ignoredNames = ignoredMarkerNames.Value.Split(',');
                 //string[] unlimitedRangeMarkerNamesList = unlimitedRangeMarkerNames.Value.Split(',');
                 Transform pt = Player.m_localPlayer.transform;
                 float zeroScaleDistance = maxMarkerDistance.Value / (1 - minMarkerScale.Value);
@@ -243,7 +263,7 @@ namespace Compass
 
                     var t = pinsObject.transform.Find(name);
 
-                    if (ignoredNames.Contains(pin.m_name) || Array.Exists(ignoredNames, s => s.EndsWith("*") && name.StartsWith(s.Substring(0,s.Length-1))) || Vector3.Distance(pt.position, pin.m_pos) > maxMarkerDistance.Value || Vector3.Distance(pt.position, pin.m_pos) < minMarkerDistance.Value)
+                    if (ignoredNames.Contains(pin.m_name) || ignoredTypes.Contains(pin.m_type.ToString()) || (ignoredMarkerNames.Value.Contains("*") && Array.Exists(ignoredNames, s => s.EndsWith("*") && name.StartsWith(s.Substring(0,s.Length-1)))) || Vector3.Distance(pt.position, pin.m_pos) > maxMarkerDistance.Value || Vector3.Distance(pt.position, pin.m_pos) < minMarkerDistance.Value)
                     {
                         if(t)
                             t.gameObject.SetActive(false);

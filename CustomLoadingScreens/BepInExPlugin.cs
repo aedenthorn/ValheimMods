@@ -113,14 +113,6 @@ namespace CustomLoadingScreens
             return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), Vector2.zero, 1);
         }
 
-        [HarmonyPatch(typeof(FejdStartup), "Start")]
-        public static class FejdStartup_Start_Patch
-        {
-
-            public static void Prefix(FejdStartup __instance)
-            {
-            }
-        }
         [HarmonyPatch(typeof(FejdStartup), "LoadMainScene")]
         public static class LoadMainScene_Patch
         {
@@ -134,7 +126,7 @@ namespace CustomLoadingScreens
                 if (differentSpawnScreen.Value)
                     loadingSprite2 = GetRandomLoadingScreen();
 
-                Dbgl($"getting new random images");
+                Dbgl($"getting new random tips");
 
                 if (loadingTips.Any())
                 {

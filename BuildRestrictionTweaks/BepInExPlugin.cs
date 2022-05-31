@@ -113,7 +113,7 @@ namespace BuildRestrictionTweaks
                     || (placementStatus == PlacementStatus.NotInDungeon && ignoreDungeonRestrictions.Value)
                 )
                 {
-                    AccessTools.Field(typeof(Player), "m_placementStatus").SetValue(__instance, (int)PlacementStatus.Valid);
+                    AccessTools.Field(typeof(Player), "m_placementStatus").SetValue(__instance, PlacementStatus.Valid);
                     AccessTools.Method(typeof(Player), "SetPlacementGhostValid").Invoke(__instance, new object[] { true });
                 }
             }

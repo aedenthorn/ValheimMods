@@ -139,7 +139,7 @@ namespace HuginQuestFramework
             {
                 Dbgl("Making random custom quest");
                 int idx = Random.Range(0, huginQuestDict.Count);
-                return MakeQuestData(huginQuestDict[huginQuestDict.Keys.ToList()[idx]]);
+                return MakeQuestData(huginQuestDict[huginQuestDict.Keys.ToArray()[idx]]);
             }
             else
             {

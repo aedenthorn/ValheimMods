@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ControllerButtonSwitch
 {
-    [BepInPlugin("aedenthorn.ControllerButtonSwitch", "Controller Button Switch", "0.3.1")]
+    [BepInPlugin("aedenthorn.ControllerButtonSwitch", "Controller Button Switch", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -30,6 +30,8 @@ namespace ControllerButtonSwitch
         public static ConfigEntry<string> buttonAutoRun;
         public static ConfigEntry<string> buttonSit;
         public static ConfigEntry<string> buttonGPower;
+        public static ConfigEntry<string> buttonCamZoomIn;
+        public static ConfigEntry<string> buttonCamZoomOut;
         public static ConfigEntry<string> buttonAltPlace;
         public static ConfigEntry<string> buttonForward;
         public static ConfigEntry<string> buttonLeft;
@@ -39,10 +41,17 @@ namespace ControllerButtonSwitch
         public static ConfigEntry<string> buttonMap;
         public static ConfigEntry<string> buttonMapZoomOut;
         public static ConfigEntry<string> buttonMapZoomIn;
-        public static ConfigEntry<string> buttonBuildPrev;
-        public static ConfigEntry<string> buttonBuildNext;
+        public static ConfigEntry<string> buttonTabLeft;
+        public static ConfigEntry<string> buttonTabRight;
         public static ConfigEntry<string> buttonBuildMenu;
         public static ConfigEntry<string> buttonRemove;
+
+        public static ConfigEntry<string> buttonAutoPickup;
+        public static ConfigEntry<string> buttonScrollChatUp;
+        public static ConfigEntry<string> buttonScrollChatDown;
+        public static ConfigEntry<string> buttonChatUp;
+        public static ConfigEntry<string> buttonChatDown;
+
         public static ConfigEntry<string> buttonJoyUse;
         public static ConfigEntry<string> buttonJoyHide;
         public static ConfigEntry<string> buttonJoyJump;
@@ -52,8 +61,8 @@ namespace ControllerButtonSwitch
         public static ConfigEntry<string> buttonJoyRun;
         public static ConfigEntry<string> buttonJoyCrouch;
         public static ConfigEntry<string> buttonJoyMap;
+        public static ConfigEntry<string> buttonJoyChat;
         public static ConfigEntry<string> buttonJoyMenu;
-        public static ConfigEntry<string> buttonJoySecondAttack;
         public static ConfigEntry<string> buttonJoyAltPlace;
         public static ConfigEntry<string> buttonJoyRemove;
         public static ConfigEntry<string> buttonJoyTabLeft;
@@ -65,13 +74,27 @@ namespace ControllerButtonSwitch
         public static ConfigEntry<string> buttonJoyLStick;
         public static ConfigEntry<string> buttonJoyRStick;
 
-       
-
         public static ConfigEntry<string> buttonJoyGPower;
+        public static ConfigEntry<string> buttonJoyHotbarUse;
+        public static ConfigEntry<string> buttonJoyHotbarLeft;
+        public static ConfigEntry<string> buttonJoyHotbarRight;
+        public static ConfigEntry<string> buttonJoyAutoPickup;
+        public static ConfigEntry<string> buttonJoyCamZoomIn;
+        public static ConfigEntry<string> buttonJoyCamZoomOut;
+
+
         public static ConfigEntry<string> buttonJoyBlock;
         public static ConfigEntry<string> buttonJoyAttack;
+        public static ConfigEntry<string> buttonJoySecondaryAttack;
+        public static ConfigEntry<string> buttonJoyAltKeys;
+        
         public static ConfigEntry<string> buttonJoyPlace;
         public static ConfigEntry<string> buttonJoyRotate;
+        public static ConfigEntry<string> buttonJoyBack;
+        
+        public static ConfigEntry<string> buttonJoyScrollChatUp;
+        public static ConfigEntry<string> buttonJoyScrollChatDown;
+
         public static ConfigEntry<string> buttonJoyLStickLeft;
         public static ConfigEntry<string> buttonJoyLStickRight;
         public static ConfigEntry<string> buttonJoyLStickUp;
@@ -98,7 +121,7 @@ namespace ControllerButtonSwitch
             nexusID = Config.Bind<int>("Config", "NexusID", 1105, "Nexus mod ID for updates");
 
             buttonAttack = Config.Bind<string>("KeysCombat", "Attack", "Mouse0", "Attack button");
-            buttonSecondAttack = Config.Bind<string>("KeysCombat", "SecondAttack", "Mouse2", "SecondAttack button");
+            buttonSecondAttack = Config.Bind<string>("KeysCombat", "SecondaryAttack", "Mouse2", "SecondaryAttack button");
             buttonBlock = Config.Bind<string>("KeysCombat", "Block", "Mouse1", "Block button");
             buttonUse = Config.Bind<string>("KeysMisc", "Use", "E", "Use button");
             buttonHide = Config.Bind<string>("KeysMisc", "Hide", "R", "Hide button");
@@ -108,8 +131,10 @@ namespace ControllerButtonSwitch
             buttonToggleWalk = Config.Bind<string>("KeysMovement", "ToggleWalk", "C", "ToggleWalk button");
             buttonAutoRun = Config.Bind<string>("KeysMovement", "AutoRun", "Q", "AutoRun button");
             buttonSit = Config.Bind<string>("KeysMovement", "Sit", "X", "Sit button");
-            buttonGPower = Config.Bind<string>("KeysMisc", "GPower", "F", "GPower button");
+            buttonGPower = Config.Bind<string>("KeysMisc", "GP", "F", "GP button");
             buttonAltPlace = Config.Bind<string>("KeysBuild", "AltPlace", "LeftShift", "AltPlace button");
+            buttonCamZoomIn = Config.Bind<string>("KeysMisc", "CamZoomIn", "None", "CamZoomIn button");
+            buttonCamZoomOut = Config.Bind<string>("KeysMisc", "CamZoomOut", "None", "CamZoomOut button");
             buttonForward = Config.Bind<string>("KeysDirection", "Forward", "W,0.3,0.1", "Forward button");
             buttonLeft = Config.Bind<string>("KeysDirection", "Left", "A,0.3,0.1", "Left button");
             buttonBackward = Config.Bind<string>("KeysDirection", "Backward", "S,0.3,0.1", "Backward button");
@@ -118,21 +143,30 @@ namespace ControllerButtonSwitch
             buttonMap = Config.Bind<string>("KeysMap", "Map", "M", "Map button");
             buttonMapZoomOut = Config.Bind<string>("KeysMap", "MapZoomOut", "Comma", "MapZoomOut button");
             buttonMapZoomIn = Config.Bind<string>("KeysMap", "MapZoomIn", "Period", "MapZoomIn button");
-            buttonBuildPrev = Config.Bind<string>("KeysBuild", "BuildPrev", "Q", "BuildPrev button");
-            buttonBuildNext = Config.Bind<string>("KeysBuild", "BuildNext", "E", "BuildNext button");
+            buttonTabLeft = Config.Bind<string>("KeysBuild", "TabLeft", "Q", "TabLeft button");
+            buttonTabRight = Config.Bind<string>("KeysBuild", "TabRight", "E", "TabRight button");
             buttonBuildMenu = Config.Bind<string>("KeysBuild", "BuildMenu", "Mouse1", "BuildMenu button");
             buttonRemove = Config.Bind<string>("KeysBuild", "Remove", "Mouse2", "Remove button");
+
+            buttonAutoPickup = Config.Bind<string>("KeysMisc", "AutoPickup", "V", "Remove button");
+
+            buttonScrollChatUp = Config.Bind<string>("KeysChat", "ScrollChatUp", "PageUp,0.5,0.5,true", "ScrollChatUp button");
+            buttonScrollChatDown = Config.Bind<string>("KeysChat", "ScrollChatDown,0.5,0.5,true", "PageDown", "ScrollChatDown button");
+            buttonChatUp = Config.Bind<string>("KeysChat", "ChatUp", "UpArrow,0.5,0.5,true", "ChatUp button");
+            buttonChatDown = Config.Bind<string>("KeysChat", "ChatDown", "DownArrow,0.5,0.5,true", "ChatDown button");
 
             buttonJoyUse = Config.Bind<string>("JoystickMisc", "JoyUse", "JoystickButton0", "JoyUse button");
             buttonJoyHide = Config.Bind<string>("JoystickMisc", "JoyHide", "JoystickButton9", "JoyHide button");
             buttonJoyJump = Config.Bind<string>("JoystickMovement", "JoyJump", "JoystickButton1", "JoyJump button");
             buttonJoySit = Config.Bind<string>("JoystickMovement", "JoySit", "JoystickButton2", "JoySit button");
+
+            buttonJoyGPower = Config.Bind<string>("JoystickMisc", "JoyGP", "JoyAxis 7,0,0,true", "JoyGP button");
             buttonJoyInventory = Config.Bind<string>("JoystickMisc", "JoyInventory", "JoystickButton3", "JoyInventory button");
             buttonJoyRun = Config.Bind<string>("JoystickMovement", "JoyRun", "JoystickButton4", "JoyRun button");
             buttonJoyCrouch = Config.Bind<string>("JoystickMovement", "JoyCrouch", "JoystickButton8", "JoyCrouch button");
             buttonJoyMap = Config.Bind<string>("JoystickUI", "JoyMap", "JoystickButton6", "JoyMap button");
+            buttonJoyChat = Config.Bind<string>("JoystickUI", "JoyChat", "JoystickButton6", "JoyChat button");
             buttonJoyMenu = Config.Bind<string>("JoystickUI", "JoyMenu", "JoystickButton7", "JoyMenu button");
-            buttonJoySecondAttack = Config.Bind<string>("JoystickCombat", "JoySecondAttack", "JoystickButton5", "JoySecondAttack button");
             buttonJoyAltPlace = Config.Bind<string>("JoystickBuild", "JoyAltPlace", "JoystickButton4", "JoyAltPlace button");
             buttonJoyRemove = Config.Bind<string>("JoystickBuild", "JoyRemove", "JoystickButton5", "JoyRemove button");
             buttonJoyTabLeft = Config.Bind<string>("JoystickUI", "JoyTabLeft", "JoystickButton4", "JoyTabLeft button");
@@ -143,20 +177,37 @@ namespace ControllerButtonSwitch
             buttonJoyButtonY = Config.Bind<string>("JoystickButtons", "JoyButtonY", "JoystickButton3", "JoyButtonY button");
             buttonJoyLStick = Config.Bind<string>("JoystickButtons", "JoyLStick", "JoystickButton8", "JoyLStick button");
             buttonJoyRStick = Config.Bind<string>("JoystickButtons", "JoyRStick", "JoystickButton9", "JoyRStick button");
-            
-            buttonJoyGPower = Config.Bind<string>("JoystickMisc", "JoyGPower", "JoyAxis 7,0,0,true", "JoyGPower button");
+
+            buttonJoyHotbarUse = Config.Bind<string>("JoystickMisc", "JoyHotbarUse", "JoyAxis 7,0,0,false", "JoyHotbarUse button");
+            buttonJoyHotbarLeft = Config.Bind<string>("JoystickMisc", "JoyHotbarLeft", "JoyAxis 6,0.3,0.1,true", "JoyHotbarLeft button");
+            buttonJoyHotbarRight = Config.Bind<string>("JoystickMisc", "JoyHotbarRight", "JoyAxis 6,0.3,0.1,false", "JoyHotbarRight button");
+            buttonJoyCamZoomIn = Config.Bind<string>("JoystickMisc", "JoyCamZoomIn", "JoyAxis 7,0,0,false", "JoyCamZoomIn button");
+            buttonJoyCamZoomOut = Config.Bind<string>("JoystickMisc", "JoyCamZoomOut", "JoyAxis 7,0,0,true", "JoyCamZoomOut button");
+            buttonJoyAutoPickup = Config.Bind<string>("JoystickMisc", "JoyAutoPickup", "JoystickButton8", "JoyAutoPickup button");
+
             buttonJoyBlock = Config.Bind<string>("JoystickCombat", "JoyBlock", "JoyAxis 3,0,0,true", "JoyBlock button");
             buttonJoyAttack = Config.Bind<string>("JoystickCombat", "JoyAttack", "JoyAxis 3,0,0,false", "JoyAttack button");
+            buttonJoySecondaryAttack = Config.Bind<string>("JoystickCombat", "JoySecondaryAttack", "JoystickButton5", "JoySecondaryAttack button");
+            buttonJoyAltKeys = Config.Bind<string>("JoystickMisc", "JoyAltKeys", "JoyAxis 3,0,0,true", "JoyAltKeys button");
+            
             buttonJoyRotate = Config.Bind<string>("JoystickBuild", "JoyRotate", "JoyAxis 3,0,0,true", "JoyRotate button");
             buttonJoyPlace = Config.Bind<string>("JoystickBuild", "JoyPlace", "JoyAxis 10,0,0,false", "JoyPlace button");
+
             buttonJoyLStickLeft = Config.Bind<string>("JoystickPads", "JoyLStickLeft", "JoyAxis 1,0.3,0.1,true", "JoyLStickLeft button");
             buttonJoyLStickRight = Config.Bind<string>("JoystickPads", "JoyLStickRight", "JoyAxis 1,0.3,0.1,false", "JoyLStickRight button");
             buttonJoyLStickUp = Config.Bind<string>("JoystickPads", "JoyLStickUp", "JoyAxis 2,0.3,0.1,true", "JoyLStickUp button");
             buttonJoyLStickDown = Config.Bind<string>("JoystickPads", "JoyLStickDown", "JoyAxis 2,0.3,0.1,false", "JoyLStickDown button");
+
+            buttonJoyScrollChatUp = Config.Bind<string>("JoystickMisc", "JoyScrollChatUp", "JoyAxis 2,0.5,0.5,true", "JoyScrollChatUp button");
+            buttonJoyScrollChatDown = Config.Bind<string>("JoystickMisc", "JoyScrollChatDown", "JoyAxis 2,0.5,0.5,false", "JoyScrollChatDown button");
+            
+            buttonJoyBack = Config.Bind<string>("JoystickMisc", "JoyBack", "JoystickButton6", "JoyBack button");
+
             buttonJoyDPadLeft = Config.Bind<string>("JoystickPads", "JoyDPadLeft", "JoyAxis 6,0.3,0.1,true", "JoyDPadLeft button");
             buttonJoyDPadRight = Config.Bind<string>("JoystickPads", "JoyDPadRight", "JoyAxis 6,0.3,0.1,false", "JoyDPadRight button");
-            buttonJoyDPadUp = Config.Bind<string>("JoystickPads", "JoyDPadUp", "JoyAxis 7,0.3,0.1,true", "JoyDPadUp button");
-            buttonJoyDPadDown = Config.Bind<string>("JoystickPads", "JoyDPadDown", "JoyAxis 7,0.3,0.1,false", "JoyDPadDown button");
+            buttonJoyDPadUp = Config.Bind<string>("JoystickPads", "JoyDPadUp", "JoyAxis 7,0.3,0.1,false", "JoyDPadUp button");
+            buttonJoyDPadDown = Config.Bind<string>("JoystickPads", "JoyDPadDown", "JoyAxis 7,0.3,0.1,true", "JoyDPadDown button");
+            
             buttonJoyLTrigger = Config.Bind<string>("JoystickButtons", "JoyLTrigger", "JoyAxis 3,0,0,true", "JoyLTrigger button");
             buttonJoyRTrigger = Config.Bind<string>("JoystickButtons", "JoyRTrigger", "JoyAxis 3,0,0,false", "JoyRTrigger button");
 
@@ -172,13 +223,17 @@ namespace ControllerButtonSwitch
 
         static void SetButtons()
         {
-            if (!modEnabled.Value || ZInput.instance == null)
+            if (!modEnabled.Value)
                 return;
+            if(ZInput.instance is null)
+            {
+                Dbgl("ZInput is null");
+                return;
+            }
 
             ZInput zInput = ZInput.instance;
             Dictionary<string, ZInput.ButtonDef> m_buttons = Traverse.Create(zInput).Field("m_buttons").GetValue<Dictionary<string, ZInput.ButtonDef>>();
 
-            m_buttons.Clear();
 
             using (var enumerator = context.Config.GetEnumerator())
             {
@@ -189,6 +244,10 @@ namespace ControllerButtonSwitch
                     try
                     {
                         ButtonInfo info = new ButtonInfo(enumerator.Current.Key.Key, (ConfigEntry<string>)enumerator.Current.Value);
+                        if (m_buttons.ContainsKey(info.button))
+                        {
+                            m_buttons.Remove(info.button);
+                        }
                         if (Enum.TryParse(info.key, out KeyCode keyCode))
                             zInput.AddButton(info.button, keyCode, info.repeatDelay, info.repeatInterval);
                         else
