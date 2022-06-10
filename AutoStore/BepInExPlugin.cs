@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace AutoStore
 {
-    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.4.1")]
+    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.5.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -226,17 +226,15 @@ namespace AutoStore
             if (DisallowItem(__instance, item))
                 return false;
 
-            Dbgl($"auto storing {item.m_dropPrefab.name} from ground");
-
+            //Dbgl($"auto storing {item.m_dropPrefab.name} from ground");
+            bool changed = false;
             while (item.m_stack > 1 && __instance.GetInventory().CanAddItem(item, 1))
             {
+                changed = true;
                 item.m_stack--;
                 ItemDrop.ItemData newItem = item.Clone();
                 newItem.m_stack = 1;
                 __instance.GetInventory().AddItem(newItem);
-                Traverse.Create(item).Method("Save").GetValue();
-                typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { });
-                typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance.GetInventory(), new object[] { });
             }
 
             if (item.m_stack == 1 && __instance.GetInventory().CanAddItem(item, 1))
@@ -244,11 +242,12 @@ namespace AutoStore
                 ItemDrop.ItemData newItem = item.Clone();
                 item.m_stack = 0;
                 __instance.GetInventory().AddItem(newItem);
-                typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { });
-                typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance.GetInventory(), new object[] { });
-                return true;
+                changed = true;
             }
-            return false;
+            if(changed)
+                AccessTools.Method(typeof(Container), "Save").Invoke(__instance, new object[] { });
+
+            return changed;
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
