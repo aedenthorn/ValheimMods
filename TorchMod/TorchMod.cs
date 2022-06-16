@@ -21,6 +21,7 @@ namespace TorchMod
         public static ConfigEntry<float> torchBounceIntensity;
         public static ConfigEntry<float> torchShadowStrength;
         public static ConfigEntry<bool> torchUseColorTemperature;
+        public static ConfigEntry<bool> torchUseColor;
         public static ConfigEntry<float> torchColorTemperature;
 
         public static ConfigEntry<Color> standingTorchColor;
@@ -29,6 +30,7 @@ namespace TorchMod
         public static ConfigEntry<float> standingTorchBounceIntensity;
         public static ConfigEntry<float> standingTorchShadowStrength;
         public static ConfigEntry<bool> standingTorchUseColorTemperature;
+        public static ConfigEntry<bool> standingTorchUseColor;
         public static ConfigEntry<float> standingTorchColorTemperature;
 
         public static ConfigEntry<Color> sconceColor;
@@ -37,6 +39,7 @@ namespace TorchMod
         public static ConfigEntry<float> sconceBounceIntensity;
         public static ConfigEntry<float> sconceShadowStrength;
         public static ConfigEntry<bool> sconceUseColorTemperature;
+        public static ConfigEntry<bool> sconceUseColor;
         public static ConfigEntry<float> sconceColorTemperature;
 
         public static ConfigEntry<Color> helmetColor;
@@ -106,6 +109,7 @@ namespace TorchMod
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 11, "Nexus mod ID for updates");
 
+            torchUseColor = Config.Bind("Torches", "TorchUseColor", false, "Set all torches to use custom color.");
             torchColor = Config.Bind("Torches", "TorchColor", new Color(1f, 0.621f, 0.482f, 1f), "The color of the light.");
             torchRange = Config.Bind("Torches", "TorchRange", 10f, "The range of the light. (float)");
             torchIntensity = Config.Bind("Torches", "TorchIntensity", 1f, "The Intensity of a light is multiplied with the Light color. (float 0-8)");
@@ -114,6 +118,7 @@ namespace TorchMod
             torchUseColorTemperature = Config.Bind("Torches", "TorchUseColorTemperature", false, "Set to true to use the color temperature.");
             torchColorTemperature = Config.Bind("Torches", "TorchColorTemperature", 6570f, "The color temperature of the light. (float)");
 
+            standingTorchUseColor = Config.Bind("Standing Torches", "standingTorchUseColor", false, "Set all standing torches to use custom color.");
             standingTorchColor = Config.Bind("Standing Torches", "StandingTorchColor", new Color(1f, 0.621f, 0.482f, 1f), "The color of the light.");
             standingTorchRange = Config.Bind("Standing Torches", "StandingTorchRange", 10f, "The range of the light. (float)");
             standingTorchIntensity = Config.Bind("Standing Torches", "StandingTorchIntensity", 1f, "The Intensity of a light is multiplied with the Light color. (float 0-8)");
@@ -122,6 +127,7 @@ namespace TorchMod
             standingTorchUseColorTemperature = Config.Bind("Standing Torches", "StandingTorchUseColorTemperature", false, "Set to true to use the color temperature.");
             standingTorchColorTemperature = Config.Bind("Standing Torches", "StandingTorchColorTemperature", 6570f, "The color temperature of the light. (float)");
 
+            sconceUseColor = Config.Bind("Sconces", "SconceUseColor", false, "Set all sconces to use custom color.");
             sconceColor = Config.Bind("Sconces", "SconceColor", new Color(1f, 0.621f, 0.482f, 1f), "The color of the light.");
             sconceRange = Config.Bind("Sconces", "SconceRange", 12f, "The range of the light. (float)");
             sconceIntensity = Config.Bind("Sconces", "SconceIntensity", 1f, "The Intensity of a light is multiplied with the Light color. (float 0-8)");
@@ -217,7 +223,8 @@ namespace TorchMod
                 if(light != null)
                 {
                     Dbgl("Setting light for torch");
-                    light.color = torchColor.Value;
+                    if(torchUseColor.Value)
+                        light.color = torchColor.Value;
                     light.range = torchRange.Value;
                     light.intensity = torchIntensity.Value;
                     light.bounceIntensity = torchBounceIntensity.Value;
@@ -289,7 +296,8 @@ namespace TorchMod
                     //Dbgl($"shadowStrength: {light.shadowStrength}");
                     //Dbgl($"intensity: {lfi.GetValue(lf)}");
 
-                    light.color = standingTorchColor.Value;
+                    if (standingTorchUseColor.Value)
+                        light.color = standingTorchColor.Value;
                     light.range = standingTorchRange.Value;
                     light.bounceIntensity = standingTorchBounceIntensity.Value;
                     light.useColorTemperature = standingTorchUseColorTemperature.Value;
@@ -304,7 +312,8 @@ namespace TorchMod
                     Light light = lf.GetComponent<Light>();
 
 
-                    light.color = sconceColor.Value;
+                    if (sconceUseColor.Value)
+                        light.color = sconceColor.Value;
                     light.range = sconceRange.Value;
                     light.bounceIntensity = sconceBounceIntensity.Value;
                     light.useColorTemperature = sconceUseColorTemperature.Value;
