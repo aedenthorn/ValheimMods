@@ -107,7 +107,7 @@ namespace CharacterEdit
 
                 if(fileName != text2)
                 {
-                    string path = Path.Combine(Utils.GetSaveDataPath(), "characters");
+                    string path = Path.Combine(Utils.GetSaveDataPath(Game.instance.GetPlayerProfile().m_fileSource), "characters");
                     
                     if(File.Exists(Path.Combine(path, fileName + ".fch")))
                         File.Move(Path.Combine(path, fileName + ".fch"), Path.Combine(path, text2 + ".fch"));

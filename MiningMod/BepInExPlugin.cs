@@ -2,17 +2,13 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace MiningMod
 {
-    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.6.1")]
+    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.6.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -243,8 +239,8 @@ namespace MiningMod
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "Mining Mod config reloaded" }).GetValue();
+                    __instance.AddString(text);
+                    __instance.AddString("Mining Mod config reloaded");
                     return false;
                 }
                 return true;

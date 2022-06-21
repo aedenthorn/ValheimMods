@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace CustomArmorStats
 {
-    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.3.0")]
+    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.3.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -421,8 +421,8 @@ namespace CustomArmorStats
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    __instance.AddString(text);
+                    __instance.AddString($"{context.Info.Metadata.Name} config reloaded");
                     return false;
                 }
                 else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reload"))
@@ -430,26 +430,26 @@ namespace CustomArmorStats
                     armorDatas = GetArmorDataFromFiles();
                     if(ZNetScene.instance)
                         LoadAllArmorData(ZNetScene.instance);
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} reloaded armor stats from files" }).GetValue();
+                    __instance.AddString(text);
+                    __instance.AddString($"{context.Info.Metadata.Name} reloaded armor stats from files");
                     return false;
                 }
                 else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} damagetypes"))
                 {
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    __instance.AddString(text);
                     
                     Dbgl("\r\n" + string.Join("\r\n", Enum.GetNames(typeof(HitData.DamageType))));
 
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped damage types" }).GetValue();
+                    __instance.AddString($"{context.Info.Metadata.Name} dumped damage types");
                     return false;
                 }
                 else if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} damagemods"))
                 {
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    __instance.AddString(text);
 
                     Dbgl("\r\n"+string.Join("\r\n", Enum.GetNames(typeof(HitData.DamageModifier))));
 
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped damage modifiers" }).GetValue();
+                    __instance.AddString($"{context.Info.Metadata.Name} dumped damage modifiers");
                     return false;
                 }
                 else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} save "))
@@ -461,8 +461,8 @@ namespace CustomArmorStats
                         return false;
                     CheckModFolder();
                     File.WriteAllText(Path.Combine(assetPath, armorData.name + ".json"), JsonUtility.ToJson(armorData, true));
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} saved armor data to {armor}.json" }).GetValue();
+                    __instance.AddString(text);
+                    __instance.AddString($"{context.Info.Metadata.Name} saved armor data to {armor}.json");
                     return false;
                 }
                 else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()} dump "))
@@ -473,8 +473,8 @@ namespace CustomArmorStats
                     if (armorData == null)
                         return false;
                     Dbgl(JsonUtility.ToJson(armorData));
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} dumped {armor}" }).GetValue();
+                    __instance.AddString(text);
+                    __instance.AddString($"{context.Info.Metadata.Name} dumped {armor}");
                     return false;
                 }
                 else if (text.ToLower().StartsWith($"{typeof(BepInExPlugin).Namespace.ToLower()}"))
@@ -486,8 +486,8 @@ namespace CustomArmorStats
                     + $"{context.Info.Metadata.Name} damagetypes\r\n"
                     + $"{context.Info.Metadata.Name} damagemods";
 
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { output }).GetValue();
+                    __instance.AddString(text);
+                    __instance.AddString(output);
                     return false;
                 }
                 return true;
