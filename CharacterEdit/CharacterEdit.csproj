@@ -2,5 +2,166 @@
   <PropertyGroup>
     <Version>1.0.0</Version>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>True</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>False</Optimize>
+  </PropertyGroup>
   <Import Project="$(SolutionDir)\valheim.targets" />
+  <ItemGroup>
+    <Reference Update="0Harmony20">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="assembly_googleanalytics">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="assembly_guiutils">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="assembly_postprocessing">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="assembly_steamworks">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="assembly_sunshafts">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="assembly_utils">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="assembly_valheim">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="BepInEx">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="ServerSync">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System.Core">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System.Data">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System.Drawing">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System.IO.Compression.FileSystem">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System.Numerics">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System.Runtime.Serialization">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System.Xml">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="System.Xml.Linq">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.AccessibilityModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.AIModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.AnimationModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.AssetBundleModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.AudioModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.ClothModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.CoreModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.ImageConversionModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.IMGUIModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.InputLegacyModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.InputModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.JSONSerializeModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.ParticleSystemModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.PhysicsModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.ScreenCaptureModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.TerrainModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.TextCoreModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.TextRenderingModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.UI">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.UIElementsModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.UIModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.UnityWebRequestAudioModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.UnityWebRequestModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.UnityWebRequestTextureModule">
+      <Private>False</Private>
+    </Reference>
+    <Reference Update="UnityEngine.UnityWebRequestWWWModule">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
 </Project>

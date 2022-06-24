@@ -46,12 +46,6 @@ namespace CharacterEdit
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
-        {
-            Dbgl("Destroying plugin");
-            harmony.UnpatchAll();
-        }
-
         [HarmonyPatch(typeof(FejdStartup), "Awake")]
         static class FejdStartup_Awake_Patch
         {
