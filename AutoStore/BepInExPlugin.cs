@@ -36,6 +36,7 @@ namespace AutoStore
         public static ConfigEntry<string> toggleString;
 
         public static ConfigEntry<bool> mustHaveItemToPull;
+        public static ConfigEntry<bool> pullWhileBuilding;
         public static ConfigEntry<bool> isOn;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -72,6 +73,7 @@ namespace AutoStore
             toggleString = Config.Bind<string>("General", "ToggleString", "Auto Pull: {0}", "Text to show on toggle. {0} is replaced with true/false");
             toggleKey = Config.Bind<string>("General", "ToggleKey", "", "Key to toggle behaviour. Leave blank to disable the toggle key. Use https://docs.unity3d.com/Manual/class-InputManager.html syntax.");
             mustHaveItemToPull = Config.Bind<bool>("General", "MustHaveItemToPull", false, "If true, a container must already have at least one of the item to pull.");
+            pullWhileBuilding = Config.Bind<bool>("General", "PullWhileBuilding", true, "If false, containers won't pull while the player is holding the hammer.");
             isOn = Config.Bind<bool>("General", "IsOn", true, "Behaviour is currently on or not");
             
             
@@ -194,7 +196,7 @@ namespace AutoStore
         {
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
-                if (!isOn.Value || ___m_nview == null || ___m_nview.GetZDO() == null)
+                if (!isOn.Value || ___m_nview == null || ___m_nview.GetZDO() == null || (!pullWhileBuilding.Value && (Player.m_localPlayer.GetLeftItem()?.m_shared?.m_buildPieces.m_pieces.Count > 0 || Player.m_localPlayer.GetRightItem()?.m_shared?.m_buildPieces.m_pieces.Count > 0)))
                     return;
 
                 Vector3 position = __instance.transform.position + Vector3.up;

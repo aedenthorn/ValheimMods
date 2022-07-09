@@ -2,12 +2,13 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
 namespace QuickLoad
 {
-    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.4.0")]
+    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.5.0")]
     public class QuickLoad: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -51,12 +52,13 @@ namespace QuickLoad
         [HarmonyPatch(typeof(FejdStartup), "Start")]
         static class Start_Patch
         {
-            static void Postfix(FejdStartup __instance)
+            static void Postfix(List<PlayerProfile> ___m_profiles, int ___m_profileIndex)
             {
                 if (autoLoad.Value)
                 {
                     Dbgl("performing auto load");
-                    DoQuickLoad();
+                    PlayerProfile playerProfile = ___m_profiles[___m_profileIndex];
+                    DoQuickLoad(playerProfile.GetFilename(), playerProfile.m_fileSource);
                 }
             }
         }
@@ -64,21 +66,21 @@ namespace QuickLoad
         [HarmonyPatch(typeof(FejdStartup), "Update")]
         static class Update_Patch
         {
-            static void Postfix(FejdStartup __instance)
+            static void Postfix(List<PlayerProfile> ___m_profiles, int ___m_profileIndex)
             {
                 if (CheckKeyDown(hotKey.Value))
                 {
                     Dbgl("pressed hot key");
-
-                    DoQuickLoad();
+                    PlayerProfile playerProfile = ___m_profiles[___m_profileIndex];
+                    DoQuickLoad(playerProfile.GetFilename(), playerProfile.m_fileSource);
                 }
             }
         }
-        private static void DoQuickLoad()
+        private static void DoQuickLoad(string fileName, FileHelpers.FileSource fileSource)
         {
 
             string worldName = PlayerPrefs.GetString("world");
-            Game.SetProfile(PlayerPrefs.GetString("profile"));
+            Game.SetProfile(fileName, fileSource);
 
             if (worldName == null || worldName.Length == 0)
                 return;
