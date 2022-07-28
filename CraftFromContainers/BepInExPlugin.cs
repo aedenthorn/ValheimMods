@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.2.2")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.2.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -141,7 +141,7 @@ namespace CraftFromContainers
                     && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
                 {
                     //container.GetComponent<ZNetView>()?.ClaimOwnership();
-                    Traverse.Create(container).Method("Load").GetValue();
+                    
                     containers.Add(container);
                 }
             }
@@ -783,11 +783,17 @@ namespace CraftFromContainers
                                         Dbgl($"total amount is now {totalAmount}/{totalRequirement} {reqName}");
 
                                         if (totalAmount >= totalRequirement)
+                                        {
+                                            Dbgl("Got enough, breaking");
                                             break;
+                                        }
                                     }
                                 }
-                                c.GetType().GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                                cInventory.GetType().GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(cInventory, new object[] { });
+
+                                Dbgl("Saving container");
+                                typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
+                                Dbgl("Setting inventory changed");
+                                typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(cInventory, new object[] { });
 
                                 if (totalAmount >= totalRequirement)
                                 {

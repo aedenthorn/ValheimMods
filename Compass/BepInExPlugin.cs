@@ -127,16 +127,46 @@ namespace Compass
                 string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Compass");
 
                 Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, true, true);
-                byte[] data = File.ReadAllBytes(Path.Combine(path, compassFile.Value));
-                texture.LoadImage(data);
+                try
+                {
+                    byte[] data = File.ReadAllBytes(Path.Combine(path, compassFile.Value));
+                    texture.LoadImage(data);
+
+                }
+                catch(Exception ex)
+                {
+                    Dbgl($"Invalid compass file {compassFile.Value}: {ex}");
+
+                    return;
+                }
 
                 Texture2D maskTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, true);
-                byte[] maskData = File.ReadAllBytes(Path.Combine(path, maskFile.Value));
-                maskTex.LoadImage(maskData);
+                try
+                {
+                    byte[] maskData = File.ReadAllBytes(Path.Combine(path, maskFile.Value));
+                    maskTex.LoadImage(maskData);
+                }
+                catch(Exception ex)
+                {
+                    Dbgl($"Invalid mask file {maskFile.Value}: {ex}");
+
+                    return;
+                }
 
                 Texture2D centerTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, true);
-                byte[] centerData = File.ReadAllBytes(Path.Combine(path, centerFile.Value));
-                centerTex.LoadImage(centerData);
+                try {
+
+                    byte[] centerData = File.ReadAllBytes(Path.Combine(path, centerFile.Value));
+                    centerTex.LoadImage(centerData);
+                }
+                catch (Exception ex)
+                {
+                    Dbgl($"Invalid center file {centerFile.Value}: {ex}");
+
+                    return;
+                }
+                Dbgl($"Loaded image files");
+
 
                 float halfWidth = texture.width / 2f;
 
