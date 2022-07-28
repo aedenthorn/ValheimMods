@@ -772,10 +772,14 @@ namespace CraftFromContainers
                                     ItemDrop.ItemData item = cInventory.GetItem(i);
                                     if(item.m_shared.m_name == reqName)
                                     {
+                                        Dbgl($"Container has a total items count of {cInventory.GetAllItems().Count}");
                                         Dbgl($"Got stack of {item.m_stack} {reqName}");
                                         int stackAmount = Mathf.Min(item.m_stack, totalRequirement - totalAmount);
                                         if (stackAmount == item.m_stack)
-                                            cInventory.RemoveItem(item);
+                                        {
+                                            cInventory.RemoveItem(i);
+                                            i--;
+                                        }
                                         else
                                             item.m_stack -= stackAmount;
 
