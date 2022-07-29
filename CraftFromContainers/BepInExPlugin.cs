@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.2.3")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.2.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -1053,7 +1053,7 @@ namespace CraftFromContainers
                                 pInventory.AddItem(sendItem);
 
                                 if (stackAmount == item.m_stack)
-                                    cInventory.RemoveItem(item);
+                                    cInventory.RemoveItem(i);
                                 else
                                     item.m_stack -= stackAmount;
 
