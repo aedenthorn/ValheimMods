@@ -24,12 +24,13 @@ namespace CustomTextures
         private static BepInExPlugin context;
         private static Stopwatch stopwatch = new Stopwatch();
 
-        public static bool dumpOutput = false;
         public static Dictionary<string, string> customTextures = new Dictionary<string, string>();
         public static Dictionary<string, DateTime> fileWriteTimes = new Dictionary<string, DateTime>();
         public static List<string> texturesToLoad = new List<string>();
         public static List<string> layersToLoad = new List<string>();
         public static Dictionary<string, Texture2D> cachedTextures = new Dictionary<string, Texture2D>();
+        
+        public static bool dumpOutput = false;
         public static List<string> outputDump = new List<string>();
         public static List<string> logDump = new List<string>();
 

@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace RepairRequiresMats
 {
-    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.4.3")]
+    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.4.4")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static bool isDebug = true;
@@ -26,7 +26,11 @@ namespace RepairRequiresMats
         private static List<ItemDrop.ItemData> orderedWornItems = new List<ItemDrop.ItemData>();
 
         private static BepInExPlugin context;
+
         private static Assembly epicLootAssembly;
+        private static MethodInfo epicLootIsMagic;
+        private static MethodInfo epicLootGetRarity;
+        private static MethodInfo epicLootGetEnchantCosts;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -49,8 +53,14 @@ namespace RepairRequiresMats
         }
         private void Start()
         {
-            if(Chainloader.PluginInfos.ContainsKey("randyknapp.mods.epicloot"))
+            if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.epicloot"))
+            {
                 epicLootAssembly = Chainloader.PluginInfos["randyknapp.mods.epicloot"].Instance.GetType().Assembly;
+                epicLootIsMagic = epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("IsMagic", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(ItemDrop.ItemData) }, null);
+                epicLootGetRarity = epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("GetRarity", BindingFlags.Public | BindingFlags.Static);
+                epicLootGetEnchantCosts = epicLootAssembly.GetType("EpicLoot.Crafting.EnchantTabController").GetMethod("GetEnchantCosts", BindingFlags.Public | BindingFlags.Static);
+                Dbgl($"Loaded Epic Loot assembly; epicLootIsMagic {epicLootIsMagic != null}, epicLootGetRarity {epicLootGetRarity != null}, epicLootGetEnchantCosts {epicLootGetEnchantCosts != null}");
+            }
 
         }
 
@@ -226,25 +236,35 @@ namespace RepairRequiresMats
         {
             float percent = (item.GetMaxDurability() - item.m_durability) / item.GetMaxDurability();
             Recipe fullRecipe = ObjectDB.instance.GetRecipe(item);
+            if (fullRecipe is null)
+                return null;
             var fullReqs = new List<Piece.Requirement>(fullRecipe.m_resources);
 
             bool isMagic = false;
             if (epicLootAssembly != null)
             {
-                isMagic = (bool)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("IsMagic", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(ItemDrop.ItemData) }, null).Invoke(null, new[] { item });
+                try
+                {
+                    isMagic = (bool)epicLootIsMagic.Invoke(null, new[] { item });
+                }
+                catch { }
             }
             if (isMagic)
             {
-                int rarity = (int)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("GetRarity", BindingFlags.Public | BindingFlags.Static).Invoke(null, new[] { item });
-                List<KeyValuePair<ItemDrop, int>> magicReqs =  (List<KeyValuePair<ItemDrop, int>>)epicLootAssembly.GetType("EpicLoot.Crafting.EnchantTabController").GetMethod("GetEnchantCosts", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { item, rarity });
-                foreach(var kvp in magicReqs)
+                try
                 {
-                    fullReqs.Add(new Piece.Requirement()
+                    int rarity = (int)epicLootGetRarity.Invoke(null, new[] { item });
+                    List<KeyValuePair<ItemDrop, int>> magicReqs = (List<KeyValuePair<ItemDrop, int>>)epicLootGetEnchantCosts.Invoke(null, new object[] { item, rarity });
+                    foreach (var kvp in magicReqs)
                     {
-                        m_amount = kvp.Value,
-                        m_resItem = kvp.Key
-                    });
+                        fullReqs.Add(new Piece.Requirement()
+                        {
+                            m_amount = kvp.Value,
+                            m_resItem = kvp.Key
+                        });
+                    }
                 }
+                catch { }
             }
 
             

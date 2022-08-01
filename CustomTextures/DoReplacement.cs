@@ -254,40 +254,39 @@ namespace CustomTextures
         {
             foreach (string str in MakePrefixStrings(prefix, thingName, rendererName, m.name, name))
             {
-                if (ShouldLoadCustomTexture(str+property) || ShouldLoadCustomTexture(str + property) || (property == "_MainTex" && ShouldLoadCustomTexture(str+"_texture")) || (property == "_StyleTex" && ShouldLoadCustomTexture(str + "_style")) || (property == "_BumpMap" && ShouldLoadCustomTexture(str + "_bump")))
+                if (!ShouldLoadCustomTexture(str + property))
+                    return;
+
+                int propHash = Shader.PropertyToID(property);
+                if (m.HasProperty(propHash))
                 {
+                    logDump.Add($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {str}{property} for {property}.");
 
-                    int propHash = Shader.PropertyToID(property);
-                    if (m.HasProperty(propHash))
-                    {
-                        logDump.Add($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {str}{property} for {property}.");
+                    Texture vanilla = m.GetTexture(propHash);
 
-                        Texture vanilla = m.GetTexture(propHash);
+                    Texture2D result = null;
 
-                        Texture2D result = null;
-
-                        bool isBump = property.Contains("Bump") || property.Contains("Normal");
+                    bool isBump = property.Contains("Bump") || property.Contains("Normal");
 
 
-                        if (ShouldLoadCustomTexture(str + property))
-                            result = LoadTexture(str+property, vanilla, isBump);
-                        else if (property == "_MainTex" && ShouldLoadCustomTexture(str + "_texture"))
-                            result = LoadTexture(str + "_texture", vanilla, isBump);
-                        else if (property == "_BumpMap" && ShouldLoadCustomTexture(str + "_bump"))
-                            result = LoadTexture(str + "_bump", vanilla, isBump);
-                        else if (property == "_StyleTex" && ShouldLoadCustomTexture(str + "_style"))
-                            result = LoadTexture(str + "_style", vanilla, isBump);
+                    if (ShouldLoadCustomTexture(str + property))
+                        result = LoadTexture(str+property, vanilla, isBump);
+                    else if (property == "_MainTex" && ShouldLoadCustomTexture(str + "_texture"))
+                        result = LoadTexture(str + "_texture", vanilla, isBump);
+                    else if (property == "_BumpMap" && ShouldLoadCustomTexture(str + "_bump"))
+                        result = LoadTexture(str + "_bump", vanilla, isBump);
+                    else if (property == "_StyleTex" && ShouldLoadCustomTexture(str + "_style"))
+                        result = LoadTexture(str + "_style", vanilla, isBump);
 
-                        if (result == null)
-                            continue;
+                    if (result == null)
+                        continue;
 
-                        result.name = name;
+                    result.name = name;
 
-                        m.SetTexture(propHash, result);
-                        if (result != null && property == "_MainTex")
-                            m.SetColor(propHash, Color.white);
-                        break;
-                    }
+                    m.SetTexture(propHash, result);
+                    if (result != null && property == "_MainTex")
+                        m.SetColor(propHash, Color.white);
+                    break;
                 }
             }
         }
