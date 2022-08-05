@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace MiningMod
 {
-    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.6.2")]
+    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.6.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
