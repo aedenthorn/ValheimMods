@@ -130,18 +130,18 @@ namespace CraftFromContainers
             List<Container> containers = new List<Container>();
             foreach (Container container in containerList)
             {
-                if (container != null 
-                    && container.GetComponentInParent<Piece>() != null 
-                    && Player.m_localPlayer != null 
-                    && container?.transform != null 
-                    && container.GetInventory() != null 
-                    && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) 
+                if (container != null
+                    && container.GetComponentInParent<Piece>() != null
+                    && Player.m_localPlayer != null
+                    && container?.transform != null
+                    && container.GetInventory() != null
+                    && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value)
                     //&& (!PrivateArea.CheckInPrivateArea(container.transform.position) || PrivateArea.CheckAccess(container.transform.position, 0f, true))
-                    //&& (!container.m_checkGuardStone || PrivateArea.CheckAccess(container.transform.position, 0f, false, false)) 
+                    //&& (!container.m_checkGuardStone || PrivateArea.CheckAccess(container.transform.position, 0f, false, false))
                     && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
                 {
                     //container.GetComponent<ZNetView>()?.ClaimOwnership();
-                    
+
                     containers.Add(container);
                 }
             }
@@ -264,15 +264,15 @@ namespace CraftFromContainers
                             c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
                             typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                             //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
-                            
+
                             if(__result)
                                 user.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$msg_fireadding", new string[]{__instance.m_fuelItem.m_itemData.m_shared.m_name}), 0, null);
-                            
+
                             for(int i = 0; i < amount; i++)
                                 ___m_nview.InvokeRPC("AddFuel", new object[] { });
-                            
+
                             __result = false;
-                            
+
                             if(!pullAll || Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)) >= __instance.m_maxFuel)
                                 return false;
                         }
@@ -404,7 +404,7 @@ namespace CraftFromContainers
                 Dictionary<string, int> added = new Dictionary<string, int>();
 
                 List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
-                
+
                 foreach (Smelter.ItemConversion itemConversion in __instance.m_conversion)
                 {
                     if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre || (added.Any() && !pullAll))
@@ -466,7 +466,7 @@ namespace CraftFromContainers
                             user.Message(MessageHud.MessageType.TopLeft, $"$msg_added {amount} {name}", 0, null);
 
                             if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre || !pullAll)
-                                break; 
+                                break;
                         }
                     }
                 }
@@ -486,7 +486,7 @@ namespace CraftFromContainers
                 return false;
             }
         }
-        
+
 
         [HarmonyPatch(typeof(Smelter), "OnAddFuel")]
         static class Smelter_OnAddFuel_Patch
@@ -562,11 +562,11 @@ namespace CraftFromContainers
                     user.Message(MessageHud.MessageType.Center, "$msg_noprocessableitems", 0, null);
                 else
                     user.Message(MessageHud.MessageType.Center, $"$msg_added {added} {__instance.m_fuelItem.m_itemData.m_shared.m_name}", 0, null);
-                
+
                 return __result;
             }
         }
-        
+
         // fix flashing red text, add amounts
 
         [HarmonyPatch(typeof(InventoryGui), "SetupRequirement")]
@@ -870,7 +870,7 @@ namespace CraftFromContainers
                             Vector3 connectionStartPos = station.GetConnectionEffectPoint();
                             Vector3 connectionEndPos = placementGhost.transform.position + Vector3.up * ghostConnectionStartOffset.Value;
 
-                            ConnectionParams tempConnection = null;    
+                            ConnectionParams tempConnection = null;
                             if (!connectionAlreadyExists)
                             {
                                 tempConnection = new ConnectionParams();
