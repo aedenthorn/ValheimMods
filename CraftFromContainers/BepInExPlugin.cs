@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -113,11 +113,55 @@ namespace CraftFromContainers
             StopConnectionEffects();
         }
 
-        private static bool CheckKeyHeld(string value, bool req = true)
+		private static readonly Dictionary<char, KeyCode> keycodeChars = new Dictionary<char, KeyCode>();
+
+        private static readonly Dictionary<string, KeyCode> keycodeStrings = new Dictionary<string, KeyCode>() {
+			{"p", KeyCode.UpArrow},
+			{"down", KeyCode.DownArrow},
+			{"left", KeyCode.LeftArrow},
+			{"right", KeyCode.RightArrow},
+			{"right shift", KeyCode.RightShift},
+			{"left shift", KeyCode.LeftShift},
+
+			{"right ctrl", KeyCode.RightControl},
+			{"left ctrl", KeyCode.LeftControl},
+
+			{"right alt", KeyCode.RightAlt},
+			{"left alt", KeyCode.LeftAlt},
+
+            {"right cmd", KeyCode.RightCommand},
+            {"left cmd", KeyCode.LeftCommand},
+            {"backspace", KeyCode.Backspace},
+			{"tab", KeyCode.Tab},
+			{"escape", KeyCode.Escape},
+			{"delete", KeyCode.Delete},
+			{"enter", KeyCode.Return},
+			{"insert", KeyCode.Insert},
+			{"home", KeyCode.Home},
+			{"end", KeyCode.End},
+			{"page up", KeyCode.PageUp},
+			{"page down", KeyCode.PageDown},
+
+		};
+
+		private static KeyCode GetKeyCode(char character) {
+            if (keycodeChars.TryGetValue(character, out KeyCode code)) return code;
+            int alphaValue = character;
+			code = (KeyCode)Enum.Parse(typeof(KeyCode), alphaValue.ToString());
+			keycodeChars.Add(character, code);
+			return code;
+		}
+
+
+		private static bool CheckKeyHeld(string value, bool req = true)
         {
             try
             {
-                return Input.GetKey(value.ToLower());
+                KeyCode? key = null;
+                if (key == null && keycodeStrings.ContainsKey(value)) key = keycodeStrings[value];
+                if (key == null) key = GetKeyCode(value[0]);
+                if (key == null) return !req;
+                return Input.GetKey((KeyCode)key);
             }
             catch
             {
