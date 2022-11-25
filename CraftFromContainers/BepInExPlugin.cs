@@ -1,4 +1,4 @@
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -662,16 +662,16 @@ namespace CraftFromContainers
 
 
 
-        [HarmonyPatch(typeof(Player), "HaveRequirements", new Type[] { typeof(Piece.Requirement[]), typeof(bool), typeof(int) })]
-        static class HaveRequirements_Patch
-        {
-            static void Postfix(Player __instance, ref bool __result, Piece.Requirement[] resources, bool discover, int qualityLevel, HashSet<string> ___m_knownMaterial)
+        [HarmonyPatch(typeof(Player), "HaveRequirementItems", new Type[] { typeof(Recipe), typeof(bool), typeof(int) })]
+        static class HaveRequirementItems_Patch {
+            static void Postfix(Player __instance, ref bool __result, Recipe piece, bool discover, int qualityLevel, HashSet<string> ___m_knownMaterial)
             {
                 if (!modEnabled.Value || __result || discover || !AllowByKey())
                     return;
+
                 List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
 
-                foreach (Piece.Requirement requirement in resources)
+                foreach (Piece.Requirement requirement in piece.m_resources)
                 {
                     if (requirement.m_resItem)
                     {
@@ -689,6 +689,8 @@ namespace CraftFromContainers
                 __result = true;
             }
         }
+
+
 
         [HarmonyPatch(typeof(Player), "HaveRequirements", new Type[] { typeof(Piece), typeof(Player.RequirementMode) })]
         static class HaveRequirements_Patch2
