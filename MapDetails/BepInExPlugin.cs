@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace MapDetails
 {
-    [BepInPlugin("aedenthorn.MapDetails", "Map Details", "0.2.0")]
+    [BepInPlugin("aedenthorn.MapDetails", "Map Details", "0.3.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -32,6 +32,8 @@ namespace MapDetails
         private static Vector2 lastPos = Vector2.zero;
         private static List<int> lastPixels = new List<int>();
         private static Texture2D mapTexture;
+        private static Texture2D tempTexture;
+        private static Dictionary<string, Color> playerColorDict = new Dictionary<string, Color>();
 
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -56,6 +58,42 @@ namespace MapDetails
             customPlayerColors = Config.Bind<string>("Variables", "CustomPlayerColors", "", "Custom color list, comma-separated. Use either <name>:<colorCode> pair entries or just <colorCode> entries. E.g. Erinthe:FF0000 or just FF0000. The latter will assign a color randomly to each connected peer.");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+
+            customPlayerColors.SettingChanged += CustomPlayerColors_SettingChanged;
+            ReloadNames();
+        }
+
+        private void CustomPlayerColors_SettingChanged(object sender, EventArgs e)
+        {
+            ReloadNames();
+        }
+
+        private void ReloadNames()
+        {
+            playerColorDict.Clear();
+            if (customPlayerColors.Value.Length > 0)
+            {
+                var customColors = customPlayerColors.Value.Split(',');
+                if (customPlayerColors.Value.Contains(":"))
+                {
+                    foreach(var c in customColors)
+                    {
+                        string[] pair = c.Split(':');
+                        if(ColorUtility.TryParseHtmlString(pair[1], out Color color))
+                        {
+                            playerColorDict.Add(pair[0], color);
+
+                        }
+                    }
+
+                }
+                else if(ColorUtility.TryParseHtmlString(customColors[0], out Color color))
+                {
+                    playerColorDict.Add("?", color);
+                }
+
+            }
+            Dictionary<long, Color> assignedColors = new Dictionary<long, Color>();
         }
 
         private void Update()
@@ -98,6 +136,8 @@ namespace MapDetails
                 mapTexture.wrapMode = TextureWrapMode.Clamp;
                 mapTexture.SetPixels32(data);
                 mapTexture.Apply();
+                tempTexture = new Texture2D(mapTexture.width, mapTexture.height, TextureFormat.RGBA32, false);
+                tempTexture.wrapMode = TextureWrapMode.Clamp;
             }
         }
 
@@ -138,7 +178,6 @@ namespace MapDetails
                             newPix = true;
                         pixels[idx] = piece.GetCreator();
                     }
-                    //Dbgl($"pos {pos}; map pos: {mx},{my} pixel pos {x},{y}; index {idx}");
                 }
             }
 
@@ -149,7 +188,7 @@ namespace MapDetails
                     if (!pixels.ContainsKey(i))
                         goto newpixels;
                 }
-                Dbgl("No new pixels");
+                //Dbgl("No new pixels");
                 yield break;
             }
             newpixels:
@@ -158,69 +197,31 @@ namespace MapDetails
 
             if (pixels.Count == 0)
             {
-                Dbgl("No pixels to add");
+                //Dbgl("No pixels to add");
                 SetMaps(mapTexture);
                 yield break;
             }
 
-            List<string> customColors = new List<string>();
-            if(customPlayerColors.Value.Length > 0)
-            {
-                customColors = customPlayerColors.Value.Split(',').ToList();
-            }
-            Dictionary<long, Color> assignedColors = new Dictionary<long, Color>();
-            bool named = customPlayerColors.Value.Contains(":");
-            
             Color32[] data = mapTexture.GetPixels32();
             foreach (var kvp in pixels)
             {
+                var player = Player.GetPlayer(kvp.Value)?.GetPlayerName();
                 Color color = Color.clear;
-                if (assignedColors.ContainsKey(kvp.Value))
+                if (player != null && !playerColorDict.TryGetValue(player, out color) && kvp.Value != 0)
                 {
-                    color = assignedColors[kvp.Value];
-                }
-                else if (customColors.Count > 0 && kvp.Value != 0)
-                {
-                    if (!named)
-                    {
-                        ColorUtility.TryParseHtmlString(customColors[0], out color);
-                        if(color != Color.clear)
-                        {
-                            assignedColors[kvp.Value] = color;
-                            customColors.RemoveAt(0);
-                        }
-                    }
-                    else 
-                    {
-                        string pair = customColors.Find(s => s.StartsWith(Player.GetPlayer(kvp.Value)?.GetPlayerName() + ":"));
-                        if (pair != null && pair.Length > 0)
-                        {
-                            ColorUtility.TryParseHtmlString(pair.Split(':')[1], out color);
-                        }
-                    } 
+                    playerColorDict.TryGetValue("?", out color);
                 }
 
                 if(color == Color.clear)
                     GetUserColor(kvp.Value, out color);
                 data[kvp.Key] = color;
-                /*
-                for (int i = 0; i < data.Length; i++)
-                {
-                    if (Vector2.Distance(new Vector2(i % mapTexture.width, i / mapTexture.width), new Vector2(kvp.Key % mapTexture.width, kvp.Key / mapTexture.width)) < 10)
-                        data[i] = kvp.Value;
-                }
-                */
-                //Dbgl($"pixel coords {kvp.Key % mapTexture.width},{kvp.Key / mapTexture.width}");
             }
 
-            Texture2D tempTexture = new Texture2D(mapTexture.width, mapTexture.height, TextureFormat.RGBA32, false);
-            tempTexture.wrapMode = TextureWrapMode.Clamp;
             tempTexture.SetPixels32(data);
             tempTexture.Apply();
 
             SetMaps(tempTexture);
 
-            Dbgl($"Added {pixels.Count} pixels");
             yield break;
         }
 

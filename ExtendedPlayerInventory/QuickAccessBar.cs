@@ -113,7 +113,7 @@ namespace ExtendedPlayerInventory
 					}
 				}
 				elementData.m_equiped.SetActive(itemData2.m_equiped);
-				elementData.m_queued.SetActive(player.IsItemQueued(itemData2));
+				elementData.m_queued.SetActive(player.IsEquipActionQueued(itemData2));
 				if (itemData2.m_shared.m_maxStackSize > 1)
 				{
 					elementData.m_amount.gameObject.SetActive(true);

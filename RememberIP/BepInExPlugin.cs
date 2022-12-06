@@ -44,11 +44,11 @@ namespace RememberIP
             if (!modEnabled.Value)
                 return;
 
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+            //Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
         }
 
-        [HarmonyPatch(typeof(FejdStartup), "OnJoinIPOpen")]
+        //[HarmonyPatch(typeof(FejdStartup), "OnJoinIPOpen")]
         static class FejdStartup_OnJoinIPOpen_Patch
         {
             static void Postfix(FejdStartup __instance)
@@ -56,7 +56,7 @@ namespace RememberIP
                 if (!modEnabled.Value)
                     return;
 
-                __instance.m_joinIPAddress.onValueChanged.RemoveListener(SaveIPAddress);
+                //__instance.m_joinIPAddress.onValueChanged.RemoveListener(SaveIPAddress);
 
                 string text = "";
                 if (rememberIP.Value)
@@ -67,9 +67,9 @@ namespace RememberIP
                 {
                     text += ":" + lastPort.Value;
                 }
-                __instance.m_joinIPAddress.text = text;
+                //__instance.m_joinIPAddress.text = text;
 
-                __instance.m_joinIPAddress.onValueChanged.AddListener(SaveIPAddress);
+                //__instance.m_joinIPAddress.onValueChanged.AddListener(SaveIPAddress);
             }
 
         }

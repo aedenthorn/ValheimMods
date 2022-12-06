@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "2.2.4")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.0.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -38,6 +38,13 @@ namespace CraftFromContainers
         public static ConfigEntry<string> preventModKey;
         public static ConfigEntry<string> fillAllModKey;
         public static ConfigEntry<bool> switchPrevent;
+        
+        public static ConfigEntry<bool> ignoreShipContainers;
+        public static ConfigEntry<bool> ignoreWagonContainers;
+        public static ConfigEntry<bool> ignoreWoodChests;
+        public static ConfigEntry<bool> ignorePrivateChests;
+        public static ConfigEntry<bool> ignoreBlackMetalChests;
+        public static ConfigEntry<bool> ignoreReinforcedChests;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -88,6 +95,13 @@ namespace CraftFromContainers
             pullItemsKey = Config.Bind<string>("Hot Keys", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             fillAllModKey = Config.Bind<string>("Hot Keys", "FillAllModKey", "left shift", "Modifier key to pull all available fuel or ore when down. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
 
+            ignoreShipContainers = Config.Bind<bool>("Container Types", "IgnoreShipContainers", false, "If true, will ignore this type of container.");
+            ignoreWagonContainers = Config.Bind<bool>("Container Types", "IgnoreWagonContainers", false, "If true, will ignore this type of container.");
+            ignoreWoodChests = Config.Bind<bool>("Container Types", "IgnoreWoodChests", false, "If true, will ignore this type of container.");
+            ignorePrivateChests = Config.Bind<bool>("Container Types", "IgnorePrivateChests", false, "If true, will ignore this type of container.");
+            ignoreBlackMetalChests = Config.Bind<bool>("Container Types", "IgnoreBlackMetalChests", false, "If true, will ignore this type of container.");
+            ignoreReinforcedChests = Config.Bind<bool>("Container Types", "IgnoreReinforcedChests", false, "If true, will ignore this type of container.");
+
             if (!modEnabled.Value)
                 return;
 
@@ -130,15 +144,16 @@ namespace CraftFromContainers
             List<Container> containers = new List<Container>();
             foreach (Container container in containerList)
             {
-                if (container != null 
-                    && container.GetComponentInParent<Piece>() != null 
-                    && Player.m_localPlayer != null 
-                    && container?.transform != null 
-                    && container.GetInventory() != null 
-                    && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value) 
+                if (container != null
+                    && container.GetComponentInParent<Piece>() != null
+                    && Player.m_localPlayer != null
+                    && container?.transform != null
+                    && container.GetInventory() != null
+                    && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value)
                     //&& (!PrivateArea.CheckInPrivateArea(container.transform.position) || PrivateArea.CheckAccess(container.transform.position, 0f, true))
                     //&& (!container.m_checkGuardStone || PrivateArea.CheckAccess(container.transform.position, 0f, false, false)) 
-                    && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse())
+                    && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse()
+                    && AllowContainerType(container))
                 {
                     //container.GetComponent<ZNetView>()?.ClaimOwnership();
                     
@@ -146,6 +161,12 @@ namespace CraftFromContainers
                 }
             }
             return containers;
+        }
+
+        private static bool AllowContainerType(Container __instance)
+        {
+            Ship ship = __instance.gameObject.transform.parent?.GetComponent<Ship>();
+            return !(ship != null && ignoreShipContainers.Value) && !(__instance.m_wagon && ignoreWagonContainers.Value) && !(__instance.name.StartsWith("piece_chest_wood(") && ignoreWoodChests.Value) && !(__instance.name.StartsWith("piece_chest_private(") && ignorePrivateChests.Value) && !(__instance.name.StartsWith("piece_chest_blackmetal(") && ignoreBlackMetalChests.Value) && !(__instance.name.StartsWith("piece_chest(") && ignoreReinforcedChests.Value);
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Awake")]
@@ -618,16 +639,16 @@ namespace CraftFromContainers
 
 
 
-        [HarmonyPatch(typeof(Player), "HaveRequirements", new Type[] { typeof(Piece.Requirement[]), typeof(bool), typeof(int) })]
-        static class HaveRequirements_Patch
+        [HarmonyPatch(typeof(Player), "HaveRequirementItems", new Type[] { typeof(Recipe), typeof(bool), typeof(int) })]
+        static class HaveRequirementItems_Patch
         {
-            static void Postfix(Player __instance, ref bool __result, Piece.Requirement[] resources, bool discover, int qualityLevel, HashSet<string> ___m_knownMaterial)
-            {
+            static void Postfix(Player __instance, ref bool __result, Recipe piece, bool discover, int qualityLevel, HashSet<string> ___m_knownMaterial)
+            { 
                 if (!modEnabled.Value || __result || discover || !AllowByKey())
                     return;
                 List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
 
-                foreach (Piece.Requirement requirement in resources)
+                foreach (Piece.Requirement requirement in piece.m_resources)
                 {
                     if (requirement.m_resItem)
                     {

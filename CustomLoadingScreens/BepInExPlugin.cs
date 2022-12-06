@@ -151,14 +151,23 @@ namespace CustomLoadingScreens
 
                 if (loadingTips.Any() && showTipsOnLoadingScreen.Value)
                 {
-                    GameObject hud = Resources.FindObjectsOfTypeAll<GameObject>().First(g => g.name == "HUD");
-                    Instantiate(hud.transform.Find("LoadingBlack/Loading/panel_separator").gameObject, __instance.m_loading.transform);
-                    Text text = Instantiate(hud.transform.Find("LoadingBlack/Loading/Tip").gameObject, __instance.m_loading.transform).GetComponent<Text>();
-                    if (text != null)
+                    try
                     {
-                        text.text = loadingTip;
-                        text.color = tipTextColor.Value;
+                        Hud hud = FindObjectOfType<Hud>();
+                        if(hud != null)
+                        {
+                            Transform sep = hud.transform.Find("LoadingBlack/Loading/panel_separator");
+                            if (sep != null)
+                                Instantiate(sep.gameObject, __instance.m_loading.transform);
+                            Text text = hud.m_loadingTip;
+                            if (text != null)
+                            {
+                                text.text = loadingTip;
+                                text.color = tipTextColor.Value;
+                            }
+                        }
                     }
+                    catch { }
                 }
                 else
                 {

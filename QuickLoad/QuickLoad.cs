@@ -5,10 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using static FejdStartup;
 
 namespace QuickLoad
 {
-    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.5.0")]
+    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.6.0")]
     public class QuickLoad: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -92,6 +93,7 @@ namespace QuickLoad
 
             bool isOn = FejdStartup.instance.m_publicServerToggle.isOn;
             bool isOn2 = FejdStartup.instance.m_openServerToggle.isOn;
+            bool isOn3 = FejdStartup.instance.m_crossplayServerToggle.isOn;
             string text = FejdStartup.instance.m_serverPassword.text;
             World world = (World)typeof(FejdStartup).GetMethod("FindWorld", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(FejdStartup.instance, new object[] { worldName });
 
@@ -100,20 +102,24 @@ namespace QuickLoad
 
             Dbgl($"got world");
 
-
-            ZNet.SetServer(true, isOn2, isOn, worldName, text, world);
+            AccessTools.FieldRefAccess<FejdStartup, bool>(FejdStartup.instance, "m_startingWorld") = true;
+            ZSteamMatchmaking.instance.StopServerListing();
+            PlayerPrefs.SetString("world", world.m_name);
+            if (FejdStartup.instance.m_crossplayServerToggle.IsInteractable())
+            {
+                PlayerPrefs.SetInt("crossplay", FejdStartup.instance.m_crossplayServerToggle.isOn ? 1 : 0);
+            }
+            ZNet.m_onlineBackend = isOn3 ? OnlineBackendType.PlayFab : OnlineBackendType.Steamworks;
+            ZNet.SetServer(true, isOn2, isOn, world.m_name, text, world);
             ZNet.ResetServerHost();
+            string eventLabel = "open:" + isOn2.ToString() + ",public:" + isOn.ToString();
+            Gogan.LogEvent("Menu", "WorldStart", eventLabel, 0L);
+            FejdStartup.StartGameEventHandler startGameEventHandler = AccessTools.FieldRefAccess<FejdStartup, StartGameEventHandler>(FejdStartup.instance, "startGameEvent");
+            if (startGameEventHandler != null)
+            {
+                startGameEventHandler(FejdStartup.instance, new StartGameEventArgs(true));
+            }
 
-            Dbgl($"Set server");
-            try
-            {
-                string eventLabel = "open:" + isOn2.ToString() + ",public:" + isOn.ToString();
-                Gogan.LogEvent("Menu", "WorldStart", eventLabel, 0L);
-            }
-            catch
-            {
-                Dbgl($"Error calling Gogan... oh well");
-            }
 
             Dbgl($"transitioning...");
 

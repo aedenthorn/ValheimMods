@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BuildRestrictionTweaks
 {
-    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.2.1")]
+    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.2.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private enum PlacementStatus
@@ -98,7 +98,7 @@ namespace BuildRestrictionTweaks
                 if (!modEnabled.Value || ___m_placementGhost == null)
                     return;
 
-                PlacementStatus placementStatus = (PlacementStatus)AccessTools.Field(typeof(Player), "m_placementStatus").GetValue(__instance);
+                PlacementStatus placementStatus = (PlacementStatus)(int)AccessTools.Field(typeof(Player), "m_placementStatus").GetValue(__instance);
 
                 if (
                     (placementStatus != PlacementStatus.Valid && placementStatus != PlacementStatus.PrivateZone && alwaysValid.Value)
@@ -113,7 +113,7 @@ namespace BuildRestrictionTweaks
                     || (placementStatus == PlacementStatus.NotInDungeon && ignoreDungeonRestrictions.Value)
                 )
                 {
-                    AccessTools.Field(typeof(Player), "m_placementStatus").SetValue(__instance, PlacementStatus.Valid);
+                    AccessTools.Field(typeof(Player), "m_placementStatus").SetValue(__instance, (int)PlacementStatus.Valid);
                     AccessTools.Method(typeof(Player), "SetPlacementGhostValid").Invoke(__instance, new object[] { true });
                 }
             }

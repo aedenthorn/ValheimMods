@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomWeaponStats
 {
-    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.6.1")]
+    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.7.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -127,8 +127,6 @@ namespace CustomWeaponStats
                 __state = new WeaponState(weapon);
 
                 weapon.m_shared.m_useDurabilityDrain *= globalUseDurabilityMultiplier.Value;
-                weapon.m_shared.m_holdDurationMin *= globalHoldDurationMinMultiplier.Value;
-                weapon.m_shared.m_holdStaminaDrain *= globalHoldStaminaDrainMultiplier.Value;
                 weapon.m_shared.m_attackForce *= globalAttackForceMultiplier.Value;
                 weapon.m_shared.m_backstabBonus *= globalBackstabBonusMultiplier.Value;
                 weapon.m_shared.m_damages.m_damage *= globalDamageMultiplier.Value;
@@ -151,8 +149,6 @@ namespace CustomWeaponStats
                     return;
 
                 weapon.m_shared.m_useDurabilityDrain = __state.useDurabilityDrain;
-                weapon.m_shared.m_holdDurationMin = __state.holdDurationMin;
-                weapon.m_shared.m_holdStaminaDrain = __state.holdStaminaDrain;
                 weapon.m_shared.m_attackForce = __state.attackForce;
                 weapon.m_shared.m_backstabBonus = __state.backstabBonus;
                 weapon.m_shared.m_damages.m_damage = __state.damage;
@@ -247,8 +243,6 @@ namespace CustomWeaponStats
             item.m_shared.m_useDurabilityDrain = weapon.useDurabilityDrain;
             item.m_shared.m_durabilityPerLevel = weapon.durabilityPerLevel;
             item.m_shared.m_skillType = weapon.skillType;
-            item.m_shared.m_holdDurationMin = weapon.holdDurationMin;
-            item.m_shared.m_holdStaminaDrain = weapon.holdStaminaDrain;
             item.m_shared.m_toolTier = weapon.toolTier;
             item.m_shared.m_blockable = weapon.blockable;
             item.m_shared.m_dodgeable = weapon.dodgeable;
@@ -312,8 +306,6 @@ namespace CustomWeaponStats
                 durabilityPerLevel = item.m_shared.m_durabilityPerLevel,
                 useDurabilityDrain = item.m_shared.m_useDurabilityDrain,
                 skillType = item.m_shared.m_skillType,
-                holdDurationMin = item.m_shared.m_holdDurationMin,
-                holdStaminaDrain = item.m_shared.m_holdStaminaDrain,
                 toolTier = item.m_shared.m_toolTier,
                 blockable = item.m_shared.m_blockable,
                 dodgeable = item.m_shared.m_dodgeable,

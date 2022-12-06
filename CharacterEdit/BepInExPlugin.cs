@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace CharacterEdit
 {
-    [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.5.0")]
+    [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.5.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -58,7 +58,7 @@ namespace CharacterEdit
                 var edit = Instantiate(FejdStartup.instance.m_selectCharacterPanel.transform.Find("BottomWindow").Find("New"));
                 edit.name = "Edit";
                 edit.transform.SetParent(FejdStartup.instance.m_selectCharacterPanel.transform.Find("BottomWindow"));
-                edit.GetComponent<RectTransform>().anchoredPosition = new Vector3(-751, -50, 0);
+                edit.GetComponent<RectTransform>().anchoredPosition = new Vector3(-100, 50, 0);
                 edit.transform.Find("Text").GetComponent<Text>().text = buttonText.Value;
                 edit.GetComponent<Button>().onClick.RemoveAllListeners();
                 edit.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();

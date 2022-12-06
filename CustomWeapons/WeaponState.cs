@@ -24,8 +24,6 @@
         {
 
             useDurabilityDrain = weapon.m_shared.m_useDurabilityDrain;
-            holdDurationMin = weapon.m_shared.m_holdDurationMin;
-            holdStaminaDrain = weapon.m_shared.m_holdStaminaDrain;
             attackForce = weapon.m_shared.m_attackForce;
             backstabBonus = weapon.m_shared.m_backstabBonus;
             damage = weapon.m_shared.m_damages.m_damage;

@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace RepairRequiresMats
 {
-    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.4.4")]
+    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static bool isDebug = true;

@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace AutoFeed
 {
-    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.6.2")]
+    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;

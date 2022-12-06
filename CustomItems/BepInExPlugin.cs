@@ -244,7 +244,6 @@ namespace CustomItems
                 m_foodStamina = customItem.foodStamina,
                 m_foodBurnTime = customItem.foodBurnTime,
                 m_foodRegen = customItem.foodRegen,
-                m_foodColor = customItem.foodColor,
                 m_armorMaterial = customItem.armorMaterial,
                 m_helmetHideHair = customItem.helmetHideHair,
                 m_armor = customItem.armor,
@@ -276,9 +275,6 @@ namespace CustomItems
                 m_durabilityPerLevel = customItem.durabilityPerLevel,
                 m_useDurabilityDrain = customItem.useDurabilityDrain,
                 m_durabilityDrain = customItem.durabilityDrain,
-                m_holdDurationMin = customItem.holdDurationMin,
-                m_holdStaminaDrain = customItem.holdStaminaDrain,
-                m_holdAnimationState = customItem.holdAnimationState,
                 m_ammoType = customItem.ammoType,
                 m_aiAttackRange = customItem.aiAttackRange,
                 m_aiAttackRangeMin = customItem.aiAttackRangeMin,
@@ -413,7 +409,6 @@ namespace CustomItems
                     item.foodStamina = itemData.m_shared.m_foodStamina;
                     item.foodBurnTime = itemData.m_shared.m_foodBurnTime;
                     item.foodRegen = itemData.m_shared.m_foodRegen;
-                    item.foodColor = itemData.m_shared.m_foodColor;
                     item.armorMaterial = itemData.m_shared.m_armorMaterial;
                     item.helmetHideHair = itemData.m_shared.m_helmetHideHair;
                     item.armor = itemData.m_shared.m_armor;
@@ -445,9 +440,6 @@ namespace CustomItems
                     item.durabilityPerLevel = itemData.m_shared.m_durabilityPerLevel;
                     item.useDurabilityDrain = itemData.m_shared.m_useDurabilityDrain;
                     item.durabilityDrain = itemData.m_shared.m_durabilityDrain;
-                    item.holdDurationMin = itemData.m_shared.m_holdDurationMin;
-                    item.holdStaminaDrain = itemData.m_shared.m_holdStaminaDrain;
-                    item.holdAnimationState = itemData.m_shared.m_holdAnimationState;
                     item.ammoType = itemData.m_shared.m_ammoType;
                     item.aiAttackRange = itemData.m_shared.m_aiAttackRange;
                     item.aiAttackRangeMin = itemData.m_shared.m_aiAttackRangeMin;

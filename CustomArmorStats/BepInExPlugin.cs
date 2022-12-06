@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace CustomArmorStats
 {
-    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.3.1")]
+    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -139,7 +139,7 @@ namespace CustomArmorStats
             }
         }
         
-        [HarmonyPatch(typeof(SEMan), "AddStatusEffect", new Type[] { typeof(StatusEffect), typeof(bool) })]
+        [HarmonyPatch(typeof(SEMan), "AddStatusEffect", new Type[] { typeof(StatusEffect), typeof(bool), typeof(int), typeof(float) })]
         static class SEMan_AddStatusEffect_Patch
         {
             static bool Prefix(SEMan __instance, StatusEffect statusEffect, Character ___m_character, ref StatusEffect __result)

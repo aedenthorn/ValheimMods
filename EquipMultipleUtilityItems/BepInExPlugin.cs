@@ -100,12 +100,12 @@ namespace EquipMultipleUtilityItems
         }                
         
 
-        [HarmonyPatch(typeof(Player), "QueueEquipItem")]
+        [HarmonyPatch(typeof(Player), "QueueEquipAction")]
         static class QueueEquipItem_Patch
         {
             static bool Prefix(Player __instance, ItemDrop.ItemData item)
             {
-                if (!modEnabled.Value || item == null || __instance.IsItemQueued(item) || item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Utility) 
+                if (!modEnabled.Value || item == null || __instance.IsEquipActionQueued(item) || item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Utility) 
                     return true;
 
                 var items = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
