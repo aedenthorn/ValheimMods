@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace HereFishy
 {
-    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.4.0")]
+    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.4.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -90,15 +90,25 @@ namespace HereFishy
                 Fish closestFish = null;
                 foreach (Collider collider in Physics.OverlapSphere(Player.m_localPlayer.transform.position, maxFishyDistance.Value))
                 {
+                    int which = 0;
                     Fish fish = collider.transform.parent?.gameObject?.GetComponent<Fish>();
+                    if(fish is null)
+                    {
+                        which = 1;
+                        fish = collider.GetComponent<Fish>();
+                    }
+                    if(fish is null)
+                    {
+                        which = 2;
+                        fish = collider.transform.parent?.parent?.gameObject?.GetComponent<Fish>();
+                    }
                     if (fish?.GetComponent<ZNetView>()?.IsValid() == true)
                     {
-                        //Dbgl($"got fishy at {fish.gameObject.transform.position}");
-
+                        
                         float distance = Vector3.Distance(Player.m_localPlayer.transform.position, fish.gameObject.transform.position);
                         if (distance < closest && !hereFishyFishies.Contains(fish.gameObject))
                         {
-                            //Dbgl($"closest fishy");
+                            //Dbgl($"got closer fishy at {fish.gameObject.transform.position} ({which})");
                             closest = distance;
                             closestFish = fish;
                         }
