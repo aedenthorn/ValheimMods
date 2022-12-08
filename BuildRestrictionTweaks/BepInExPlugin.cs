@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BuildRestrictionTweaks
 {
-    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.2.2")]
+    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private enum PlacementStatus
@@ -21,6 +21,7 @@ namespace BuildRestrictionTweaks
             ExtensionMissingStation,
             WrongBiome,
             NeedCultivated,
+            NeedDirt,
             NotInDungeon
         }
 
@@ -39,6 +40,7 @@ namespace BuildRestrictionTweaks
         public static ConfigEntry<bool> ignoreMissingStationExtension;
         public static ConfigEntry<bool> ignoreBiomeRestrictions;
         public static ConfigEntry<bool> ignoreCultivationRestrictions;
+        public static ConfigEntry<bool> ignoreDirtRestrictions;
         public static ConfigEntry<bool> ignoreDungeonRestrictions;
 
         private static BepInExPlugin context;
@@ -64,6 +66,7 @@ namespace BuildRestrictionTweaks
             ignoreMissingStation = Config.Bind<bool>("Options", "ignoreMissingStation", false, "Ignore missing station.");
             ignoreBiomeRestrictions = Config.Bind<bool>("Options", "ignoreBiomeRestrictions", false, "Ignore biome restrictions.");
             ignoreCultivationRestrictions = Config.Bind<bool>("Options", "ignoreCultivationRestrictions", false, "Ignore need for cultivated ground.");
+            ignoreDirtRestrictions = Config.Bind<bool>("Options", "ignoreDirtRestrictions", false, "Ignore need for dirt.");
             ignoreDungeonRestrictions = Config.Bind<bool>("Options", "ignoreDungeonRestrictions", false, "Ignore indoor restrictions.");
             
             if (!modEnabled.Value)
@@ -110,6 +113,7 @@ namespace BuildRestrictionTweaks
                     || (placementStatus == PlacementStatus.ExtensionMissingStation && ignoreMissingStationExtension.Value)
                     || (placementStatus == PlacementStatus.WrongBiome && ignoreBiomeRestrictions.Value)
                     || (placementStatus == PlacementStatus.NeedCultivated && ignoreCultivationRestrictions.Value)
+                    || (placementStatus == PlacementStatus.NeedDirt && ignoreDirtRestrictions.Value)
                     || (placementStatus == PlacementStatus.NotInDungeon && ignoreDungeonRestrictions.Value)
                 )
                 {
