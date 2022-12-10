@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BuildRestrictionTweaks
 {
-    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.3.0")]
+    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private enum PlacementStatus
@@ -76,6 +76,16 @@ namespace BuildRestrictionTweaks
 
         }
 
+        [HarmonyPatch(typeof(Location), nameof(Location.IsInsideNoBuildLocation))]
+        static class Location_IsInsideNoBuildLocation_Patch
+        {
+            static void Postfix(ref bool __result)
+            {
+                if (!modEnabled.Value || (!ignoreBuildZone.Value && !alwaysValid.Value))
+                    return;
+                __result = false;
+            }
+        }
         [HarmonyPatch(typeof(CraftingStation), "HaveBuildStationInRange")]
         static class CraftingStation_HaveBuildStationInRange_Patch
         {
