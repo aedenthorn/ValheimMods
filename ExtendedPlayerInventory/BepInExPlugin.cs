@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.4.0")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.4.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -442,10 +442,10 @@ namespace ExtendedPlayerInventory
             }
             t.GetComponent<Text>().enabled = true;
             t.GetComponent<Text>().text = value;
+            t.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 17);
             if (center)
             {
-                t.GetComponent<RectTransform>().sizeDelta = new Vector2(80, 17);
-                t.GetComponent<RectTransform>().anchoredPosition = new Vector2(30, -10);
+                t.GetComponent<RectTransform>().anchoredPosition = new Vector2(32, -10);
             }
         }
         
