@@ -228,6 +228,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CartographyTableMapRestrict
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CharacterEdit", "CharacterEdit\CharacterEdit.csproj", "{1FE586BD-20F6-442B-BB89-119E30AC4E72}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DisableEnvParticles", "DisableEnvParticles\DisableEnvParticles.csproj", "{62B64432-DA6B-483E-BEFC-AB8D0F75F806}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -670,6 +672,10 @@ Global
 		{1FE586BD-20F6-442B-BB89-119E30AC4E72}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FE586BD-20F6-442B-BB89-119E30AC4E72}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FE586BD-20F6-442B-BB89-119E30AC4E72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62B64432-DA6B-483E-BEFC-AB8D0F75F806}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62B64432-DA6B-483E-BEFC-AB8D0F75F806}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62B64432-DA6B-483E-BEFC-AB8D0F75F806}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62B64432-DA6B-483E-BEFC-AB8D0F75F806}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
