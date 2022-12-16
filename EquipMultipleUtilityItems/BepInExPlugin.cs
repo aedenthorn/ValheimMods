@@ -8,7 +8,7 @@ using Debug = UnityEngine.Debug;
 
 namespace EquipMultipleUtilityItems
 {
-    [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.3.3")]
+    [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.3.4")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -95,7 +95,7 @@ namespace EquipMultipleUtilityItems
             }
         }                
         
-        [HarmonyPatch(typeof(Player), "GetBodyArmor")]
+        //[HarmonyPatch(typeof(Player), "GetBodyArmor")]
         static class GetBodyArmor_Patch
         {
             static void Postfix(Player __instance, ref float __result)

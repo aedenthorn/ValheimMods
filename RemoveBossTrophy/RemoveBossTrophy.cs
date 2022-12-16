@@ -5,10 +5,10 @@ using HarmonyLib;
 using System.Reflection;
 using UnityEngine;
 
-namespace DisableEnvParticles
+namespace RemoveBossTrophy
 {
-    [BepInPlugin("aedenthorn.DisableEnvParticles", "Disable Env Particles", "0.1.2")]
-    public class DisableEnvParticles: BaseUnityPlugin
+    [BepInPlugin("aedenthorn.RemoveBossTrophy", "Remove Boss Trophy", "0.1.0")]
+    public class RemoveBossTrophy : BaseUnityPlugin
     {
 
         public static void Dbgl(string str = "", LogLevel logLevel = LogLevel.Debug)
@@ -16,8 +16,9 @@ namespace DisableEnvParticles
             if (isDebug.Value)
                 context.Logger.Log(logLevel, str);
         }
-        
-        private static DisableEnvParticles context;
+
+        private static RemoveBossTrophy context;
+        public static ConfigEntry<string> hotKey;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> autoLoad;
         public static ConfigEntry<bool> isDebug;
@@ -30,21 +31,20 @@ namespace DisableEnvParticles
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             nexusID = Config.Bind<int>("General", "NexusID", 2060, "Nexus mod ID for updates");
-            nexusID.Value = 2060;
             if (!modEnabled.Value)
                 return;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        [HarmonyPatch(typeof(EnvMan), "SetParticleArrayEnabled")]
-        static class EnvMan_SetParticleArrayEnabled_Patch
+        [HarmonyPatch(typeof(ItemStand), nameof(ItemStand.GetHoverText))]
+        static class ItemStand_GetHoverText_Patch
         {
-            static void Prefix(GameObject[] psystems, ref bool enabled)
+            static void Prefix(ItemStand __instance)
             {
-                if(!modEnabled.Value)
+                if(!modEnabled.Value || !Player.m_localPlayer)
                     return;
-                enabled = false;
+                __instance.m_canBeRemoved = true;
             }
         }
     }

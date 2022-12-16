@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "2.7.0")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "3.0.1")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -30,7 +30,6 @@ namespace CustomTextures
         public static List<string> layersToLoad = new List<string>();
         public static Dictionary<string, Texture2D> cachedTextures = new Dictionary<string, Texture2D>();
         
-        public static bool dumpOutput = false;
         public static List<string> outputDump = new List<string>();
         public static List<string> logDump = new List<string>();
 
@@ -51,7 +50,7 @@ namespace CustomTextures
             if (!modEnabled.Value)
                 return;
 
-            dumpOutput = dumpSceneTextures.Value;
+            
 
             LoadCustomTextures();
 

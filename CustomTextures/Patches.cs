@@ -103,7 +103,7 @@ namespace CustomTextures
                 }
                 if (ZNetScene.instance && dumpSceneTextures.Value)
                 {
-                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
+                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "zone_dump.txt");
                     Dbgl($"Writing {path}");
                     File.WriteAllLines(path, outputDump);
                     dumpSceneTextures.Value = false;
@@ -135,6 +135,17 @@ namespace CustomTextures
                         }
                     }
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(Humanoid), "SetupVisEquipment")]
+        static class Humanoid_SetupVisEquipment_Patch
+        {
+            static void Postfix(Humanoid __instance)
+            {
+                if (!modEnabled.Value)
+                    return;
+                SetupVisEquipment(__instance);
             }
         }
     }

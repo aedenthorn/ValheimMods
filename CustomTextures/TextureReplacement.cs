@@ -263,7 +263,7 @@ namespace CustomTextures
 
             Dbgl($"Reloading Environment textures");
 
-            GameObject env = GameObject.Find("_GameMain/environment");
+            GameObject env = GameObject.Find("_GameMain/_Environment");
             if (env != null)
             {
                 int count = env.transform.childCount;
@@ -306,11 +306,15 @@ namespace CustomTextures
 
         private static void SetBodyEquipmentTexture(VisEquipment instance, string itemName, SkinnedMeshRenderer smr, List<GameObject> itemInstances)
         {
+            Dbgl($"Body check: {itemName} {smr.name}");
             if (smr != null)
                 ReplaceOneGameObjectTextures(smr.gameObject, itemName, "object");
             if (itemInstances != null)
                 foreach (GameObject go in itemInstances)
-                   ReplaceOneGameObjectTextures(go, itemName, "object");
+                {
+                    Dbgl($"Body go check: {go.name}");
+                    ReplaceOneGameObjectTextures(go, itemName, "object");
+                }
         }
     }
 }
