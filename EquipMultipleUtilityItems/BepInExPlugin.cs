@@ -8,7 +8,7 @@ using Debug = UnityEngine.Debug;
 
 namespace EquipMultipleUtilityItems
 {
-    [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.3.4")]
+    [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -120,17 +120,35 @@ namespace EquipMultipleUtilityItems
             }
         }                
         
+        [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.IsItemEquiped))]
+        static class Humanoid_IsItemEquiped_Patch
+        {
+            static void Postfix(Humanoid __instance, ItemDrop.ItemData item, ItemDrop.ItemData ___m_utilityItem, ref bool __result)
+            {
+                if (!modEnabled.Value || __result) 
+                    return;
+                try
+                {
+                    __result = item.m_equiped && item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && item != ___m_utilityItem;
+                }
+                catch
+                {
+                    //Dbgl($"Error: {Environment.StackTrace}");
+                }
+            }
+        }  
+        
         [HarmonyPatch(typeof(Player), nameof(Player.GetEquipmentEitrRegenModifier))]
         static class GetEquipmentEitrRegenModifier_Patch
         {
-            static void Postfix(Player __instance, ref float __result)
+            static void Postfix(Player __instance, ItemDrop.ItemData ___m_utilityItem, ref float __result)
             {
                 if (!modEnabled.Value) 
                     return;
                 try
                 {
 
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
 
                     foreach (var item in list)
                     {
@@ -221,18 +239,41 @@ namespace EquipMultipleUtilityItems
         [HarmonyPatch(typeof(Humanoid), "UpdateEquipmentStatusEffects")]
         static class UpdateEquipmentStatusEffects_Patch
         {
+            static void Prefix(Humanoid __instance, ItemDrop.ItemData ___m_utilityItem, ref HashSet<StatusEffect> ___m_eqipmentStatusEffects, SEMan ___m_seman)
+            {
+                try
+                {
+                    if (!modEnabled.Value || !__instance.IsPlayer())
+                        return;
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => !i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem && i.m_shared.m_equipStatusEffect);
+                    var list2 = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem && i.m_shared.m_equipStatusEffect);
+
+                    foreach (var item in list)
+                    {
+                        foreach (StatusEffect statusEffect in AccessTools.FieldRefAccess<SEMan, List<StatusEffect>>(___m_seman, "m_statusEffects"))
+                        {
+                            if (statusEffect.name == item.m_shared.m_equipStatusEffect.name && (___m_utilityItem is null || ___m_utilityItem.m_shared.m_equipStatusEffect.name != statusEffect.name) && !list2.Exists(i => i.m_shared.m_equipStatusEffect.name == statusEffect.name))
+                            {
+                                ___m_seman.RemoveStatusEffect(statusEffect.name, false);
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    //Dbgl($"Error: {Environment.StackTrace}");
+                }
+            }
             static void Postfix(Humanoid __instance, ItemDrop.ItemData ___m_utilityItem, ref HashSet<StatusEffect> ___m_eqipmentStatusEffects, SEMan ___m_seman)
             {
                 try
                 {
                     if (!modEnabled.Value || !__instance.IsPlayer())
                         return;
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem && i.m_shared.m_equipStatusEffect);
 
                     foreach (var item in list)
                     {
-                        if (!item.m_shared.m_equipStatusEffect)
-                            continue;
                         ___m_seman.AddStatusEffect(item.m_shared.m_equipStatusEffect, false);
                     }
                     //Dbgl($"added {list.Count} effects");
@@ -247,14 +288,14 @@ namespace EquipMultipleUtilityItems
         [HarmonyPatch(typeof(Humanoid), "UnequipAllItems")]
         static class UnequipAllItems_Patch
         {
-            static void Postfix(Humanoid __instance)
+            static void Postfix(Humanoid __instance, ItemDrop.ItemData ___m_utilityItem)
             {
                 try
                 {
                     if (!modEnabled.Value || !__instance.IsPlayer())
                         return;
 
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
                     foreach (ItemDrop.ItemData item in list)
                         __instance.UnequipItem(item, false);
                 }
@@ -268,16 +309,16 @@ namespace EquipMultipleUtilityItems
                     
                     
         [HarmonyPatch(typeof(Player), nameof(Player.UnequipDeathDropItems))]
-        static class UnequipDeathDropItems_Patch
+        static class UnequipDeathDropItems_PatchUnequipItem
         {
-            static void Postfix(Player __instance)
+            static void Postfix(Player __instance, ItemDrop.ItemData ___m_utilityItem)
             {
                 try
                 {
                     if (!modEnabled.Value)
                         return;
 
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
                     foreach (ItemDrop.ItemData item in list)
                         __instance.UnequipItem(item, false);
                 }
@@ -289,24 +330,6 @@ namespace EquipMultipleUtilityItems
             }
         }
                     
-        [HarmonyPatch(typeof(Humanoid), "IsItemEquiped")]
-        static class IsItemEquiped_Patch
-        {
-            static void Postfix(Humanoid __instance, ItemDrop.ItemData item, ref bool __result)
-            {
-                try
-                {
-                    if (!modEnabled.Value || !__instance.IsPlayer() || __result || item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Utility)
-                        return;
-                    __result = item.m_equiped;
-                }
-                catch
-                {
-                    //Dbgl($"Error: {Environment.StackTrace}");
-
-                }
-            }
-        }
 
         [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool) })]
         static class GetTooltip_Patch

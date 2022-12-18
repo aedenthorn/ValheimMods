@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CustomLoadingScreens
 {
-    [BepInPlugin("aedenthorn.CustomLoadingScreens", "Custom Loading Screens", "0.4.0")]
+    [BepInPlugin("aedenthorn.CustomLoadingScreens", "Custom Loading Screens", "0.5.0")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -52,7 +52,7 @@ namespace CustomLoadingScreens
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             differentSpawnScreen = Config.Bind<bool>("General", "DifferentSpawnScreen", true, "Use a different screen for the spawn part");
             differentSpawnTip = Config.Bind<bool>("General", "DifferentSpawnTip", true, "Use a different tip for the spawn part");
-            showTipsOnLoadingScreen = Config.Bind<bool>("General", "ShowTipsOnLoadingScreen", true, "Show tips on loading screen.");
+            //showTipsOnLoadingScreen = Config.Bind<bool>("General", "ShowTipsOnLoadingScreen", true, "Show tips on loading screen.");
             spawnColorMask = Config.Bind<Color>("General", "SpawnColorMask", new Color(0.532f,0.588f, 0.853f,1f), "Change the color mask of the spawn screen (set last number to 0 to disable)");
             loadingColorMask = Config.Bind<Color>("General", "LoadingColorMask", Color.white, "Change the color mask of the initial loading screen (set to white to disable)");
             removeVignette = Config.Bind<bool>("General", "RemoveMask", true, "Remove dark edges for the spawn part");
@@ -149,33 +149,6 @@ namespace CustomLoadingScreens
                 image.type = Image.Type.Simple;
                 image.preserveAspect = true;
 
-                if (loadingTips.Any() && showTipsOnLoadingScreen.Value)
-                {
-                    try
-                    {
-                        Hud hud = FindObjectOfType<Hud>();
-                        if(hud != null)
-                        {
-                            Transform sep = hud.transform.Find("LoadingBlack/Loading/panel_separator");
-                            if (sep != null)
-                                Instantiate(sep.gameObject, __instance.m_loading.transform);
-                            Text text = hud.m_loadingTip;
-                            if (text != null)
-                            {
-                                text.text = loadingTip;
-                                text.color = tipTextColor.Value;
-                            }
-                        }
-                    }
-                    catch { }
-                }
-                else
-                {
-                    Text text = Instantiate(__instance.m_loading.transform.Find("Text").GetComponent<Text>(), __instance.m_loading.transform);
-                    text.text = loadingText.Value;
-                    text.color = loadingTextColor.Value;
-                }
-                __instance.m_loading.transform.Find("Text").gameObject.SetActive(false);
             }
         }
         [HarmonyPriority(Priority.First)]
