@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace CustomTextures
     public partial class BepInExPlugin
     {
 
-        [HarmonyPatch(typeof(FejdStartup), "SetupObjectDB")]
+        //[HarmonyPatch(typeof(FejdStartup), "SetupObjectDB")]
         static class FejdStartup_SetupObjectDB_Patch
         {
             static void Postfix()
@@ -28,7 +29,7 @@ namespace CustomTextures
 
         }
 
-        [HarmonyPatch(typeof(ZoneSystem), "Awake")]
+        //[HarmonyPatch(typeof(ZoneSystem), "Awake")]
         static class ZoneSystem_Awake_Patch
         {
             static void Prefix(ZoneSystem __instance)
@@ -39,7 +40,7 @@ namespace CustomTextures
             }
         }
 
-        [HarmonyPatch(typeof(ZNetScene), "Awake")]
+        //[HarmonyPatch(typeof(ZNetScene), "Awake")]
         static class ZNetScene_Awake_Patch
         {
             static void Postfix(ZNetScene __instance, Dictionary<int, GameObject> ___m_namedPrefabs)
@@ -59,10 +60,23 @@ namespace CustomTextures
             }
         }
 
+        
+        [HarmonyPatch(typeof(Player), "Start")]
+        static class Player_Start_Patch
+        {
+            static void Prefix(Player __instance)
+            {
+                if (!modEnabled.Value || Player.m_localPlayer != __instance)
+                    return;
+                Dbgl($"Player Awake");
+                ReloadTextures();
+            }
+        }
+
 
         
         
-        [HarmonyPatch(typeof(ClutterSystem), "Awake")]
+        //[HarmonyPatch(typeof(ClutterSystem), "Awake")]
         static class ClutterSystem_Awake_Patch
         {
             static void Postfix(ClutterSystem __instance)
@@ -87,7 +101,7 @@ namespace CustomTextures
             }
         }
 
-        [HarmonyPatch(typeof(ZoneSystem), "Start")]
+        //[HarmonyPatch(typeof(ZoneSystem), "Start")]
         static class ZoneSystem_Start_Patch
         {
             static void Prefix()
@@ -101,13 +115,7 @@ namespace CustomTextures
 
                     LogStopwatch("ZoneSystem Locations");
                 }
-                if (ZNetScene.instance && dumpSceneTextures.Value)
-                {
-                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "zone_dump.txt");
-                    Dbgl($"Writing {path}");
-                    File.WriteAllLines(path, outputDump);
-                    dumpSceneTextures.Value = false;
-                }
+
             }
         }
         [HarmonyPatch(typeof(VisEquipment), "Awake")]

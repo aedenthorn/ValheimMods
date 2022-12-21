@@ -210,18 +210,20 @@ namespace CustomTextures
                     }
                 }
             }
-
-            ItemDrop item = gameObject.GetComponent<ItemDrop>();
-            if (item != null && item.m_itemData.m_shared.m_armorMaterial != null)
+            ItemDrop[] items = gameObject.GetComponentsInChildren<ItemDrop>();
+            foreach(ItemDrop item in items)
             {
-                if (dumpSceneTextures.Value)
-                    outputDump.Add($"armor {thingName} has Material:");
-                Material m = item.m_itemData.m_shared.m_armorMaterial;
+                if (item != null && item.m_itemData.m_shared.m_armorMaterial != null)
+                {
+                    if (dumpSceneTextures.Value)
+                        outputDump.Add($"armor {thingName} has Material:");
+                    Material m = item.m_itemData.m_shared.m_armorMaterial;
 
-                if (dumpSceneTextures.Value)
-                    outputDump.Add($"\tArmor name: {m.name}");
+                    if (dumpSceneTextures.Value)
+                        outputDump.Add($"\tArmor name: {m.name}");
 
-                ReplaceMaterialTextures(gameObject.name, m, thingName, "armor", "Armor", gameObject.name);
+                    ReplaceMaterialTextures(gameObject.name, m, thingName, "armor", "Armor", gameObject.name);
+                }
             }
             //LogStopwatch("OneObject");
 

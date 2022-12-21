@@ -63,33 +63,6 @@ namespace CustomTextures
 
             List<GameObject> gos = new List<GameObject>();
 
-            SkinnedMeshRenderer[] smrs = FindObjectsOfType<SkinnedMeshRenderer>();
-            MeshRenderer[] mrs = FindObjectsOfType<MeshRenderer>();
-            ParticleSystemRenderer[] psrs = FindObjectsOfType<ParticleSystemRenderer>();
-            LineRenderer[] lrs = FindObjectsOfType<LineRenderer>();
-
-            foreach (var r in smrs)
-            {
-                if (!gos.Contains(r.gameObject))
-                    gos.Add(r.gameObject);
-            }
-            foreach (var r in mrs)
-            {
-                if (!gos.Contains(r.gameObject))
-                    gos.Add(r.gameObject);
-            }
-            foreach (var r in psrs)
-            {
-                if (!gos.Contains(r.gameObject))
-                    gos.Add(r.gameObject);
-            }
-            foreach (var r in lrs)
-            {
-                if (!gos.Contains(r.gameObject))
-                    gos.Add(r.gameObject);
-            }
-
-
             foreach (ClutterSystem.Clutter clutter in ClutterSystem.instance.m_clutter)
             {
                 if (!gos.Contains(clutter.m_prefab))
@@ -107,10 +80,8 @@ namespace CustomTextures
 
             foreach (GameObject gameObject in gos)
             {
-
                 if (gameObject.name == "_NetSceneRoot")
                     continue;
-
                 ReplaceOneGameObjectTextures(gameObject, gameObject.name, "object");
             }
 
@@ -121,6 +92,41 @@ namespace CustomTextures
 
         }
 
+
+        private static void ReplaceSceneObjects()
+        {
+
+            SkinnedMeshRenderer[] smrs = FindObjectsOfType<SkinnedMeshRenderer>();
+            MeshRenderer[] mrs = FindObjectsOfType<MeshRenderer>();
+            ParticleSystemRenderer[] psrs = FindObjectsOfType<ParticleSystemRenderer>();
+            InstanceRenderer[] irs = FindObjectsOfType<InstanceRenderer>();
+            LineRenderer[] lrs = FindObjectsOfType<LineRenderer>();
+            ItemDrop[] ids = FindObjectsOfType<ItemDrop>();
+            Dbgl($"smrs {smrs.Length}, mrs {mrs.Length}, psrs {psrs.Length}, lrs {lrs.Length}, ids {ids.Length}");
+
+            List<Component> objects = new List<Component>();
+            objects.AddRange(smrs);
+            objects.AddRange(mrs);
+            objects.AddRange(psrs);
+            objects.AddRange(irs);
+            objects.AddRange(lrs);
+            objects.AddRange(ids);
+            foreach (var r in objects)
+            {
+                var t = r.transform;
+                var go = r.gameObject;
+                while (t.parent != null)
+                {
+                    if (t.GetComponent<MeshRenderer>() != null || t.GetComponent<SkinnedMeshRenderer>() != null || t.GetComponent<InstanceRenderer>() != null || t.GetComponent<LineRenderer>() != null || t.GetComponent<ParticleSystemRenderer>() != null || t.GetComponent<ItemDrop>() != null)
+                    {
+                        go = t.gameObject;
+                    }
+                    t = t.parent;
+                }
+                ReplaceOneGameObjectTextures(go, go.name, "object");
+            }
+
+        }
         private static void ReplaceSkyBoxTexture()
         {
             if (customTextures.ContainsKey("skybox_StarFieldTex"))

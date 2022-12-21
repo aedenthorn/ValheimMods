@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "3.0.1")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "3.1.0")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -50,8 +50,6 @@ namespace CustomTextures
             if (!modEnabled.Value)
                 return;
 
-            
-
             LoadCustomTextures();
 
             //SceneManager.sceneLoaded += SceneManager_sceneLoaded;
@@ -66,9 +64,7 @@ namespace CustomTextures
                 Dbgl($"Pressed reload key.");
 
                 ReloadTextures();
-
             }
-
         }
         private static bool CheckKeyDown(string value)
         {

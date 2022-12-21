@@ -57,27 +57,8 @@ namespace CustomTextures
             //Dbgl($"textures to load \n\n{string.Join("\n", texturesToLoad)}");
 
             ReplaceObjectDBTextures();
+            ReplaceSceneObjects();
 
-            List<Component> objects = new List<Component>();
-            objects.AddRange(FindObjectsOfType<MeshRenderer>());
-            objects.AddRange(FindObjectsOfType<SkinnedMeshRenderer>());
-            objects.AddRange(FindObjectsOfType<InstanceRenderer>());
-            objects.AddRange(FindObjectsOfType<LineRenderer>());
-            objects.AddRange(FindObjectsOfType<ParticleSystemRenderer>());
-            foreach (var r in objects)
-            {
-                var t = r.transform;
-                var go = r.gameObject;
-                while(t.parent != null)
-                {
-                    if (t.GetComponent<MeshRenderer>() != null || t.GetComponent<SkinnedMeshRenderer>() != null || t.GetComponent<InstanceRenderer>() != null || t.GetComponent<LineRenderer>() != null || t.GetComponent<ParticleSystemRenderer>() != null)
-                    {
-                        go = t.gameObject;
-                    }
-                    t = t.parent;
-                }
-                ReplaceOneGameObjectTextures(go, go.name, "object");
-            }
             Dbgl($"Replaced textures for {reloadedObjects.Count()} found unique objects");
 
             var zones = SceneManager.GetActiveScene().GetRootGameObjects().Where(go => go.name.StartsWith("_Zone"));
@@ -96,6 +77,16 @@ namespace CustomTextures
 
             ReplaceZNetSceneTextures();
 
+            if (replaceLocationTextures.Value)
+            {
+                Dbgl($"Starting ZoneSystem Location prefab replacement");
+                stopwatch.Restart();
+
+                ReplaceLocationTextures();
+
+                LogStopwatch("ZoneSystem Locations");
+            }
+
             foreach (Player player in Player.GetAllPlayers())
             {
                 SetupVisEquipment(player);
@@ -103,6 +94,10 @@ namespace CustomTextures
 
             if (logDump.Any())
                 Dbgl("\n" + string.Join("\n", logDump));
+
+            Dbgl($"Checked {reloadedObjects.Count} objects total");
+
+            reloadedObjects.Clear();
             if (dumpSceneTextures.Value)
             {
                 string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
@@ -110,7 +105,6 @@ namespace CustomTextures
                 File.WriteAllLines(path, outputDump);
                 dumpSceneTextures.Value = false;
             }
-            reloadedObjects.Clear();
         }
 
         private static void SetupVisEquipment(Humanoid humanoid)
