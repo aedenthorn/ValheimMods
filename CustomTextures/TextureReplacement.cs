@@ -184,7 +184,7 @@ namespace CustomTextures
             if (mat != null)
             {
                 outputDump.Add($"terrain {zoneSystem}, prefab {prefab.name}");
-                ReplaceMaterialTextures(prefab.name, mat, zoneSystem, "terrain", "Terrain", prefab.name);
+                ReplaceMaterialTextures(prefab.name, mat, zoneSystem, "terrain", "Terrain", prefab.name, dumpSceneTextures.Value);
                 hm.Regenerate();
             }
         }
@@ -246,7 +246,7 @@ namespace CustomTextures
                 if (mat != null)
                 {
                     outputDump.Add($"terrain {zoneSystem.name}, prefab {zoneSystem.m_zonePrefab}");
-                    ReplaceMaterialTextures(zoneSystem.m_zonePrefab.name, mat, zoneSystem.name, "terrain", "Terrain", zoneSystem.m_zonePrefab.name);
+                    ReplaceMaterialTextures(zoneSystem.m_zonePrefab.name, mat, zoneSystem.name, "terrain", "Terrain", zoneSystem.m_zonePrefab.name, dumpSceneTextures.Value);
                     hm.Regenerate();
                 }
             }
@@ -258,7 +258,7 @@ namespace CustomTextures
                 if (mat != null)
                 {
                     outputDump.Add($"terrain {zoneSystem.name}, prefab {zoneSystem.m_zonePrefab}");
-                    ReplaceMaterialTextures(zoneSystem.m_zonePrefab.name, mat, zoneSystem.name, "terrain", "Terrain", zoneSystem.m_zonePrefab.name);
+                    ReplaceMaterialTextures(zoneSystem.m_zonePrefab.name, mat, zoneSystem.name, "terrain", "Terrain", zoneSystem.m_zonePrefab.name, dumpSceneTextures.Value);
                 }
             }
             if (logDump.Any())

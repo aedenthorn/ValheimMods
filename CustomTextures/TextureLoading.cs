@@ -46,7 +46,7 @@ namespace CustomTextures
             }
         }
         public static List<int> reloadedObjects = new List<int>();
-        private static void ReloadTextures()
+        private static void ReloadTextures(bool locations)
         {
             reloadedObjects.Clear();
             outputDump.Clear();
@@ -77,7 +77,7 @@ namespace CustomTextures
 
             ReplaceZNetSceneTextures();
 
-            if (replaceLocationTextures.Value)
+            if (locations)
             {
                 Dbgl($"Starting ZoneSystem Location prefab replacement");
                 stopwatch.Restart();

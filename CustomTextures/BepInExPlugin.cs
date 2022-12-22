@@ -11,12 +11,13 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "3.1.1")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "3.2.0")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> dumpSceneTextures;
         public static ConfigEntry<bool> replaceLocationTextures;
+        public static ConfigEntry<bool> reloadLocationTextures;
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<int> nexusID;
 
@@ -44,6 +45,7 @@ namespace CustomTextures
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             hotKey = Config.Bind<string>("General", "HotKey", "page down", "Key to reload textures");
             replaceLocationTextures = Config.Bind<bool>("General", "ReplaceLocationTextures", true, "Replace textures for special locations (can take a long time)");
+            reloadLocationTextures = Config.Bind<bool>("General", "ReloadLocationTextures", false, "Reload textures for special locations on manual reload (can take a long time)");
             dumpSceneTextures = Config.Bind<bool>("General", "DumpSceneTextures", false, "Dump scene textures to BepInEx/plugins/CustomTextures/scene_dump.txt");
             nexusID = Config.Bind<int>("General", "NexusID", 48, "Nexus mod ID for updates");
 
@@ -63,7 +65,7 @@ namespace CustomTextures
             {
                 Dbgl($"Pressed reload key.");
 
-                ReloadTextures();
+                ReloadTextures(reloadLocationTextures.Value && replaceLocationTextures.Value);
             }
         }
         private static bool CheckKeyDown(string value)

@@ -23,6 +23,11 @@ namespace CustomTextures
             }
             //stopwatch.Restart();
 
+            bool dump = dumpSceneTextures.Value;
+
+            if (dump && thingName.EndsWith("(Clone)"))
+                dump = false;
+
             //Dbgl($"loading textures for { gameObject.name}");
             MeshRenderer[] mrs = gameObject.GetComponentsInChildren<MeshRenderer>(true);
             SkinnedMeshRenderer[] smrs = gameObject.GetComponentsInChildren<SkinnedMeshRenderer>(true);
@@ -33,36 +38,36 @@ namespace CustomTextures
 
             if (mrs.Length > 0)
             {
-                if(dumpSceneTextures.Value)
+                if(dump)
                     outputDump.Add($"{prefix} {thingName} has {mrs.Length} MeshRenderers:");
                 foreach (MeshRenderer r in mrs)
                 {
                     if (r == null)
                     {
-                        if (dumpSceneTextures.Value)
+                        if (dump)
                             outputDump.Add($"\tnull");
                         continue;
                     }
 
-                    if (dumpSceneTextures.Value)
+                    if (dump)
                         outputDump.Add($"\tMeshRenderer name: {r.name}");
                     if (r.materials == null || !r.materials.Any())
                     {
-                        if (dumpSceneTextures.Value)
+                        if (dump)
                             outputDump.Add($"\t\trenderer {r.name} has no materials");
                         continue;
                     }
-                    if (dumpSceneTextures.Value)
+                    if (dump)
                         outputDump.Add($"\t\trenderer {r.name} has {r.materials.Length} materials");
 
                     foreach (Material m in r.materials)
                     {
                         try
                         {
-                            if (dumpSceneTextures.Value)
+                            if (dump)
                                 outputDump.Add($"\t\t\t{m.name}:");
 
-                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "MeshRenderer", r.name);
+                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "MeshRenderer", r.name, dump);
                         }
                         catch (Exception ex)
                         {
@@ -74,36 +79,36 @@ namespace CustomTextures
             }
             if (smrs.Length > 0)
             {
-                if (dumpSceneTextures.Value)
+                if (dump)
                     outputDump.Add($"{prefix} {thingName} has {smrs.Length} SkinnedMeshRenderers:");
                 foreach (SkinnedMeshRenderer r in smrs)
                 {
                     if (r == null)
                     {
-                        if (dumpSceneTextures.Value)
+                        if (dump)
                             outputDump.Add($"\tnull");
                         continue;
                     }
-                    if (dumpSceneTextures.Value)
+                    if (dump)
                         outputDump.Add($"\tSkinnedMeshRenderer name: {r.name}");
                     if (r.materials == null || !r.materials.Any())
                     {
-                        if (dumpSceneTextures.Value)
+                        if (dump)
                             outputDump.Add($"\t\tsmr {r.name} has no materials");
                         continue;
                     }
 
-                    if (dumpSceneTextures.Value)
+                    if (dump)
                         outputDump.Add($"\t\tsmr {r.name} has {r.materials.Length} materials");
 
                     foreach (Material m in r.materials)
                     {
                         try
                         {
-                            if (dumpSceneTextures.Value)
+                            if (dump)
                                 outputDump.Add($"\t\t\t{m.name}:");
 
-                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "SkinnedMeshRenderer", r.name);
+                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "SkinnedMeshRenderer", r.name, dump);
                         }
                         catch (Exception ex)
                         {
@@ -115,32 +120,32 @@ namespace CustomTextures
             }
             if (irs.Length > 0)
             {
-                if (dumpSceneTextures.Value)
+                if (dump)
                     outputDump.Add($"{prefix} {thingName} has {irs.Length} InstanceRenderer:");
                 foreach (InstanceRenderer r in irs)
                 {
                     if (r == null)
                     {
-                        if (dumpSceneTextures.Value)
+                        if (dump)
                             outputDump.Add($"\tnull");
                         continue;
                     }
 
-                    if (dumpSceneTextures.Value)
+                    if (dump)
                         outputDump.Add($"\tInstanceRenderer name: {r.name}");
                     if (r.m_material == null)
                     {
-                        if (dumpSceneTextures.Value)
+                        if (dump)
                             outputDump.Add($"\t\tir {r.name} has no material");
                         continue;
                     }
 
                     try
                     {
-                        if (dumpSceneTextures.Value)
+                        if (dump)
                             outputDump.Add($"\t\t\t{r.m_material.name}:");
 
-                        ReplaceMaterialTextures(gameObject.name, r.m_material, thingName, prefix, "InstanceRenderer", r.name);
+                        ReplaceMaterialTextures(gameObject.name, r.m_material, thingName, prefix, "InstanceRenderer", r.name, dump);
                     }
                     catch (Exception ex)
                     {
@@ -150,27 +155,27 @@ namespace CustomTextures
             }
             if (prs.Length > 0)
             {
-                if (dumpSceneTextures.Value)
+                if (dump)
                     outputDump.Add($"{prefix} {thingName} has {prs.Length} ParticleSystemRenderers:");
                 foreach (ParticleSystemRenderer r in prs)
                 {
                     if (r == null)
                     {
-                        if (dumpSceneTextures.Value)
+                        if (dump)
                             outputDump.Add($"\tnull");
                         continue;
                     }
 
-                    if (dumpSceneTextures.Value)
+                    if (dump)
                         outputDump.Add($"\tParticleSystemRenderer name: {r.name}");
                     foreach (Material m in r.materials)
                     {
                         try
                         {
-                            if (dumpSceneTextures.Value)
+                            if (dump)
                                 outputDump.Add($"\t\t\t{m.name}:");
 
-                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "ParticleSystemRenderer", r.name);
+                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "ParticleSystemRenderer", r.name, dump);
                         }
                         catch (Exception ex)
                         {
@@ -181,27 +186,27 @@ namespace CustomTextures
             }
             if (lrs.Length > 0)
             {
-                if (dumpSceneTextures.Value)
+                if (dump)
                     outputDump.Add($"{prefix} {thingName} has {lrs.Length} LineRenderers:");
                 foreach (LineRenderer r in lrs)
                 {
                     if (r == null)
                     {
-                        if (dumpSceneTextures.Value)
+                        if (dump)
                             outputDump.Add($"\tnull");
                         continue;
                     }
 
-                    if (dumpSceneTextures.Value)
+                    if (dump)
                         outputDump.Add($"\tLineRenderers name: {r.name}");
                     foreach (Material m in r.materials)
                     {
                         try
                         {
-                            if (dumpSceneTextures.Value)
+                            if (dump)
                                 outputDump.Add($"\t\t\t{m.name}:");
 
-                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "LineRenderer", r.name);
+                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "LineRenderer", r.name, dump);
                         }
                         catch (Exception ex)
                         {
@@ -215,21 +220,21 @@ namespace CustomTextures
             {
                 if (item != null && item.m_itemData.m_shared.m_armorMaterial != null)
                 {
-                    if (dumpSceneTextures.Value)
+                    if (dump)
                         outputDump.Add($"armor {thingName} has Material:");
                     Material m = item.m_itemData.m_shared.m_armorMaterial;
 
-                    if (dumpSceneTextures.Value)
+                    if (dump)
                         outputDump.Add($"\tArmor name: {m.name}");
 
-                    ReplaceMaterialTextures(gameObject.name, m, thingName, "armor", "Armor", gameObject.name);
+                    ReplaceMaterialTextures(gameObject.name, m, thingName, "armor", "Armor", gameObject.name, dump);
                 }
             }
             //LogStopwatch("OneObject");
 
         }
 
-        private static void ReplaceMaterialTextures(string goName, Material m, string thingName, string prefix, string rendererType, string rendererName)
+        private static void ReplaceMaterialTextures(string goName, Material m, string thingName, string prefix, string rendererType, string rendererName, bool dump)
         {
             if (dumpSceneTextures.Value)
                 outputDump.Add("\t\t\t\tproperties:");
@@ -297,7 +302,7 @@ namespace CustomTextures
 
         private static string[] MakePrefixStrings(string prefix, string thingName, string rendererName, string matName, string name)
         {
-            return new string[]
+            var outstrings = new string[]
             {
                 prefix+"_"+thingName,
                 prefix+"mesh_"+thingName+"_"+rendererName,
@@ -310,6 +315,25 @@ namespace CustomTextures
                 "mat_"+matName,
                 "texture_"+name
             };
+            if (!thingName.EndsWith("(Clone)"))
+                return outstrings;
+            
+            List<string> strings = new List<string>(outstrings);
+            thingName = thingName.Substring(0, thingName.Length - "(Clone)".Length);
+            strings.AddRange(new string[]
+            {
+                prefix+"_"+thingName,
+                prefix+"mesh_"+thingName+"_"+rendererName,
+                prefix+"renderer_"+thingName+"_"+rendererName,
+                prefix+"mat_"+thingName+"_"+matName,
+                prefix+"renderermat_"+thingName+"_"+rendererName+"_"+matName,
+                prefix+"texture_"+thingName+"_"+name,
+                "mesh_"+rendererName,
+                "renderer_"+rendererName,
+                "mat_"+matName,
+                "texture_"+name
+            });
+            return strings.ToArray();
         }
 
 
