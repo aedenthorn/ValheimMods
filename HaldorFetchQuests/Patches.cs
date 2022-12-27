@@ -180,15 +180,14 @@ namespace HaldorFetchQuests
             }
             static void Postfix(StoreGui __instance, Trader ___m_trader, List<GameObject> ___m_itemList)
             {
-                if (!modEnabled.Value || Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))
+                if (!modEnabled.Value || currentQuestDict is null || Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))
                     return;
 
                 int index = ___m_trader.m_items.Count;
 
                 Dbgl($"Adding {currentQuestDict.Count} quests to trader");
-                for(int i = 0; i < currentQuestDict.Count; i++)
+                foreach(var fqd in currentQuestDict.Values)
                 {
-                    FetchQuestData fqd = currentQuestDict.Values.ToArray()[i];
 
                     Dbgl($"{fqd.ID}");
                     ItemDrop.ItemData data = new ItemDrop.ItemData() { m_shared = new SharedData() };
@@ -209,7 +208,14 @@ namespace HaldorFetchQuests
                     Image component = buttonObject.transform.Find("icon").GetComponent<Image>();
                     if (fqd.type == FetchType.Fetch)
                     {
-                        component.sprite = ObjectDB.instance.m_items.Find(g => g.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == fqd.thing).GetComponent<ItemDrop>().m_itemData.m_shared.m_icons[0];
+                        try
+                        {
+                            component.sprite = ObjectDB.instance.m_items.Find(g => g.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == fqd.thing).GetComponent<ItemDrop>().m_itemData.m_shared.m_icons[0];
+                        }
+                        catch
+                        {
+                            Dbgl($"error getting sprite for {fqd.thing}");
+                        }
                     }
                     component.color = active ? new Color(1f, 0f, 1f, 0f) : Color.white;
 

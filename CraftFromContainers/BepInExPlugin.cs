@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.0.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.0.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -151,7 +151,7 @@ namespace CraftFromContainers
                     && container.GetInventory() != null
                     && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value)
                     //&& (!PrivateArea.CheckInPrivateArea(container.transform.position) || PrivateArea.CheckAccess(container.transform.position, 0f, true))
-                    //&& (!container.m_checkGuardStone || PrivateArea.CheckAccess(container.transform.position, 0f, false, false)) 
+                    && (!container.m_checkGuardStone || PrivateArea.CheckAccess(container.transform.position, 0f, false, false))
                     && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse()
                     && AllowContainerType(container))
                 {
