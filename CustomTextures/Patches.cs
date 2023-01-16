@@ -61,7 +61,7 @@ namespace CustomTextures
         }
 
         
-        [HarmonyPatch(typeof(Player), "Start")]
+        //[HarmonyPatch(typeof(Player), "Start")]
         static class Player_Start_Patch
         {
             static void Prefix(Player __instance)
