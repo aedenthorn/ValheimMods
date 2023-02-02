@@ -86,9 +86,8 @@ namespace ClockMod
                 alignment = clockTextAlignment.Value,
             };
 
-            
-            
-    }
+        }
+
         private void Update()
         {
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses() || toggleClockKeyOnPress.Value || !PressedToggleKey())

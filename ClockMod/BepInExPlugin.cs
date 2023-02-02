@@ -2,6 +2,7 @@
 using HarmonyLib;
 using System;
 using System.Reflection;
+using UnityEngine;
 
 namespace ClockMod
 {
@@ -18,6 +19,8 @@ namespace ClockMod
             toggleClockKey = Config.Bind<string>("General", "ShowClockKey", "home", "Key used to toggle the clock display. use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             clockLocationString = Config.Bind<string>("General", "ClockLocationString", "50%,3%", "Location on the screen to show the clock (x,y) or (x%,y%)");
 
+            clockLocationString.SettingChanged += ClockLocationString_SettingChanged;
+
             LoadConfig();
 
             if (!modEnabled.Value)
@@ -25,6 +28,15 @@ namespace ClockMod
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
+
+        private void ClockLocationString_SettingChanged(object sender, EventArgs e)
+        {
+            string[] split = clockLocationString.Value.Split(',');
+            clockPosition = new Vector2(split[0].Trim().EndsWith("%") ? (float.Parse(split[0].Trim().Substring(0, split[0].Trim().Length - 1)) / 100f) * Screen.width : float.Parse(split[0].Trim()), split[1].Trim().EndsWith("%") ? (float.Parse(split[1].Trim().Substring(0, split[1].Trim().Length - 1)) / 100f) * Screen.height : float.Parse(split[1].Trim()));
+
+            windowRect = new Rect(clockPosition, new Vector2(1000, 100));
+        }
+
         private string GetCurrentTimeString()
         {
             if (!EnvMan.instance)

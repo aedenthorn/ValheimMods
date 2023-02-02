@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 namespace DamageMod
@@ -51,10 +52,16 @@ namespace DamageMod
 
             SetCustomDamages();
 
-
+            customAttackerDamageMult.SettingChanged += SettingChanged;
+            customDefenderDamageMult.SettingChanged += SettingChanged;
 
             harmony = new Harmony(Info.Metadata.GUID);
             harmony.PatchAll();
+        }
+
+        private void SettingChanged(object sender, System.EventArgs e)
+        {
+            SetCustomDamages();
         }
 
         private static void SetCustomDamages()
@@ -63,7 +70,7 @@ namespace DamageMod
             Dbgl(customDefenderDamageMult.Value);
             foreach (string pair in customAttackerDamageMult.Value.Split(','))
             {
-                if (!pair.Contains(":") || !float.TryParse(pair.Split(':')[1], out float result))
+                if (!pair.Contains(":") || !float.TryParse(pair.Split(':')[1], NumberStyles.Any, CultureInfo.InvariantCulture,  out float result))
                     continue;
 
                 attackerMults.Add(pair.Split(':')[0], result);
@@ -71,7 +78,7 @@ namespace DamageMod
 
             foreach (string pair in customDefenderDamageMult.Value.Split(','))
             {
-                if (!pair.Contains(":") || !float.TryParse(pair.Split(':')[1], out float result))
+                if (!pair.Contains(":") || !float.TryParse(pair.Split(':')[1], NumberStyles.Any, CultureInfo.InvariantCulture, out float result))
                     continue;
 
                 defenderMults.Add(pair.Split(':')[0], result);
