@@ -6,7 +6,7 @@ using Debug = UnityEngine.Debug;
 
 namespace MapCoordinateDisplay
 {
-    [BepInPlugin("aedenthorn.MapCoordinateDisplay", "Map Coordinate Display", "0.3.0")]
+    [BepInPlugin("aedenthorn.MapCoordinateDisplay", "Map Coordinate Display", "0.3.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -72,11 +72,17 @@ namespace MapCoordinateDisplay
             fontName = Config.Bind<string>("Display", "FontName", "AveriaSerifLibre-Bold", "Font name");
             alignment = Config.Bind<TextAnchor>("Display", "TextAlignment", TextAnchor.UpperCenter, "Text alignment");
 
+            coordPosition.SettingChanged += CoordPosition_SettingChanged;
 
             windowRect = new Rect(coordPosition.Value, new Vector2(1000, 100));
 
             harmony = new Harmony(Info.Metadata.GUID);
             harmony.PatchAll();
+        }
+
+        private void CoordPosition_SettingChanged(object sender, System.EventArgs e)
+        {
+            windowRect = new Rect(coordPosition.Value, new Vector2(1000, 100));
         }
 
         private void OnDestroy()
