@@ -137,7 +137,7 @@ namespace NotificationTweaks
                 return codes;
             }
 
-            static void Postfix(MessageHud __instance, float ___m_msgQueueTimer, float dt)
+            static void Postfix(MessageHud __instance)
             {
                 if (!modEnabled.Value)
                     return;
