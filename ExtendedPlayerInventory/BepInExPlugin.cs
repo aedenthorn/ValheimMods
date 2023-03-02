@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.4.1")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.4.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -21,6 +21,7 @@ namespace ExtendedPlayerInventory
         public static ConfigEntry<int> nexusID;
 
         public static ConfigEntry<bool> addEquipmentRow;
+        public static ConfigEntry<bool> showGearInMenu;
         public static ConfigEntry<bool> displayEquipmentRowSeparate;
         public static ConfigEntry<int> extraRows;
         
@@ -71,6 +72,7 @@ namespace ExtendedPlayerInventory
 
             extraRows = Config.Bind<int>("Toggles", "ExtraRows", 0, "Number of extra ordinary rows.");
             addEquipmentRow = Config.Bind<bool>("Toggles", "AddEquipmentRow", true, "Add special row for equipped items and quick slots.");
+            showGearInMenu = Config.Bind<bool>("Toggles", "ShowGearInMenu", true, "Display equipped items in the main menu.");
             displayEquipmentRowSeparate = Config.Bind<bool>("Toggles", "DisplayEquipmentRowSeparate", true, "Display equipment and quickslots in their own area.");
 
             helmetText = Config.Bind<string>("Strings", "HelmetText", "Head", "Text to show for helmet slot.");
@@ -187,7 +189,7 @@ namespace ExtendedPlayerInventory
 
                 Dbgl("InventoryGui Show");
 
-                ArrangeEquipment();
+                ArrangeEquipment(Player.m_localPlayer);
 
                 if (displayEquipmentRowSeparate.Value && __instance.m_player.Find("EquipmentBkg") == null)
                 {
@@ -216,7 +218,7 @@ namespace ExtendedPlayerInventory
                 int height = extraRows.Value + (addEquipmentRow.Value ? 5 : 4);
                 AccessTools.FieldRefAccess<Inventory, int>(__instance, "m_height") = height;
 
-                ArrangeEquipment();
+                ArrangeEquipment(Player.m_localPlayer);
             }
 
         }
@@ -226,21 +228,22 @@ namespace ExtendedPlayerInventory
         {
             static void Postfix(Humanoid __instance)
             {
-                if (!modEnabled.Value || !addEquipmentRow.Value || !Player.m_localPlayer || __instance != Player.m_localPlayer)
+                if (!modEnabled.Value || !addEquipmentRow.Value || (__instance != Player.m_localPlayer && (!showGearInMenu.Value || Player.m_localPlayer != null)))
                     return;
 
-                ArrangeEquipment();
+                ArrangeEquipment((Player)__instance);
             }
 
         }
 
-        private static void ArrangeEquipment()
+        private static void ArrangeEquipment(Player __instance)
         {
             if (!modEnabled.Value)
                 return;
-            Traverse t = Traverse.Create(Player.m_localPlayer);
+            Traverse t = Traverse.Create(__instance);
 
-            Inventory inv = Player.m_localPlayer.GetInventory();
+            Inventory inv = __instance.GetInventory();
+
 
             var items = inv.GetAllItems();
 
@@ -288,14 +291,14 @@ namespace ExtendedPlayerInventory
                         )
                         continue;
 
-                    if (which > -1 && items[i].m_shared.m_itemType == typeEnums[which] && equipItems[which] != items[i] && Player.m_localPlayer.EquipItem(items[i], false)) // in right slot and new
+                    if (which > -1 && items[i].m_shared.m_itemType == typeEnums[which] && equipItems[which] != items[i] && __instance.EquipItem(items[i], false)) // in right slot and new
                         continue;
 
                     // in wrong slot or unequipped in slot or can't equip
                     Vector2i newPos = (Vector2i)typeof(Inventory).GetMethod("FindEmptySlot", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inv, new object[] { true });
                     if (newPos.x < 0 || newPos.y < 0 || newPos.y == inv.GetHeight() - 1)
                     {
-                        Player.m_localPlayer.DropItem(inv, items[i], items[i].m_stack);
+                        __instance.DropItem(inv, items[i], items[i].m_stack);
                     }
                     else
                     {

@@ -13,7 +13,7 @@ using Text = UnityEngine.UI.Text;
 
 namespace AmmoCount
 {
-    [BepInPlugin("aedenthorn.AmmoCount", "Ammo Count", "0.2.0")]
+    [BepInPlugin("aedenthorn.AmmoCount", "Ammo Count", "0.2.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -146,6 +146,8 @@ namespace AmmoCount
                 for (int i = 0; i < ___m_items.Count(); i++)
                 {
                     int k = ___m_items[i].m_gridPos.x;
+                    if (k < 0 || k >= list.Count() || list.ElementAt(k) is null)
+                        continue;
                     GameObject slotObject = (GameObject)AccessTools.Field(list.ElementAt(k).GetType(), "m_go").GetValue(list.ElementAt(k));
 
                     Transform t = slotObject.transform.Find("AmmoCount");

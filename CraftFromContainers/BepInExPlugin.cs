@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.0.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.1.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -55,7 +55,13 @@ namespace CraftFromContainers
         public static bool odinsQolInstalled;
         public static float itemStackSizeMultiplier;
         public static float itemWeightReduction;
+
+        public static Vector3 lastPosition = Vector3.positiveInfinity;
+        public static List<Container> cachedContainerList = new List<Container>();
+
         private static BepInExPlugin context = null;
+        
+        private static bool skip;
 
         public class ConnectionParams
         {
@@ -102,17 +108,18 @@ namespace CraftFromContainers
             ignoreBlackMetalChests = Config.Bind<bool>("Container Types", "IgnoreBlackMetalChests", false, "If true, will ignore this type of container.");
             ignoreReinforcedChests = Config.Bind<bool>("Container Types", "IgnoreReinforcedChests", false, "If true, will ignore this type of container.");
 
-            if (!modEnabled.Value)
-                return;
-
             wasAllowed = !switchPrevent.Value;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
+
+            Dbgl("Mod awake");
+
         }
 
         private void LateUpdate()
         {
             wasAllowed = AllowByKey();
+            skip = false;
         }
 
         private static bool AllowByKey()
@@ -142,31 +149,39 @@ namespace CraftFromContainers
         public static List<Container> GetNearbyContainers(Vector3 center)
         {
             List<Container> containers = new List<Container>();
+            if (Player.m_localPlayer is null)
+                return containers;
+            if (Vector3.Distance(center, lastPosition) < 0.5f)
+                return cachedContainerList;
+            var checkAccess = AccessTools.Method(typeof(Container), "CheckAccess");
             foreach (Container container in containerList)
             {
-                if (container != null
-                    && container.GetComponentInParent<Piece>() != null
-                    && Player.m_localPlayer != null
-                    && container?.transform != null
-                    && container.GetInventory() != null
+                if (container != null && container.transform != null
                     && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value)
+                    && AllowContainerType(container)
+                    && (bool)checkAccess.Invoke(container, new object[] { Player.m_localPlayer.GetPlayerID() }) 
+                    && !container.IsInUse()
+                    && container.GetComponentInParent<Piece>() != null
+                    && container.GetInventory() != null
                     //&& (!PrivateArea.CheckInPrivateArea(container.transform.position) || PrivateArea.CheckAccess(container.transform.position, 0f, true))
                     && (!container.m_checkGuardStone || PrivateArea.CheckAccess(container.transform.position, 0f, false, false))
-                    && Traverse.Create(container).Method("CheckAccess", new object[] { Player.m_localPlayer.GetPlayerID() }).GetValue<bool>() && !container.IsInUse()
-                    && AllowContainerType(container))
+                    )
                 {
                     //container.GetComponent<ZNetView>()?.ClaimOwnership();
                     
                     containers.Add(container);
                 }
             }
+            Dbgl($"Got {containers.Count} containers.");
+            lastPosition = center;
+            cachedContainerList = containers;
             return containers;
         }
 
         private static bool AllowContainerType(Container __instance)
         {
             Ship ship = __instance.gameObject.transform.parent?.GetComponent<Ship>();
-            return !(ship != null && ignoreShipContainers.Value) && !(__instance.m_wagon && ignoreWagonContainers.Value) && !(__instance.name.StartsWith("piece_chest_wood(") && ignoreWoodChests.Value) && !(__instance.name.StartsWith("piece_chest_private(") && ignorePrivateChests.Value) && !(__instance.name.StartsWith("piece_chest_blackmetal(") && ignoreBlackMetalChests.Value) && !(__instance.name.StartsWith("piece_chest(") && ignoreReinforcedChests.Value);
+            return (!ignoreShipContainers.Value || ship is null) && (!ignoreWagonContainers.Value || __instance.m_wagon is null) && (!ignoreWoodChests.Value || !__instance.name.StartsWith("piece_chest_wood(")) && (!ignorePrivateChests.Value || !__instance.name.StartsWith("piece_chest_private(")) && (!ignoreBlackMetalChests.Value || !__instance.name.StartsWith("piece_chest_blackmetal(")) && (!ignoreReinforcedChests.Value || !__instance.name.StartsWith("piece_chest("));
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Awake")]
@@ -199,7 +214,7 @@ namespace CraftFromContainers
                 //Dbgl($"Checking {container.name} {nview != null} {nview?.GetZDO() != null} {nview?.GetZDO()?.GetLong("creator".GetStableHashCode(), 0L)}");
                 if (container.GetInventory() != null && nview?.GetZDO() != null && (container.name.StartsWith("piece_") || container.name.StartsWith("Container") || nview.GetZDO().GetLong("creator".GetStableHashCode(), 0L) != 0))
                 {
-                    //Dbgl($"Adding {container.name}");
+                    Dbgl($"Adding {container.name}");
                     containerList.Add(container);
                 }
             }
@@ -608,8 +623,7 @@ namespace CraftFromContainers
                     Text text = elementRoot.transform.Find("res_amount").GetComponent<Text>();
                     if (invAmount < amount)
                     {
-                        List<Container> nearbyContainers = GetNearbyContainers(Player.m_localPlayer.transform.position);
-                        foreach (Container c in nearbyContainers)
+                        foreach (Container c in GetNearbyContainers(Player.m_localPlayer.transform.position))
                             invAmount += c.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name);
 
                         if (invAmount >= amount)
@@ -666,13 +680,27 @@ namespace CraftFromContainers
                 __result = true;
             }
         }
+        
+        [HarmonyPatch(typeof(Player), "UpdateKnownRecipesList")]
+        static class UpdateKnownRecipesList_Patch
+        {
+
+            static void Prefix()
+            {
+                skip = true;
+            }
+            static void Postfix()
+            {
+                skip = false;
+            }
+        }
 
         [HarmonyPatch(typeof(Player), "HaveRequirements", new Type[] { typeof(Piece), typeof(Player.RequirementMode) })]
-        static class HaveRequirements_Patch2
+        static class HaveRequirements_Patch
         {
             static void Postfix(Player __instance, ref bool __result, Piece piece, Player.RequirementMode mode, HashSet<string> ___m_knownMaterial, Dictionary<string, int> ___m_knownStations)
             {
-                if (!modEnabled.Value || __result || __instance?.transform?.position == null || !AllowByKey())
+                if (!modEnabled.Value || __result || skip || __instance?.transform?.position == null || !AllowByKey())
                     return;
 
                 //bool ignoreRange = false;

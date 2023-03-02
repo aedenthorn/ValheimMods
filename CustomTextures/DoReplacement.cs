@@ -62,6 +62,9 @@ namespace CustomTextures
 
                     foreach (Material m in r.materials)
                     {
+                        if (m == null)
+                            continue;
+
                         try
                         {
                             if (dump)
@@ -71,7 +74,7 @@ namespace CustomTextures
                         }
                         catch (Exception ex)
                         {
-                             logDump.Add($"\t\t\tError loading {r.name}:\r\n{ex}");
+                             logDump.Add($"\t\t\tError loading {r.name}:\r\n\r\n\t\t\t{ex}");
                         }
                     }
 
@@ -103,6 +106,9 @@ namespace CustomTextures
 
                     foreach (Material m in r.materials)
                     {
+                        if (m == null)
+                            continue;
+
                         try
                         {
                             if (dump)
@@ -112,7 +118,7 @@ namespace CustomTextures
                         }
                         catch (Exception ex)
                         {
-                            logDump.Add($"\t\t\tError loading {r.name}:\r\n{ex}");
+                            logDump.Add($"\t\t\tError loading {r.name}:\r\n\r\n\t\t\t{ex}");
                         }
                     }
 
@@ -149,7 +155,7 @@ namespace CustomTextures
                     }
                     catch (Exception ex)
                     {
-                        logDump.Add($"\t\t\tError loading {r.name}:\r\n{ex}");
+                        logDump.Add($"\t\t\tError loading {r.name}:\r\n\r\n\t\t\t{ex}");
                     }
                 }
             }
@@ -170,6 +176,9 @@ namespace CustomTextures
                         outputDump.Add($"\tParticleSystemRenderer name: {r.name}");
                     foreach (Material m in r.materials)
                     {
+                        if (m == null)
+                            continue;
+
                         try
                         {
                             if (dump)
@@ -179,7 +188,7 @@ namespace CustomTextures
                         }
                         catch (Exception ex)
                         {
-                            logDump.Add($"\t\t\tError loading {r.name}:\r\n{ex}");
+                            logDump.Add($"\t\t\tError loading {r.name}:\r\n\r\n\t\t\t{ex}");
                         }
                     }
                 }
@@ -201,6 +210,9 @@ namespace CustomTextures
                         outputDump.Add($"\tLineRenderers name: {r.name}");
                     foreach (Material m in r.materials)
                     {
+                        if (m == null)
+                            continue;
+
                         try
                         {
                             if (dump)
@@ -210,7 +222,7 @@ namespace CustomTextures
                         }
                         catch (Exception ex)
                         {
-                            logDump.Add($"\t\t\tError loading {r.name}:\r\n{ex}");
+                             logDump.Add($"\t\t\tError loading {r.name}:\r\n\r\n\t\t\t{ex}");
                         }
                     }
                 }
@@ -231,11 +243,13 @@ namespace CustomTextures
                 }
             }
             //LogStopwatch("OneObject");
-
         }
 
         private static void ReplaceMaterialTextures(string goName, Material m, string thingName, string prefix, string rendererType, string rendererName, bool dump)
         {
+            if (m == null)
+                return;
+
             if (dumpSceneTextures.Value)
                 outputDump.Add("\t\t\t\tproperties:");
 
