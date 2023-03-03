@@ -3,7 +3,7 @@ using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
-using ServerSync;
+//using ServerSync;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -100,6 +100,16 @@ namespace DeathTweaks
 
         }
 
+        class InventoryInfos { 
+            public List<ItemDrop.ItemData> drop_list;
+            public Inventory inventory;
+
+            public InventoryInfos(Inventory i, List<ItemDrop.ItemData> d ) {
+                drop_list = d;
+                inventory = i;
+            }
+        }
+
         [HarmonyPatch(typeof(Player), "OnDeath")]
         [HarmonyPriority(Priority.First)]
         static class OnDeath_Patch
@@ -118,26 +128,41 @@ namespace DeathTweaks
                 if (createDeathEffects.Value)
                     Traverse.Create(__instance).Method("CreateDeathEffects").GetValue();
 
-                List<ItemDrop.ItemData> dropItems = new List<ItemDrop.ItemData>();
+                List<InventoryInfos> drop_inventorys = new List<InventoryInfos>();
+                
+
+                Dbgl("OnDeath_Patch");
 
                 if (!keepAllItems.Value)
                 {
 
-                    List<Inventory> inventories = new List<Inventory>();
+                    //List<Inventory> inventories = new List<Inventory>();
 
                     if (quickSlotsAssembly != null)
                     {
                         var extendedInventory = quickSlotsAssembly.GetType("EquipmentAndQuickSlots.InventoryExtensions").GetMethod("Extended", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { ___m_inventory });
-                        inventories = (List<Inventory>)quickSlotsAssembly.GetType("EquipmentAndQuickSlots.ExtendedInventory").GetField("_inventories", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(extendedInventory);
+                        foreach(var inventory in (List<Inventory>)quickSlotsAssembly.GetType("EquipmentAndQuickSlots.ExtendedInventory").GetField("_inventories", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(extendedInventory)) {
+                            drop_inventorys.Add(new InventoryInfos(inventory , new List<ItemDrop.ItemData>()));
+                        }
                     }
                     else
                     {
-                        inventories.Add(___m_inventory);
+                        drop_inventorys.Add(new InventoryInfos( ___m_inventory, new List<ItemDrop.ItemData>() ));
                     }
 
-                    for (int i = 0; i < inventories.Count; i++)
+                    for (int inv_num = 0; inv_num < drop_inventorys.Count; inv_num++)
                     {
-                        Inventory inv = inventories[i];
+                        Inventory inv = drop_inventorys[inv_num].inventory;
+                        List<ItemDrop.ItemData> dropItems = drop_inventorys[inv_num].drop_list;
+
+                        Dbgl($"  inventory {inv_num}");
+
+                        var items2 = inv.GetAllItems();
+                        for (int i2 = items2.Count - 1; i2 >= 0; i2--)
+                        {
+                            var item = items2[i2];
+                            Dbgl($"   Item  Name: {item.m_dropPrefab.name}   Cat: {item.m_shared.m_itemType}");
+                        }
 
                         if (quickSlotsAssembly != null && keepQuickSlotItems.Value && inv == (Inventory)quickSlotsAssembly.GetType("EquipmentAndQuickSlots.PlayerExtensions").GetMethod("GetQuickSlotInventory", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { __instance }))
                         {
@@ -228,33 +253,88 @@ namespace DeathTweaks
                     }
                 }
 
-                if (useTombStone.Value && dropItems.Any())
+                /*
+                 * with the EquipmentAndQuickSlots Mod we need a custom Tombstone for the Quick and Eqipment Slots
+                 * otherwitse the items are lost if the Tombstone is collected after quiting the game
+                 * 
+                 * The Items in the special slots have to be marked with item.m_customData to detect in which slot they have to inserted 
+                 * 
+                 */
+
+                for (int inv_num = 0; inv_num < drop_inventorys.Count; inv_num++)
                 {
-                    GameObject gameObject = Instantiate(__instance.m_tombstone, __instance.GetCenterPoint(), __instance.transform.rotation);
-                    gameObject.GetComponent<Container>().GetInventory().RemoveAll();
+                    Inventory inv = drop_inventorys[inv_num].inventory;
+                    List<ItemDrop.ItemData> dropItems = drop_inventorys[inv_num].drop_list;
 
-
-                    int width = Traverse.Create(___m_inventory).Field("m_width").GetValue<int>();
-                    int height = Traverse.Create(___m_inventory).Field("m_height").GetValue<int>();
-                    Traverse.Create(gameObject.GetComponent<Container>().GetInventory()).Field("m_width").SetValue(width);
-                    Traverse.Create(gameObject.GetComponent<Container>().GetInventory()).Field("m_height").SetValue(height);
-
-                   
-                    Traverse.Create(gameObject.GetComponent<Container>().GetInventory()).Field("m_inventory").SetValue(dropItems);
-                    Traverse.Create(gameObject.GetComponent<Container>().GetInventory()).Method("Changed").GetValue();
-
-                    TombStone component = gameObject.GetComponent<TombStone>();
-                    PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
-                    component.Setup(playerProfile.GetName(), playerProfile.GetPlayerID());
-                }
-                else
-                {
-                    foreach(ItemDrop.ItemData item in dropItems)
+                    if (useTombStone.Value && dropItems.Any())
                     {
-                        Vector3 position = __instance.transform.position + Vector3.up * 0.5f + UnityEngine.Random.insideUnitSphere * 0.3f;
-                        Quaternion rotation = Quaternion.Euler(0f, (float)UnityEngine.Random.Range(0, 360), 0f);
-                        ItemDrop.DropItem(item, 0, position, rotation);
+                        Dbgl("    dropItems.Any");
+
+                        
+                        Vector3 position = __instance.GetCenterPoint() + Vector3.left * (inv_num * 2 );
+
+                        GameObject gameObject = Instantiate(__instance.m_tombstone, position , __instance.transform.rotation);
+                        gameObject.GetComponent<Container>().GetInventory().RemoveAll();
+
+
+                        int width = Traverse.Create(inv).Field("m_width").GetValue<int>();
+                        int height = Traverse.Create(inv).Field("m_height").GetValue<int>();
+                        Traverse.Create(gameObject.GetComponent<Container>().GetInventory()).Field("m_width").SetValue(width);
+                        Traverse.Create(gameObject.GetComponent<Container>().GetInventory()).Field("m_height").SetValue(height);
+
+
+                        
+
+                        TombStone component = gameObject.GetComponent<TombStone>();
+                        PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
+                        switch( inv_num)
+                        {
+                            case 0:
+                                component.Setup(playerProfile.GetName(), playerProfile.GetPlayerID());
+                                break;
+                            case 1:
+                                component.Setup(playerProfile.GetName() + "- Quickslots", playerProfile.GetPlayerID());
+                                foreach (var item in dropItems)
+                                {
+                                    var oldSlot = item.m_gridPos;
+                                    item.m_customData["eaqs-qs"] = $"{oldSlot.x},{oldSlot.y}";
+                                    Dbgl($"   Quickslot Item  Name: {item.m_dropPrefab.name}   Cat: {item.m_shared.m_itemType}");
+                                }
+                                break;
+                            case 2:
+                                component.Setup(playerProfile.GetName() + "- Eqipment", playerProfile.GetPlayerID());
+                                foreach ( var item in dropItems)
+                                {
+                                    item.m_customData["eaqs-e"] = "1";
+                                    Dbgl($"   Eqipment Item  Name: {item.m_dropPrefab.name}   Cat: {item.m_shared.m_itemType}");
+                                }
+                                
+
+                                break;
+                        }
+
+                        Traverse.Create(gameObject.GetComponent<Container>().GetInventory()).Field("m_inventory").SetValue(dropItems);
+                        Traverse.Create(gameObject.GetComponent<Container>().GetInventory()).Method("Changed").GetValue();
+
+
                     }
+                    else
+                    {
+
+                        Dbgl("   !! dropItems.Any");
+
+
+                        foreach (ItemDrop.ItemData item in dropItems)
+                        {
+
+                            Dbgl($"       Item : {item.m_dropPrefab.name}");
+
+                            Vector3 position = __instance.transform.position + Vector3.up * 0.5f + UnityEngine.Random.insideUnitSphere * 0.3f;
+                            Quaternion rotation = Quaternion.Euler(0f, (float)UnityEngine.Random.Range(0, 360), 0f);
+                            ItemDrop.DropItem(item, 0, position, rotation);
+                        }
+                    }
+
                 }
 
                 if (!keepFoodLevels.Value)
