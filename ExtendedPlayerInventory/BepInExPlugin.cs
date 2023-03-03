@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.4.2")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.4.3")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -228,7 +228,7 @@ namespace ExtendedPlayerInventory
         {
             static void Postfix(Humanoid __instance)
             {
-                if (!modEnabled.Value || !addEquipmentRow.Value || (__instance != Player.m_localPlayer && (!showGearInMenu.Value || Player.m_localPlayer != null)))
+                if (!modEnabled.Value || !addEquipmentRow.Value || !(__instance is Player) || (__instance != Player.m_localPlayer && (!showGearInMenu.Value || Player.m_localPlayer != null)))
                     return;
 
                 ArrangeEquipment((Player)__instance);
@@ -494,10 +494,10 @@ namespace ExtendedPlayerInventory
 
             static bool Prefix(Inventory __instance, ref bool __result, List<ItemDrop.ItemData> ___m_inventory, int ___m_width, int ___m_height)
             {
-                if (!modEnabled.Value || !addEquipmentRow.Value || __instance != Player.m_localPlayer.GetInventory())
+                if (!modEnabled.Value || !addEquipmentRow.Value || ___m_inventory is null || __instance != Player.m_localPlayer?.GetInventory())
                     return true;
 
-                int count = ___m_inventory.FindAll(i => i.m_gridPos.y < ___m_height - 1).Count;
+                int count = ___m_inventory.FindAll(i => i?.m_gridPos.y < ___m_height - 1).Count;
 
                 __result = count < ___m_width * (___m_height - 1);
                 return false;
