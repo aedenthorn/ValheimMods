@@ -13,7 +13,7 @@ using Debug = UnityEngine.Debug;
 
 namespace BackpackRedux
 {
-    [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.5.1")]
+    [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

@@ -3,12 +3,13 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.IO;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace CharacterEdit
 {
-    [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.5.1")]
+    [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -55,16 +56,17 @@ namespace CharacterEdit
                 if (!modEnabled.Value)
                     return;
 
-                var edit = Instantiate(FejdStartup.instance.m_selectCharacterPanel.transform.Find("BottomWindow").Find("New"));
+                var bw = FejdStartup.instance.m_selectCharacterPanel.transform.Find("BottomWindow");
+                var edit = Instantiate(bw.Find("New"));
                 edit.name = "Edit";
-                edit.transform.SetParent(FejdStartup.instance.m_selectCharacterPanel.transform.Find("BottomWindow"));
+                edit.transform.SetParent(bw);
                 edit.GetComponent<RectTransform>().anchoredPosition = new Vector3(-100, 50, 0);
                 edit.transform.Find("Text").GetComponent<Text>().text = buttonText.Value;
                 edit.GetComponent<Button>().onClick.RemoveAllListeners();
                 edit.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
                 edit.GetComponent<Button>().onClick.AddListener(StartCharacterEdit);
                 edit.GetComponent<UIGamePad>().m_zinputKey = gamePadButton.Value;
-                edit.transform.Find("gamepad_hint").Find("Text").GetComponent<Text>().text = gamePadButtonHint.Value;
+                edit.transform.Find("gamepad_hint").Find("Text").GetComponent<TextMeshProUGUI>().text = gamePadButtonHint.Value;
 
                 title = Instantiate(FejdStartup.instance.m_newCharacterPanel.transform.Find("Topic"));
                 title.name = "EditTitle";

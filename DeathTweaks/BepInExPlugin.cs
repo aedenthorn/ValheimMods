@@ -3,7 +3,6 @@ using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
-//using ServerSync;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,11 +10,10 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.9.1")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.10.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
-        private ConfigEntry<bool> serverConfigLocked;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
 
@@ -62,7 +60,6 @@ namespace DeathTweaks
 
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            serverConfigLocked = Config.Bind("General", "Lock Configuration", false, "Lock Configuration");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1068, "Nexus mod ID for updates");
             keepItemTypes = Config.Bind<string>("ItemLists", "KeepItemTypes", "", $"List of items to keep (comma-separated). Leave empty if using DropItemTypes. Valid types: {string.Join(",", typeEnums)}");
