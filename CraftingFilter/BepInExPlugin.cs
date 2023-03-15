@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace CraftingFilter
 {
-    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.6.1")]
+    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.7.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -94,7 +95,7 @@ namespace CraftingFilter
             {
                 data = JsonUtility.FromJson<CategoryData>(File.ReadAllText(file));
             }
-            Dbgl("Loaded" + data.categories.Count + " categories");
+            Dbgl("Loaded " + data.categories.Count + " categories");
 
             categoryDict.Clear();
             categoryNames.Clear();
@@ -161,7 +162,6 @@ namespace CraftingFilter
             {
                 if (rcr.gameObject.layer == LayerMask.NameToLayer("UI"))
                 {
-
                     if (rcr.gameObject.name == "Craft")
                     {
                         hover = true;
