@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.10.0")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.11.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -147,6 +147,13 @@ namespace DeathTweaks
                         drop_inventorys.Add(new InventoryInfos( ___m_inventory, new List<ItemDrop.ItemData>() ));
                     }
 
+                    var keepItemTypeArray = string.IsNullOrEmpty(keepItemTypes.Value) ? new string[0] : keepItemTypes.Value.Split(',');
+                    var keepItemNameArray = string.IsNullOrEmpty(keepItemNames.Value) ? new string[0] : keepItemNames.Value.Split(',');
+                    var destroyItemTypeArray = string.IsNullOrEmpty(destroyItemTypes.Value) ? new string[0] : destroyItemTypes.Value.Split(',');
+                    var destroyItemNameArray = string.IsNullOrEmpty(destroyItemNames.Value) ? new string[0] : destroyItemNames.Value.Split(',');
+                    var dropItemTypeArray = string.IsNullOrEmpty(dropItemTypes.Value) ? new string[0] : dropItemTypes.Value.Split(',');
+                    var dropItemNameArray = string.IsNullOrEmpty(dropItemNames.Value) ? new string[0] : dropItemNames.Value.Split(',');
+
                     for (int inv_num = 0; inv_num < drop_inventorys.Count; inv_num++)
                     {
                         Inventory inv = drop_inventorys[inv_num].inventory;
@@ -181,64 +188,42 @@ namespace DeathTweaks
                                 if (keepEquippedItems.Value && item.m_equiped)
                                     continue;
 
-                                if (keepHotbarItems.Value && item.m_gridPos.y == 0)
+                                if (keepHotbarItems.Value && inv == ___m_inventory && item.m_gridPos.y == 0)
                                     continue;
 
                                 if (item.m_shared.m_questItem)
                                     continue;
 
-                                if (destroyItemTypes.Value.Length > 0)
+                                if (destroyItemTypeArray.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
                                 {
-                                    string[] destroyTypes = destroyItemTypes.Value.Split(',');
-                                    if (destroyTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
-                                    {
-                                        keepItems.RemoveAt(j);
-                                        continue;
-                                    }
-                                }
-                                if (destroyItemNames.Value.Length > 0)
-                                {
-                                    string[] destroyTypes = destroyItemNames.Value.Split(',');
-                                    if (destroyTypes.Contains(item.m_dropPrefab.name))
-                                    {
-                                        keepItems.RemoveAt(j);
-                                        continue;
-                                    }
-                                }
-
-
-                                if (keepItemTypes.Value.Length > 0)
-                                {
-                                    string[] keepTypes = keepItemTypes.Value.Split(',');
-                                    if (keepTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
-                                        continue;
-                                }
-                                else if (keepItemNames.Value.Length > 0)
-                                {
-                                    string[] keepTypes = keepItemTypes.Value.Split(',');
-                                    if (keepTypes.Contains(item.m_dropPrefab.name))
-                                        continue;
-                                }
-
-
-                                else if (dropItemTypes.Value.Length > 0)
-                                {
-                                    string[] dropTypes = dropItemTypes.Value.Split(',');
-                                    if (dropTypes.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
-                                    {
-                                        dropItems.Add(item);
-                                        keepItems.RemoveAt(j);
-                                    }
+                                    keepItems.RemoveAt(j);
                                     continue;
                                 }
-                                else if (dropItemNames.Value.Length > 0)
+
+                                if (destroyItemNameArray.Contains(item.m_dropPrefab.name))
                                 {
-                                    string[] dropTypes = dropItemNames.Value.Split(',');
-                                    if (dropTypes.Contains(item.m_dropPrefab.name))
-                                    {
-                                        dropItems.Add(item);
-                                        keepItems.RemoveAt(j);
-                                    }
+                                    keepItems.RemoveAt(j);
+                                    continue;
+                                }
+
+                                if (keepItemTypeArray.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
+                                    continue;
+
+                                if (keepItemNameArray.Contains(item.m_dropPrefab.name))
+                                    continue;
+
+
+                                if (dropItemTypeArray.Contains(Enum.GetName(typeof(ItemDrop.ItemData.ItemType), item.m_shared.m_itemType)))
+                                {
+                                    dropItems.Add(item);
+                                    keepItems.RemoveAt(j);
+                                    continue;
+                                }
+
+                                if (dropItemNameArray.Contains(item.m_dropPrefab.name))
+                                {
+                                    dropItems.Add(item);
+                                    keepItems.RemoveAt(j);
                                     continue;
                                 }
 

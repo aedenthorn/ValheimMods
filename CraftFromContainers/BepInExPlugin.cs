@@ -807,7 +807,10 @@ namespace CraftFromContainers
                         {
                             foreach (Container c in nearbyContainers)
                             {
-                                Inventory cInventory = c.GetInventory();
+                                Inventory cInventory = c?.GetInventory();
+                                if (cInventory is null)
+                                    continue;
+
                                 int thisAmount = Mathf.Min(cInventory.CountItems(reqName), totalRequirement - totalAmount);
 
                                 Dbgl($"Container at {c.transform.position} has {cInventory.CountItems(reqName)}");
@@ -819,7 +822,7 @@ namespace CraftFromContainers
                                 for (int i = 0; i < cInventory.GetAllItems().Count; i++)
                                 {
                                     ItemDrop.ItemData item = cInventory.GetItem(i);
-                                    if(item.m_shared.m_name == reqName)
+                                    if(item?.m_shared?.m_name == reqName)
                                     {
                                         Dbgl($"Container has a total items count of {cInventory.GetAllItems().Count}");
                                         Dbgl($"Got stack of {item.m_stack} {reqName}");
