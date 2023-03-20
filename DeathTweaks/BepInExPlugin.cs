@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.11.0")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.11.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -116,6 +116,8 @@ namespace DeathTweaks
                 if (!modEnabled.Value)
                     return true;
 
+                Dbgl("OnDeath_Patch");
+
                 ___m_nview.GetZDO().Set("dead", true);
                 ___m_nview.InvokeRPC(ZNetView.Everybody, "OnDeath", new object[] { });
                 Game.instance.GetPlayerProfile().m_playerStats.m_deaths++;
@@ -127,8 +129,6 @@ namespace DeathTweaks
 
                 List<InventoryInfos> drop_inventorys = new List<InventoryInfos>();
                 
-
-                Dbgl("OnDeath_Patch");
 
                 if (!keepAllItems.Value)
                 {
@@ -188,7 +188,7 @@ namespace DeathTweaks
                                 if (keepEquippedItems.Value && item.m_equiped)
                                     continue;
 
-                                if (keepHotbarItems.Value && inv == ___m_inventory && item.m_gridPos.y == 0)
+                                if (keepHotbarItems.Value && inv.GetName() == ___m_inventory.GetName() && item.m_gridPos.y == 0)
                                     continue;
 
                                 if (item.m_shared.m_questItem)
