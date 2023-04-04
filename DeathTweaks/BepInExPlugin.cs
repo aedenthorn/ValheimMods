@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "0.11.1")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "1.0.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -25,6 +25,7 @@ namespace DeathTweaks
         public static ConfigEntry<bool> useTombStone;
         public static ConfigEntry<bool> keepFoodLevels;
         public static ConfigEntry<bool> keepQuickSlotItems;
+        public static ConfigEntry<bool> keepTeleportableItems;
         public static ConfigEntry<bool> createDeathEffects;
         public static ConfigEntry<bool> reduceSkills;
         public static ConfigEntry<bool> noSkillProtection;
@@ -73,6 +74,7 @@ namespace DeathTweaks
             keepAllItems = Config.Bind<bool>("Toggles", "KeepAllItems", false, "Overrides all other item options if true.");
             destroyAllItems = Config.Bind<bool>("Toggles", "DestroyAllItems", false, "Overrides all other item options except KeepAllItems if true.");
             keepEquippedItems = Config.Bind<bool>("Toggles", "KeepEquippedItems", false, "Overrides item lists if true.");
+            keepTeleportableItems = Config.Bind<bool>("Toggles", "KeepTeleportableItems", false, "Doesn't override item lists.");
             keepHotbarItems = Config.Bind<bool>("Toggles", "KeepHotbarItems", false, "Overrides item lists if true.");
             useTombStone = Config.Bind<bool>("Toggles", "UseTombStone", true, "Use tombstone (if false, drops items on ground).");
             createDeathEffects = Config.Bind<bool>("Toggles", "CreateDeathEffects", true, "Create death effects.");
@@ -226,7 +228,10 @@ namespace DeathTweaks
                                     keepItems.RemoveAt(j);
                                     continue;
                                 }
-
+                                if(item.m_shared.m_teleportable && keepTeleportableItems.Value)
+                                {
+                                    continue;
+                                }
                                 dropItems.Add(item);
                                 keepItems.RemoveAt(j);
                             }

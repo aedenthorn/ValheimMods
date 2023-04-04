@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace CraftingFilter
 {
-    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.7.0")]
+    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.7.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -40,7 +40,6 @@ namespace CraftingFilter
         private static int lastCategoryIndex = 0;
         private Vector3 lastMousePos;
         private static bool isShowing = false;
-        private static string craftText = "Craft";
         private static string assetPath;
         private static int tabCraftPressed = 0;
 
@@ -258,7 +257,7 @@ namespace CraftingFilter
             Traverse t = Traverse.Create(InventoryGui.instance);
             t.Method("UpdateRecipeList", new object[] { recipes }).GetValue();
             t.Method("SetRecipe", new object[] { 0, true }).GetValue();
-            InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<Text>().text = craftText + (categoryDict[categoryNames[lastCategoryIndex]].Contains(ItemDrop.ItemData.ItemType.None) ? "" : "\n" + categoryNames[lastCategoryIndex]);
+            InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<Text>().text = Localization.instance.Localize("$inventory_craftbutton") + (categoryDict[categoryNames[lastCategoryIndex]].Contains(ItemDrop.ItemData.ItemType.None) ? "" : "\n" + categoryNames[lastCategoryIndex]);
         }
 
         private static void GetFilteredRecipes(ref List<Recipe> recipes)
@@ -331,7 +330,7 @@ namespace CraftingFilter
                 if (!modEnabled.Value)
                     return;
 
-                InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<Text>().text = craftText;
+                InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<Text>().text = Localization.instance.Localize("$inventory_craftbutton");
                 lastCategoryIndex = 0;
             }
         }
@@ -360,7 +359,6 @@ namespace CraftingFilter
                 dropDownList.Clear();
 
                 //buttonObj.transform.parent.SetAsLastSibling();
-                craftText = __instance.m_tabCraft.gameObject.GetComponentInChildren<Text>().text;
                 for (int i = 0; i < categoryNames.Count; i++)
                 {
                     int idx = i;

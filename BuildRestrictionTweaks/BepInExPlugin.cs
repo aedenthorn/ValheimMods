@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BuildRestrictionTweaks
 {
-    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.4.0")]
+    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.4.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private enum PlacementStatus
@@ -54,12 +54,12 @@ namespace BuildRestrictionTweaks
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            //nexusID = Config.Bind<int>("General", "NexusID", 1573, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 1606, "Nexus mod ID for updates");
 
             alwaysValid = Config.Bind<bool>("Options", "AlwaysValid", false, "Remove all build restrictions.");
             ignoreBlockedbyPlayer = Config.Bind<bool>("Options", "ignoreBlockedbyPlayer", false, "Ignore player blocking build.");
             ignoreInvalid = Config.Bind<bool>("Options", "IgnoreInvalid", false, "Prevent misc build restrictions.");
-            ignoreBuildZone = Config.Bind<bool>("Options", "IgnoreInvalid", false, "Ignore zone restrictions.");
+            ignoreBuildZone = Config.Bind<bool>("Options", "ignoreBuildZone", false, "Ignore zone restrictions.");
             ignoreSpaceRestrictions = Config.Bind<bool>("Options", "ignoreSpaceRestrictions", false, "Ignore space restrictions.");
             ignoreTeleportAreaRestrictions = Config.Bind<bool>("Options", "ignoreTeleportAreaRestrictions", false, "Ignore teleport area restrictions.");
             ignoreMissingStationExtension = Config.Bind<bool>("Options", "ignoreMissingStationExtension", false, "Ignore missing station extension.");
@@ -68,7 +68,9 @@ namespace BuildRestrictionTweaks
             ignoreCultivationRestrictions = Config.Bind<bool>("Options", "ignoreCultivationRestrictions", false, "Ignore need for cultivated ground.");
             ignoreDirtRestrictions = Config.Bind<bool>("Options", "ignoreDirtRestrictions", false, "Ignore need for dirt.");
             ignoreDungeonRestrictions = Config.Bind<bool>("Options", "ignoreDungeonRestrictions", false, "Ignore indoor restrictions.");
-            
+
+            nexusID.Value = 1606;
+
             if (!modEnabled.Value)
                 return;
 
