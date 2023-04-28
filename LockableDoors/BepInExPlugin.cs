@@ -53,9 +53,9 @@ namespace LockableDoors
             isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1346, "Nexus mod ID for updates");
 
-            modKey = Config.Bind<string>("Strings", "LockModKey", "left ctrl", "Modifier key used to create and lock/unlock a lockable door when interacting.");
-            renameModKey = Config.Bind<string>("Strings", "RenameModKey", "left alt", "Modifier key used to rename a lockable door when interacting.");
-            duplicateKeysOnCreate = Config.Bind<int>("Strings", "DuplicateKeysOnCreate", 1, "Amount of duplicate keys to be created per door.");
+            modKey = Config.Bind<string>("Options", "LockModKey", "left ctrl", "Modifier key used to create and lock/unlock a lockable door when interacting.");
+            renameModKey = Config.Bind<string>("Options", "RenameModKey", "left alt", "Modifier key used to rename a lockable door when interacting.");
+            duplicateKeysOnCreate = Config.Bind<int>("Options", "DuplicateKeysOnCreate", 1, "Amount of duplicate keys to be created per door.");
             doorName = Config.Bind<string>("Strings", "DoorName", "{0} Door [Locked:{1}]", "Name of door - replaces {0} with the door coordinates or name and {1} with locked status.");
             keyName = Config.Bind<string>("Strings", "KeyName", "{0} Door Key", "Name of key - replaces {0} with the door coordinates.");
             keyDescription = Config.Bind<string>("Strings", "KeyDescription", "Opens {0} Door.", "Description of key in tooltip - replaces {0} with the door name.");
