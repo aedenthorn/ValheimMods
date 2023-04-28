@@ -189,9 +189,9 @@ namespace LockableDoors
                     Dbgl($"Spawning door key(s) amount: {duplicateKeysOnCreate.Value}");
                     for (int i = 0; i < duplicateKeysOnCreate.Value; i++)
                     {
-                    GameObject go = Instantiate(keyPrefab, Player.m_localPlayer.transform.position + Vector3.up, Quaternion.identity);
-                    go.GetComponent<ItemDrop>().m_itemData.m_crafterName = guid+"";
-                    Dbgl($"Spawned door key for door {guid} at {pos}");
+                        GameObject go = Instantiate(keyPrefab, Player.m_localPlayer.transform.position + Vector3.up, Quaternion.identity);
+                        go.GetComponent<ItemDrop>().m_itemData.m_crafterName = guid+"";
+                        Dbgl($"Spawned door key for door {guid} at {pos}");
                     }
                 }
             }
