@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace ServerRewards
 {
-    [BepInPlugin("aedenthorn.ServerRewards", "Server Rewards", "0.6.2")]
+    [BepInPlugin("aedenthorn.ServerRewards", "Server Rewards", "0.7.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -257,9 +257,16 @@ namespace ServerRewards
 
             if (thisTooltip != null && thisTooltip.Length > 0)
             {
-                tooltipWindowStyle = new GUIStyle(GUI.skin.window);
-                tooltipWindowStyle.normal.background = tooltipBackground;
-                GUI.Window(424244, new Rect(Input.mousePosition.x + 30, Screen.height - Input.mousePosition.y + 30, 400, 80), new GUI.WindowFunction(TooltipBuilder), thisTooltip.Split('^')[0], tooltipWindowStyle);
+                if(!storeOpen)
+                {
+                    thisTooltip = null;
+                }
+                else
+                {
+                    tooltipWindowStyle = new GUIStyle(GUI.skin.window);
+                    tooltipWindowStyle.normal.background = tooltipBackground;
+                    GUI.Window(424244, new Rect(Input.mousePosition.x + 30, Screen.height - Input.mousePosition.y + 30, 400, 80), new GUI.WindowFunction(TooltipBuilder), thisTooltip.Split('^')[0], tooltipWindowStyle);
+                }
             }
 
             if (testing.Value)

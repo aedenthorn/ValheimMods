@@ -16,7 +16,7 @@ namespace ServerRewards
                 return;
 
             ZNetPeer peer = Traverse.Create(ZNet.instance).Method("GetPeer", new object[] { rpc }).GetValue<ZNetPeer>();
-            var steamID = (peer.m_socket as ZSteamSocket).GetPeerID();
+            var steamID = GetPeerID(peer);
             Dbgl($"RPC_ConsoleCommand received command {command} from {steamID}");
             if (!Traverse.Create(ZNet.instance).Field("m_adminList").GetValue<SyncedList>().Contains(rpc.GetSocket().GetHostName()))
             {
@@ -50,7 +50,7 @@ namespace ServerRewards
                     foreach (string user in users)
                     {
                         string online = "(offline)";
-                        var tp = peerList.Find(p => (p.m_socket as ZSteamSocket).GetPeerID().ToString() == user);
+                        var tp = peerList.Find(p => GetPeerID(p) == user);
                         if (tp != null)
                         {
                             online = tp.m_playerName + " (online)";
@@ -170,11 +170,23 @@ namespace ServerRewards
             JsonCommand command = JsonUtility.FromJson<JsonCommand>(json);
             Dbgl($"RPC_SendJSON received command {command.command} {json} from id {command.id}");
 
-            ZNetPeer peer = Traverse.Create(ZNet.instance).Method("GetPeer", new object[] { rpc }).GetValue<ZNetPeer>();
-            var steamID = (peer.m_socket as ZSteamSocket).GetPeerID();
+            ZNetPeer peer = ((ZNetPeer)AccessTools.Method(typeof(ZNet), "GetPeer", new Type[] { typeof(ZRpc) }).Invoke(ZNet.instance, new object[] { rpc }));
+
+            if(peer is null)
+            {
+                Dbgl("Peer is null, aborting");
+                return;
+            }
+
+            var steamID = GetPeerID(peer);
 
             if (ZNet.instance.IsServer())
             {
+                if (steamID is null)
+                {
+                    Dbgl("steamID is null, aborting");
+                    return;
+                }
                 context.UpdatePlayers(true);
 
                 if (command.command == "BuyPackage")
@@ -192,7 +204,7 @@ namespace ServerRewards
                         return;
                     }
 
-                    PlayerInfo player = GetPlayerInfo(steamID.ToString());
+                    PlayerInfo player = GetPlayerInfo(steamID);
 
                     if(!CanBuyPackage(ref player, package, true, true, out string result))
                     {
@@ -218,13 +230,13 @@ namespace ServerRewards
                 }
                 else if (command.command == "RequestStoreInfo")
                 {
-                    int currency = GetUserCurrency(steamID.ToString());
+                    int currency = GetUserCurrency(steamID);
                     if (currency == -1)
                     {
                         Dbgl("Error getting store info");
                         return;
                     }
-                    PlayerInfo player = GetPlayerInfo(steamID.ToString());
+                    PlayerInfo player = GetPlayerInfo(steamID);
 
                     JsonCommand sendCommand = new JsonCommand()
                     {

@@ -10,6 +10,6 @@ namespace ServerRewards
         public int consecutiveDays = 0;
         public int maxConsecutiveDays = 0;
         public List<string> packages = new List<string>();
-        public ulong id = 0;
+        public string id;
     }
 }

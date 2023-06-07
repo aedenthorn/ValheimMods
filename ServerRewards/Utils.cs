@@ -1,4 +1,6 @@
 ﻿using BepInEx;
+using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -143,9 +145,8 @@ namespace ServerRewards
 
             return playerInfo != null ? playerInfo.currency : -1;
         }
-        private static void AddNewPlayerInfo(ZNetPeer peer)
+        private static void AddNewPlayerInfo(string steamID)
         {
-            var steamID = (peer.m_socket as ZSteamSocket).GetPeerID();
 
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ServerRewards");
             if (!Directory.Exists(path))
@@ -160,7 +161,7 @@ namespace ServerRewards
             }
             var info = new PlayerInfo()
             {
-                id = steamID.m_SteamID,
+                id = steamID,
                 currency = playerStartCurrency.Value
             };
             string json = JsonUtility.ToJson(info);
@@ -187,7 +188,7 @@ namespace ServerRewards
             if(Regex.IsMatch(idOrName, @"[^0-9]"))
             {
                 var peer = ZNet.instance.GetConnectedPeers().FirstOrDefault(p => p.m_playerName == idOrName);
-                idOrName = (peer.m_socket as ZSteamSocket).GetPeerID().ToString();
+                idOrName = GetPeerID(peer);
             }
             return idOrName;
         }
@@ -254,14 +255,15 @@ namespace ServerRewards
             var peerList = ZNet.instance.GetConnectedPeers();
             foreach (var peer in peerList)
             {
-                if (steamID == "all" || (peer.m_socket as ZSteamSocket).GetPeerID().ToString() == steamID)
+                var id = GetPeerID(peer);
+                if (steamID == "all" || id == steamID)
                 {
-                    var playerInfo = GetPlayerInfo((peer.m_socket as ZSteamSocket).GetPeerID().ToString());
+                    var playerInfo = GetPlayerInfo(id);
                     if (playerInfo == null)
                     {
                         playerInfo = new PlayerInfo()
                         {
-                            id = (peer.m_socket as ZSteamSocket).GetPeerID().m_SteamID,
+                            id = id,
                         };
                     }
                     playerInfo.currency += amount;
@@ -277,14 +279,15 @@ namespace ServerRewards
             var peerList = ZNet.instance.GetConnectedPeers();
             foreach (var peer in peerList)
             {
-                if (steamID == "all" || (peer.m_socket as ZSteamSocket).GetPeerID().ToString() == steamID)
+                var id = GetPeerID(peer);
+                if (steamID == "all" || id == steamID)
                 {
-                    var playerInfo = GetPlayerInfo((peer.m_socket as ZSteamSocket).GetPeerID().ToString());
+                    var playerInfo = GetPlayerInfo(id);
                     if (playerInfo == null)
                     {
                         playerInfo = new PlayerInfo()
                         {
-                            id = (peer.m_socket as ZSteamSocket).GetPeerID().m_SteamID,
+                            id = id,
                         };
                     }
                     playerInfo.currency = amount;
@@ -305,7 +308,7 @@ namespace ServerRewards
             if (pi == null)
                 return "Package not found!";
 
-            var peer = ZNet.instance.GetConnectedPeers().Find(p => (p.m_socket as ZSteamSocket).GetPeerID().ToString() == steamID);
+            var peer = ZNet.instance.GetConnectedPeers().Find(p => GetPeerID(p) == steamID);
             if(peer == null)
                 return "User not online!";
 
@@ -330,5 +333,39 @@ namespace ServerRewards
             effects.m_effectPrefabs = effectList.ToArray();
             effects.Create(Player.m_localPlayer.transform.position, Player.m_localPlayer.transform.rotation, Player.m_localPlayer.transform, 1f);
         }
+
+        public static string GetPeerID(ZNetPeer peer)
+        {
+            ISocket socket = peer.m_socket;
+            if (peer.m_socket.GetType().Name.EndsWith("BufferingSocket"))
+            {
+                Dbgl("ServerSync peer");
+                try
+                {
+                    socket = (ISocket)AccessTools.Field(peer.m_socket.GetType(), "Original").GetValue(peer.m_socket);
+                }
+                catch(Exception ex)
+                {
+                    Dbgl($"Failed to get socket from ServerSync: \n\n {ex}");
+                }
+            }
+            if (socket is ZSteamSocket)
+            {
+
+                var steamID = (socket as ZSteamSocket).GetPeerID();
+                return steamID.ToString();
+            }
+            else if (socket is ZPlayFabSocket)
+            {
+
+                return AccessTools.FieldRefAccess<ZPlayFabSocket, string>(socket as ZPlayFabSocket, "m_remotePlayerId");
+            }
+            else
+            {
+                Dbgl($"Wrong peer type: {socket.GetType()}");
+                return null;
+            }
+        }
+
     }
 }
