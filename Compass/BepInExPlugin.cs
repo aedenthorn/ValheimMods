@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "1.1.1")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "1.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -21,6 +21,7 @@ namespace Compass
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
         
+        public static ConfigEntry<bool> enableMarkers;
         public static ConfigEntry<bool> showPlayerMarkers;
         public static ConfigEntry<bool> usePlayerDirection;
         public static ConfigEntry<bool> showCenterMarker;
@@ -69,6 +70,7 @@ namespace Compass
             compassScale = Config.Bind<float>("Compass", "CompassScale", 0.75f, "Compass scale");
             compassYOffset = Config.Bind<float>("Compass", "CompassYOffset", 0, "Compass offset from top of screen in pixels");
 
+            enableMarkers = Config.Bind<bool>("Markers", "EnableMarkers", true, "Show markers on compass.");
             showPlayerMarkers = Config.Bind<bool>("Markers", "ShowPlayerMarkers", true, "Show player markers on compass.");
             markerScale = Config.Bind<float>("Markers", "MarkerScale", 1f, "Marker scale");
             minMarkerDistance = Config.Bind<float>("Markers", "MinMarkerDistance", 1, "Minimum marker distance to show on map in metres");
@@ -351,7 +353,16 @@ namespace Compass
                 int count = pinsObject.transform.childCount;
                 List<string> oldPins = new List<string>();
                 foreach (Transform t in pinsObject.transform)
+                {
+                    if (!enableMarkers.Value)
+                    {
+                        Destroy(t.gameObject); 
+                        continue;
+                    }
                     oldPins.Add(t.name);
+                }
+                if (!enableMarkers.Value)
+                    return;
 
                 var pinList = new List<Minimap.PinData>();
                 pinList.AddRange(AccessTools.DeclaredField(typeof(Minimap), "m_pins").GetValue(Minimap.instance) as List<Minimap.PinData>);
