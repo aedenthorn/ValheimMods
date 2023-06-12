@@ -59,7 +59,7 @@ namespace GrassTweaks
 
 
         [HarmonyPatch(typeof(ClutterSystem), "Awake")]
-        static class GenerateVegPatch_Patch
+        static class ClutterSystem_Awake_Patch
         {
             static void Prefix(ClutterSystem __instance)
             {

@@ -13,7 +13,7 @@ using Debug = UnityEngine.Debug;
 
 namespace BackpackRedux
 {
-    [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.6.0")]
+    [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.7.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -105,7 +105,7 @@ namespace BackpackRedux
 
         private static bool CanOpenBackpack()
         {
-            return backpackItem.Value == "" || Player.m_localPlayer.GetInventory().GetEquipedtems().Exists(i => i.m_dropPrefab?.name == backpackItem.Value);
+            return backpackItem.Value == "" || Player.m_localPlayer.GetInventory().GetEquippedItems().Exists(i => i.m_dropPrefab?.name == backpackItem.Value);
         }
 
         private static void OpenBackpack()
