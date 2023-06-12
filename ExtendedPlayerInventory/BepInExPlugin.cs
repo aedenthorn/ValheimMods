@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.5.1")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.6.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -170,7 +170,6 @@ namespace ExtendedPlayerInventory
                 t.Field("m_loading").SetValue(true);
                 t.Field("m_inventory").GetValue<Inventory>().Load(pkg);
                 t.Field("m_loading").SetValue(false);
-                t.Field("m_lastRevision").SetValue(t.Field("m_nview").GetValue<ZNetView>().GetZDO().m_dataRevision);
                 t.Field("m_lastDataString").SetValue(dataString);
             }
         }
@@ -254,7 +253,7 @@ namespace ExtendedPlayerInventory
 
         }
 
-        [HarmonyPatch(typeof(Player), "EquipIventoryItems")]
+        [HarmonyPatch(typeof(Player), "EquipInventoryItems")]
         static class Humanoid_EquipItem_Patch
         {
             static void Postfix(Player __instance)
@@ -266,7 +265,7 @@ namespace ExtendedPlayerInventory
 
         private static void ArrangeEquipment(Player __instance)
         {
-            if (!modEnabled.Value)
+            if (!modEnabled.Value || !addEquipmentRow.Value)
                 return;
             Inventory inv = __instance.GetInventory();
 
@@ -310,20 +309,20 @@ namespace ExtendedPlayerInventory
             {
                 if (IsAtEquipmentSlot(inv, items[i], out int which))
                 {
-                    Dbgl($"{items[i].m_shared.m_itemType} {typeEnums[which]} {items[i].m_shared.m_name} {items[i].m_equiped}");
+                    //Dbgl($"{items[i].m_shared.m_itemType} {typeEnums[which]} {items[i].m_shared.m_name} {items[i].m_equiped}");
 
                     if (items[i] == equipment[which])
                     {
-                        Dbgl($"already equipped: {items[i].m_equiped}");
-                        items[i].m_equiped = true;
+                        //Dbgl($"already equipped: {items[i].m_equiped}");
+                        items[i].m_equipped = true;
                         continue;
                     }
 
                     if (items[i].m_shared.m_itemType == typeEnums[which] && equipItems[which] != items[i]) // in right slot and new
                     {
-                        Dbgl($"equipping: {__instance.EquipItem(items[i])}");
+                        //Dbgl($"equipping: {__instance.EquipItem(items[i])}");
                         equipment[which] = items[i];
-                        items[i].m_equiped = true;
+                        items[i].m_equipped = true;
                         continue;
                     }
 

@@ -153,7 +153,7 @@ namespace QuickStore
                         for (int i = items.Count - 1; i >= 0; i--)
                         {
                             var item = items[i];
-                            if (item.m_equiped)
+                            if (item.m_equipped)
                                 continue;
                             int originalAmount = item.m_stack;
                             TryStoreItem(c, ref item);

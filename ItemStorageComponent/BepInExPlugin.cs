@@ -156,7 +156,7 @@ namespace ItemStorageComponent
 
                 CloseContainer();
             }
-            if (!same && item != null && item.m_shared.m_maxStackSize <= 1 && (!requireEquipped.Value || item.m_equiped))
+            if (!same && item != null && item.m_shared.m_maxStackSize <= 1 && (!requireEquipped.Value || item.m_equipped))
             {
                 OpenItemStorage(item);
             }
@@ -174,7 +174,7 @@ namespace ItemStorageComponent
         
         private static bool CanBeContainer(ItemDrop.ItemData item)
         {
-            return item != null && (!requireEquipped.Value || item.m_equiped) && (!requireExistingTemplate.Value || itemStorageMetaDict.ContainsKey(item.m_dropPrefab.name)) && item.m_shared.m_maxStackSize <= 1;
+            return item != null && (!requireEquipped.Value || item.m_equipped) && (!requireExistingTemplate.Value || itemStorageMetaDict.ContainsKey(item.m_dropPrefab.name)) && item.m_shared.m_maxStackSize <= 1;
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Start")]

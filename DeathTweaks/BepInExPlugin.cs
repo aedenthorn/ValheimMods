@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "1.0.0")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "1.1.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -187,7 +187,7 @@ namespace DeathTweaks
                             {
                                 ItemDrop.ItemData item = keepItems[j];
 
-                                if (keepEquippedItems.Value && item.m_equiped)
+                                if (keepEquippedItems.Value && item.m_equipped)
                                     continue;
 
                                 if (keepHotbarItems.Value && inv.GetName() == ___m_inventory.GetName() && item.m_gridPos.y == 0)

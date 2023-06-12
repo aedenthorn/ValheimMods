@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.1.2")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -399,22 +399,33 @@ namespace CraftFromContainers
             }
 
         }
-        [HarmonyPatch(typeof(Smelter), "UpdateHoverTexts")]
-        static class Smelter_UpdateHoverTexts_Patch
+        [HarmonyPatch(typeof(Smelter), "OnHoverAddFuel")]
+        static class Smelter_OnHoverAddFuel_Patch
         {
-            static void Postfix(Smelter __instance)
+            static void Postfix(Smelter __instance, ref string __result)
             {
                 if (!modEnabled.Value)
                     return;
 
                 if(fillAllModKey.Value?.Length > 0)
                 {
-                    if(__instance.m_addOreSwitch?.m_hoverText != null)
-                        __instance.m_addOreSwitch.m_hoverText += $"\n[<color=yellow><b>{fillAllModKey.Value}+$KEY_Use</b></color>] {__instance.m_addOreTooltip} max";
-                    if (__instance.m_addWoodSwitch?.m_hoverText != null)
-                        __instance.m_addWoodSwitch.m_hoverText += $"\n[<color=yellow><b>{fillAllModKey.Value}+$KEY_Use</b></color>] $piece_smelter_add max";
+                    __result += Localization.instance.Localize($"\n[<color=yellow><b>{fillAllModKey.Value}+$KEY_Use</b></color>] $piece_smelter_add max");
                 }
 
+            }
+        }
+        [HarmonyPatch(typeof(Smelter), "OnHoverAddOre")]
+        static class Smelter_OnHoverAddOre_Patch
+        {
+            static void Postfix(Smelter __instance, ref string __result)
+            {
+                if (!modEnabled.Value)
+                    return;
+
+                if(fillAllModKey.Value?.Length > 0)
+                {
+                    __result += $"\n[<color=yellow><b>{fillAllModKey.Value}+$KEY_Use</b></color>] {__instance.m_addOreTooltip} max";
+                }
             }
         }
 

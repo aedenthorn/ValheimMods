@@ -8,7 +8,7 @@ using Debug = UnityEngine.Debug;
 
 namespace EquipMultipleUtilityItems
 {
-    [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.4.0")]
+    [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.5.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -53,7 +53,7 @@ namespace EquipMultipleUtilityItems
                     return;
                 try
                 {
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
 
                     foreach (var item in list)
                     {
@@ -79,7 +79,7 @@ namespace EquipMultipleUtilityItems
 
                 try
                 {
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
 
                     foreach (var item in list)
                     {
@@ -105,7 +105,7 @@ namespace EquipMultipleUtilityItems
                 try
                 {
 
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
 
                     foreach (var item in list)
                     {
@@ -129,7 +129,7 @@ namespace EquipMultipleUtilityItems
                     return;
                 try
                 {
-                    __result = item.m_equiped && item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && item != ___m_utilityItem;
+                    __result = item.m_equipped && item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && item != ___m_utilityItem;
                 }
                 catch
                 {
@@ -148,7 +148,7 @@ namespace EquipMultipleUtilityItems
                 try
                 {
 
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
 
                     foreach (var item in list)
                     {
@@ -173,7 +173,7 @@ namespace EquipMultipleUtilityItems
                     return true;
                 try
                 {
-                    var items = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
+                    var items = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
                     if (items.Exists(i => i.m_shared.m_name == item.m_shared.m_name))
                         return false;
 
@@ -200,12 +200,12 @@ namespace EquipMultipleUtilityItems
 
                     //Dbgl($"trying to equip item {item.m_shared.m_name}");
                     
-                    if (!modEnabled.Value || item == null || item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Utility || !__instance.IsPlayer() || !___m_inventory.ContainsItem(item) || __instance.InAttack() || __instance.InDodge() || (__instance.IsPlayer() && !__instance.IsDead() && __instance.IsSwiming() && !__instance.IsOnGround()) || (item.m_shared.m_useDurability && item.m_durability <= 0f) || (item.m_shared.m_dlc.Length > 0 && !DLCMan.instance.IsDLCInstalled(item.m_shared.m_dlc)))
+                    if (!modEnabled.Value || item == null || item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Utility || !__instance.IsPlayer() || !___m_inventory.ContainsItem(item) || __instance.InAttack() || __instance.InDodge() || (__instance.IsPlayer() && !__instance.IsDead() && __instance.IsSwimming() && !__instance.IsOnGround()) || (item.m_shared.m_useDurability && item.m_durability <= 0f) || (item.m_shared.m_dlc.Length > 0 && !DLCMan.instance.IsDLCInstalled(item.m_shared.m_dlc)))
                         return true;
 
                     //Dbgl($"can equip {item.m_shared.m_name}");
 
-                    int count = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility).Count;
+                    int count = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility).Count;
                     if (count >= maxEquippedItems.Value)
                     {
                         __result = false;
@@ -217,7 +217,7 @@ namespace EquipMultipleUtilityItems
 
                         ___m_utilityItem = item;
                     }
-                    item.m_equiped = true;
+                    item.m_equipped = true;
                     typeof(Humanoid).GetMethod("SetupEquipment", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { });
                     if (triggerEquipEffects)
                     {
@@ -240,14 +240,14 @@ namespace EquipMultipleUtilityItems
         [HarmonyPatch(typeof(Humanoid), "UpdateEquipmentStatusEffects")]
         static class UpdateEquipmentStatusEffects_Patch
         {
-            static void Prefix(Humanoid __instance, ItemDrop.ItemData ___m_utilityItem, ref HashSet<StatusEffect> ___m_eqipmentStatusEffects, SEMan ___m_seman)
+            static void Prefix(Humanoid __instance, ItemDrop.ItemData ___m_utilityItem, SEMan ___m_seman)
             {
                 try
                 {
                     if (!modEnabled.Value || !__instance.IsPlayer())
                         return;
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => !i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem && i.m_shared.m_equipStatusEffect);
-                    var list2 = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem && i.m_shared.m_equipStatusEffect);
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => !i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem && i.m_shared.m_equipStatusEffect);
+                    var list2 = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem && i.m_shared.m_equipStatusEffect);
 
                     foreach (var item in list)
                     {
@@ -255,7 +255,7 @@ namespace EquipMultipleUtilityItems
                         {
                             if (statusEffect.name == item.m_shared.m_equipStatusEffect.name && (___m_utilityItem is null || ___m_utilityItem.m_shared.m_equipStatusEffect.name != statusEffect.name) && !list2.Exists(i => i.m_shared.m_equipStatusEffect.name == statusEffect.name))
                             {
-                                ___m_seman.RemoveStatusEffect(statusEffect.name, false);
+                                ___m_seman.RemoveStatusEffect(statusEffect.NameHash(), false);
                             }
                         }
                     }
@@ -265,13 +265,13 @@ namespace EquipMultipleUtilityItems
                     //Dbgl($"Error: {Environment.StackTrace}");
                 }
             }
-            static void Postfix(Humanoid __instance, ItemDrop.ItemData ___m_utilityItem, ref HashSet<StatusEffect> ___m_eqipmentStatusEffects, SEMan ___m_seman)
+            static void Postfix(Humanoid __instance, ItemDrop.ItemData ___m_utilityItem, SEMan ___m_seman)
             {
                 try
                 {
                     if (!modEnabled.Value || !__instance.IsPlayer())
                         return;
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem && i.m_shared.m_equipStatusEffect);
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem && i.m_shared.m_equipStatusEffect);
 
                     foreach (var item in list)
                     {
@@ -296,7 +296,7 @@ namespace EquipMultipleUtilityItems
                     if (!modEnabled.Value || !__instance.IsPlayer())
                         return;
 
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
                     foreach (ItemDrop.ItemData item in list)
                         __instance.UnequipItem(item, false);
                 }
@@ -319,7 +319,7 @@ namespace EquipMultipleUtilityItems
                     if (!modEnabled.Value)
                         return;
 
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equiped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
+                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem);
                     foreach (ItemDrop.ItemData item in list)
                         __instance.UnequipItem(item, false);
                 }
