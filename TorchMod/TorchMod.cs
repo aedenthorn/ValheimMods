@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace TorchMod
 {
-    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.6.0")]
+    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.7.0")]
 
     public class BepInExPlugin : BaseUnityPlugin
     {
@@ -236,8 +236,8 @@ namespace TorchMod
         }
 
 
-        [HarmonyPatch(typeof(VisEquipment), "SetHelmetEquiped")]
-        static class VisEquipment_SetHelmetEquiped_Patch
+        [HarmonyPatch(typeof(VisEquipment), "SetHelmetEquipped")]
+        static class VisEquipment_SetHelmetEquipped_Patch
         {
             static void Postfix(bool __result, string ___m_helmetItem, GameObject ___m_helmetItemInstance)
             {

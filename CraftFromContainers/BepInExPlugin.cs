@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.2.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.2.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -424,7 +424,7 @@ namespace CraftFromContainers
 
                 if(fillAllModKey.Value?.Length > 0)
                 {
-                    __result += $"\n[<color=yellow><b>{fillAllModKey.Value}+$KEY_Use</b></color>] {__instance.m_addOreTooltip} max";
+                    __result += Localization.instance.Localize($"\n[<color=yellow><b>{fillAllModKey.Value}+$KEY_Use</b></color>] {__instance.m_addOreTooltip} max");
                 }
             }
         }
