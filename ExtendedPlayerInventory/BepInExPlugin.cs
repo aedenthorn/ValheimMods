@@ -10,7 +10,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.6.1")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.6.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -265,7 +265,7 @@ namespace ExtendedPlayerInventory
 
         private static void ArrangeEquipment(Player __instance)
         {
-            if (!modEnabled.Value || !addEquipmentRow.Value)
+            if (!modEnabled.Value)
                 return;
             Inventory inv = __instance.GetInventory();
 

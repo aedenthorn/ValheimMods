@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace AnimationSpeed
 {
-    [BepInPlugin("aedenthorn.AnimationSpeed", "Animation Speed", "0.8.0")]
+    [BepInPlugin("aedenthorn.AnimationSpeed", "Animation Speed", "0.9.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static Dictionary<long, string> lastAnims = new Dictionary<long, string>();
@@ -108,15 +108,15 @@ namespace AnimationSpeed
         [HarmonyPatch(typeof(CharacterAnimEvent), "Speed")]
         static class CharacterAnimEvent_Speed_Patch
         {
-            static void Postfix(ref Animator ___m_animator, Character ___m_character, float speedScale)
+            static void Postfix(Character ___m_character)
             {
                 if (___m_character is Player)
                     lastAnims.Remove((___m_character as Player).GetPlayerID());
             }
         }
 
-        [HarmonyPatch(typeof(CharacterAnimEvent), "FixedUpdate")]
-        static class CharacterAnimEvent_Awake_Patch
+        [HarmonyPatch(typeof(CharacterAnimEvent), nameof(CharacterAnimEvent.CustomFixedUpdate))]
+        static class CharacterAnimEvent_CustomFixedUpdate_Patch
         {
             static void Prefix(ref Animator ___m_animator, Character ___m_character)
             {

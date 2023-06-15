@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 
 namespace GrassTweaks
 {
-    [BepInPlugin("aedenthorn.GrassTweaks", "Grass Tweaks", "0.2.0")]
+    [BepInPlugin("aedenthorn.GrassTweaks", "Grass Tweaks", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -78,15 +78,13 @@ namespace GrassTweaks
                 }
             }
         }
-        [HarmonyPatch(typeof(InstanceRenderer))]
-        [HarmonyPatch(MethodType.Constructor)]
-        static class InstanceRenderer_Patch
+        [HarmonyPatch(typeof(InstanceRenderer), "OnEnable")]
+        static class InstanceRenderer_OnEnable_Patch
         {
             static void Postfix(InstanceRenderer __instance)
             {
                 if (!modEnabled.Value)
                     return;
-
                 __instance.m_lodMinDistance *= lodMinDistanceMult.Value;
                 __instance.m_lodMaxDistance *= lodMaxDistanceMult.Value;
                 __instance.m_shadowCasting = shadowCastingMode.Value;
