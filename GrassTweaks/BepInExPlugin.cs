@@ -1,13 +1,14 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace GrassTweaks
 {
-    [BepInPlugin("aedenthorn.GrassTweaks", "Grass Tweaks", "0.3.0")]
+    [BepInPlugin("aedenthorn.GrassTweaks", "Grass Tweaks", "0.3.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -78,19 +79,20 @@ namespace GrassTweaks
                 }
             }
         }
-        [HarmonyPatch(typeof(InstanceRenderer), "OnEnable")]
-        static class InstanceRenderer_OnEnable_Patch
+        [HarmonyPatch(typeof(MonoBehaviour), MethodType.Constructor, new Type[] { })]
+        static class MonoBehaviour_Patch
         {
-            static void Postfix(InstanceRenderer __instance)
+            static void Postfix(MonoBehaviour __instance)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || !(__instance is InstanceRenderer))
                     return;
-                __instance.m_lodMinDistance *= lodMinDistanceMult.Value;
-                __instance.m_lodMaxDistance *= lodMaxDistanceMult.Value;
-                __instance.m_shadowCasting = shadowCastingMode.Value;
-                __instance.m_useLod = useLod.Value;
-                __instance.m_useXZLodDistance = useXZLodDistance.Value;
-            }
+                var i = __instance as InstanceRenderer;
+                i.m_lodMinDistance *= lodMinDistanceMult.Value;
+                i.m_lodMaxDistance *= lodMaxDistanceMult.Value;
+                i.m_shadowCasting = shadowCastingMode.Value;
+                i.m_useLod = useLod.Value;
+                i.m_useXZLodDistance = useXZLodDistance.Value;
+            }   
         }
         [HarmonyPatch(typeof(Terminal), "InputText")]
         static class InputText_Patch

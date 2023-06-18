@@ -30,7 +30,7 @@ namespace ShipSpeed
         private static ConfigEntry<float> stearVelForceFactorMult;
         private static ConfigEntry<float> backwardForceMult;
         private static ConfigEntry<float> rudderRotationMaxMult;
-        private static ConfigEntry<float> rudderRotationSpeedMult;
+        //private static ConfigEntry<float> rudderRotationSpeedMult;
         private static ConfigEntry<float> minWaterImpactForceMult;
         private static ConfigEntry<float> minWaterImpactIntervalMult;
         private static ConfigEntry<float> waterImpactDamageMult;
@@ -71,7 +71,7 @@ namespace ShipSpeed
             stearVelForceFactorMult = Config.Bind<float>("Ships", "StearVelForceFactorMult", 1f, "Steer Vel Force Factor Multiplier");
             backwardForceMult = Config.Bind<float>("Ships", "BackwardForceMult", 1f, "Backward Force Multiplier");
             rudderRotationMaxMult = Config.Bind<float>("Ships", "RudderRotationMaxMult", 1f, "Rudder Rotation Max Multiplier");
-            rudderRotationSpeedMult = Config.Bind<float>("Ships", "RudderRotationSpeedMult", 1f, "Rudder Rotation Speed Multiplier");
+            //rudderRotationSpeedMult = Config.Bind<float>("Ships", "RudderRotationSpeedMult", 1f, "Rudder Rotation Speed Multiplier");
             minWaterImpactForceMult = Config.Bind<float>("Ships", "MinWaterImpactForceMult", 1f, "Min Water Impact Force Multiplier");
             minWaterImpactIntervalMult = Config.Bind<float>("Ships", "MinWaterImpactIntervalMult", 1f, "Min Water Impact Interval Multiplier");
             waterImpactDamageMult = Config.Bind<float>("Ships", "WaterImpactDamageMult", 1f, "Water Impact Damage Multiplier");
@@ -102,7 +102,7 @@ namespace ShipSpeed
         [HarmonyPatch(typeof(Ship), "Awake")]
         static class Awake_Patch
         {
-            static void Postfix(Ship __instance, ref float ___m_forceDistance, ref float ___m_force, ref float ___m_damping, ref float ___m_dampingSideway, ref float ___m_dampingForward, ref float ___m_angularDamping, ref float ___m_disableLevel, ref float ___m_sailForceFactor, ref float ___m_rudderSpeed, ref float ___m_stearForceOffset, ref float ___m_stearForce, ref float ___m_stearVelForceFactor, ref float ___m_backwardForce, ref float ___m_rudderRotationMax, ref float ___m_rudderRotationSpeed, ref float ___m_minWaterImpactForce, ref float ___m_minWaterImpactInterval, ref float ___m_waterImpactDamage, ref float ___m_upsideDownDmgInterval, ref float ___m_upsideDownDmg)
+            static void Postfix(Ship __instance, ref float ___m_forceDistance, ref float ___m_force, ref float ___m_damping, ref float ___m_dampingSideway, ref float ___m_dampingForward, ref float ___m_angularDamping, ref float ___m_disableLevel, ref float ___m_sailForceFactor, ref float ___m_rudderSpeed, ref float ___m_stearForceOffset, ref float ___m_stearForce, ref float ___m_stearVelForceFactor, ref float ___m_backwardForce, ref float ___m_rudderRotationMax, ref float ___m_minWaterImpactForce, ref float ___m_minWaterImpactInterval, ref float ___m_waterImpactDamage, ref float ___m_upsideDownDmgInterval, ref float ___m_upsideDownDmg)
             {
                 ___m_forceDistance *= forceDistanceMult.Value;
                 ___m_force *= forceMult.Value;
@@ -118,7 +118,6 @@ namespace ShipSpeed
                 ___m_stearVelForceFactor *= stearVelForceFactorMult.Value;
                 ___m_backwardForce *= backwardForceMult.Value;
                 ___m_rudderRotationMax *= rudderRotationMaxMult.Value;
-                ___m_rudderRotationSpeed *= rudderRotationSpeedMult.Value;
                 ___m_minWaterImpactForce *= minWaterImpactForceMult.Value;
                 ___m_minWaterImpactInterval *= minWaterImpactIntervalMult.Value;
                 ___m_waterImpactDamage *= waterImpactDamageMult.Value;

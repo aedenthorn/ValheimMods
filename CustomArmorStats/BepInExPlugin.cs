@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace CustomArmorStats
 {
-    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.4.0")]
+    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.5.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -241,34 +241,35 @@ namespace CustomArmorStats
 
                 if (___m_seman.HaveStatusEffect("Wet"))
                 {
+                    var hash = "Wet".GetStableHashCode();
                     HitData.DamageModifier water = GetNewDamageTypeMod(NewDamageTypes.Water, ___m_chestItem, ___m_legItem, ___m_helmetItem, ___m_shoulderItem);
-                    var wet = ___m_seman.GetStatusEffect("Wet");
+                    var wet = ___m_seman.GetStatusEffect(hash);
                     var t = Traverse.Create(wet);
 
                     if (water == HitData.DamageModifier.Ignore || water == HitData.DamageModifier.Immune)
                     {
-                        ___m_seman.RemoveStatusEffect("Wet", true);
+                        ___m_seman.RemoveStatusEffect(hash, true);
                     }
-                    else if (water == HitData.DamageModifier.VeryResistant && !__instance.InLiquidSwimDepth())
+                    else if (water == HitData.DamageModifier.VeryResistant && !(bool)AccessTools.Method(typeof(Character), "InLiquidSwimDepth").Invoke(__instance, new object[] { }))
                     {
-                        ___m_seman.RemoveStatusEffect("Wet", true);
+                        ___m_seman.RemoveStatusEffect(hash, true);
                     }
                     else if (water == HitData.DamageModifier.Resistant)
                     {
                         t.Field("m_time").SetValue(t.Field("m_time").GetValue<float>() + dt);
-                        ___m_seman.RemoveStatusEffect("Wet", true);
+                        ___m_seman.RemoveStatusEffect(hash, true);
                         ___m_seman.AddStatusEffect(wet);
                     }
                     else if (water == HitData.DamageModifier.Weak)
                     {
                         t.Field("m_time").SetValue(t.Field("m_time").GetValue<float>() - dt / 3);
-                        ___m_seman.RemoveStatusEffect("Wet", true);
+                        ___m_seman.RemoveStatusEffect(hash, true);
                         ___m_seman.AddStatusEffect(wet);
                     }
                     else if (water == HitData.DamageModifier.VeryWeak)
                     {
                         t.Field("m_time").SetValue(t.Field("m_time").GetValue<float>() - dt * 2 / 3);
-                        ___m_seman.RemoveStatusEffect("Wet", true);
+                        ___m_seman.RemoveStatusEffect(hash, true);
                         ___m_seman.AddStatusEffect(wet);
                     }
                 }
