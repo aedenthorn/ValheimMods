@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace CustomItemInfoDisplay
 {
-    [BepInPlugin("aedenthorn.CustomItemInfoDisplay", "Custom Item Info Display", "0.2.0")]
+    [BepInPlugin("aedenthorn.CustomItemInfoDisplay", "Custom Item Info Display", "0.3.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -49,6 +49,12 @@ namespace CustomItemInfoDisplay
             typeTemplates.Clear();
             foreach (ItemDrop.ItemData.ItemType type in Enum.GetValues(typeof(ItemDrop.ItemData.ItemType)))
             {
+                var path = Path.Combine(assetPath, "ItemTypes", type + ".txt");
+                if (!File.Exists(path))
+                {
+                    Dbgl($"Template file not found: {path}");
+                    continue;
+                }
                 typeTemplates.Add(type, File.ReadAllLines(Path.Combine(assetPath, "ItemTypes", type + ".txt")));
             }
         }
