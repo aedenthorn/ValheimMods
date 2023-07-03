@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.2.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.3.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -72,7 +72,7 @@ namespace CraftFromContainers
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
-                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
+                context.Logger.Log(BepInEx.Logging.LogLevel.Debug, (pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
         private void Awake()
         {
@@ -1051,6 +1051,34 @@ namespace CraftFromContainers
                     return false;
                 }
                 return true;
+            }
+        }
+        
+        [HarmonyPatch(typeof(Turret), nameof(Turret.UseItem))]
+        static class Turret_UseItem_Patch
+        {
+            static void Prefix(Turret __instance, Humanoid user, ref ItemDrop.ItemData item)
+            {
+
+                if (!modEnabled.Value || !AllowByKey() || item != null || !(user is Player))
+                {
+                    Dbgl($"Not allowed {AllowByKey()} {item is null} {user is Player}");
+                    return;
+                }
+                item = user.GetInventory().GetAmmoItem(__instance.m_ammoType, __instance.GetAmmo() > 0 ? __instance.GetAmmoType() : null);
+                if(item is null)
+                {
+                    Dbgl($"No item found in inventory, checking containers for {__instance.GetAmmoType()}");
+
+                    GameObject prefab = ZNetScene.instance.GetPrefab(__instance.GetAmmoType());
+                    if (!prefab)
+                    {
+                        Dbgl($"No prefab found for {__instance.GetAmmoType()}");
+                        ZLog.LogWarning("Turret '" + __instance.name + "' is trying to fire but has no ammo or default ammo!");
+                        return;
+                    }
+                    PullResources(user as Player, new Piece.Requirement[] { new Piece.Requirement() { m_amount = 1, m_resItem = prefab.GetComponent<ItemDrop>() } }, prefab.GetComponent<ItemDrop>().m_itemData.m_quality);
+                }
             }
         }
 
