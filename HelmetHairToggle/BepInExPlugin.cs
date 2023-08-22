@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace HelmetHairToggle
 {
-    [BepInPlugin("aedenthorn.HelmetHairToggle", "Helmet Hair Toggle", "0.3.1")]
+    [BepInPlugin("aedenthorn.HelmetHairToggle", "Helmet Hair Toggle", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -105,7 +105,7 @@ namespace HelmetHairToggle
                 if (!modEnabled.Value || showBeard.Value || ___m_helmetItemInstance == null)
                     return;
 
-                Traverse.Create(__instance).Method("SetBeardEquiped", new object[] { 0 }).GetValue();
+                Traverse.Create(__instance).Method("SetBeardEquipped", new object[] { 0 }).GetValue();
                 Traverse.Create(__instance).Method("UpdateLodgroup").GetValue();
                 
             }

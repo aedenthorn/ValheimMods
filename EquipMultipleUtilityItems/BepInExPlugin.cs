@@ -8,7 +8,7 @@ using Debug = UnityEngine.Debug;
 
 namespace EquipMultipleUtilityItems
 {
-    [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.5.1")]
+    [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -332,17 +332,17 @@ namespace EquipMultipleUtilityItems
         }
                     
 
-        [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool) })]
+        [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool) , typeof(float) })]
         static class GetTooltip_Patch
         {
-            static void Postfix(ref ItemDrop.ItemData item, int qualityLevel, ref string __result)
+            static void Postfix(ref ItemDrop.ItemData item, int qualityLevel, float worldLevel, ref string __result)
             {
                 try
                 {
                     if (!modEnabled.Value || item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Utility)
                         return;
 
-                    __result += string.Format("\n\n$item_armor: <color=orange>{0}</color>", item.GetArmor(qualityLevel));
+                    __result += string.Format("\n\n$item_armor: <color=orange>{0}</color>", item.GetArmor(qualityLevel, worldLevel));
                     if (item.m_shared.m_damageModifiers.Count > 0)
                         __result += SE_Stats.GetDamageModifiersTooltipString(item.m_shared.m_damageModifiers);
                 }

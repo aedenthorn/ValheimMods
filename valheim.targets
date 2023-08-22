@@ -94,6 +94,11 @@
       <HintPath>$(ManagedDataPath)\assembly_guiutils.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="ui_lib">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\ui_lib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="assembly_postprocessing">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(ManagedDataPath)\assembly_postprocessing.dll</HintPath>
