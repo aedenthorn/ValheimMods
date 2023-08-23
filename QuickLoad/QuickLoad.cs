@@ -102,24 +102,29 @@ namespace QuickLoad
 
             Dbgl($"got world");
 
-            AccessTools.FieldRefAccess<FejdStartup, bool>(FejdStartup.instance, "m_startingWorld") = true;
-            ZSteamMatchmaking.instance.StopServerListing();
             PlayerPrefs.SetString("world", world.m_name);
+
             if (FejdStartup.instance.m_crossplayServerToggle.IsInteractable())
             {
                 PlayerPrefs.SetInt("crossplay", FejdStartup.instance.m_crossplayServerToggle.isOn ? 1 : 0);
             }
-            ZNet.m_onlineBackend = isOn3 ? OnlineBackendType.PlayFab : OnlineBackendType.Steamworks;
+            OnlineBackendType onlineBackend = (OnlineBackendType)typeof(FejdStartup).GetMethod("GetOnlineBackend", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(FejdStartup.instance, new object[] { isOn3 });
+            if (isOn2 && onlineBackend == OnlineBackendType.PlayFab && !PlayFabManager.IsLoggedIn)
+            {
+                return;
+            }
+            ZNet.m_onlineBackend = onlineBackend;
+            ZSteamMatchmaking.instance.StopServerListing();
+            AccessTools.FieldRefAccess<FejdStartup, bool>(FejdStartup.instance, "m_startingWorld") = true;
             ZNet.SetServer(true, isOn2, isOn, world.m_name, text, world);
             ZNet.ResetServerHost();
             string eventLabel = "open:" + isOn2.ToString() + ",public:" + isOn.ToString();
             Gogan.LogEvent("Menu", "WorldStart", eventLabel, 0L);
-            FejdStartup.StartGameEventHandler startGameEventHandler = AccessTools.FieldRefAccess<FejdStartup, StartGameEventHandler>(FejdStartup.instance, "startGameEvent");
+            FejdStartup.StartGameEventHandler startGameEventHandler = (StartGameEventHandler)AccessTools.Field(typeof(FejdStartup), "startGameEvent").GetValue(null);
             if (startGameEventHandler != null)
             {
-                startGameEventHandler(FejdStartup.instance, new StartGameEventArgs(true));
+                startGameEventHandler(FejdStartup.instance, new FejdStartup.StartGameEventArgs(true));
             }
-
 
             Dbgl($"transitioning...");
 

@@ -45,5 +45,8 @@
         public float lightningPerLevel;
         public float poisonPerLevel;
         public float spiritPerLevel;
+
+        public bool hitTerrain;
+        public bool hitTerrainSecondary;
     }
 }

@@ -17,8 +17,8 @@ namespace HelmetHairToggle
         public static ConfigEntry<string> hairToggleString;
         public static ConfigEntry<string> beardToggleString;
         
-        public static ConfigEntry<bool> showHair;
-        public static ConfigEntry<bool> showBeard;
+        public static ConfigEntry<ItemDrop.ItemData.HelmetHairType> showHair;
+        public static ConfigEntry<ItemDrop.ItemData.HelmetHairType> showBeard;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -37,8 +37,8 @@ namespace HelmetHairToggle
             beardToggleString = Config.Bind<string>("General", "BeardToggleString", "Show beard with helmet: {0}", "Text to show on toggle. {0} is replaced with true/false");
             hairToggleKey = Config.Bind<string>("General", "HairToggleKey", "h", "Key to toggle hair. Leave blank to disable the toggle key. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             beardToggleKey = Config.Bind<string>("General", "BeardToggleKey", "b", "Key to toggle beard. Leave blank to disable the toggle key. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
-            showHair = Config.Bind<bool>("General", "ShowHair", false, "Hair is currently shown or not");
-            showBeard = Config.Bind<bool>("General", "ShowBeard", true, "Beard is currently shown or not");
+            showHair = Config.Bind<ItemDrop.ItemData.HelmetHairType>("General", "ShowHair", ItemDrop.ItemData.HelmetHairType.Hidden, "Hair is currently shown or not");
+            showBeard = Config.Bind<ItemDrop.ItemData.HelmetHairType>("General", "ShowBeard", ItemDrop.ItemData.HelmetHairType.Default, "Beard is currently shown or not");
             
             
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -56,23 +56,22 @@ namespace HelmetHairToggle
                 return;
             if (AedenthornUtils.CheckKeyDown(hairToggleKey.Value))
             {
-                showHair.Value = !showHair.Value;
-                Config.Save();
+                showHair.Value = showHair.Value == ItemDrop.ItemData.HelmetHairType.Hidden ? ItemDrop.ItemData.HelmetHairType.Default : ItemDrop.ItemData.HelmetHairType.Hidden;
                 if(hairToggleString.Value.Length > 0)
                     Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(hairToggleString.Value, showHair.Value), 0, null);
 
                 VisEquipment ve = (VisEquipment)typeof(Humanoid).GetField("m_visEquipment", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Player.m_localPlayer);
-                Traverse.Create(ve).Field("m_helmetHideHair").SetValue(!showHair.Value);
-                GameObject helmet = Traverse.Create(ve).Field("m_helmetItemInstance").GetValue<GameObject>();
+                AccessTools.Field(typeof(VisEquipment), "m_helmetHideHair").SetValue(ve, showHair.Value);
+                GameObject helmet = (GameObject)AccessTools.Field(typeof(VisEquipment), "m_helmetItemInstance").GetValue(ve);       
                 if (helmet != null)
                 {
-                    Traverse.Create(ve).Method("UpdateEquipmentVisuals").GetValue();
+                    AccessTools.Method(typeof(VisEquipment), "UpdateEquipmentVisuals").Invoke(ve, new object[] { });
                 }
             }
             else if (AedenthornUtils.CheckKeyDown(beardToggleKey.Value))
             {
-                showBeard.Value = !showBeard.Value;
-                Config.Save();
+                showBeard.Value = showBeard.Value == ItemDrop.ItemData.HelmetHairType.Hidden ? ItemDrop.ItemData.HelmetHairType.Default : ItemDrop.ItemData.HelmetHairType.Hidden;
+                
                 if(beardToggleString.Value.Length > 0)
                     Player.m_localPlayer.Message(MessageHud.MessageType.Center, string.Format(beardToggleString.Value, showBeard.Value), 0, null);
 
@@ -92,8 +91,8 @@ namespace HelmetHairToggle
             {
                 if (!modEnabled.Value)
                     return true;
-                hideHair = !showHair.Value;
-                hideBeard = !showBeard.Value;
+                hideHair = showHair.Value == ItemDrop.ItemData.HelmetHairType.Hidden;
+                hideBeard = showBeard.Value == ItemDrop.ItemData.HelmetHairType.Hidden;
                 return false;
             }
         }
@@ -102,7 +101,7 @@ namespace HelmetHairToggle
         {
             static void Postfix(VisEquipment __instance, GameObject ___m_helmetItemInstance)
             {
-                if (!modEnabled.Value || showBeard.Value || ___m_helmetItemInstance == null)
+                if (!modEnabled.Value || showBeard.Value != ItemDrop.ItemData.HelmetHairType.Hidden || ___m_helmetItemInstance == null)
                     return;
 
                 Traverse.Create(__instance).Method("SetBeardEquipped", new object[] { 0 }).GetValue();

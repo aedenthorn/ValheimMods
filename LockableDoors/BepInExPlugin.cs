@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace LockableDoors
 {
-    [BepInPlugin("aedenthorn.LockableDoors", "Lockable Doors", "0.5.1")]
+    [BepInPlugin("aedenthorn.LockableDoors", "Lockable Doors", "0.6.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -329,7 +329,7 @@ namespace LockableDoors
             }
         }
                         
-        [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool) })]
+        [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float) })]
         static class GetTooltip_Patch
         {
             static void Postfix(ItemDrop.ItemData item, ref string __result)

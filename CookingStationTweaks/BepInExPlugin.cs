@@ -7,7 +7,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CookingStationTweaks
 {
-    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.4.2")]
+    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;

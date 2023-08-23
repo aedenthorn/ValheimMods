@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MapTeleport
 {
-    [BepInPlugin("aedenthorn.MapTeleport", "Map Teleport", "0.5.0")]
+    [BepInPlugin("aedenthorn.MapTeleport", "Map Teleport", "0.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace MapDetails
 {
-    [BepInPlugin("aedenthorn.MapDetails", "Map Details", "0.3.2")]
+    [BepInPlugin("aedenthorn.MapDetails", "Map Details", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;

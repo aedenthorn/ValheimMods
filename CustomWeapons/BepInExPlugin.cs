@@ -276,8 +276,15 @@ namespace CustomWeaponStats
             item.m_shared.m_damagesPerLevel.m_lightning = weapon.lightningPerLevel;
             item.m_shared.m_damagesPerLevel.m_poison = weapon.poisonPerLevel;
             item.m_shared.m_damagesPerLevel.m_spirit = weapon.spiritPerLevel;
+            
+            item.m_shared.m_attack.m_hitTerrain = weapon.hitTerrain;
+            if(item.m_shared.m_secondaryAttack != null)
+                item.m_shared.m_secondaryAttack.m_hitTerrain = weapon.hitTerrainSecondary;
 
-            item.m_shared.m_attackStatusEffect = ObjectDB.instance.GetStatusEffect(weapon.statusEffect);
+            item.m_shared.m_attackStatusEffect = ObjectDB.instance.GetStatusEffect((string.IsNullOrEmpty(weapon.statusEffect) ? 0 : weapon.statusEffect.GetStableHashCode()));
+
+
+
             //Dbgl($"Set weapon data for {weapon.name}");
         }
 
@@ -340,7 +347,10 @@ namespace CustomWeaponStats
                 poisonPerLevel = item.m_shared.m_damagesPerLevel.m_poison,
                 spiritPerLevel = item.m_shared.m_damagesPerLevel.m_spirit,
 
-                statusEffect = item.m_shared.m_attackStatusEffect?.name
+                statusEffect = item.m_shared.m_attackStatusEffect?.name,
+
+                hitTerrain = item.m_shared.m_attack?.m_hitTerrain == true,
+                hitTerrainSecondary = item.m_shared.m_secondaryAttack?.m_hitTerrain == true
             };
         }
         private static void CheckModFolder()

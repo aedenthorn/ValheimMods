@@ -71,7 +71,7 @@ namespace RealClockMod
             clockTextAlignment = Config.Bind<TextAnchor>("General", "ClockTextAlignment", TextAnchor.MiddleCenter, "Clock text alignment.");
             clockFuzzyStrings = Config.Bind<string>("General", "ClockFuzzyStrings", "Midnight,Early Morning,Early Morning,Before Dawn,Before Dawn,Dawn,Dawn,Morning,Morning,Late Morning,Late Morning,Midday,Midday,Early Afternoon,Early Afternoon,Afternoon,Afternoon,Evening,Evening,Night,Night,Late Night,Late Night,Midnight", "Fuzzy time strings to split up the day into custom periods if ClockFormat is set to 'fuzzy'; comma-separated");
 
-            newTimeString = GetCurrentTimeString(DateTime.Now, 0.5f);
+            newTimeString = GetCurrentTimeString(DateTime.Now, 0.5f, 0);
             style = new GUIStyle
             {
                 richText = true,

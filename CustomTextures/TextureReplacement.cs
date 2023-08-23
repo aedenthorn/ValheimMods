@@ -181,7 +181,7 @@ namespace CustomTextures
             Heightmap hm = prefab.transform.Find("Terrain")?.GetComponent<Heightmap>();
             Material mat = hm?.m_material;
 
-            if (mat != null)
+            if (mat != null && AccessTools.Field(typeof(Heightmap), "m_meshRenderer").GetValue(hm) != null)
             {
                 outputDump.Add($"terrain {zoneSystem}, prefab {prefab.name}");
                 ReplaceMaterialTextures(prefab.name, mat, zoneSystem, "terrain", "Terrain", prefab.name, dumpSceneTextures.Value);

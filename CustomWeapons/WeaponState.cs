@@ -19,6 +19,9 @@
         public float lightning;
         public float poison;
         public float spirit;
+        
+        public bool hitTerrain;
+        public bool hitTerrainSecondary;
 
         public WeaponState(ItemDrop.ItemData weapon)
         {
@@ -37,6 +40,9 @@
             lightning = weapon.m_shared.m_damages.m_lightning;
             poison = weapon.m_shared.m_damages.m_poison;
             spirit = weapon.m_shared.m_damages.m_spirit;
+
+            hitTerrain = weapon.m_shared.m_attack?.m_hitTerrain == true;
+            hitTerrainSecondary = weapon.m_shared.m_secondaryAttack?.m_hitTerrain == true;
         }
     }
 }

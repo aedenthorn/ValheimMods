@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ClockMod
 {
-    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "1.5.0")]
+    [BepInPlugin("aedenthorn.ClockMod", "Clock Mod", "1.6.0")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
 

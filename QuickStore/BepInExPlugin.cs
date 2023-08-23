@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace QuickStore
 {
-    [BepInPlugin("aedenthorn.QuickStore", "Quick Store", "0.3.0")]
+    [BepInPlugin("aedenthorn.QuickStore", "Quick Store", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

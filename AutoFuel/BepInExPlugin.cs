@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "1.1.0")]
+    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "1.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = false;

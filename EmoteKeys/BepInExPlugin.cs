@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace EmoteKeys
 {
-    [BepInPlugin("aedenthorn.EmoteKeys", "Emote Keys", "0.2.0")]
+    [BepInPlugin("aedenthorn.EmoteKeys", "Emote Keys", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

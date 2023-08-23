@@ -12,7 +12,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomMeshes
 {
-    [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.2.3")]
+    [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.3.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static Dictionary<string, Dictionary<string, Dictionary<string, CustomMeshData>>> customMeshes = new Dictionary<string, Dictionary<string, Dictionary<string, CustomMeshData>>>();

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ShowContainerContents
 {
-    [BepInPlugin("aedenthorn.ShowContainerContents", "Show Container Contents", "0.3.0")]
+    [BepInPlugin("aedenthorn.ShowContainerContents", "Show Container Contents", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
