@@ -371,6 +371,8 @@ namespace ExtendedPlayerInventory
                     which = 3;
                 else return;
 
+                Dbgl($"Pressed hotkey {which}");
+
                 ItemDrop.ItemData itemAt = ___m_inventory.GetItemAt(which + 4, ___m_inventory.GetHeight() - 1);
                 if (itemAt != null)
                 {

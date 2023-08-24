@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace ServerRewards
 {
-    [BepInPlugin("aedenthorn.ServerRewards", "Server Rewards", "0.7.0")]
+    [BepInPlugin("aedenthorn.ServerRewards", "Server Rewards", "0.8.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
 

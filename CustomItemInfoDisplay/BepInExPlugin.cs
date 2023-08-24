@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace CustomItemInfoDisplay
 {
-    [BepInPlugin("aedenthorn.CustomItemInfoDisplay", "Custom Item Info Display", "0.3.0")]
+    [BepInPlugin("aedenthorn.CustomItemInfoDisplay", "Custom Item Info Display", "0.3.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -84,7 +84,10 @@ namespace CustomItemInfoDisplay
                     return true;
 
                 __result = CheckReplaceTemplate(baseTemplate, item, qualityLevel, worldLevel, crafting);
-                __result = __result.Replace("{itemTypeInfo}", CheckReplaceTemplate(typeTemplates[item.m_shared.m_itemType], item, qualityLevel, worldLevel, crafting));
+                if(typeTemplates.TryGetValue(item.m_shared.m_itemType, out var t))
+                {
+                    __result = __result.Replace("{itemTypeInfo}", CheckReplaceTemplate(t, item, qualityLevel, worldLevel, crafting));
+                }
 
                 return false;
 			}

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BuildingRepair
 {
-    [BepInPlugin("aedenthorn.BuildingRepair", "Building Repair", "0.2.0")]
+    [BepInPlugin("aedenthorn.BuildingRepair", "Building Repair", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

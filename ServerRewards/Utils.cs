@@ -343,8 +343,9 @@ namespace ServerRewards
                 try
                 {
                     socket = (ISocket)AccessTools.Field(peer.m_socket.GetType(), "Original").GetValue(peer.m_socket);
+                    Dbgl($"Peer type: {socket.GetType()}");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Dbgl($"Failed to get socket from ServerSync: \n\n {ex}");
                 }

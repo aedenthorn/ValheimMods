@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace CustomArmorStats
 {
-    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.5.0")]
+    [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.6.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;

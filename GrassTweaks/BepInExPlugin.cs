@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 
 namespace GrassTweaks
 {
-    [BepInPlugin("aedenthorn.GrassTweaks", "Grass Tweaks", "0.3.1")]
+    [BepInPlugin("aedenthorn.GrassTweaks", "Grass Tweaks", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

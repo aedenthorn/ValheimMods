@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 
 namespace MovableInventoryWindows
 {
-    [BepInPlugin("aedenthorn.MovableInventoryWindows", "Movable Inventory Windows", "0.2.2")]
+    [BepInPlugin("aedenthorn.MovableInventoryWindows", "Movable Inventory Windows", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

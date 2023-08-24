@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace JumpRunDodgeSneakWalk
 {
-    [BepInPlugin("aedenthorn.JumpRunDodgeSneakWalk", "Jump Run Sneak Walk Swim", "0.1.1")]
+    [BepInPlugin("aedenthorn.JumpRunDodgeSneakWalk", "Jump Run Sneak Walk Swim", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

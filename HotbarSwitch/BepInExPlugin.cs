@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace HotbarSwitch
 {
-    [BepInPlugin("aedenthorn.HotbarSwitch", "Hotbar Switch", "0.1.1")]
+    [BepInPlugin("aedenthorn.HotbarSwitch", "Hotbar Switch", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

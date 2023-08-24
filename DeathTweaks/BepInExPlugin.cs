@@ -7,10 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using static Unity.IO.LowLevel.Unsafe.AsyncReadManagerMetrics;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "1.1.0")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "1.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -113,7 +114,7 @@ namespace DeathTweaks
         [HarmonyPriority(Priority.First)]
         static class OnDeath_Patch
         {
-            static bool Prefix(Player __instance, Inventory ___m_inventory, ref float ___m_timeSinceDeath, float ___m_hardDeathCooldown, ZNetView ___m_nview, List<Player.Food> ___m_foods, Skills ___m_skills, SEMan ___m_seman)
+            static bool Prefix(Player __instance, Inventory ___m_inventory, ref float ___m_timeSinceDeath, float ___m_hardDeathCooldown, ZNetView ___m_nview, List<Player.Food> ___m_foods, Skills ___m_skills, SEMan ___m_seman, HitData ___m_lastHit)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -122,8 +123,70 @@ namespace DeathTweaks
 
                 ___m_nview.GetZDO().Set("dead", true);
                 ___m_nview.InvokeRPC(ZNetView.Everybody, "OnDeath", new object[] { });
-                Game.instance.GetPlayerProfile().m_playerStats.m_deaths++;
-
+                Game.instance.IncrementPlayerStat(PlayerStatType.Deaths, 1f);
+                switch (___m_lastHit.m_hitType)
+                {
+                    case HitData.HitType.Undefined:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByUndefined, 1f);
+                        break;
+                    case HitData.HitType.EnemyHit:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByEnemyHit, 1f);
+                        break;
+                    case HitData.HitType.PlayerHit:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByPlayerHit, 1f);
+                        break;
+                    case HitData.HitType.Fall:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByFall, 1f);
+                        break;
+                    case HitData.HitType.Drowning:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByDrowning, 1f);
+                        break;
+                    case HitData.HitType.Burning:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByBurning, 1f);
+                        break;
+                    case HitData.HitType.Freezing:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByFreezing, 1f);
+                        break;
+                    case HitData.HitType.Poisoned:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByPoisoned, 1f);
+                        break;
+                    case HitData.HitType.Water:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByWater, 1f);
+                        break;
+                    case HitData.HitType.Smoke:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathBySmoke, 1f);
+                        break;
+                    case HitData.HitType.EdgeOfWorld:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByEdgeOfWorld, 1f);
+                        break;
+                    case HitData.HitType.Impact:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByImpact, 1f);
+                        break;
+                    case HitData.HitType.Cart:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByCart, 1f);
+                        break;
+                    case HitData.HitType.Tree:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByTree, 1f);
+                        break;
+                    case HitData.HitType.Self:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathBySelf, 1f);
+                        break;
+                    case HitData.HitType.Structural:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByStructural, 1f);
+                        break;
+                    case HitData.HitType.Turret:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByTurret, 1f);
+                        break;
+                    case HitData.HitType.Boat:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByBoat, 1f);
+                        break;
+                    case HitData.HitType.Stalagtite:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByStalagtite, 1f);
+                        break;
+                    default:
+                        ZLog.LogWarning("Not implemented death type " + ___m_lastHit.m_hitType.ToString());
+                        break;
+                }
                 Game.instance.GetPlayerProfile().SetDeathPoint(__instance.transform.position);
 
                 if (createDeathEffects.Value)
@@ -333,6 +396,7 @@ namespace DeathTweaks
                 {
                     ___m_skills.LowerAllSkills(skillReduceFactor.Value);
                 }
+
                 ___m_seman.RemoveAllStatusEffects(false);
                 Game.instance.RequestRespawn(10f);
                 ___m_timeSinceDeath = 0;
@@ -344,6 +408,12 @@ namespace DeathTweaks
                 __instance.Message(MessageHud.MessageType.Center, "$msg_youdied", 0, null);
                 __instance.ShowTutorial("death", false);
                 Minimap.instance.AddPin(__instance.transform.position, Minimap.PinType.Death, string.Format("$hud_mapday {0}", EnvMan.instance.GetDay(ZNet.instance.GetTimeSeconds())), true, false, 0L);
+
+                if (__instance.m_onDeath != null)
+                {
+                    __instance.m_onDeath();
+                }
+
                 string eventLabel = "biome:" + __instance.GetCurrentBiome().ToString();
                 Gogan.LogEvent("Game", "Death", eventLabel, 0L);
 
