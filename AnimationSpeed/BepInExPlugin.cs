@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace AnimationSpeed
 {
-    [BepInPlugin("aedenthorn.AnimationSpeed", "Animation Speed", "0.9.0")]
+    [BepInPlugin("aedenthorn.AnimationSpeed", "Animation Speed", "1.0.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static Dictionary<long, string> lastAnims = new Dictionary<long, string>();

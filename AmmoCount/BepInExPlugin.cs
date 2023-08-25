@@ -13,7 +13,7 @@ using Text = UnityEngine.UI.Text;
 
 namespace AmmoCount
 {
-    [BepInPlugin("aedenthorn.AmmoCount", "Ammo Count", "0.2.1")]
+    [BepInPlugin("aedenthorn.AmmoCount", "Ammo Count", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace AutoStore
 {
-    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.5.0")]
+    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -196,7 +196,7 @@ namespace AutoStore
         {
             static void Postfix(Container __instance, ZNetView ___m_nview)
             {
-                if (!isOn.Value || ___m_nview == null || ___m_nview.GetZDO() == null || (!pullWhileBuilding.Value && (Player.m_localPlayer.GetLeftItem()?.m_shared?.m_buildPieces.m_pieces.Count > 0 || Player.m_localPlayer.GetRightItem()?.m_shared?.m_buildPieces.m_pieces.Count > 0)))
+                if (!isOn.Value || ___m_nview == null || ___m_nview.GetZDO() == null || (!pullWhileBuilding.Value && (((ItemDrop.ItemData)AccessTools.Method(typeof(Player), "GetLeftItem").Invoke(Player.m_localPlayer, new object[0]))?.m_shared?.m_buildPieces.m_pieces.Count > 0 || ((ItemDrop.ItemData)AccessTools.Method(typeof(Player), "GetRightItem").Invoke(Player.m_localPlayer, new object[0]))?.m_shared?.m_buildPieces.m_pieces.Count > 0)))
                     return;
 
                 Vector3 position = __instance.transform.position + Vector3.up;

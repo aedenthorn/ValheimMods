@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace CustomLoadingScreens
 {
-    [BepInPlugin("aedenthorn.CustomLoadingScreens", "Custom Loading Screens", "0.5.0")]
+    [BepInPlugin("aedenthorn.CustomLoadingScreens", "Custom Loading Screens", "0.6.0")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
