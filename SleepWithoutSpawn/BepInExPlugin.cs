@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace SleepWithoutSpawn
 {
-    [BepInPlugin("aedenthorn.SleepWithoutSpawn", "Sleep Without Spawn", "0.2.0")]
+    [BepInPlugin("aedenthorn.SleepWithoutSpawn", "Sleep Without Spawn", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

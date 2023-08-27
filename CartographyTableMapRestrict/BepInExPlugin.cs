@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace CartographyTableMapRestrict
 {
-    [BepInPlugin("aedenthorn.CartographyTableMapRestrict", "Cartography Table Map Restrict", "0.2.0")]
+    [BepInPlugin("aedenthorn.CartographyTableMapRestrict", "Cartography Table Map Restrict", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
