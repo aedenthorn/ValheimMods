@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace HereFishy
 {
-    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.5.0")]
+    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.5.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -280,7 +280,7 @@ namespace HereFishy
         {
             static bool Prefix()
             {
-                return (Time.realtimeSinceStartup - lastHereFishy > fishyClip.length);
+                return (fishyClip is null || Time.realtimeSinceStartup - lastHereFishy > fishyClip.length);
             }
         }
 

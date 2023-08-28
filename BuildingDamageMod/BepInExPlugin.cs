@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BuildingDamageMod
 {
-    [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.4.1")]
+    [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.5.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -99,7 +99,7 @@ namespace BuildingDamageMod
                     {
                         mult = uncreatedDamageMult.Value;
                     }
-                    else if(hit.m_attacker.userID == ___m_piece?.GetCreator())
+                    else if(hit.m_attacker.UserID == ___m_piece?.GetCreator())
                     {
                         mult = creatorDamageMult.Value;
                     }

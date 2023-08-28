@@ -76,7 +76,7 @@ namespace BuildingRepair
                 Piece piece = array[i].GetComponentInParent<Piece>();
                 if (piece)
                 {
-                    if (!piece.IsCreator() && !allowRepairOther.Value)
+                    if (!allowRepairOther.Value && !piece.IsCreator())
                     {
                         continue;
                     }

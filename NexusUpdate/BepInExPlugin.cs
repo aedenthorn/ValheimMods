@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace NexusUpdate
 {
-    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "1.2.0")]
+    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "1.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

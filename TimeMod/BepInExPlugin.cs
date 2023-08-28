@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace TimeMod
 {
-    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.7.0")]
+    [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.8.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
