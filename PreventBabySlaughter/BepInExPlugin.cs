@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace PreventBabySlaughter
 {
-    [BepInPlugin("aedenthorn.PreventBabySlaughter", "Prevent Baby Slaughter", "0.1.1")]
+    [BepInPlugin("aedenthorn.PreventBabySlaughter", "Prevent Baby Slaughter", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
