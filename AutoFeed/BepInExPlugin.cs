@@ -170,7 +170,7 @@ namespace AutoFeed
         {
             await Task.Delay(delay);
 
-            if (tamable == null || !tamable.IsHungry())
+            if (tamable is null || monsterAI is null || !tamable.IsHungry())
                 return;
 
             if (requireOnlyFood.Value)
@@ -185,54 +185,35 @@ namespace AutoFeed
 
             if (requireMove.Value)
             {
-                //Dbgl($"{monsterAI.gameObject.name} {monsterAI.transform.position} trying to move to {c.transform.position} {Utils.DistanceXZ(monsterAI.transform.position, c.transform.position)}");
-
-                ZoneSystem.instance.GetGroundHeight(c.transform.position, out float ground);
-
-                Vector3 groundTarget = new Vector3(c.transform.position.x, ground, c.transform.position.z);
-
-                Traverse traverseAI = Traverse.Create(monsterAI);
-                traverseAI.Field("m_lastFindPathTime").SetValue(0);
-
-                if (!traverseAI.Method("MoveTo", new object[] { 0.05f, groundTarget, moveProximity.Value, false }).GetValue<bool>())
-                    return;
-
-                if (Mathf.Abs(c.transform.position.y - monsterAI.transform.position.y) > moveProximity.Value)
-                    return;
-
-                /*
-                Vector3 characterPos = monsterAI.transform.position;
-                bool snap1 = (bool)typeof(Pathfinding).GetMethod("SnapToNavMesh", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Pathfinding.instance, new object[] { characterPos, typeof(Pathfinding).GetMethod("GetSettings", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Pathfinding.instance, new object[] { Pathfinding.AgentType.Humanoid }) });
-                bool snap2 = (bool)typeof(Pathfinding).GetMethod("SnapToNavMesh", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Pathfinding.instance, new object[] { groundTarget, typeof(Pathfinding).GetMethod("GetSettings", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Pathfinding.instance, new object[] { Pathfinding.AgentType.Humanoid }) });
-
-                object settings = typeof(Pathfinding).GetMethod("GetSettings", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Pathfinding.instance, new object[] { Pathfinding.AgentType.Humanoid });
-                typeof(Pathfinding).GetMethod("SnapToNavMesh", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Pathfinding.instance, new object[] { groundTarget, settings });
-
-                NavMeshQueryFilter filter = new NavMeshQueryFilter
+                try
                 {
-                    agentTypeID = ((NavMeshBuildSettings)settings.GetType().GetField("m_build", BindingFlags.Public | BindingFlags.Instance).GetValue(settings)).agentTypeID,
-                    areaMask = (int)settings.GetType().GetField("m_areaMask", BindingFlags.Public | BindingFlags.Instance).GetValue(settings)
-                };
+                    //Dbgl($"{monsterAI.gameObject.name} {monsterAI.transform.position} trying to move to {c.transform.position} {Utils.DistanceXZ(monsterAI.transform.position, c.transform.position)}");
 
-                bool path = NavMesh.CalculatePath(characterPos, groundTarget, filter, (NavMeshPath)typeof(Pathfinding).GetField("m_path", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Pathfinding.instance));
+                    ZoneSystem.instance.GetGroundHeight(c.transform.position, out float ground);
 
-                Dbgl($"snapped1 {snap1}");
-                Dbgl($"snapped2 {snap2}");
-                Dbgl($"path exists {path} {((NavMeshPath)typeof(Pathfinding).GetField("m_path", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Pathfinding.instance)).status}");
-                Dbgl($"found path {traverseAI.Method("FindPath", new object[] { groundTarget }).GetValue<bool>()}");
-                Dbgl($"{Time.time - traverseAI.Field("m_lastFindPathTime").GetValue<float>()} {traverseAI.Field("m_lastFindPathTarget").GetValue<Vector3>()} {traverseAI.Field("m_lastFindPathResult").GetValue<bool>()} {traverseAI.Field("m_pathAgentType").GetValue<Pathfinding.AgentType>()}");
-                //Dbgl($"{monsterAI.gameObject.name} moved to");
-                */
+                    Vector3 groundTarget = new Vector3(c.transform.position.x, ground, c.transform.position.z);
+
+                    Traverse traverseAI = Traverse.Create(monsterAI);
+                    traverseAI.Field("m_lastFindPathTime").SetValue(0);
+
+                    if (!traverseAI.Method("MoveTo", new object[] { 0.05f, groundTarget, moveProximity.Value, false }).GetValue<bool>())
+                        return;
+
+                    if (Mathf.Abs(c.transform.position.y - monsterAI.transform.position.y) > moveProximity.Value)
+                        return;
+
+                    traverseAI.Method("LookAt", new object[] { c.transform.position }).GetValue();
+
+                    if (!traverseAI.Method("IsLookingAt", new object[] { c.transform.position, 90f }).GetValue<bool>())
+                        return;
 
 
+                    traverseAI.Field("m_aiStatus").SetValue("Consume item");
+                }
+                catch
+                {
 
-                traverseAI.Method("LookAt", new object[] { c.transform.position }).GetValue();
-                
-                if (!traverseAI.Method("IsLookingAt", new object[] { c.transform.position, 90f }).GetValue<bool>())
-                    return;
-
-
-                traverseAI.Field("m_aiStatus").SetValue("Consume item");
+                }
 
                 //Dbgl($"{monsterAI.gameObject.name} looking at");
             }

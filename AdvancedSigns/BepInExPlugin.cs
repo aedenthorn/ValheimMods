@@ -1,11 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using TMPro;
 using UnityEngine;
 
 namespace AdvancedSigns
 {
-    [BepInPlugin("aedenthorn.AdvancedSigns", "Advanced Signs", "0.2.0")]
+    [BepInPlugin("aedenthorn.AdvancedSigns", "Advanced Signs", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -19,7 +20,7 @@ namespace AdvancedSigns
         public static ConfigEntry<string> fontName;
         public static ConfigEntry<Vector2> textPositionOffset;
         public static ConfigEntry<Vector3> signScale;
-        public static Font currentFont;
+        public static TMP_FontAsset currentFont;
         public static string lastFontName;
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -77,7 +78,7 @@ namespace AdvancedSigns
 
             sign.transform.localScale = signScale.Value;
 
-            sign.m_textWidget.supportRichText = useRichText.Value;
+            sign.m_textWidget.richText = useRichText.Value;
             sign.m_characterLimit = 0;
             sign.m_textWidget.material = null;
             //sign.m_textWidget.fontSize = fontSize.Value;
@@ -86,7 +87,7 @@ namespace AdvancedSigns
             {
                 lastFontName = fontName.Value;
                 Dbgl($"new font {fontName.Value}");
-                Font font = GetFont(fontName.Value, 20);
+                TMP_FontAsset font = GetFont(fontName.Value, 20);
                 if (font == null)
                     Dbgl($"new font not found");
                 else
@@ -98,17 +99,17 @@ namespace AdvancedSigns
                 sign.m_textWidget.font = currentFont;
             }
         }
-        private static Font GetFont(string fontName, int fontSize)
+        private static TMP_FontAsset GetFont(string fontName, int fontSize)
         {
-            Font[] fonts = Resources.FindObjectsOfTypeAll<Font>();
-            foreach (Font font in fonts)
+            TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
+            foreach (TMP_FontAsset font in fonts)
             {
                 if (font.name == fontName)
                 {
                     return font;
                 }
             }
-            return Font.CreateDynamicFontFromOSFont(fontName, fontSize);
+            return null;
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]

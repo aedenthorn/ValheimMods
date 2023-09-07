@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RepairSpecificItems
 {
-    [BepInPlugin("aedenthorn.RepairSpecificItems", "Repair Specific Items", "0.2.1")]
+    [BepInPlugin("aedenthorn.RepairSpecificItems", "Repair Specific Items", "0.3.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -119,7 +119,7 @@ namespace RepairSpecificItems
             }
         }
 
-        [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool) })]
+        [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float) })]
         static class GetTooltip_Patch
         {
             static void Postfix(ItemDrop.ItemData item, int qualityLevel, bool crafting, ref string __result)

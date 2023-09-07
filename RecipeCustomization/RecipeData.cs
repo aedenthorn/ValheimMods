@@ -5,6 +5,7 @@ namespace RecipeCustomization
     internal class RecipeData
     {
         public string name;
+        public int originalAmount;
         public string craftingStation;
         public int minStationLevel;
         public int amount;

@@ -2,6 +2,7 @@
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +11,7 @@ using UnityEngine;
 
 namespace RecipeCustomization
 {
-    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.6.0")]
+    [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.7.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -32,7 +33,7 @@ namespace RecipeCustomization
             Water = 1024
         }
 
-        public static void Dbgl(string str = "", bool pref = true)
+        public static void Dbgl(object str, bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
@@ -88,8 +89,15 @@ namespace RecipeCustomization
 
             foreach (string file in Directory.GetFiles(assetPath, "*.json"))
             {
-                RecipeData data = JsonUtility.FromJson<RecipeData>(File.ReadAllText(file));
-                recipeDatas.Add(data);
+                try
+                {
+                    RecipeData data = JsonUtility.FromJson<RecipeData>(File.ReadAllText(file));
+                    recipeDatas.Add(data);
+                }
+                catch(Exception ex)
+                {
+                    Dbgl(ex);
+                }
             }
         }
 
@@ -118,7 +126,7 @@ namespace RecipeCustomization
 
             for (int i = ObjectDB.instance.m_recipes.Count - 1; i > 0; i--)
             {
-                if (ObjectDB.instance.m_recipes[i].m_item?.m_itemData.m_shared.m_name == go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name)
+                if (ObjectDB.instance.m_recipes[i].m_item?.m_itemData.m_shared.m_name == go.GetComponent<ItemDrop>().m_itemData.m_shared.m_name && (data.originalAmount <= 0 || ObjectDB.instance.m_recipes[i].m_amount == data.originalAmount))
                 {
                     if (data.disabled)
                     {
@@ -347,7 +355,7 @@ namespace RecipeCustomization
                     if (recipData == null)
                         return false;
                     CheckModFolder();
-                    File.WriteAllText(Path.Combine(assetPath, recipData.name + ".json"), JsonUtility.ToJson(recipData));
+                    File.WriteAllText(Path.Combine(assetPath, recipData.name + ".json"), JsonUtility.ToJson(recipData, true));
                     __instance.AddString( text );
                     __instance.AddString( $"{context.Info.Metadata.Name} saved recipe data to {file}.json" );
                     return false;
@@ -359,7 +367,7 @@ namespace RecipeCustomization
                     RecipeData recipeData = GetRecipeDataByName(recipe);
                     if (recipeData == null)
                         return false;
-                    Dbgl(JsonUtility.ToJson(recipeData));
+                    Dbgl(JsonUtility.ToJson(recipeData, true));
                     __instance.AddString( text );
                     __instance.AddString( $"{context.Info.Metadata.Name} dumped {recipe}" );
                     return false;

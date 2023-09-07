@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace CustomUI
 {
-    [BepInPlugin("aedenthorn.CustomUI", "Custom UI", "0.6.1")]
+    [BepInPlugin("aedenthorn.CustomUI", "Custom UI", "0.7.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
