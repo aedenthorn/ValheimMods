@@ -323,7 +323,7 @@ namespace Compass
         {
             static void Prefix(Hud __instance)
             {
-                if (!modEnabled.Value || !Player.m_localPlayer)
+                if (!modEnabled.Value || Player.m_localPlayer is null || compassObject is null)
                     return;
 
                 float angle;
@@ -339,6 +339,10 @@ namespace Compass
                 angle *= -Mathf.Deg2Rad;
 
                 Rect rect = compassObject.GetComponent<Image>().sprite.rect;
+                if(GameObject.Find("LoadingGUI") is null)
+                {
+                    return;
+                }
                 float imageScale = GameObject.Find("LoadingGUI").GetComponent<CanvasScaler>().scaleFactor;
 
                 compassObject.GetComponent<RectTransform>().localPosition = Vector3.right * (rect.width / 2) * angle / (2f * Mathf.PI) - new Vector3(rect.width * 0.125f, 0, 0);

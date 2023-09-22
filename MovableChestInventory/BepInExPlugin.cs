@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 
 namespace MovableChestInventory
 {
-    [BepInPlugin("aedenthorn.MovableChestInventory", "Movable Chest Inventory", "0.2.2")]
+    [BepInPlugin("aedenthorn.MovableChestInventory", "Movable Chest Inventory", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

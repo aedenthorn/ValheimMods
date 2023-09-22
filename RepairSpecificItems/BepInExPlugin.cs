@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace RepairSpecificItems
 {
-    [BepInPlugin("aedenthorn.RepairSpecificItems", "Repair Specific Items", "0.3.1")]
+    [BepInPlugin("aedenthorn.RepairSpecificItems", "Repair Specific Items", "0.3.4")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -104,7 +104,7 @@ namespace RepairSpecificItems
             if (itemData == null)
                 return;
 
-            if (Traverse.Create(InventoryGui.instance).Method("CanRepair", new object[] { itemData }).GetValue<bool>())
+            if ((bool)AccessTools.Method(typeof(InventoryGui), "CanRepair").Invoke(InventoryGui.instance, new object[] { itemData }))
             {
                 CraftingStation currentCraftingStation = Player.m_localPlayer.GetCurrentCraftingStation();
                 itemData.m_durability = itemData.GetMaxDurability();
@@ -114,7 +114,7 @@ namespace RepairSpecificItems
                 }
                 Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$msg_repaired", new string[]
                 {
-                            itemData.m_shared.m_name
+                        itemData.m_shared.m_name
                 }), 0, null);
             }
         }
@@ -153,7 +153,7 @@ namespace RepairSpecificItems
                         }
 
 
-                        if (Traverse.Create(Player.m_localPlayer).Method("HaveRequirements", new object[] { recipe.m_resources, false, item.m_quality }).GetValue<bool>())
+                        if (Player.m_localPlayer.HaveRequirements(recipe, false, item.m_quality))
                         {
                             if(playerEnough)
                                 __result += "\n" + string.Format(hasEnoughTooltipString.Value, string.Join(", ", reqstring));
@@ -172,7 +172,7 @@ namespace RepairSpecificItems
         {
             static void Postfix(ItemDrop.ItemData item, ref bool __result)
             {
-                if (modEnabled.Value && requireMats.Value && Environment.StackTrace.Contains("RepairClickedItem") && !Environment.StackTrace.Contains("HaveRepairableItems") && __result == true && item?.m_shared != null && Player.m_localPlayer != null)
+                if (modEnabled.Value && Environment.StackTrace.Contains("RepairClickedItem") && !Environment.StackTrace.Contains("HaveRepairableItems") && __result == true && item?.m_shared != null && Player.m_localPlayer != null)
                 {
                     Recipe recipe = RepairRecipe(item);
                     if (recipe == null)
@@ -186,7 +186,7 @@ namespace RepairSpecificItems
                         reqstring.Add($"{req.GetAmount(item.m_quality)} {Localization.instance.Localize(req.m_resItem.m_itemData.m_shared.m_name)}");
                     }
                     string outstring;
-                    if (Traverse.Create(Player.m_localPlayer).Method("HaveRequirements", new object[] { recipe.m_resources, false, 1 }).GetValue<bool>())
+                    if (Player.m_localPlayer.HaveRequirements(recipe, false, 1))
                     {
                         Player.m_localPlayer.ConsumeResources(recipe.m_resources, item.m_quality);
                         outstring = $"Used {string.Join(", ", reqstring)} to repair {Localization.instance.Localize(item.m_shared.m_name)}";
@@ -253,12 +253,13 @@ namespace RepairSpecificItems
                     reqs.Add(req);
                 }
             }
-            recipe.m_resources = reqs.ToArray();
-
             if (!reqs.Any())
             {
                 return null;
             }
+            recipe.m_resources = reqs.ToArray();
+            recipe.m_item = item.m_dropPrefab.GetComponent<ItemDrop>();
+
             return recipe;
         }
 
