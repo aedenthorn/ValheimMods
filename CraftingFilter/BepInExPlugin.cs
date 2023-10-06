@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace CraftingFilter
 {
-    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.8.0")]
+    [BepInPlugin("aedenthorn.CraftingFilter", "Crafting Filter", "0.9.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 

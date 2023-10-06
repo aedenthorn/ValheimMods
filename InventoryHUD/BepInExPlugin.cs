@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System.IO;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,7 +28,7 @@ namespace InventoryHUD
         public static ConfigEntry<string> infoString;
         public static ConfigEntry<int> infoStringSize;
         public static ConfigEntry<string> infoStringFont;
-        public static ConfigEntry<TextAnchor> infoStringAlignment;
+        public static ConfigEntry<TextAlignmentOptions> infoStringAlignment;
         public static ConfigEntry<Color> infoStringColor;
 
         public static ConfigEntry<string> weightFile;
@@ -64,7 +65,7 @@ namespace InventoryHUD
             infoString = Config.Bind<string>("Info", "InfoString", "{0}/{1}\r\n{2}/{3}", "Inventory info string to show. {0} is replaced by current number of items. {1} is replaced by number of slots total. {2} is replaced by current weight. {3} is replaced by total weight. See string.Format API for advanced usage.");
             infoStringSize = Config.Bind<int>("Info", "InfoStringSize", 12, "Inventory info string size.");
             infoStringFont = Config.Bind<string>("Info", "InfoStringFont", "AveriaSerifLibre-Bold", "Inventory info string font.");
-            infoStringAlignment = Config.Bind<TextAnchor>("Info", "InfoStringAlignment", TextAnchor.MiddleCenter, "Info string alignment");
+            infoStringAlignment = Config.Bind<TextAlignmentOptions>("Info", "InfoStringAlignment", TextAlignmentOptions.Center, "Info string alignment");
             infoStringColor = Config.Bind<Color>("Info", "InfoStringColor", new Color(1, 1, 1, 0.5f), "Info string color");
 
             weightOffset = Config.Bind<Vector2>("Weight", "WeightOffset", new Vector2(0,0), "Weight icon offset");
@@ -83,17 +84,17 @@ namespace InventoryHUD
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
-        private static Font GetFont(string fontName, int fontSize)
+        private static TMP_FontAsset GetFont(string fontName, int fontSize)
         {
-            Font[] fonts = Resources.FindObjectsOfTypeAll<Font>();
-            foreach (Font font in fonts)
+            TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
+            foreach (TMP_FontAsset font in fonts)
             {
                 if (font.name == fontName)
                 {
                     return font;
                 }
             }
-            return Font.CreateDynamicFontFromOSFont(fontName, fontSize);
+            return null;
         }
 
         private static void AddWeightObject(Hud hud)
@@ -194,8 +195,10 @@ namespace InventoryHUD
             rt.localScale = Vector3.one;
             rt.anchoredPosition = Vector2.zero;
 
-            Text text = infoObject.AddComponent<TMP_Text>();
-            text.font = GetFont(infoStringFont.Value, infoStringSize.Value);
+            TMP_Text text = infoObject.AddComponent<TMP_Text>();
+            var font = GetFont(infoStringFont.Value, infoStringSize.Value);
+            if (font != null)
+                text.font = font;
         }
 
 
@@ -281,7 +284,7 @@ namespace InventoryHUD
 
                     int items = inv.GetAllItems().Count;
                     int slots = inv.GetWidth() * inv.GetHeight() + extraSlots.Value;
-                    Text text = infoObject.GetComponent<TMP_Text>();
+                    TMP_Text text = infoObject.GetComponent<TMP_Text>();
                     text.text = string.Format(infoString.Value, items, slots, weight, totalWeight);
                     text.color = infoStringColor.Value;
                     text.alignment = infoStringAlignment.Value;
