@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.4.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.4.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
