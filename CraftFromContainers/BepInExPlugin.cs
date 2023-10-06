@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -631,7 +632,7 @@ namespace CraftFromContainers
                     {
                         return;
                     }
-                    Text text = elementRoot.transform.Find("res_amount").GetComponent<Text>();
+                    TMP_Text text = elementRoot.transform.Find("res_amount").GetComponent<TMP_Text>();
                     if (invAmount < amount)
                     {
                         foreach (Container c in GetNearbyContainers(Player.m_localPlayer.transform.position))
@@ -644,7 +645,6 @@ namespace CraftFromContainers
                         text.text = string.Format(resourceString.Value, invAmount, amount);
                     else
                         text.text = amount.ToString();
-                    text.resizeTextForBestFit = true;
                 }
             }
         }
