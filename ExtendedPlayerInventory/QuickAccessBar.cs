@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -59,7 +60,7 @@ namespace ExtendedPlayerInventory
 					BepInExPlugin.SetSlotText(BepInExPlugin.hotkeys[i].Value, elementData.m_go.transform, false);
 					elementData.m_icon = elementData.m_go.transform.transform.Find("icon").GetComponent<Image>();
 					elementData.m_durability = elementData.m_go.transform.Find("durability").GetComponent<GuiBar>();
-					elementData.m_amount = elementData.m_go.transform.Find("amount").GetComponent<Text>();
+					elementData.m_amount = elementData.m_go.transform.Find("amount").GetComponent<TMP_Text>();
 					elementData.m_equiped = elementData.m_go.transform.Find("equiped").gameObject;
 					elementData.m_queued = elementData.m_go.transform.Find("queued").gameObject;
 					elementData.m_selection = elementData.m_go.transform.Find("selected").gameObject;
@@ -141,7 +142,7 @@ namespace ExtendedPlayerInventory
 
 				public GuiBar m_durability;
 
-				public Text m_amount;
+				public TMP_Text m_amount;
 
 				public GameObject m_equiped;
 

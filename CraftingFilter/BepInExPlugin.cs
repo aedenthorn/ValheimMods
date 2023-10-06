@@ -257,7 +257,7 @@ namespace CraftingFilter
             Traverse t = Traverse.Create(InventoryGui.instance);
             t.Method("UpdateRecipeList", new object[] { recipes }).GetValue();
             t.Method("SetRecipe", new object[] { 0, true }).GetValue();
-            InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<Text>().text = Localization.instance.Localize("$inventory_craftbutton") + (categoryDict[categoryNames[lastCategoryIndex]].Contains(ItemDrop.ItemData.ItemType.None) ? "" : "\n" + categoryNames[lastCategoryIndex]);
+            InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<TMP_Text>().text = Localization.instance.Localize("$inventory_craftbutton") + (categoryDict[categoryNames[lastCategoryIndex]].Contains(ItemDrop.ItemData.ItemType.None) ? "" : "\n" + categoryNames[lastCategoryIndex]);
         }
 
         private static void GetFilteredRecipes(ref List<Recipe> recipes)
@@ -291,7 +291,7 @@ namespace CraftingFilter
                     if (count > 0 || categoryDict[categoryNames[i]].Contains(ItemDrop.ItemData.ItemType.None))
                     {
                         dropDownList[i].GetComponent<RectTransform>().position = pos - new Vector2(0, height * (showCount++ + 1));
-                        dropDownList[i].GetComponentInChildren<Text>().text = categoryNames[i] + (count == 0 ? "" : $" ({count})");
+                        dropDownList[i].GetComponentInChildren<TMP_Text>().text = categoryNames[i] + (count == 0 ? "" : $" ({count})");
                     }
                 }
             }
@@ -330,7 +330,7 @@ namespace CraftingFilter
                 if (!modEnabled.Value)
                     return;
 
-                InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<Text>().text = Localization.instance.Localize("$inventory_craftbutton");
+                InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<TextMeshProUGUI>().text = Localization.instance.Localize("$inventory_craftbutton");
                 lastCategoryIndex = 0;
             }
         }

@@ -2,6 +2,7 @@
 using HarmonyLib;
 using QuestFramework;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -177,14 +178,14 @@ namespace HuginQuestFramework
                         var buttonDecline = questDialogueTransform.Find("dialog/Button_yes");
                         buttonDecline.name = "Button_Decline";
                         buttonDecline.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 32);
-                        buttonDecline.GetComponentInChildren<Text>().text = declineButtonText.Value;
+                        buttonDecline.GetComponentInChildren<TMP_Text>().text = declineButtonText.Value;
                         buttonDecline.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
                         buttonDecline.GetComponent<Button>().onClick.AddListener(DeclineQuest);
 
                         var buttonAccept = questDialogueTransform.Find("dialog/Button_no");
                         buttonAccept.name = "Button_Accept";
                         buttonAccept.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, 32);
-                        buttonAccept.GetComponentInChildren<Text>().text = acceptButtonText.Value;
+                        buttonAccept.GetComponentInChildren<TMP_Text>().text = acceptButtonText.Value;
                         buttonAccept.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
                         buttonAccept.GetComponent<Button>().onClick.AddListener(AcceptQuest);
 
@@ -193,12 +194,12 @@ namespace HuginQuestFramework
                         questDialogueTitleTransform.GetComponent<RectTransform>().anchoredPosition += new Vector2(0, 20);
                         questDialogueSubtitleTransform = Instantiate(questDialogueTransform.Find("dialog/Title"), questDialogueTransform.Find("dialog"));
                         questDialogueSubtitleTransform.name = "Subtitle";
-                        questDialogueSubtitleTransform.GetComponent<Text>().color = Color.white;
-                        questDialogueSubtitleTransform.GetComponent<Text>().fontSize = 16;
+                        questDialogueSubtitleTransform.GetComponent<TMP_Text>().color = Color.white;
+                        questDialogueSubtitleTransform.GetComponent<TMP_Text>().fontSize = 16;
                         questDialogueSubtitleTransform.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, questDialogueTitleTransform.GetComponent<RectTransform>().rect.height);
                     }
-                    questDialogueTitleTransform.GetComponent<Text>().text = nextQuest.name;
-                    questDialogueSubtitleTransform.GetComponent<Text>().text = nextQuest.questStages["StageOne"].name + "\n" + nextQuest.questStages["StageOne"].desc;
+                    questDialogueTitleTransform.GetComponent<TMP_Text>().text = nextQuest.name;
+                    questDialogueSubtitleTransform.GetComponent<TMP_Text>().text = nextQuest.questStages["StageOne"].name + "\n" + nextQuest.questStages["StageOne"].desc;
 
                     Dbgl("Showing Quest Accept Window");
                     questDialogueTransform.gameObject.SetActive(true);

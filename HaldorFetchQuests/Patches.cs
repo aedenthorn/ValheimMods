@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -111,18 +112,18 @@ namespace HaldorFetchQuests
 
                 if(buyButtonText == "")
                 {
-                    buyButtonText = __instance.m_buyButton.GetComponentInChildren<Text>().text;
+                    buyButtonText = __instance.m_buyButton.GetComponentInChildren<TMP_Text>().text;
                 }
 
                 if (currentQuestDict != null && currentQuestDict.ContainsKey(___m_selectedItem.m_prefab.m_itemData.m_crafterName))
                 {
-                    __instance.m_buyButton.GetComponentInChildren<Text>().text = acceptButtonText.Value;
+                    __instance.m_buyButton.GetComponentInChildren<TMP_Text>().text = acceptButtonText.Value;
                     __instance.m_buyButton.interactable = true;
                     __instance.m_buyButton.GetComponent<UITooltip>().m_text = "";
                 }
                 else
                 {
-                    __instance.m_buyButton.GetComponentInChildren<Text>().text = buyButtonText;
+                    __instance.m_buyButton.GetComponentInChildren<TMP_Text>().text = buyButtonText;
                 }
             }
         }
@@ -220,7 +221,7 @@ namespace HaldorFetchQuests
                     component.color = active ? new Color(1f, 0f, 1f, 0f) : Color.white;
 
                     string name = fqd.type == FetchType.Fetch ? fetchQuestString.Value : killQuestString.Value;
-                    Text nameText = buttonObject.transform.Find("name").GetComponent<Text>();
+                    TMP_Text nameText = buttonObject.transform.Find("name").GetComponent<TMP_Text>();
                     nameText.text = name;
                     nameText.color = active ? Color.grey : Color.white;
 
@@ -229,7 +230,7 @@ namespace HaldorFetchQuests
                     UITooltip tooltip = buttonObject.GetComponent<UITooltip>();
                     tooltip.m_topic = name;
                     tooltip.m_text = desc;
-                    Text rewardText = Utils.FindChild(buttonObject.transform, "price").GetComponent<Text>();
+                    TMP_Text rewardText = Utils.FindChild(buttonObject.transform, "price").GetComponent<TMP_Text>();
                     rewardText.text = fqd.reward + "";
                     if (active)
                         rewardText.color = Color.grey;

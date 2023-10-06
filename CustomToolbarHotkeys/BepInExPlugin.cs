@@ -2,12 +2,13 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace CustomToolbarHotkeys
 {
-    [BepInPlugin("aedenthorn.CustomToolbarHotkeys", "Custom Toolbar Hotkeys", "0.3.0")]
+    [BepInPlugin("aedenthorn.CustomToolbarHotkeys", "Custom Toolbar Hotkeys", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -78,12 +79,11 @@ namespace CustomToolbarHotkeys
             {
                 if (!modEnabled.Value || !hideNumbers.Value || __instance.name != "HotKeyBar")
                     return;
-
                 int count = __instance.transform.childCount;
                 for(int i = 0; i < count; i++)
                 {
                     if (__instance.transform.GetChild(i).Find("binding")) { }
-                        __instance.transform.GetChild(i).Find("binding").GetComponent<Text>().text = showHotkeys.Value ? hotkeys[i].Value : "";
+                        __instance.transform.GetChild(i).Find("binding").GetComponent<TextMeshProUGUI>().text = showHotkeys.Value ? hotkeys[i].Value : "";
                 }
             }
         }
@@ -149,7 +149,7 @@ namespace CustomToolbarHotkeys
                     try
                     {
                         if (___m_playerGrid.m_gridRoot.transform.GetChild(i)?.Find("binding"))
-                            ___m_playerGrid.m_gridRoot.transform.GetChild(i).Find("binding").GetComponent<Text>().text = showHotkeys.Value ? hotkeys[i].Value : "";
+                            ___m_playerGrid.m_gridRoot.transform.GetChild(i).Find("binding").GetComponent<TMP_Text>().text = showHotkeys.Value ? hotkeys[i].Value : "";
                     }
                     catch
                     {

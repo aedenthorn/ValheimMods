@@ -4,13 +4,14 @@ using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.7.0")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "0.9.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -478,8 +479,8 @@ namespace ExtendedPlayerInventory
             {
                 t = Instantiate(elementPrefab.transform.Find("binding"), transform);
             }
-            t.GetComponent<Text>().enabled = true;
-            t.GetComponent<Text>().text = value;
+            t.GetComponent<TMP_Text>().enabled = true;
+            t.GetComponent<TMP_Text>().text = value;
             t.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 17);
             if (center)
             {

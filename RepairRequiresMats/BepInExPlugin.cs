@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -167,9 +168,9 @@ namespace RepairRequiresMats
                 if (go == null || tt.transform.name != "RepairButton")
                     return;
 
-                Utils.FindChild(go.transform, "Text").GetComponent<Text>().supportRichText = true;
-                Utils.FindChild(go.transform, "Text").GetComponent<Text>().alignment = TextAnchor.LowerCenter;
-                Utils.FindChild(go.transform, "Text").GetComponent<Text>().text = $"<b><color=#{titleTooltipColor.Value}>{Localization.instance.Localize("$inventory_repairbutton")}</color></b>\r\n" + string.Join("\r\n", outstring);
+                Utils.FindChild(go.transform, "Text").GetComponent<TMP_Text>().richText = true;
+                Utils.FindChild(go.transform, "Text").GetComponent<TMP_Text>().alignment = TextAlignmentOptions.Bottom;
+                Utils.FindChild(go.transform, "Text").GetComponent<TMP_Text>().text = $"<b><color=#{titleTooltipColor.Value}>{Localization.instance.Localize("$inventory_repairbutton")}</color></b>\r\n" + string.Join("\r\n", outstring);
             }
         }
 

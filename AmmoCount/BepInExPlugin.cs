@@ -7,13 +7,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Text = UnityEngine.UI.Text;
 
 namespace AmmoCount
 {
-    [BepInPlugin("aedenthorn.AmmoCount", "Ammo Count", "0.3.0")]
+    [BepInPlugin("aedenthorn.AmmoCount", "Ammo Count", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -29,13 +30,13 @@ namespace AmmoCount
         public static ConfigEntry<string> ammoStringFormat;
         public static ConfigEntry<int> ammoStringSize;
         public static ConfigEntry<string> ammoStringFont;
-        public static ConfigEntry<FontStyle> ammoStringFontStyle;
-        public static ConfigEntry<TextAnchor> ammoStringAlignment;
+        public static ConfigEntry<FontStyles> ammoStringFontStyle;
+        public static ConfigEntry<TextAlignmentOptions> ammoStringAlignment;
         public static ConfigEntry<Color> ammoStringColor;
         public static ConfigEntry<Vector2> ammoStringPosition;
 
         public static FieldInfo elementsAmmo;
-        public static Font currentFont;
+        public static TMP_FontAsset currentFont;
         public static bool reset = true;
 
         public static void Dbgl(object obj, bool pref = true)
@@ -55,8 +56,8 @@ namespace AmmoCount
             ammoStringFormat = Config.Bind<string>("Options", "AmmoTextFormat", "{amount}", "Ammo string. Use {amount} and/or {name}");
             ammoStringSize = Config.Bind<int>("Options", "AmmoTextSize", 16, "Ammo count size.");
             ammoStringFont = Config.Bind<string>("Options", "AmmoTextFont", "AveriaSansLibre-Bold", "Ammo count font");
-            ammoStringFontStyle = Config.Bind<FontStyle>("Options", "AmmoTextFontStyle", FontStyle.Bold, "Ammo count font style");
-            ammoStringAlignment = Config.Bind<TextAnchor>("Options", "AmmoTextAlignment", TextAnchor.UpperRight, "Ammo count alignment");
+            ammoStringFontStyle = Config.Bind<FontStyles>("Options", "AmmoTextFontStyle", FontStyles.Bold, "Ammo count font style");
+            ammoStringAlignment = Config.Bind<TextAlignmentOptions>("Options", "AmmoTextAlignment", TextAlignmentOptions.TopRight, "Ammo count alignment");
             ammoStringColor = Config.Bind<Color>("Options", "AmmoTextColor", new Color(1, 1, 1, 1), "Ammo count color");
             ammoStringPosition = Config.Bind<Vector2>("Options", "AmmoTextPosition", new Vector2(-6, -4), "Ammo count position offset");
 
@@ -89,28 +90,23 @@ namespace AmmoCount
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
-        private static Font GetFont(string fontName, int fontSize)
+        private static TMP_FontAsset GetFont(string fontName, int fontSize)
         {
             try
             {
-                Font[] fonts = Resources.FindObjectsOfTypeAll<Font>();
-                foreach (Font font in fonts)
+                TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
+                foreach (TMP_FontAsset font in fonts)
                 {
                     if (font.name == fontName)
                     {
                         return font;
                     }
                 }
-                if (Font.GetOSInstalledFontNames().Contains(fontName))
-                {
-                    Font font = Font.CreateDynamicFontFromOSFont(fontName, fontSize);
-                    return font;
-                }
             }
             catch
             {
             }
-            return currentFont is null ? Font.CreateDynamicFontFromOSFont(fontName, fontSize) : currentFont; 
+            return currentFont; 
             
         }
         [HarmonyPatch(typeof(HotkeyBar), "Update")]
@@ -122,7 +118,6 @@ namespace AmmoCount
                     return;
 
                 var list = elementsAmmo.GetValue(__instance) as IEnumerable<object>;
-
                 if (reset)
                 {
                     currentFont = GetFont(ammoStringFont.Value, ammoStringSize.Value);
@@ -160,7 +155,7 @@ namespace AmmoCount
 
                         GameObject textObj = new GameObject("Text");
                         textObj.transform.SetParent(go.transform);
-                        Text text = textObj.AddComponent<Text>();
+                        TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
                         textObj.GetComponent<RectTransform>().anchoredPosition = ammoStringPosition.Value;
                         textObj.GetComponent<RectTransform>().sizeDelta = new Vector2(90, 90);
                         text.font = currentFont;
@@ -197,7 +192,7 @@ namespace AmmoCount
                 go.SetActive(true);
                 if (!string.IsNullOrEmpty(ammoStringFormat.Value))
                 {
-                    go.transform.Find("Text").GetComponent<Text>().text = ammoStringFormat.Value.Replace("{amount}", ammo.m_stack.ToString()).Replace("{name}", Localization.instance.Localize(ammo.m_shared.m_name));
+                    go.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = ammoStringFormat.Value.Replace("{amount}", ammo.m_stack.ToString()).Replace("{name}", Localization.instance.Localize(ammo.m_shared.m_name));
                 }
                 if (showIcon.Value)
                 {

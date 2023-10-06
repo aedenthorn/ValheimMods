@@ -9,7 +9,7 @@ using static FejdStartup;
 
 namespace QuickLoad
 {
-    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.6.0")]
+    [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.7.0")]
     public class QuickLoad: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

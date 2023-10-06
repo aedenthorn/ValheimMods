@@ -194,7 +194,7 @@ namespace InventoryHUD
             rt.localScale = Vector3.one;
             rt.anchoredPosition = Vector2.zero;
 
-            Text text = infoObject.AddComponent<Text>();
+            Text text = infoObject.AddComponent<TMP_Text>();
             text.font = GetFont(infoStringFont.Value, infoStringSize.Value);
         }
 
@@ -281,7 +281,7 @@ namespace InventoryHUD
 
                     int items = inv.GetAllItems().Count;
                     int slots = inv.GetWidth() * inv.GetHeight() + extraSlots.Value;
-                    Text text = infoObject.GetComponent<Text>();
+                    Text text = infoObject.GetComponent<TMP_Text>();
                     text.text = string.Format(infoString.Value, items, slots, weight, totalWeight);
                     text.color = infoStringColor.Value;
                     text.alignment = infoStringAlignment.Value;

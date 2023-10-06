@@ -34,18 +34,18 @@ namespace ConfigurationManager
 
         internal static void SetupMenuButton()
         {
-            if (OpenMenuButton == null && FejdStartup.instance?.m_mainMenu.GetComponentsInChildren<Text>().FirstOrDefault(t => t.text == OpenLogString || t.text == Localization.instance.Localize(OpenLogString)) is Text openLogButton)
+            if (OpenMenuButton == null && FejdStartup.instance?.m_mainMenu.GetComponentsInChildren<TMP_Text>().FirstOrDefault(t => t.text == OpenLogString || t.text == Localization.instance.Localize(OpenLogString)) is Text openLogButton)
             {
                 OpenMenuButton = Object.Instantiate(openLogButton.transform.parent.gameObject, openLogButton.transform.parent.parent);
                 OpenMenuButton.name = "OpenConfigMenu";
                 OpenMenuButton.transform.localPosition += new Vector3(0, 25, 0);
-                OpenMenuButton.GetComponentInChildren<Text>().text = BepInExPlugin._openMenuText.Value;
+                OpenMenuButton.GetComponentInChildren<TMP_Text>().text = BepInExPlugin._openMenuText.Value;
                 var button = OpenMenuButton.GetComponent<Button>();
                 button.onClick = new Button.ButtonClickedEvent();
                 button.onClick.AddListener(() => BepInExPlugin.context.DisplayingWindow = true);
             }
 
-            OpenMenuButton.GetComponentInChildren<Text>().text = BepInExPlugin._openMenuText.Value;
+            OpenMenuButton.GetComponentInChildren<TMP_Text>().text = BepInExPlugin._openMenuText.Value;
             OpenMenuButton.SetActive(BepInExPlugin._showMenuButton.Value);
         }
 

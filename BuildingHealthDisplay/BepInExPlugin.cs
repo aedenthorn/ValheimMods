@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.IO;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -122,9 +123,9 @@ namespace BuildingHealthDisplay
                             }
                             t.name = "_HealthText";
 
-                            t.GetComponent<Text>().text = string.Format(healthText.Value, Mathf.RoundToInt(znv.GetZDO().GetFloat("health", wnt.m_health)), Mathf.RoundToInt(wnt.m_health), Mathf.RoundToInt(healthPercent*100));
-                            t.GetComponent<Text>().fontSize = healthTextSize.Value;
-                            t.GetComponent<Text>().resizeTextMaxSize = t.GetComponent<Text>().text.Length;
+                            t.GetComponent<TMP_Text>().text = string.Format(healthText.Value, Mathf.RoundToInt(znv.GetZDO().GetFloat("health", wnt.m_health)), Mathf.RoundToInt(wnt.m_health), Mathf.RoundToInt(healthPercent*100));
+                            t.GetComponent<TMP_Text>().fontSize = healthTextSize.Value;
+                            t.GetComponent<TMP_Text>().maxVisibleCharacters = t.GetComponent<TMP_Text>().text.Length;
                             t.GetComponent<RectTransform>().anchoredPosition = new Vector2(healthTextPosition.Value.y, healthTextPosition.Value.x);
                         }
                         float support = Traverse.Create(wnt).Method("GetSupport").GetValue<float>();
@@ -139,9 +140,9 @@ namespace BuildingHealthDisplay
                             }
                             t.name = "_IntegrityText";
 
-                            t.GetComponent<Text>().text = string.Format(integrityText.Value, Mathf.RoundToInt(support), Mathf.RoundToInt(maxSupport), Mathf.RoundToInt(support/maxSupport*100));
-                            t.GetComponent<Text>().fontSize = integrityTextSize.Value;
-                            t.GetComponent<Text>().resizeTextMaxSize = t.GetComponent<Text>().text.Length;
+                            t.GetComponent<TMP_Text>().text = string.Format(integrityText.Value, Mathf.RoundToInt(support), Mathf.RoundToInt(maxSupport), Mathf.RoundToInt(support/maxSupport*100));
+                            t.GetComponent<TMP_Text>().fontSize = integrityTextSize.Value;
+                            t.GetComponent<TMP_Text>().maxVisibleCharacters = t.GetComponent<TMP_Text>().text.Length;
                             t.GetComponent<RectTransform>().anchoredPosition = new Vector2(integrityTextPosition.Value.y, integrityTextPosition.Value.x);
                         }
                     }

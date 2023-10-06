@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -176,7 +177,7 @@ namespace CustomLoadingScreens
                     if (loadingTips.Any())
                     {
                         Instantiate(Hud.instance.m_loadingTip.transform.parent.Find("panel_separator"), Hud.instance.transform.Find("LoadingBlack").transform);
-                        Text text = Instantiate(Hud.instance.m_loadingTip.gameObject, Hud.instance.transform.Find("LoadingBlack").transform).GetComponent<Text>();
+                        TMP_Text text = Instantiate(Hud.instance.m_loadingTip.gameObject, Hud.instance.transform.Find("LoadingBlack").transform).GetComponent<TMP_Text>();
                         if (text != null)
                         {
                             text.text = loadingTip;

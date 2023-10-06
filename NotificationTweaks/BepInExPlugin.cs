@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace NotificationTweaks
 {
-    [BepInPlugin("aedenthorn.NotificationTweaks", "Notification Tweaks", "0.4.0")]
+    [BepInPlugin("aedenthorn.NotificationTweaks", "Notification Tweaks", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -81,7 +81,7 @@ namespace NotificationTweaks
                 if (!modEnabled.Value)
                     return;
 
-                __instance.m_messageText.alignment = TextAnchor.LowerLeft;
+                __instance.m_messageText.alignment = TMPro.TextAlignmentOptions.BottomLeft;
             }
         }
 
