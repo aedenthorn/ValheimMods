@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "1.2.0")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "1.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -117,8 +117,6 @@ namespace DeathTweaks
             {
                 if (!modEnabled.Value)
                     return true;
-
-                Dbgl("OnDeath_Patch");
 
                 ___m_nview.GetZDO().Set("dead", true);
                 ___m_nview.InvokeRPC(ZNetView.Everybody, "OnDeath", new object[] { });

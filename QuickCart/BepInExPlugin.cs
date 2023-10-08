@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace QuickCart
 {
-    [BepInPlugin("aedenthorn.QuickCart", "Quick Cart", "0.2.1")]
+    [BepInPlugin("aedenthorn.QuickCart", "Quick Cart", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
