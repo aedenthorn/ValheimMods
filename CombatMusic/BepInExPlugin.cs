@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace CombatMusic
 {
-    [BepInPlugin("aedenthorn.CombatMusic", "Combat Music", "0.1.0")]
+    [BepInPlugin("aedenthorn.CombatMusic", "Combat Music", "0.2.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -31,7 +31,7 @@ namespace CombatMusic
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
-            //nexusID = Config.Bind<int>("General", "NexusID", 758, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 3667, "Nexus mod ID for updates");
             
             combatVolume = Config.Bind<float>("Options", "CombatVolume", 1f, "Combat music volume");
 

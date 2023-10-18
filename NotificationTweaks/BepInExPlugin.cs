@@ -98,7 +98,7 @@ namespace NotificationTweaks
                 var codes = new List<CodeInstruction>(instructions);
                 for (var i = 0; i < codes.Count; i++)
                 {
-                    if(codes[i].opcode == OpCodes.Ldc_R4 && (float)codes[i].operand  == 4 && codes[i - 1].opcode == OpCodes.Ldc_R4)
+                    if(i > 2 && codes[i].opcode == OpCodes.Ldc_R4 && (float)codes[i].operand  == 4 && codes[i - 3].opcode == OpCodes.Ldc_R4)
                     {
                         codes[i].operand = (float)codes[i].operand / largeSpeedMultiplier.Value;
                     }
@@ -129,7 +129,7 @@ namespace NotificationTweaks
                 var codes = new List<CodeInstruction>(instructions);
                 for (var i = 0; i < codes.Count; i++)
                 {
-                    if(codes[i].opcode == OpCodes.Ldc_R4 && (float)codes[i].operand  == 4 && (codes[i - 1].opcode == OpCodes.Ldc_R4 || codes[i - 1].opcode == OpCodes.Ldfld))
+                    if(i > 2 && codes[i].opcode == OpCodes.Ldc_R4 && (float)codes[i].operand  == 4 && codes[i - 3].opcode == OpCodes.Ldc_R4)
                     {
                         codes[i].operand = (float)codes[i].operand / smallSpeedMultiplier.Value;
                     }

@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace MapPinExport
 {
-    [BepInPlugin("aedenthorn.MapPinExport", "Map Pin Export", "0.3.0")]
+    [BepInPlugin("aedenthorn.MapPinExport", "Map Pin Export", "0.3.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -120,7 +120,7 @@ namespace MapPinExport
 
             private static bool IsCustomPin(Minimap.PinData pin)
             {
-                return pin.m_save && pin.m_type != Minimap.PinType.Death && pin.m_type != Minimap.PinType.Bed && pin.m_type != Minimap.PinType.Icon4 && pin.m_type != Minimap.PinType.Shout && pin.m_type != Minimap.PinType.None && pin.m_type != Minimap.PinType.Boss && pin.m_type != Minimap.PinType.Player && pin.m_type != Minimap.PinType.RandomEvent && pin.m_type != Minimap.PinType.Ping && pin.m_type != Minimap.PinType.EventArea;
+                return pin.m_save && pin.m_type != Minimap.PinType.Death && pin.m_type != Minimap.PinType.Bed && pin.m_type != Minimap.PinType.Icon4 && pin.m_type != Minimap.PinType.Shout && pin.m_type != Minimap.PinType.None && pin.m_type != Minimap.PinType.Boss && pin.m_type != Minimap.PinType.Player && pin.m_type != Minimap.PinType.RandomEvent && pin.m_type != Minimap.PinType.Ping && pin.m_type != Minimap.PinType.EventArea && pin.m_type != Minimap.PinType.Hildir1 && pin.m_type != Minimap.PinType.Hildir2 && pin.m_type != Minimap.PinType.Hildir3;
             }
         }
     }
