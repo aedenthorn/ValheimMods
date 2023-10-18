@@ -93,9 +93,9 @@ namespace ExtendedPlayerInventory
             
             quickAccessScale = Config.Bind<float>("Misc", "QuickAccessScale", 1, "Scale of quick access bar.");
             
-            hotKey1 = Config.Bind<string>("Hotkeys", "HotKey1", "z", "Hotkey 1 - Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
-            hotKey2 = Config.Bind<string>("Hotkeys", "HotKey2", "x", "Hotkey 2 - Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
-            hotKey3 = Config.Bind<string>("Hotkeys", "HotKey3", "c", "Hotkey 3 - Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
+            hotKey1 = Config.Bind<string>("Hotkeys", "HotKey1", "v", "Hotkey 1 - Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
+            hotKey2 = Config.Bind<string>("Hotkeys", "HotKey2", "b", "Hotkey 2 - Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
+            hotKey3 = Config.Bind<string>("Hotkeys", "HotKey3", "n", "Hotkey 3 - Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
 
             modKeyOne = Config.Bind<string>("Hotkeys", "ModKey1", "mouse 0", "First modifier key to move quick slots. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html format.");
             modKeyTwo = Config.Bind<string>("Hotkeys", "ModKey2", "left ctrl", "Second modifier key to move quick slots. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html format.");
