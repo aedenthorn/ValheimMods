@@ -8,11 +8,10 @@ using System.Linq;
 using System.Reflection;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace RepairRequiresMats
 {
-    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.6.0")]
+    [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.6.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static bool isDebug = true;

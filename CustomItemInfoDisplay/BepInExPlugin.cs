@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace CustomItemInfoDisplay
 {
-    [BepInPlugin("aedenthorn.CustomItemInfoDisplay", "Custom Item Info Display", "0.4.0")]
+    [BepInPlugin("aedenthorn.CustomItemInfoDisplay", "Custom Item Info Display", "0.5.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -266,10 +266,12 @@ namespace CustomItemInfoDisplay
 
         private static string ReplaceLine(ItemDrop.ItemData item, int qualityLevel, float worldLevel, bool crafting, string line)
         {
+            if (item is null)
+                return line;
             return line
                 .Replace("{itemDescription}", item.m_shared.m_description)
                 .Replace("{itemSpawnName}", GetSpawnName(item))
-                .Replace("{itemID}", Utils.GetPrefabName(item.m_dropPrefab))
+                .Replace("{itemID}", item.m_dropPrefab is null ? "null" : Utils.GetPrefabName(item.m_dropPrefab))
                 .Replace("{itemCrafterName}", item.m_crafterName.ToString())
                 .Replace("{itemValue}",item.GetValue().ToString())
                 .Replace("{itemBaseValue}", item.m_shared.m_value.ToString())

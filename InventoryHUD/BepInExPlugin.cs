@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.IO;
 using System.Reflection;
 using TMPro;
@@ -9,7 +10,7 @@ using UnityEngine.UI;
 
 namespace InventoryHUD
 {
-    [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.3.1")]
+    [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.4.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -73,7 +74,6 @@ namespace InventoryHUD
             weightScale = Config.Bind<float>("Weight", "WeightScale", 1f, "Weight icon scale");
             weightColor = Config.Bind<Color>("Weight", "WeightColor", new Color(1,1,1,0.5f), "Weight icon color");
             fillColor = Config.Bind<Color>("Weight", "WeightFillColor", new Color(1, 1, 0.5f, 1f), "Weight icon fill color");
-
 
             harmony = new Harmony(Info.Metadata.GUID);
             harmony.PatchAll();
@@ -195,7 +195,9 @@ namespace InventoryHUD
             rt.localScale = Vector3.one;
             rt.anchoredPosition = Vector2.zero;
 
-            TMP_Text text = infoObject.AddComponent<TMP_Text>();
+            TextMeshProUGUI text = infoObject.AddComponent<TextMeshProUGUI>();
+            Dbgl($"text: {text?.GetType()}");
+            Dbgl($"{text.text}");
             var font = GetFont(infoStringFont.Value, infoStringSize.Value);
             if (font != null)
                 text.font = font;
@@ -225,23 +227,22 @@ namespace InventoryHUD
             public static Vector3 lastPosition = Vector3.zero;
             static void Prefix(Hud __instance)
             {
-                if (!modEnabled.Value || !Player.m_localPlayer)
+                if (!modEnabled.Value || Player.m_localPlayer is null)
                     return;
 
                 Vector3 hudPos = new Vector3(hudPosition.Value.x, hudPosition.Value.y, 0);
-
-                if (__instance.m_rootObject.transform.localPosition.x > 1000f)
+                if (__instance.m_rootObject?.transform.localPosition.x > 1000f)
                 {
-                    maskObject.SetActive(false);
-                    partialObject.SetActive(false);
-                    fullObject.SetActive(false);
-                    infoObject.SetActive(false);
+                    maskObject?.SetActive(false);
+                    partialObject?.SetActive(false);
+                    fullObject?.SetActive(false);
+                    infoObject?.SetActive(false);
                     return;
                 }
-                maskObject.SetActive(true);
-                partialObject.SetActive(true);
-                fullObject.SetActive(true);
-                infoObject.SetActive(true);
+                maskObject?.SetActive(true);
+                partialObject?.SetActive(true);
+                fullObject?.SetActive(true);
+                infoObject?.SetActive(true);
 
                 Inventory inv = Player.m_localPlayer.GetInventory();
                 Vector3 weightPos = hudPos + new Vector3(weightOffset.Value.x, weightOffset.Value.y, 0);
@@ -284,15 +285,14 @@ namespace InventoryHUD
 
                     int items = inv.GetAllItems().Count;
                     int slots = inv.GetWidth() * inv.GetHeight() + extraSlots.Value;
-                    TMP_Text text = infoObject.GetComponent<TMP_Text>();
-                    text.text = string.Format(infoString.Value, items, slots, weight, totalWeight);
+                    TextMeshProUGUI text = infoObject.GetComponent<TextMeshProUGUI>();
+                    text.text = string.Format(infoString.Value, new object[] { items, slots, Math.Round(weight), Math.Round(totalWeight) });
                     text.color = infoStringColor.Value;
                     text.alignment = infoStringAlignment.Value;
                     text.fontSize = infoStringSize.Value;
                 }
 
                 /*
-
                 Rect rect = parentObject.GetComponent<Image>().sprite.rect;
                 partialObject.transform.parent.GetComponent<RectTransform>().localScale = Vector3.one * weightScale.Value;
                 */
