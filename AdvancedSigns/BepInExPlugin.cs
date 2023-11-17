@@ -18,6 +18,8 @@ namespace AdvancedSigns
         
         public static ConfigEntry<bool> useRichText;
         public static ConfigEntry<string> fontName;
+        public static ConfigEntry<string> defaultColor;
+        public static ConfigEntry<bool> removeRichText;
         public static ConfigEntry<Vector2> textPositionOffset;
         public static ConfigEntry<Vector3> signScale;
         public static TMP_FontAsset currentFont;
@@ -38,6 +40,8 @@ namespace AdvancedSigns
             textPositionOffset = Config.Bind<Vector2>("Signs", "TextPositionOffset", new Vector2(0,0), "Default font size");
             useRichText = Config.Bind<bool>("Signs", "UseRichText", true, "Enable rich text");
             fontName = Config.Bind<string>("Signs", "FontName", "AveriaSerifLibre-Bold", "Font name");
+            defaultColor = Config.Bind<string>("Signs", "DefaultColor", "#00ffffff", "Default color");
+            removeRichText = Config.Bind<bool>("Signs", "RemoveRichText", false, "Remove rich text");
             
             if (!modEnabled.Value)
                 return;
@@ -66,6 +70,28 @@ namespace AdvancedSigns
         [HarmonyPatch(typeof(Sign), "UpdateText")]
         static class Sign_UpdateText_Patch
         {
+            static bool Prefix(Sign __instance, ZNetView ___m_nview)
+            {
+                string text = ___m_nview.GetZDO().GetString(ZDOVars.s_text, __instance.m_defaultText);
+                if (!string.IsNullOrEmpty(text))
+                {
+                    if (removeRichText.Value)
+                    {
+                        if (text.Contains("<"))
+                        {
+                            text = text.RemoveRichTextTags();
+                            ___m_nview.GetZDO().Set(ZDOVars.s_text, text);
+                        }
+
+                    } else if (!text.Contains("<") && !string.IsNullOrEmpty(defaultColor.Value)) {
+                        text = $"<color={defaultColor.Value}>{text}";
+                        ___m_nview.GetZDO().Set(ZDOVars.s_text, text);
+                    }
+                }
+
+                return true;
+            }
+
             static void Postfix(Sign __instance)
             {
                 FixSign(ref __instance);
