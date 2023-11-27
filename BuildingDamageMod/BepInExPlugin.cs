@@ -99,9 +99,8 @@ namespace BuildingDamageMod
                     {
                         mult = uncreatedDamageMult.Value;
                     }
-                    else if(___m_piece != null &&
-                         hit.m_attacker == Player.m_localPlayer.GetZDOID() &&
-                         ___m_piece.IsCreator())
+                    else if (hit.m_attacker == Player.m_localPlayer.GetZDOID() &&
+                         ___m_piece?.IsCreator())
                     {
                         mult = creatorDamageMult.Value;
                     }
