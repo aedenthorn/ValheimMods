@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.5.0")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.5.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -254,22 +254,27 @@ namespace CustomAudio
                 string name = GetZSFXName(__instance);
                 if (dumpInfo.Value)
                     Dbgl($"Checking SFX: {name}");
-                if (customSFXList.ContainsKey(name))
+                if (customSFXList?.TryGetValue(name, out var dict) == true)
                 {
                     if (dumpInfo.Value)
                         Dbgl($"replacing SFX list by name: {name}");
-                    __instance.m_audioClips = customSFXList[name].Values.ToArray();
+                    __instance.m_audioClips = dict.Values.ToArray();
                     return;
                 }
-                for (int i = 0; i < __instance.m_audioClips.Length; i++)
+                if(customSFX != null && __instance.m_audioClips != null)
                 {
-                    if (dumpInfo.Value)
-                        Dbgl($"checking SFX: {name}, clip: {__instance.m_audioClips[i].name}");
-                    if (customSFX.ContainsKey(__instance.m_audioClips[i].name))
+                    for (int i = 0; i < __instance.m_audioClips.Length; i++)
                     {
+                        if (__instance.m_audioClips[i] is null)
+                            continue;
                         if (dumpInfo.Value)
-                            Dbgl($"replacing SFX: {name}, clip: {__instance.m_audioClips[i].name}");
-                        __instance.m_audioClips[i] = customSFX[__instance.m_audioClips[i].name];
+                            Dbgl($"checking SFX: {name}, clip: {__instance.m_audioClips[i].name}");
+                        if (customSFX.TryGetValue(__instance.m_audioClips[i].name, out var dict2))
+                        {
+                            if (dumpInfo.Value)
+                                Dbgl($"replacing SFX: {name}, clip: {__instance.m_audioClips[i].name}");
+                            __instance.m_audioClips[i] = dict2;
+                        }
                     }
                 }
             }
