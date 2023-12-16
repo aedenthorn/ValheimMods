@@ -83,7 +83,7 @@ namespace DiscardInventoryItem
                         if (isMagic)
                         {
                             int rarity = (int)epicLootAssembly.GetType("EpicLoot.ItemDataExtensions").GetMethod("GetRarity", BindingFlags.Public | BindingFlags.Static).Invoke(null, new[] { ___m_dragItem });
-                            List<KeyValuePair<ItemDrop, int>> magicReqs = (List<KeyValuePair<ItemDrop, int>>)epicLootAssembly.GetType("EpicLoot.Crafting.EnchantTabController").GetMethod("GetEnchantCosts", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { ___m_dragItem, rarity });
+                            List<KeyValuePair<ItemDrop, int>> magicReqs = (List<KeyValuePair<ItemDrop, int>>)epicLootAssembly.GetType("EpicLoot.Crafting.EnchantHelper").GetMethod("GetEnchantCosts", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { ___m_dragItem, rarity });
                             foreach (var kvp in magicReqs)
                             {
                                 if (!returnUnknownResources.Value && ((ObjectDB.instance.GetRecipe(kvp.Key.m_itemData) && !Player.m_localPlayer.IsRecipeKnown(kvp.Key.m_itemData.m_shared.m_name)) || !Traverse.Create(Player.m_localPlayer).Field("m_knownMaterial").GetValue<HashSet<string>>().Contains(kvp.Key.m_itemData.m_shared.m_name)))
