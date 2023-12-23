@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.5.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -33,6 +33,7 @@ namespace CraftFromContainers
         public static ConfigEntry<string> pulledMessage;
         public static ConfigEntry<string> fuelDisallowTypes;
         public static ConfigEntry<string> oreDisallowTypes;
+        public static ConfigEntry<bool> leaveOne;
 
         public static ConfigEntry<string> pullItemsKey;
         public static ConfigEntry<string> preventModKey;
@@ -90,6 +91,7 @@ namespace CraftFromContainers
             pulledMessage = Config.Bind<string>("General", "PulledMessage", "Pulled items to inventory", "Message to show after pulling items to player inventory");
             fuelDisallowTypes = Config.Bind<string>("General", "FuelDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as fuel (i.e. anything that is consumed), comma-separated.");
             oreDisallowTypes = Config.Bind<string>("General", "OreDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as ore (i.e. anything that is transformed), comma-separated).");
+            leaveOne = Config.Bind<bool>("General", "LeaveOne", false, "if true, always leave the last of an item in A container.");
 
             showGhostConnections = Config.Bind<bool>("Station Connections", "ShowConnections", false, "If true, will display connections to nearby workstations within range when building containers");
             ghostConnectionStartOffset = Config.Bind<float>("Station Connections", "ConnectionStartOffset", 1.25f, "Height offset for the connection VFX start position");
@@ -255,7 +257,6 @@ namespace CraftFromContainers
                 __result = true;
                 bool pullAll = CheckKeyHeld(fillAllModKey.Value);
                 Inventory inventory = user.GetInventory();
-
                 if (!AllowByKey() || hold || inventory == null || (inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && !pullAll))
                     return true;
 
@@ -294,6 +295,8 @@ namespace CraftFromContainers
                             }
 
                             int amount = pullAll ? (int)Mathf.Min(__instance.m_maxFuel - Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)), item.m_stack) : 1;
+
+                            amount -= leaveOne.Value ? 1 : 0;
 
                             Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking {amount}");
 
@@ -337,7 +340,7 @@ namespace CraftFromContainers
                 foreach (Container c in nearbyContainers)
                 {
                     ItemDrop.ItemData fuelItem = c.GetInventory().GetItem(__instance.m_fuelItem.m_itemData.m_shared.m_name);
-                    if (fuelItem != null)
+                    if (fuelItem != null && (!leaveOne.Value || fuelItem.m_stack > 1))
                     {
                         if (fuelDisallowTypes.Value.Split(',').Contains(fuelItem.m_dropPrefab.name))
                         {
@@ -379,7 +382,7 @@ namespace CraftFromContainers
                     foreach (Container c in nearbyContainers)
                     {
                         ItemDrop.ItemData item = c.GetInventory().GetItem(itemConversion.m_from.m_itemData.m_shared.m_name);
-                        if (item != null)
+                        if (item != null && (!leaveOne.Value || item.m_stack > 1))
                         {
                             if (oreDisallowTypes.Value.Split(',').Contains(item.m_dropPrefab.name))
                             {
@@ -470,7 +473,7 @@ namespace CraftFromContainers
 
                         int amount = pullAll ? Mathf.Min(__instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>(), inventory.CountItems(name)) : 1;
 
-                        if(!added.ContainsKey(name))
+                        if (!added.ContainsKey(name))
                             added[name] = 0;
                         added[name] += amount;
 
@@ -496,6 +499,8 @@ namespace CraftFromContainers
                                 continue;
                             }
                             int amount = pullAll ? (int)Mathf.Min(__instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>(), c.GetInventory().CountItems(name)) : 1;
+
+                            amount -= leaveOne.Value ? 1 : 0;
 
                             if (!added.ContainsKey(name))
                                 added[name] = 0;
@@ -559,6 +564,7 @@ namespace CraftFromContainers
                 if (pullAll && inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name))
                 {
                     int amount = (int)Mathf.Min(__instance.m_maxFuel - ((float)typeof(Smelter).GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })), inventory.CountItems(__instance.m_fuelItem.m_itemData.m_shared.m_name));
+
                     inventory.RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
                     //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { });
                     for (int i = 0; i < amount; i++)
@@ -584,6 +590,8 @@ namespace CraftFromContainers
                             continue;
                         }
                         int amount = pullAll ? (int)Mathf.Min(__instance.m_maxFuel - ((float)typeof(Smelter).GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })), newItem.m_stack) : 1;
+
+                        amount -= leaveOne.Value ? 1 : 0;
 
                         Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name}, taking {amount}");
 
@@ -670,6 +678,9 @@ namespace CraftFromContainers
             { 
                 if (!modEnabled.Value || __result || discover || !AllowByKey())
                     return;
+
+                var leaveMod = leaveOne.Value ? 1 : 0;
+
                 List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
 
                 foreach (Piece.Requirement requirement in piece.m_resources)
@@ -681,7 +692,7 @@ namespace CraftFromContainers
                         if(invAmount < amount)
                         {
                             foreach(Container c in nearbyContainers)
-                                invAmount += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
+                                invAmount += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) - leaveMod;
                             if (invAmount < amount)
                                 return;
                         }
@@ -738,6 +749,8 @@ namespace CraftFromContainers
 
                 List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
 
+                var leaveMod = leaveOne.Value ? 1 : 0;
+
                 foreach (Piece.Requirement requirement in piece.m_resources)
                 {
                     if (requirement.m_resItem && requirement.m_amount > 0)
@@ -773,7 +786,7 @@ namespace CraftFromContainers
                             {
                                 try
                                 {
-                                    hasItems += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
+                                    hasItems += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) - leaveMod;
                                     if (hasItems >= requirement.m_amount)
                                     {
                                         break;
@@ -825,6 +838,8 @@ namespace CraftFromContainers
 
                                 Dbgl($"Container at {c.transform.position} has {cInventory.CountItems(reqName)}");
 
+                                thisAmount -= leaveOne.Value ? 1 : 0;
+
                                 if (thisAmount == 0)
                                     continue;
 
@@ -839,8 +854,16 @@ namespace CraftFromContainers
                                         int stackAmount = Mathf.Min(item.m_stack, totalRequirement - totalAmount);
                                         if (stackAmount == item.m_stack)
                                         {
-                                            cInventory.RemoveItem(i);
-                                            i--;
+                                            if(leaveOne.Value && cInventory.CountItems(reqName) == item.m_stack)
+                                            {
+                                                stackAmount--;
+                                                item.m_stack -= stackAmount;
+                                            }
+                                            else
+                                            {
+                                                cInventory.RemoveItem(i);
+                                                i--;
+                                            }
                                         }
                                         else
                                             item.m_stack -= stackAmount;
@@ -1143,7 +1166,18 @@ namespace CraftFromContainers
                                 pInventory.AddItem(sendItem);
 
                                 if (stackAmount == item.m_stack)
-                                    cInventory.RemoveItem(i);
+                                {
+                                    if (leaveOne.Value && cInventory.CountItems(reqName) == item.m_stack)
+                                    {
+                                        stackAmount--;
+                                        item.m_stack -= stackAmount;
+                                    }
+                                    else
+                                    {
+                                        cInventory.RemoveItem(i);
+                                        i--;
+                                    }
+                                }
                                 else
                                     item.m_stack -= stackAmount;
 
