@@ -1,4 +1,4 @@
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
@@ -10,8 +10,8 @@ using UnityEngine;
 
 namespace AutoFuel
 {
-    [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "1.2.0")]
-    public class BepInExPlugin: BaseUnityPlugin
+	[BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "1.3.0")]
+	public class BepInExPlugin : BaseUnityPlugin
 	{
 		private static readonly bool isDebug = false;
 
