@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
@@ -85,7 +85,7 @@ namespace AutoFuel
         }
         private static string GetPrefabName(string name)
         {
-            char[] anyOf = new char[]{'(',' '};
+			char[] anyOf = new char[] { '(', ' ' };
             int num = name.IndexOfAny(anyOf);
             string result;
             if (num >= 0)
@@ -97,7 +97,8 @@ namespace AutoFuel
 
         public static List<Container> GetNearbyContainers(Vector3 center, float range)
         {
-            try { 
+			try
+			{
                 List<Container> containers = new List<Container>();
 
                 foreach (Collider collider in Physics.OverlapSphere(center, Mathf.Max(range, 0), LayerMask.GetMask(new string[] { "piece" })))
@@ -120,7 +121,7 @@ namespace AutoFuel
 
         private static Container GetContainer(Transform transform)
         {
-            while(transform != null)
+			while (transform != null)
             {
                 Container c = transform.GetComponent<Container>();
                 if (c != null)
