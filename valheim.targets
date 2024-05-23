@@ -47,12 +47,12 @@
       </PropertyGroup>
     </When>
   </Choose>
-  
+
   <!-- Manual overrides -->
   <PropertyGroup>
     <BepInExPath>$(GamePath)\BepInEx</BepInExPath>
     <ManagedDataPath>$(GamePath)\valheim_Data\Managed</ManagedDataPath>
-    <UnityPath>$(GamePath)\unstripped_corlib</UnityPath>
+    <UnityPath>$(GamePath)\valheim_Data\Managed</UnityPath>
   </PropertyGroup>
   
   <!-- Set start action -->
@@ -94,19 +94,9 @@
       <HintPath>$(ManagedDataPath)\assembly_guiutils.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="ui_lib">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(ManagedDataPath)\ui_lib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="assembly_postprocessing">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(ManagedDataPath)\assembly_postprocessing.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="assembly_steamworks">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(ManagedDataPath)\assembly_steamworks.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="assembly_sunshafts">
@@ -225,7 +215,7 @@
     </Reference>
     <Reference Include="UnityEngine.TextCoreModule">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(UnityPath)\UnityEngine.TextCoreModule.dll</HintPath>
+      <HintPath>$(UnityPath)\UnityEngine.TextCoreTextEngineModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
@@ -262,7 +252,7 @@
 
   <!-- Copy to plugins folder and zip -->
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <ItemGroup>
+	<ItemGroup>
       <AllFiles Include="$(TargetDir)**\*.*" Exclude="$(TargetDir)**\*.pdb" />
     </ItemGroup>
     <Copy SourceFiles="@(AllFiles)" DestinationFolder="$(GamePath)\BepInEx\plugins\%(RecursiveDir)"></Copy>
