@@ -12,7 +12,7 @@ using UnityEngine.UIElements;
 
 namespace AutoFeed
 {
-    [BepInPlugin("AutoFeed", "Auto Feed", "0.8.2")]
+    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.8.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
