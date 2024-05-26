@@ -109,8 +109,13 @@
       <HintPath>$(ManagedDataPath)\assembly_utils.dll</HintPath>
       <Private>False</Private>
     </Reference>
+	<Reference Include="gui_framework">
+	  <SpecificVersion>False</SpecificVersion>
+	  <HintPath>$(ManagedDataPath)\gui_framework.dll</HintPath>
+	  <Private>False</Private>
+	</Reference>
   </ItemGroup>
-
+	
   <!-- Add Unity references -->
   <ItemGroup Label="Unity">
     <Reference Include="UnityEngine">

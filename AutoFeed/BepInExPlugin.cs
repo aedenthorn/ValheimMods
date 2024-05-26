@@ -12,7 +12,7 @@ using UnityEngine.UIElements;
 
 namespace AutoFeed
 {
-    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.8.1")]
+    [BepInPlugin("AutoFeed", "Auto Feed", "0.8.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -51,8 +51,8 @@ namespace AutoFeed
             toggleKey = Config.Bind<string>("General", "ToggleKey", "", "Key to toggle behaviour. Leave blank to disable the toggle key. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             toggleString = Config.Bind<string>("General", "ToggleString", "Auto Feed: {0}", "Text to show on toggle. {0} is replaced with true/false");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Show debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 985, "Nexus mod ID for updates");
+            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Show debug logs");
+            nexusID = Config.Bind<int>("General", "NexusID", 2787, "Nexus mod ID for updates");
             
             isOn = Config.Bind<bool>("ZAuto", "IsOn", true, "Behaviour is currently on or not");
 
@@ -89,20 +89,20 @@ namespace AutoFeed
         {
             static void Postfix(MonsterAI __instance, ZNetView ___m_nview, Character ___m_character, Tameable ___m_tamable, List<ItemDrop> ___m_consumeItems, float dt, bool __result)
             {
-                if (!modEnabled.Value || !isOn.Value 
-                    || __result || !___m_character || !___m_nview || !___m_nview.IsOwner() 
-                    || ___m_tamable == null || !___m_character.IsTamed() || !___m_tamable.IsHungry() 
-                    || ___m_consumeItems == null || ___m_consumeItems.Count == 0)
-                    return;
-
                 string name = GetPrefabName(__instance.gameObject.name);
-                if (animalDisallowTypes.Value.Split(',').Contains(name))
+                if (!modEnabled.Value || !isOn.Value
+                    || __result || !___m_character || !___m_nview || !___m_nview.IsOwner()
+                    || ___m_tamable == null || !___m_character.IsTamed() || !___m_tamable.IsHungry()
+                    || ___m_consumeItems == null || ___m_consumeItems.Count == 0
+                    || animalDisallowTypes.Value.Split(',').Contains(name))
                 {
                     return;
                 }
 
                 Vector3 instancePosition = __instance.gameObject.transform.position;
                 Traverse traverseAI = Traverse.Create(__instance);
+                // Types like "HorseSize" seem to not work when Deer is tamed
+                traverseAI.Field("m_pathAgentType").SetValue(Pathfinding.AgentType.Humanoid);
                 Container closestContainer = null;
                 Vector3 closestContainerPosition = new Vector3(0f, 0f, 0f);
                 float closestContainerDistance = containerRange.Value + 1;
@@ -111,17 +111,19 @@ namespace AutoFeed
                     Container container = collider.transform.parent?.parent?.gameObject?.GetComponent<Container>();
                     if (container?.GetComponent<ZNetView>()?.IsValid() == true)
                     {
+                        //Dbgl($"{__instance.gameObject.name} valid found");
                         foreach (string containerNameStart in containerNameStartsWith.Value.Split(','))
                         {
                             if (container.name.StartsWith(containerNameStart) && container.GetInventory() != null)
                             {
-                                //Dbgl($"{monsterAI.gameObject.name} trough");
+                                //Dbgl($"{__instance.gameObject.name} trough");
                                 Vector3 containerPosition = container.transform.position;
                                 float distance = Vector3.Distance(containerPosition, instancePosition);
+                                //Dbgl($"{__instance.gameObject.name} agentType: {traverseAI.Field("m_pathAgentType")}"); 
                                 if (distance < moveProximity.Value
                                     || traverseAI.Method("HavePath", new object[] { containerPosition }).GetValue<bool>())
                                 {
-                                    //Dbgl($"{monsterAI.gameObject.name} path");
+                                    //Dbgl($"{__instance.gameObject.name} path");
                                     bool foundInedibleItem = true;
                                     bool foundEdibleItem = false;
                                     foreach (ItemDrop.ItemData item in container.GetInventory().GetAllItems())
@@ -132,13 +134,13 @@ namespace AutoFeed
                                             foundEdibleItem = true;
                                             if (!requireOnlyFood.Value)
                                             {
-                                                //Dbgl($"{monsterAI.gameObject.name} food found");
+                                                //Dbgl($"{__instance.gameObject.name} food found");
                                                 break;
                                             }
                                         }
                                         else if (requireOnlyFood.Value)
                                         {
-                                            Dbgl($"{__instance.gameObject.name} inedible found");
+                                            //Dbgl($"{__instance.gameObject.name} inedible found");
                                             foundInedibleItem = false;
                                             break;
                                         }
@@ -190,6 +192,10 @@ namespace AutoFeed
                         }
                     }
                 }
+                else
+                {
+                    Dbgl($"{__instance.gameObject.name} could not find container");
+                }
             }
         }
 
@@ -199,6 +205,27 @@ namespace AutoFeed
 
             (character as Humanoid).m_consumeItemEffects.Create(character.transform.position, Quaternion.identity, null, 1f, -1);
             Traverse.Create(monsterAI).Field("m_animator").GetValue<ZSyncAnimation>().SetTrigger("consume");
+        }
+
+        [HarmonyPatch(typeof(Terminal), "InputText")]
+        static class InputText_Patch
+        {
+            static bool Prefix(Terminal __instance)
+            {
+                if (!modEnabled.Value)
+                    return true;
+                string text = __instance.m_input.text;
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
+                {
+                    context.Config.Reload();
+                    context.Config.Save();
+
+                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
+                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    return false;
+                }
+                return true;
+            }
         }
     }
 }
