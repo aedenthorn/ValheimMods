@@ -12,7 +12,7 @@ using UnityEngine.UIElements;
 
 namespace AutoFeed
 {
-    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.8.2")]
+    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.8.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -161,7 +161,7 @@ namespace AutoFeed
                 if (closestContainer != null)
                 {
                     Dbgl($"{__instance.gameObject.name} found container: {closestContainerPosition}");
-                    if (requireMove.Value && name != "Deer")
+                    if (requireMove.Value)
                     {
                         Dbgl($"{__instance.gameObject.name} {instancePosition} trying to move to {closestContainerPosition} {Utils.DistanceXZ(instancePosition, closestContainerPosition)}");
 
