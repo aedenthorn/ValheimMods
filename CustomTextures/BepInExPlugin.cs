@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "3.3.1")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "3.3.2")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;
@@ -47,7 +47,7 @@ namespace CustomTextures
             replaceLocationTextures = Config.Bind<bool>("General", "ReplaceLocationTextures", true, "Replace textures for special locations (can take a long time)");
             reloadLocationTextures = Config.Bind<bool>("General", "ReloadLocationTextures", false, "Reload textures for special locations on manual reload (can take a long time)");
             dumpSceneTextures = Config.Bind<bool>("General", "DumpSceneTextures", false, "Dump scene textures to BepInEx/plugins/CustomTextures/scene_dump.txt");
-            nexusID = Config.Bind<int>("General", "NexusID", 48, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 2796, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
                 return;
