@@ -260,7 +260,16 @@
 	<ItemGroup>
       <AllFiles Include="$(TargetDir)**\*.*" Exclude="$(TargetDir)**\*.pdb" />
     </ItemGroup>
+	<!--
     <Copy SourceFiles="@(AllFiles)" DestinationFolder="$(GamePath)\BepInEx\plugins\%(RecursiveDir)"></Copy>
+	-->
+	<Copy SourceFiles="@(AllFiles)" DestinationFolder="$(GamePath)\BepInEx\plugins\%(RecursiveDir)"></Copy>
+	  
+	<Delete Files="$(ProjectDir)..\_CompiledBinaries\$(TargetName).zip" />
+	<Copy SourceFiles="@(AllFiles)" DestinationFolder="$(ProjectDir)..\_CompiledBinaries\$(TargetName)\%(RecursiveDir)"></Copy>
+	<ZipDirectory SourceDirectory="$(ProjectDir)..\_CompiledBinaries\$(TargetName)" DestinationFile="$(ProjectDir)..\_CompiledBinaries\$(TargetName).zip" />
+	<RemoveDir Directories="$(ProjectDir)..\_CompiledBinaries\$(TargetName)" />
+	  
     <Delete Files="$(ProjectDir)\bin\$(TargetName).zip" />
     <Copy SourceFiles="@(AllFiles)" DestinationFolder="$(TargetDir)..\Release\%(RecursiveDir)"></Copy>
     <ZipDirectory SourceDirectory="$(TargetDir)..\Release" DestinationFile="$(ProjectDir)\bin\$(TargetName).zip" />
