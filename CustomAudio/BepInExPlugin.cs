@@ -342,6 +342,9 @@ namespace CustomAudio
                     dump.Add($"\tAmbient day tracks: (use {___m_randomAmbients[i].m_name}_day)");
                     for (int j = 0; j < ___m_randomAmbients[i].m_randomAmbientClipsDay.Count; j++)
                     {
+                        if (__instance.m_randomAmbients[i].m_randomAmbientClipsDay[j] == null)
+                            continue;
+
                         dump.Add($"\t\ttrack name: {___m_randomAmbients[i].m_randomAmbientClipsDay[j].name}");
 
                         //Dbgl($"checking ambient day: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClipsDay[j].name}");
@@ -354,6 +357,9 @@ namespace CustomAudio
                     dump.Add($"\tAmbient night tracks: (use {___m_randomAmbients[i].m_name}_night)");
                     for (int j = 0; j < ___m_randomAmbients[i].m_randomAmbientClipsNight.Count; j++)
                     {
+                        if (__instance.m_randomAmbients[i].m_randomAmbientClipsNight[j] == null)
+                            continue;
+
                         dump.Add($"\t\ttrack name: {___m_randomAmbients[i].m_randomAmbientClipsNight[j].name}");
 
                         //Dbgl($"checking ambient night: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClipsNight[j].name}");
