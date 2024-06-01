@@ -88,23 +88,10 @@ namespace HereFishy
                 }
                 float closest = maxFishyDistance.Value;
                 Fish closestFish = null;
-                foreach (Collider collider in Physics.OverlapSphere(Player.m_localPlayer.transform.position, maxFishyDistance.Value))
+                foreach (Fish fish in Fish.Instances)
                 {
-                    int which = 0;
-                    Fish fish = collider.transform.parent?.gameObject?.GetComponent<Fish>();
-                    if(fish is null)
+                    if (Vector3.Distance(Player.m_localPlayer.transform.position, fish.transform.position) < closest)
                     {
-                        which = 1;
-                        fish = collider.GetComponent<Fish>();
-                    }
-                    if(fish is null)
-                    {
-                        which = 2;
-                        fish = collider.transform.parent?.parent?.gameObject?.GetComponent<Fish>();
-                    }
-                    if (fish?.GetComponent<ZNetView>()?.IsValid() == true)
-                    {
-                        
                         float distance = Vector3.Distance(Player.m_localPlayer.transform.position, fish.gameObject.transform.position);
                         if (distance < closest && !hereFishyFishies.Contains(fish.gameObject))
                         {
