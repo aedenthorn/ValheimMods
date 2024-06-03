@@ -11,7 +11,7 @@ namespace MiningMod
     [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        private static readonly bool isDebug = false;
         private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
@@ -92,16 +92,7 @@ namespace MiningMod
 
             }
         }
-        [HarmonyPatch(typeof(MineRock5), "Start", new Type[] { })]
-        static class MineRock5_Start_Patch
-        {
-            static void Postfix(ref MineRock5 __instance)
-            {
-                __instance.m_dropItems.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropItems.m_dropMin);
-                __instance.m_dropItems.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropItems.m_dropMax);
-                __instance.m_dropItems.m_dropChance *= dropChanceMult.Value;
-            }
-        }
+
         [HarmonyPatch(typeof(DropTable), "GetDropList", new Type[] { })]
         static class DropTable_GetDropList_Patch
         {
@@ -131,7 +122,7 @@ namespace MiningMod
                         {
                             count = Mathf.RoundToInt(count * oreDropMult.Value);
                         }
-                        //Dbgl($"loot drop had {kvp.Value.Count} {(kvp.Value.Count > 0? kvp.Value[0].name :"")} - changed amount to {count}");
+                        Dbgl($"loot drop had {kvp.Value.Count} {(kvp.Value.Count > 0? kvp.Value[0].name :"")} - changed amount to {count}");
                         if(kvp.Value.Count < count)
                         {
                             for (int i = kvp.Value.Count; i < count; i++)
@@ -190,7 +181,7 @@ namespace MiningMod
         {
             static void Prefix(MineRock __instance, ref HitData hit)
             {
-                //Dbgl($"Damaging {__instance.gameObject.name}");
+                Dbgl($"Damaging {__instance.gameObject.name}");
                 hit.m_damage.m_pickaxe *= damageMult.Value;
                 hit.m_damage.m_blunt *= damageMult.Value;
                 hit.m_damage.m_chop *= damageMult.Value;
@@ -202,7 +193,7 @@ namespace MiningMod
         {
             static void Prefix(MineRock5 __instance, ref HitData hit)
             {
-                //Dbgl($"Damaging {__instance.gameObject.name}");
+                Dbgl($"Damaging {__instance.gameObject.name}");
 
                 hit.m_damage.m_pickaxe *= damageMult.Value;
                 hit.m_damage.m_blunt *= damageMult.Value;
@@ -217,7 +208,7 @@ namespace MiningMod
             {
                 if (__instance.GetComponent<DropOnDestroyed>() && __instance.gameObject.name.Contains("Rock"))
                 {
-                    //Dbgl($"Damaging {__instance.gameObject.name}");
+                    Dbgl($"Damaging {__instance.gameObject.name}");
                     hit.m_damage.m_pickaxe *= damageMult.Value;
                     hit.m_damage.m_blunt *= damageMult.Value;
                     hit.m_damage.m_chop *= damageMult.Value;
