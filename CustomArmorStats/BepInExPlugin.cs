@@ -238,10 +238,9 @@ namespace CustomArmorStats
             {
                 if (!modEnabled.Value)
                     return;
-
-                if (___m_seman.HaveStatusEffect("Wet"))
+                var hash = "Wet".GetStableHashCode();
+                if (___m_seman.HaveStatusEffect(hash))
                 {
-                    var hash = "Wet".GetStableHashCode();
                     HitData.DamageModifier water = GetNewDamageTypeMod(NewDamageTypes.Water, ___m_chestItem, ___m_legItem, ___m_helmetItem, ___m_shoulderItem);
                     var wet = ___m_seman.GetStatusEffect(hash);
                     var t = Traverse.Create(wet);
