@@ -600,7 +600,7 @@ namespace CraftFromContainers
                         //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
 
                         for (int i = 0; i < amount; i++)
-                            ___m_nview.InvokeRPC("AddFuel", new object[] { });
+                            ___m_nview.InvokeRPC("RPC_AddFuel", new object[] { });
 
                         added += amount;
 
