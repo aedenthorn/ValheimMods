@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System;
 using System.Reflection;
 using UnityEngine;
 
@@ -11,10 +12,8 @@ namespace CartographyTableMapRestrict
     {
         private static readonly bool isDebug = true;
 
-        public static ConfigEntry<string> hotKey;
         public static ConfigEntry<bool> modEnabled;
-        public static ConfigEntry<float> attachDistance;
-        public static ConfigEntry<bool> allowOutOfPlaceAttach;
+        public static ConfigEntry<bool> suppressMessage;
         public static ConfigEntry<int> nexusID;
 
         private static BepInExPlugin context;
@@ -29,6 +28,7 @@ namespace CartographyTableMapRestrict
             context = this;
 
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            suppressMessage = Config.Bind<bool>("General", "SupressMessage", true, "Supresses message on read");
             nexusID = Config.Bind<int>("General", "NexusID", 1739, "Nexus mod ID for updates");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
@@ -45,9 +45,14 @@ namespace CartographyTableMapRestrict
                     __instance.SetMapMode(Minimap.MapMode.None);
             }
         }
-        [HarmonyPatch(typeof(MapTable), "OnRead")]
+        [HarmonyPatch(typeof(MapTable), "OnRead", new Type[] { typeof(Switch), typeof(Humanoid), typeof(ItemDrop.ItemData), typeof(bool) })]
         static class MapTable_OnRead_Patch
         {
+            static void Prefix(MapTable __instance, ref bool showMessage)
+            {
+                showMessage = showMessage && !suppressMessage.Value;
+            }
+
             static void Postfix(MapTable __instance, ItemDrop.ItemData item)
             {
                 if (!modEnabled.Value || Player.m_localPlayer == null || item != null)
