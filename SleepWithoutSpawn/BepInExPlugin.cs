@@ -60,7 +60,7 @@ namespace SleepWithoutSpawn
         {
             static bool Prefix(Bed __instance, Humanoid human, bool repeat, ref bool __result, ZNetView ___m_nview)
             {
-                if (((!allowDaySleep.Value || EnvMan.instance.IsAfternoon() || EnvMan.instance.IsNight()) && Traverse.Create(__instance).Method("IsCurrent").GetValue<bool>()) || repeat || !AedenthornUtils.CheckKeyHeld(modKey.Value) || (unclaimedOnly.Value && ___m_nview.GetZDO().GetLong("owner", 0L) != 0))
+                if (((!allowDaySleep.Value || EnvMan.IsAfternoon() || EnvMan.IsNight()) && Traverse.Create(__instance).Method("IsCurrent").GetValue<bool>()) || repeat || !AedenthornUtils.CheckKeyHeld(modKey.Value) || (unclaimedOnly.Value && ___m_nview.GetZDO().GetLong("owner", 0L) != 0))
                 {
                     return true;
                 }
@@ -68,7 +68,7 @@ namespace SleepWithoutSpawn
 
                 Player player = human as Player;
 
-                if (!allowDaySleep.Value && !EnvMan.instance.IsAfternoon() && !EnvMan.instance.IsNight())
+                if (!allowDaySleep.Value && !EnvMan.IsAfternoon() && !EnvMan.IsNight())
                 {
                     human.Message(MessageHud.MessageType.Center, "$msg_cantsleep", 0, null);
                     __result = false;
