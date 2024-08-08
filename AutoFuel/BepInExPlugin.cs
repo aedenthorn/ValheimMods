@@ -200,7 +200,7 @@ namespace AutoFuel
                                         Destroy(item.gameObject);
                                     else
                                         ZNetScene.instance.Destroy(item.gameObject);
-                                    znview.InvokeRPC("AddFuel", new object[] { });
+                                    znview.InvokeRPC("RPC_AddFuel", new object[] { });
                                     if (distributedFilling.Value)
                                         return;
                                     break;
@@ -208,7 +208,7 @@ namespace AutoFuel
                                 }
 
                                 item.m_itemData.m_stack--;
-                                znview.InvokeRPC("AddFuel", new object[] { });
+                                znview.InvokeRPC("RPC_AddFuel", new object[] { });
                                 Traverse.Create(item).Method("Save").GetValue();
                                 if (distributedFilling.Value)
                                     return;
@@ -236,7 +236,7 @@ namespace AutoFuel
 
                                 Dbgl($"container at {c.transform.position} has {fuelItem.m_stack} {fuelItem.m_dropPrefab.name}, taking one");
 
-                                znview.InvokeRPC("AddFuel", new object[] { });
+                                znview.InvokeRPC("RPC_AddFuel", new object[] { });
 
                                 c.GetInventory().RemoveItem(fireplace.m_fuelItem.m_itemData.m_shared.m_name, 1);
                                 typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
@@ -351,14 +351,14 @@ namespace AutoFuel
                                         Destroy(item.gameObject);
                                     else
                                         ZNetScene.instance.Destroy(item.gameObject);
-                                    ___m_nview.InvokeRPC("AddOre", new object[] { name });
+                                    ___m_nview.InvokeRPC("RPC_AddOre", new object[] { name });
                                     if (distributedFilling.Value)
                                         ored = true;
                                     break;
                                 }
 
                                 item.m_itemData.m_stack--;
-                                ___m_nview.InvokeRPC("AddOre", new object[] { name });
+                                ___m_nview.InvokeRPC("RPC_AddOre", new object[] { name });
                                 Traverse.Create(item).Method("Save").GetValue();
                                 if (distributedFilling.Value)
                                     ored = true;
@@ -388,7 +388,7 @@ namespace AutoFuel
                                     Destroy(item.gameObject);
                                 else
                                     ZNetScene.instance.Destroy(item.gameObject);
-                                ___m_nview.InvokeRPC("AddFuel", new object[] { });
+                                ___m_nview.InvokeRPC("RPC_AddFuel", new object[] { });
                                 if (distributedFilling.Value)
                                     fueled = true;
                                 break;
@@ -396,7 +396,7 @@ namespace AutoFuel
                             }
 
                             item.m_itemData.m_stack--;
-                            ___m_nview.InvokeRPC("AddFuel", new object[] { });
+                            ___m_nview.InvokeRPC("RPC_AddFuel", new object[] { });
                             Traverse.Create(item).Method("Save").GetValue();
                             if (distributedFilling.Value)
                             {
@@ -427,7 +427,7 @@ namespace AutoFuel
 
                             Dbgl($"container at {c.transform.position} has {oreItem.m_stack} {oreItem.m_dropPrefab.name}, taking one");
 
-                            ___m_nview.InvokeRPC("AddOre", new object[] { oreItem.m_dropPrefab?.name });
+                            ___m_nview.InvokeRPC("RPC_AddOre", new object[] { oreItem.m_dropPrefab?.name });
                             c.GetInventory().RemoveItem(itemConversion.m_from.m_itemData.m_shared.m_name, 1);
                             typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                             typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
@@ -461,7 +461,7 @@ namespace AutoFuel
 
                         Dbgl($"container at {c.transform.position} has {fuelItem.m_stack} {fuelItem.m_dropPrefab.name}, taking one");
 
-                        ___m_nview.InvokeRPC("AddFuel", new object[] { });
+                        ___m_nview.InvokeRPC("RPC_AddFuel", new object[] { });
 
                         c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, 1);
                         typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
