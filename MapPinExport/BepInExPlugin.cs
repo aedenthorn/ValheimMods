@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace MapPinExport
 {
@@ -29,7 +30,7 @@ namespace MapPinExport
             context = this;
             
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
+            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1596, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
@@ -65,13 +66,16 @@ namespace MapPinExport
                     List<string> output = new List<string>();
                     foreach(var pin in pinList)
                     {
-                        if(IsCustomPin(pin))
+                        if (IsCustomPin(pin))
+                        {
+                            Dbgl($"Found pin to export: {pin.m_name}; {pin.m_type}; x{pin.m_pos.x}; y{pin.m_pos.y}; z{pin.m_pos.z}");
                             output.Add(JsonUtility.ToJson(new MyPinData(pin)));
+                        }
                     }
                     File.WriteAllText(Path.Combine(AedenthornUtils.GetAssetPath(context, true), file), $"{string.Join("\n", output)}");
                     __instance.AddString(text);
                     __instance.AddString($"{context.Info.Metadata.Name} {output.Count} pins exported");
-                    return false;
+                    return false; 
                 }
                 if (Minimap.instance && text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} clear"))
                 {
@@ -81,7 +85,10 @@ namespace MapPinExport
                     {
                         var pin = pinList[i];
                         if (IsCustomPin(pin))
+                        {
+                            Minimap.instance.GetType().GetTypeInfo().GetDeclaredMethod("DestroyPinMarker").Invoke(Minimap.instance, new object[] { pin });
                             pinList.RemoveAt(i);
+                        }
                     }
                     __instance.AddString($"{context.Info.Metadata.Name} all pins cleared from map");
                     return false;
@@ -104,7 +111,7 @@ namespace MapPinExport
                         try
                         {
                             var pin = JsonUtility.FromJson<MyPinData>(str);
-                            Minimap.instance.AddPin(pin.position, (Minimap.PinType)pin.type, pin.name, true, false, 0L);
+                            Minimap.instance.AddPin(pin.position, (Minimap.PinType)pin.type, pin.name, true, pin.isChecked, 0L);
                             count++;
                         }
                         catch(Exception ex)
@@ -120,7 +127,8 @@ namespace MapPinExport
 
             private static bool IsCustomPin(Minimap.PinData pin)
             {
-                return pin.m_save && pin.m_type != Minimap.PinType.Death && pin.m_type != Minimap.PinType.Bed && pin.m_type != Minimap.PinType.Icon4 && pin.m_type != Minimap.PinType.Shout && pin.m_type != Minimap.PinType.None && pin.m_type != Minimap.PinType.Boss && pin.m_type != Minimap.PinType.Player && pin.m_type != Minimap.PinType.RandomEvent && pin.m_type != Minimap.PinType.Ping && pin.m_type != Minimap.PinType.EventArea && pin.m_type != Minimap.PinType.Hildir1 && pin.m_type != Minimap.PinType.Hildir2 && pin.m_type != Minimap.PinType.Hildir3;
+                return pin.m_save && (pin.m_type == Minimap.PinType.Icon0 || pin.m_type == Minimap.PinType.Icon1 || pin.m_type == Minimap.PinType.Icon2 || pin.m_type == Minimap.PinType.Icon3 || pin.m_type == Minimap.PinType.Icon4);
+                //return pin.m_save && pin.m_type != Minimap.PinType.Death && pin.m_type != Minimap.PinType.Bed && pin.m_type != Minimap.PinType.Icon4 && pin.m_type != Minimap.PinType.Shout && pin.m_type != Minimap.PinType.None && pin.m_type != Minimap.PinType.Boss && pin.m_type != Minimap.PinType.Player && pin.m_type != Minimap.PinType.RandomEvent && pin.m_type != Minimap.PinType.Ping && pin.m_type != Minimap.PinType.EventArea && pin.m_type != Minimap.PinType.Hildir1 && pin.m_type != Minimap.PinType.Hildir2 && pin.m_type != Minimap.PinType.Hildir3;
             }
         }
     }
