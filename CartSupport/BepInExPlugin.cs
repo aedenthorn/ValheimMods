@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 
 namespace CartSupport
 {
@@ -61,12 +62,19 @@ namespace CartSupport
 
                 float before = mass;
 
-                List<Player> players = new List<Player>();
-                Player.GetPlayersInRange(__instance.gameObject.transform.position, playerRange.Value, players);
-                if(players.Count > (includePuller.Value ? 0 : 1))
-                    mass = Mathf.Max(0, mass - mass * playerMassReduction.Value * Mathf.Min(maxPlayers.Value, players.Count - (includePuller.Value ? 0 : 1)));
+                List<Player> s_players = Player.GetAllPlayers();
+                int playerCount = 0;
+                foreach (Player s_player in s_players)
+                {
+                    if (Vector3.Distance(s_player.transform.position, __instance.gameObject.transform.position) < playerRange.Value)
+                    {
+                        playerCount++;
+                    }
+                }
+                if(playerCount > (includePuller.Value ? 0 : 1))
+                    mass = Mathf.Max(0, mass - mass * playerMassReduction.Value * Mathf.Min(maxPlayers.Value, playerCount - (includePuller.Value ? 0 : 1)));
 
-                //Dbgl($"mass players {players.Count} distance {Vector3.Distance(__instance.gameObject.transform.position, Player.m_localPlayer.transform.position)} before {before} after {mass} is owner {___m_nview.IsOwner()}");
+                Dbgl($"mass players {playerCount} distance {Vector3.Distance(__instance.gameObject.transform.position, Player.m_localPlayer.transform.position)} before {before} after {mass} is owner {___m_nview.IsOwner()}");
             }
         }
 
