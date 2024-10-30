@@ -671,7 +671,7 @@ namespace CraftFromContainers
 
 
 
-        [HarmonyPatch(typeof(Player), "HaveRequirementItems", new Type[] { typeof(Recipe), typeof(bool), typeof(int) })]
+        [HarmonyPatch(typeof(Player), "HaveRequirementItems", new Type[] { typeof(Recipe), typeof(bool), typeof(int), typeof(int) })]
         static class HaveRequirementItems_Patch
         {
             static void Postfix(Player __instance, ref bool __result, Recipe piece, bool discover, int qualityLevel, HashSet<string> ___m_knownMaterial)
@@ -687,13 +687,13 @@ namespace CraftFromContainers
                 {
                     if (requirement.m_resItem)
                     {
-                        int amount = requirement.GetAmount(qualityLevel);
+                        int resAmount = requirement.GetAmount(qualityLevel);
                         int invAmount = __instance.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
-                        if(invAmount < amount)
+                        if(invAmount < resAmount)
                         {
                             foreach(Container c in nearbyContainers)
                                 invAmount += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) - leaveMod;
-                            if (invAmount < amount)
+                            if (invAmount < resAmount)
                                 return;
                         }
                     }
