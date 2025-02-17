@@ -8,7 +8,7 @@ using Debug = UnityEngine.Debug;
 
 namespace EquipMultipleUtilityItems
 {
-    [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.6.0")]
+    [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.7.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;

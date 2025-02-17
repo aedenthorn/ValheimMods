@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace CustomContainerSizes
 {
-    [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.7.0")]
+    [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.8.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

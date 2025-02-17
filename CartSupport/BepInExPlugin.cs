@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace CartSupport
 {
-    [BepInPlugin("aedenthorn.CartSupport", "CartSupport", "0.2.0")]
+    [BepInPlugin("aedenthorn.CartSupport", "CartSupport", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static BepInExPlugin context;
@@ -18,6 +18,7 @@ namespace CartSupport
         
         public static ConfigEntry<bool> includePuller;
         public static ConfigEntry<float> playerRange;
+        public static ConfigEntry<float> minMass;
         public static ConfigEntry<float> maxPlayers;
         public static ConfigEntry<float> playerMassReduction;
 
@@ -33,6 +34,7 @@ namespace CartSupport
             isDebug = Config.Bind<bool>("General", "isDebug", false, "Enable debug messages");
             nexusID = Config.Bind<int>("General", "NexusID", 947, "Nexus mod ID for updates");
             
+            minMass = Config.Bind<float>("Carts", "MinMass", 0.1f, "Minimum mass of carts no matter how many players support it.");
             playerRange = Config.Bind<float>("Carts", "PlayerRange", 5f, "Maximum player distance to support the cart (metres).");
             maxPlayers = Config.Bind<float>("Carts", "MaxPlayers", 4f, "Maximum number of supporting players.");
             playerMassReduction = Config.Bind<float>("Carts", "PlayerMassReduction", 0.2f, "Fractional weight reduction for each supporting player.");
@@ -64,7 +66,7 @@ namespace CartSupport
                 List<Player> players = new List<Player>();
                 Player.GetPlayersInRange(__instance.gameObject.transform.position, playerRange.Value, players);
                 if(players.Count > (includePuller.Value ? 0 : 1))
-                    mass = Mathf.Max(0, mass - mass * playerMassReduction.Value * Mathf.Min(maxPlayers.Value, players.Count - (includePuller.Value ? 0 : 1)));
+                    mass = Mathf.Max(0.1f, mass - mass * playerMassReduction.Value * Mathf.Min(maxPlayers.Value, players.Count - (includePuller.Value ? 0 : 1)));
 
                 //Dbgl($"mass players {players.Count} distance {Vector3.Distance(__instance.gameObject.transform.position, Player.m_localPlayer.transform.position)} before {before} after {mass} is owner {___m_nview.IsOwner()}");
             }

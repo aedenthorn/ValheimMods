@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HoeRadius
 {
-    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.2.1")]
+    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 

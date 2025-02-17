@@ -10,7 +10,7 @@ using static FileHelpers;
 
 namespace CharacterEdit
 {
-    [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.8.0")]
+    [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.9.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

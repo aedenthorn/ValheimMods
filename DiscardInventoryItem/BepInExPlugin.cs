@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DiscardInventoryItem
 {
-    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard or Recycle Inventory Items", "0.9.1")]
+    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard or Recycle Inventory Items", "1.0.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;

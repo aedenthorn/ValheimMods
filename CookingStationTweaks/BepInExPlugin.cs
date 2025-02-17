@@ -7,11 +7,11 @@ using Debug = UnityEngine.Debug;
 
 namespace CookingStationTweaks
 {
-    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.6.0")]
+    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.7.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -28,7 +28,7 @@ namespace CookingStationTweaks
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -48,21 +48,21 @@ namespace CookingStationTweaks
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
 
-        private void UUpdate()
+        public void UUpdate()
         {
         }
 
 
         [HarmonyPatch(typeof(CookingStation), "Awake")]
-        static class CookingStation_Awake_Patch
+        public static class CookingStation_Awake_Patch
         {
-            static void Prefix(CookingStation __instance, ref ParticleSystem[] ___m_burntPS, ref ParticleSystem[] ___m_donePS, ref ParticleSystem[] ___m_ps, ref AudioSource[] ___m_as)
+            public static void Prefix(CookingStation __instance, ref ParticleSystem[] ___m_burntPS, ref ParticleSystem[] ___m_donePS, ref ParticleSystem[] ___m_ps, ref AudioSource[] ___m_as)
             {
                 if (!modEnabled.Value)
                     return;
@@ -218,7 +218,7 @@ namespace CookingStationTweaks
                                 Traverse.Create(__instance).Method("SpawnItem", new object[] { itemName, i, __instance.m_slots[i].position }).GetValue();
                                 ___m_nview.GetZDO().Set("slot" + i, "");
                                 ___m_nview.GetZDO().Set("slot" + i, 0f);
-                                ___m_nview.InvokeRPC(ZNetView.Everybody, "SetSlotVisual", new object[] { i, "" });
+                                ___m_nview.InvokeRPC(ZNetView.Everybody, "RPC_SetSlotVisual", new object[] { i, "" });
                             }
                             else if (preventBurning.Value)
                                 ___m_nview.GetZDO().Set("slot" + i, itemConversion.m_cookTime);
@@ -229,9 +229,9 @@ namespace CookingStationTweaks
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

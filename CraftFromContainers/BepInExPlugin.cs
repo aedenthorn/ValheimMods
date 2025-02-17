@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.6.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.7.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -272,7 +272,7 @@ namespace CraftFromContainers
                     inventory.RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
                     typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { });
                     for (int i = 0; i < amount; i++)
-                        ___m_nview.InvokeRPC("AddFuel", new object[] { });
+                        ___m_nview.InvokeRPC("RPC_AddFuel", new object[] { });
 
                     user.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$msg_fireadding", new string[]{__instance.m_fuelItem.m_itemData.m_shared.m_name}), 0, null);
 
@@ -308,7 +308,7 @@ namespace CraftFromContainers
                                 user.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$msg_fireadding", new string[]{__instance.m_fuelItem.m_itemData.m_shared.m_name}), 0, null);
                             
                             for(int i = 0; i < amount; i++)
-                                ___m_nview.InvokeRPC("AddFuel", new object[] { });
+                                ___m_nview.InvokeRPC("RPC_AddFuel", new object[] { });
                             
                             __result = false;
                             
@@ -353,7 +353,7 @@ namespace CraftFromContainers
                         typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                         //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
                         user.Message(MessageHud.MessageType.Center, "$msg_added " + __instance.m_fuelItem.m_itemData.m_shared.m_name, 0, null);
-                        ___m_nview.InvokeRPC("AddFuel", Array.Empty<object>());
+                        ___m_nview.InvokeRPC("RPC_AddFuel", Array.Empty<object>());
                         __result = true;
                         return false;
                     }
@@ -481,7 +481,7 @@ namespace CraftFromContainers
                         //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { });
 
                         for (int i = 0; i < amount; i++)
-                            ___m_nview.InvokeRPC("AddOre", new object[] { newItem.m_dropPrefab.name });
+                            ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name });
 
                         user.Message(MessageHud.MessageType.TopLeft, $"$msg_added {amount} {name}", 0, null);
                         if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre)
@@ -513,7 +513,7 @@ namespace CraftFromContainers
                             //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
 
                             for (int i = 0; i < amount; i++)
-                                ___m_nview.InvokeRPC("AddOre", new object[] { newItem.m_dropPrefab.name });
+                                ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name });
 
                             user.Message(MessageHud.MessageType.TopLeft, $"$msg_added {amount} {name}", 0, null);
 
@@ -568,7 +568,7 @@ namespace CraftFromContainers
                     inventory.RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
                     //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { });
                     for (int i = 0; i < amount; i++)
-                        ___m_nview.InvokeRPC("AddFuel", new object[] { });
+                        ___m_nview.InvokeRPC("RPC_AddFuel", new object[] { });
 
                     added += amount;
 
@@ -600,7 +600,7 @@ namespace CraftFromContainers
                         //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
 
                         for (int i = 0; i < amount; i++)
-                            ___m_nview.InvokeRPC("AddFuel", new object[] { });
+                            ___m_nview.InvokeRPC("RPC_AddFuel", new object[] { });
 
                         added += amount;
 

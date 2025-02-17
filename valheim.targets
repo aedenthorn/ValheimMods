@@ -6,7 +6,6 @@
     <TargetFramework>net480</TargetFramework>
     <Platforms>AnyCPU</Platforms>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <GamePath><!-- Set GamePath manually --></GamePath>
     <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
   </PropertyGroup>
 
@@ -52,7 +51,7 @@
   <PropertyGroup>
     <BepInExPath>$(GamePath)\BepInEx</BepInExPath>
     <ManagedDataPath>$(GamePath)\valheim_Data\Managed</ManagedDataPath>
-    <UnityPath>$(GamePath)\unstripped_corlib</UnityPath>
+    <UnityPath>$(GamePath)\valheim_Data\Managed</UnityPath>
   </PropertyGroup>
   
   <!-- Set start action -->
@@ -94,19 +93,9 @@
       <HintPath>$(ManagedDataPath)\assembly_guiutils.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="ui_lib">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(ManagedDataPath)\ui_lib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="assembly_postprocessing">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(ManagedDataPath)\assembly_postprocessing.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="assembly_steamworks">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(ManagedDataPath)\assembly_steamworks.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="assembly_sunshafts">
@@ -117,6 +106,11 @@
     <Reference Include="assembly_utils">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(ManagedDataPath)\assembly_utils.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="gui_framework">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\gui_framework.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

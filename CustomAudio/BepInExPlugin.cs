@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.5.1")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
