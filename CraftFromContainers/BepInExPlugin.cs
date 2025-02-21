@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.7.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.7.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static bool wasAllowed;
@@ -671,7 +671,7 @@ namespace CraftFromContainers
 
 
 
-        [HarmonyPatch(typeof(Player), "HaveRequirementItems", new Type[] { typeof(Recipe), typeof(bool), typeof(int) })]
+        [HarmonyPatch(typeof(Player), "HaveRequirementItems")]
         static class HaveRequirementItems_Patch
         {
             static void Postfix(Player __instance, ref bool __result, Recipe piece, bool discover, int qualityLevel, HashSet<string> ___m_knownMaterial)

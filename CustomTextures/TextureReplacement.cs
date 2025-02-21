@@ -51,7 +51,7 @@ namespace CustomTextures
                     }
                 }
             }
-            Traverse.Create(objectDB).Method("UpdateItemHashes").GetValue();
+            Traverse.Create(objectDB).Method("UpdateRegisters").GetValue();
 
             if (logDump.Any())
                 Dbgl("\n" + string.Join("\n", logDump));

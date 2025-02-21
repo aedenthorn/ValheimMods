@@ -10,9 +10,9 @@ namespace ClockMod
     public partial class BepInExPlugin: BaseUnityPlugin
     {
 
-        private static string debugName = "clockmod";
-        private static int windowId = 434343;
-        private void Awake()
+        public static string debugName = "clockmod";
+        public static int windowId = 434343;
+        public void Awake()
         {
             nexusID = Config.Bind<int>("General", "NexusID", 85, "Nexus mod ID for updates");
             toggleClockKeyMod = Config.Bind<string>("General", "ShowClockKeyMod", "", "Extra modifier key used to toggle the clock display. Leave blank to not require one. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
@@ -29,7 +29,7 @@ namespace ClockMod
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private void ClockLocationString_SettingChanged(object sender, EventArgs e)
+        public void ClockLocationString_SettingChanged(object sender, EventArgs e)
         {
             string[] split = clockLocationString.Value.Split(',');
             clockPosition = new Vector2(split[0].Trim().EndsWith("%") ? (float.Parse(split[0].Trim().Substring(0, split[0].Trim().Length - 1)) / 100f) * Screen.width : float.Parse(split[0].Trim()), split[1].Trim().EndsWith("%") ? (float.Parse(split[1].Trim().Substring(0, split[1].Trim().Length - 1)) / 100f) * Screen.height : float.Parse(split[1].Trim()));
@@ -37,7 +37,7 @@ namespace ClockMod
             windowRect = new Rect(clockPosition, new Vector2(1000, 100));
         }
 
-        private string GetCurrentTimeString()
+        public string GetCurrentTimeString()
         {
             if (!EnvMan.instance)
                 return "";

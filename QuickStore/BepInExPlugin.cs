@@ -7,10 +7,10 @@ using UnityEngine;
 
 namespace QuickStore
 {
-    [BepInPlugin("aedenthorn.QuickStore", "Quick Store", "0.4.0")]
+    [BepInPlugin("aedenthorn.QuickStore", "Quick Store", "0.5.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<float> storeRangePlayer;
         public static ConfigEntry<string> itemDisallowTypes;
@@ -56,14 +56,14 @@ namespace QuickStore
 
         public static int mask = LayerMask.GetMask(new string[] { "piece", "item", "piece_nonsolid", "vehicle" });
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             storeHotkey = Config.Bind<string>("General", "StoreHotkey", ".", "Hotkey to store your inventory into nearby containers. Use https://docs.unity3d.com/Manual/class-InputManager.html syntax.");
@@ -124,7 +124,7 @@ namespace QuickStore
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses())
                 return;
@@ -173,7 +173,7 @@ namespace QuickStore
             }
 
         }
-        private static bool DisallowItem(Container container, ItemDrop.ItemData item)
+        public static bool DisallowItem(Container container, ItemDrop.ItemData item)
         {
             string name = item.m_dropPrefab.name;
             string cat = item.m_shared.m_itemType.ToString();
@@ -303,7 +303,7 @@ namespace QuickStore
             return true;
         }
 
-        private static bool TryStoreItem(Container __instance, ref ItemDrop.ItemData item)
+        public static bool TryStoreItem(Container __instance, ref ItemDrop.ItemData item)
         {
 
             if (DisallowItem(__instance, item))
@@ -332,9 +332,9 @@ namespace QuickStore
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

@@ -88,7 +88,7 @@ namespace ClockMod
 
         }
 
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses() || toggleClockKeyOnPress.Value || !PressedToggleKey())
                 return;
@@ -98,7 +98,7 @@ namespace ClockMod
             Config.Save();
         }
 
-        private void OnGUI()
+        public void OnGUI()
         {
             if (modEnabled.Value && configApplied && Player.m_localPlayer && Hud.instance)
             {
@@ -167,17 +167,20 @@ namespace ClockMod
             windowRect = new Rect(clockPosition, new Vector2(1000, 100));
 
             if (clockUseOSFont.Value)
+            {
                 clockFont = Font.CreateDynamicFontFromOSFont(clockFontName.Value, clockFontSize.Value);
+            }
             else
             {
                 Debug.Log($"getting fonts");
                 Font[] fonts = Resources.FindObjectsOfTypeAll<Font>();
                 foreach (Font font in fonts)
                 {
+                    Debug.Log($"\tgot font {font.name}");
                     if (font.name == clockFontName.Value)
                     {
                         clockFont = font;
-                        Debug.Log($"got font {font.name}");
+                        Debug.Log($"\t\tset font to {font.name}");
                         break;
                     }
                 }

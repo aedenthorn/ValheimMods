@@ -14,7 +14,7 @@ namespace HereFishy
     [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.5.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -28,21 +28,21 @@ namespace HereFishy
         public static ConfigEntry<float> jumpSpeed;
         public static ConfigEntry<float> jumpHeight;
 
-        private static BepInExPlugin context;
-        private static AudioClip fishyClip;
-        private static AudioClip weeClip;
-        private static AudioSource fishAudio;
-        private static float lastHereFishy;
+        public static BepInExPlugin context;
+        public static AudioClip fishyClip;
+        public static AudioClip weeClip;
+        public static AudioSource fishAudio;
+        public static float lastHereFishy;
 
 
-        private static List<GameObject> hereFishyFishies = new List<GameObject>();
+        public static List<GameObject> hereFishyFishies = new List<GameObject>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             
@@ -66,7 +66,7 @@ namespace HereFishy
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
         }
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || Player.m_localPlayer == null || !Traverse.Create(Player.m_localPlayer).Method("TakeInput").GetValue<bool>())
                 return;
@@ -123,7 +123,7 @@ namespace HereFishy
             }
         }
 
-        private static IEnumerator FishJump(Fish fish, float secs)
+        public static IEnumerator FishJump(Fish fish, float secs)
         {
             Vector3 origPos = fish.gameObject.transform.position;
             Vector3 flatPos = origPos;

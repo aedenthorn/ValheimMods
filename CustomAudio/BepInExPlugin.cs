@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 
 namespace CustomAudio
 {
-    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.6.0")]
+    [BepInPlugin("aedenthorn.CustomAudio", "Custom Audio", "1.6.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -39,12 +39,12 @@ namespace CustomAudio
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Show debug log messages in the console");
-            dumpInfo = Config.Bind<bool>("General", "DumpInfo", true, "Dump audio info to the console");
+            dumpInfo = Config.Bind<bool>("General", "DumpInfo", false, "Dump audio info to the console");
             musicVol = Config.Bind<float>("General", "MusicVol", 0.6f, "Music volume, 0.0 - 1.0");
             //sfxVol = Config.Bind<float>("General", "SfxVol", 1f, "SFX volume");
             ambientVol = Config.Bind<float>("General", "AmbientVol", 0.3f, "Ambient volume");
@@ -245,9 +245,9 @@ namespace CustomAudio
             MusicMan.instance.m_music.Add(new MusicMan.NamedMusic() { m_name = name, m_clips = customMusicList[name].Values.ToArray(), m_loop = true, m_ambientMusic = true, m_resume = true });
         }
         [HarmonyPatch(typeof(ZSFX), "Awake")]
-        static class ZSFX_Awake_Patch
+        public static class ZSFX_Awake_Patch
         {
-            static void Postfix(ZSFX __instance)
+            public static void Postfix(ZSFX __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -281,9 +281,9 @@ namespace CustomAudio
         }
 
         [HarmonyPatch(typeof(MusicMan), "Awake")]
-        static class MusicMan_Awake_Patch
+        public static class MusicMan_Awake_Patch
         {
-            static void Postfix(MusicMan __instance)
+            public static void Postfix(MusicMan __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -300,13 +300,13 @@ namespace CustomAudio
                         //Dbgl($"checking music: { __instance.m_music[i].m_name}, clip: {__instance.m_music[i].m_clips[j].name}");
                         if (customMusic.ContainsKey(__instance.m_music[i].m_clips[j].name))
                         {
-                            Dbgl($"replacing music: { __instance.m_music[i].m_name}, clip: {__instance.m_music[i].m_clips[j].name}");
+                            dump.Add($"replacing music: { __instance.m_music[i].m_name}, clip: {__instance.m_music[i].m_clips[j].name}");
                             __instance.m_music[i].m_clips[j] = customMusic[__instance.m_music[i].m_clips[j].name];
                         }
                     }
                     if (customMusicList.ContainsKey(__instance.m_music[i].m_name))
                     {
-                        Dbgl($"replacing music list by name: {__instance.m_music[i].m_name}");
+                        dump.Add($"replacing music list by name: {__instance.m_music[i].m_name}");
                         __instance.m_music[i].m_clips = customMusicList[__instance.m_music[i].m_name].Values.ToArray();
                     }
                 }
@@ -315,76 +315,101 @@ namespace CustomAudio
             }
         }
         [HarmonyPatch(typeof(AudioMan), "Awake")] 
-        static class AudioMan_Awake_Patch
+        public static class AudioMan_Awake_Patch
         {
-            static void Postfix(AudioMan __instance, List<AudioMan.BiomeAmbients> ___m_randomAmbients, AudioSource ___m_oceanAmbientSource, AudioSource ___m_windLoopSource)
+            public static void Postfix(AudioMan __instance, List<AudioMan.BiomeAmbients> ___m_randomAmbients, AudioSource ___m_oceanAmbientSource, AudioSource ___m_windLoopSource)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || ___m_randomAmbients == null)
                     return;
                 List<string> dump = new List<string>();
 
-                for (int i = 0; i <___m_randomAmbients.Count; i++)
+                for (int i = 0; i < ___m_randomAmbients.Count; i++)
                 {
                     dump.Add($"Ambient list name: {___m_randomAmbients[i].m_name}");
 
-                    dump.Add($"\tAmbient tracks: (use {___m_randomAmbients[i].m_name})");
-                    for (int j = 0; j < ___m_randomAmbients[i].m_randomAmbientClips.Count; j++)
+                    if (___m_randomAmbients[i].m_randomAmbientClips != null)
                     {
-                        dump.Add($"\t\ttrack name: {___m_randomAmbients[i].m_randomAmbientClips[j].name}");
-
-                        //Dbgl($"checking ambient: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClips[j].name}");
-                        if (customAmbient.ContainsKey(___m_randomAmbients[i].m_randomAmbientClips[j].name))
+                        dump.Add($"\tAmbient tracks: (use {___m_randomAmbients[i].m_name})");
+                        if (customAmbientList.TryGetValue(___m_randomAmbients[i].m_name, out var list))
                         {
-                            Dbgl($"replacing ambient: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClips[j].name}");
-                            ___m_randomAmbients[i].m_randomAmbientClips[j] = customAmbient[___m_randomAmbients[i].m_randomAmbientClips[j].name];
+                            dump.Add($"replacing ambient list by name: {___m_randomAmbients[i].m_name}");
+                            ___m_randomAmbients[i].m_randomAmbientClips = list.Values.ToList();
+                        }
+                        else
+                        {
+                            for (int j = 0; j < ___m_randomAmbients[i].m_randomAmbientClips.Count; j++)
+                            {
+                                if (___m_randomAmbients[i].m_randomAmbientClips[j] == null)
+                                    continue;
+                                dump.Add($"\t\ttrack name: {___m_randomAmbients[i].m_randomAmbientClips[j].name}");
+
+                                if (customAmbient.TryGetValue(___m_randomAmbients[i].m_randomAmbientClips[j].name, out var clip))
+                                {
+                                    dump.Add($"replacing ambient: {___m_randomAmbients[i].m_name}, clip: {clip.name}");
+                                    ___m_randomAmbients[i].m_randomAmbientClips[j] = customAmbient[clip.name];
+                                }
+                            }
+
                         }
                     }
-                    dump.Add($"\tAmbient day tracks: (use {___m_randomAmbients[i].m_name}_day)");
-                    for (int j = 0; j < ___m_randomAmbients[i].m_randomAmbientClipsDay.Count; j++)
+                    if (___m_randomAmbients[i].m_randomAmbientClipsDay != null)
                     {
-                        dump.Add($"\t\ttrack name: {___m_randomAmbients[i].m_randomAmbientClipsDay[j].name}");
-
-                        //Dbgl($"checking ambient day: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClipsDay[j].name}");
-                        if (customAmbient.ContainsKey(___m_randomAmbients[i].m_randomAmbientClipsDay[j].name))
+                        dump.Add($"\tAmbient day tracks: (use {___m_randomAmbients[i].m_name}_day)");
+                        if (customAmbientList.TryGetValue(___m_randomAmbients[i].m_name + "_day", out var list))
                         {
-                            Dbgl($"replacing ambient day: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClipsDay[j].name}");
-                            ___m_randomAmbients[i].m_randomAmbientClipsDay[j] = customAmbient[___m_randomAmbients[i].m_randomAmbientClipsDay[j].name];
+                            dump.Add($"replacing ambient day list by name: {___m_randomAmbients[i].m_name}_day");
+                            ___m_randomAmbients[i].m_randomAmbientClipsDay = list.Values.ToList();
+                        }
+                        else
+                        {
+                            for (int j = 0; j < ___m_randomAmbients[i].m_randomAmbientClipsDay.Count; j++)
+                            {
+                                if (___m_randomAmbients[i].m_randomAmbientClipsDay[j] == null)
+                                    continue;
+                                dump.Add($"\t\ttrack name: {___m_randomAmbients[i].m_randomAmbientClipsDay[j].name}");
+
+                                //Dbgl($"checking ambient day: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClipsDay[j].name}");
+                                if (customAmbient.TryGetValue(___m_randomAmbients[i].m_randomAmbientClipsDay[j].name, out var clip))
+                                {
+                                    dump.Add($"replacing ambient day: {___m_randomAmbients[i].m_name}, clip: {clip.name}");
+                                    ___m_randomAmbients[i].m_randomAmbientClipsDay[j] = clip;
+                                }
+                            }
                         }
                     }
-                    dump.Add($"\tAmbient night tracks: (use {___m_randomAmbients[i].m_name}_night)");
-                    for (int j = 0; j < ___m_randomAmbients[i].m_randomAmbientClipsNight.Count; j++)
-                    {
-                        dump.Add($"\t\ttrack name: {___m_randomAmbients[i].m_randomAmbientClipsNight[j].name}");
 
-                        //Dbgl($"checking ambient night: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClipsNight[j].name}");
-                        if (customAmbient.ContainsKey(___m_randomAmbients[i].m_randomAmbientClipsNight[j].name))
+                    if (___m_randomAmbients[i].m_randomAmbientClipsNight != null)
+                    {
+                        dump.Add($"\tAmbient night tracks: (use {___m_randomAmbients[i].m_name}_night)");
+                        if (customAmbientList.TryGetValue(___m_randomAmbients[i].m_name + "_night", out var list))
                         {
-                            Dbgl($"replacing ambient night: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClipsNight[j].name}");
-                            ___m_randomAmbients[i].m_randomAmbientClipsNight[j] = customAmbient[___m_randomAmbients[i].m_randomAmbientClipsNight[j].name];
+                            dump.Add($"replacing ambient night list by name: {___m_randomAmbients[i].m_name + "_night"}");
+                            ___m_randomAmbients[i].m_randomAmbientClipsNight = list.Values.ToList();
                         }
-                    }
-                    if (customAmbientList.ContainsKey(___m_randomAmbients[i].m_name + "_day"))
-                    {
-                        Dbgl($"replacing ambient day list by name: {___m_randomAmbients[i].m_name}_day");
-                        ___m_randomAmbients[i].m_randomAmbientClipsDay = new List<AudioClip>(customAmbientList[___m_randomAmbients[i].m_name + "_day"].Values.ToList());
-                    }
-                    else if (customAmbientList.ContainsKey(___m_randomAmbients[i].m_name + "_night"))
-                    {
-                        Dbgl($"replacing ambient night list by name: {___m_randomAmbients[i].m_name + "_night"}");
-                        ___m_randomAmbients[i].m_randomAmbientClipsNight = new List<AudioClip>(customAmbientList[___m_randomAmbients[i].m_name + "_night"].Values.ToList());
-                    }
-                    else if (customAmbientList.ContainsKey(___m_randomAmbients[i].m_name))
-                    {
-                        Dbgl($"replacing ambient list by name: {___m_randomAmbients[i].m_name}");
-                        ___m_randomAmbients[i].m_randomAmbientClips = new List<AudioClip>(customAmbientList[___m_randomAmbients[i].m_name].Values.ToList());
+                        else
+                        {
+                            for (int j = 0; j < ___m_randomAmbients[i].m_randomAmbientClipsNight.Count; j++)
+                            {
+                                if (___m_randomAmbients[i].m_randomAmbientClipsNight[j] == null)
+                                    continue;
+                                dump.Add($"\t\ttrack name: {___m_randomAmbients[i].m_randomAmbientClipsNight[j].name}");
+
+                                //Dbgl($"checking ambient night: { ___m_randomAmbients[i].m_name}, clip: {___m_randomAmbients[i].m_randomAmbientClipsNight[j].name}");
+                                if (customAmbient.TryGetValue(___m_randomAmbients[i].m_randomAmbientClipsNight[j].name, out var clip))
+                                {
+                                    dump.Add($"replacing ambient night: {___m_randomAmbients[i].m_name}, clip: {clip.name}");
+                                    ___m_randomAmbients[i].m_randomAmbientClipsNight[j] = clip;
+                                }
+                            }
+                        }
                     }
                 }
                 if (dumpInfo.Value)
-                    Dbgl(string.Join("\n", dump));
+                    dump.Add(string.Join("\n", dump));
 
-                if (customAmbient.ContainsKey("ocean"))
+                if (customAmbient.ContainsKey("ocean") && ___m_oceanAmbientSource != null)
                     ___m_oceanAmbientSource.clip = customAmbient["ocean"];
-                if (customAmbient.ContainsKey("wind"))
+                if (customAmbient.ContainsKey("wind") && ___m_windLoopSource != null)
                     ___m_windLoopSource.clip = customAmbient["wind"];
 
             }
@@ -393,11 +418,11 @@ namespace CustomAudio
 
 
         [HarmonyPatch(typeof(MusicMan), "UpdateMusic")]
-        static class UpdateMusic_Patch
+        public static class UpdateMusic_Patch
         {
-            private static MusicMan.NamedMusic lastMusic = null;
+            public static MusicMan.NamedMusic lastMusic = null;
 
-            static void Prefix(ref MusicMan.NamedMusic ___m_currentMusic, ref MusicMan.NamedMusic ___m_queuedMusic, AudioSource ___m_musicSource)
+            public static void Prefix(ref MusicMan.NamedMusic ___m_currentMusic, ref MusicMan.NamedMusic ___m_queuedMusic, AudioSource ___m_musicSource)
             {
                 if (!modEnabled.Value)
                     return;
@@ -454,9 +479,9 @@ namespace CustomAudio
         }
 
         [HarmonyPatch(typeof(EnvMan), "Awake")]
-        static class EnvMan_Awake_Patch
+        public static class EnvMan_Awake_Patch
         {
-            static void Postfix(EnvMan __instance)
+            public static void Postfix(EnvMan __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -476,9 +501,9 @@ namespace CustomAudio
         }
         
         [HarmonyPatch(typeof(TeleportWorld), "Awake")]
-        static class TeleportWorld_Awake_Patch
+        public static class TeleportWorld_Awake_Patch
         {
-            static void Postfix(TeleportWorld __instance)
+            public static void Postfix(TeleportWorld __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -494,9 +519,9 @@ namespace CustomAudio
         }
         
         [HarmonyPatch(typeof(Fireplace), "Start")]
-        static class Fireplace_Start_Patch
+        public static class Fireplace_Start_Patch
         {
-            static void Postfix(Fireplace __instance)
+            public static void Postfix(Fireplace __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -532,9 +557,9 @@ namespace CustomAudio
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

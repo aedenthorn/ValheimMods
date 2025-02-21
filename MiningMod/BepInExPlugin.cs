@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace MiningMod
 {
-    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.8.0")]
+    [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.8.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static readonly bool isDebug = true;
@@ -92,7 +92,7 @@ namespace MiningMod
 
             }
         }
-        [HarmonyPatch(typeof(MineRock5), "Start", new Type[] { })]
+        [HarmonyPatch(typeof(MineRock5), "Awake", new Type[] { })]
         static class MineRock5_Start_Patch
         {
             static void Postfix(ref MineRock5 __instance)

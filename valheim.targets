@@ -113,6 +113,11 @@
       <HintPath>$(ManagedDataPath)\gui_framework.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="netstandard">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\netstandard.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
 
   <!-- Add Unity references -->
