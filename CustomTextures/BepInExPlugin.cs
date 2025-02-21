@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CustomTextures
 {
-    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "3.4.0")]
+    [BepInPlugin("aedenthorn.CustomTextures", "Custom Textures", "3.4.2")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;

@@ -1,7 +1,6 @@
 ﻿using BepInEx;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -80,7 +79,7 @@ namespace CustomTextures
 
             foreach (GameObject gameObject in gos)
             {
-                if (gameObject.name == "_NetSceneRoot")
+                if (gameObject is null || gameObject.name == "_NetSceneRoot")
                     continue;
                 ReplaceOneGameObjectTextures(gameObject, gameObject.name, "object");
             }
