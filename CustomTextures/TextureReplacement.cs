@@ -79,7 +79,7 @@ namespace CustomTextures
 
             foreach (GameObject gameObject in gos)
             {
-                if (gameObject is null || gameObject.name == "_NetSceneRoot")
+                if (gameObject == null || gameObject.name == "_NetSceneRoot")
                     continue;
                 ReplaceOneGameObjectTextures(gameObject, gameObject.name, "object");
             }
