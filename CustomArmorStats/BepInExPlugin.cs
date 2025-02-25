@@ -114,31 +114,6 @@ namespace CustomArmorStats
             }
         }
         
-        [HarmonyPatch(typeof(Player), "GetJogSpeedFactor")]
-        static class GetJogSpeedFactor_Patch
-        {
-            static bool Prefix(ref float __result, float ___m_equipmentMovementModifier)
-            {
-                if (!modEnabled.Value)
-                    return true;
-                __result = 1 + ___m_equipmentMovementModifier * globalArmorMovementModMult.Value;
-                return false;
-            }
-        }
-                
-        [HarmonyPatch(typeof(Player), "GetRunSpeedFactor")]
-        static class GetRunSpeedFactor_Patch
-        {
-            static bool Prefix(Skills ___m_skills, float ___m_equipmentMovementModifier, ref float __result)
-            {
-                if (!modEnabled.Value)
-                    return true;
-                float skillFactor = ___m_skills.GetSkillFactor(Skills.SkillType.Run);
-                __result = (1f + skillFactor * 0.25f) * (1f + ___m_equipmentMovementModifier * 1.5f * globalArmorMovementModMult.Value);
-                return false;
-            }
-        }
-        
         [HarmonyPatch(typeof(SEMan), "AddStatusEffect", new Type[] { typeof(StatusEffect), typeof(bool), typeof(int), typeof(float) })]
         static class SEMan_AddStatusEffect_Patch
         {
@@ -238,10 +213,9 @@ namespace CustomArmorStats
             {
                 if (!modEnabled.Value)
                     return;
-
-                if (___m_seman.HaveStatusEffect("Wet"))
+                var hash = "Wet".GetStableHashCode();
+                if (___m_seman.HaveStatusEffect(hash))
                 {
-                    var hash = "Wet".GetStableHashCode();
                     HitData.DamageModifier water = GetNewDamageTypeMod(NewDamageTypes.Water, ___m_chestItem, ___m_legItem, ___m_helmetItem, ___m_shoulderItem);
                     var wet = ___m_seman.GetStatusEffect(hash);
                     var t = Traverse.Create(wet);

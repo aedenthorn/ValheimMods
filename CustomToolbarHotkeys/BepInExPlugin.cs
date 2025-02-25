@@ -11,7 +11,7 @@ namespace CustomToolbarHotkeys
     [BepInPlugin("aedenthorn.CustomToolbarHotkeys", "Custom Toolbar Hotkeys", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        private static readonly bool isDebug = false;
         private static BepInExPlugin context;
         private static bool usingHotkey = false;
 
@@ -44,7 +44,7 @@ namespace CustomToolbarHotkeys
             nexusID = Config.Bind<int>("General", "NexusID", 683, "Nexus mod ID for updates");
 
             hideNumbers = Config.Bind<bool>("General", "HideNumbers", false, "Hide hotkey numbers on toolbar");
-            showHotkeys = Config.Bind<bool>("General", "ShowHotkeys", false, "Show new hotkey strings on toolbar. Must set HideNumbers to true.");
+            showHotkeys = Config.Bind<bool>("General", "ShowHotkeys", false, "Show new hotkey strings on toolbar (takes priority over numbers or hidden)");
             hotKey1 = Config.Bind<string>("Hotkeys", "HotKey1", "1", "Hotkey 1 - Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             hotKey2 = Config.Bind<string>("Hotkeys", "HotKey2", "2", "Hotkey 2 - Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             hotKey3 = Config.Bind<string>("Hotkeys", "HotKey3", "3", "Hotkey 3 - Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
@@ -77,13 +77,42 @@ namespace CustomToolbarHotkeys
         {
             static void Postfix(HotkeyBar __instance)
             {
-                if (!modEnabled.Value || !hideNumbers.Value || __instance.name != "HotKeyBar")
+                if (!modEnabled.Value || __instance.name != "HotKeyBar")
                     return;
+
                 int count = __instance.transform.childCount;
-                for(int i = 0; i < count; i++)
+                if (showHotkeys.Value)
                 {
-                    if (__instance.transform.GetChild(i).Find("binding")) { }
-                        __instance.transform.GetChild(i).Find("binding").GetComponent<TextMeshProUGUI>().text = showHotkeys.Value ? hotkeys[i].Value : "";
+                    Dbgl("Switching to Hotkeys");
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (__instance.transform.GetChild(i).Find("binding"))
+                        {
+                            __instance.transform.GetChild(i).Find("binding").GetComponent<TextMeshProUGUI>().text = hotkeys[i].Value;
+                        }
+                    }
+                }
+                else if (hideNumbers.Value)
+                {
+                    Dbgl("Switching to Nothing");
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (__instance.transform.GetChild(i).Find("binding"))
+                        {
+                            __instance.transform.GetChild(i).Find("binding").GetComponent<TextMeshProUGUI>().text = "";
+                        }
+                    }
+                }
+                else
+                {
+                    Dbgl("Switching to Numbers");
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (__instance.transform.GetChild(i).Find("binding"))
+                        {
+                            __instance.transform.GetChild(i).Find("binding").GetComponent<TextMeshProUGUI>().text = (i+1).ToString();
+                        }
+                    }
                 }
             }
         }
@@ -93,7 +122,7 @@ namespace CustomToolbarHotkeys
         {
             static bool Prefix(Player __instance)
             {
-                if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses())
+                if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses(true))
                     return true;
 
                 int which;
@@ -141,19 +170,40 @@ namespace CustomToolbarHotkeys
         {
             static void Postfix(InventoryGrid ___m_playerGrid, Animator ___m_animator)
             {
-                if (!modEnabled.Value || !hideNumbers.Value || !___m_animator.GetBool("visible"))
+                if (!modEnabled.Value || ___m_playerGrid.m_gridRoot.transform.childCount < 8 || !___m_animator.GetBool("visible"))
                     return;
 
-                for(int i = 0; i < 8; i++)
+                if (showHotkeys.Value)
                 {
-                    try
+                    Dbgl("Switching to Hotkeys");
+                    for (int i = 0; i < 8; i++)
                     {
                         if (___m_playerGrid.m_gridRoot.transform.GetChild(i)?.Find("binding"))
-                            ___m_playerGrid.m_gridRoot.transform.GetChild(i).Find("binding").GetComponent<TMP_Text>().text = showHotkeys.Value ? hotkeys[i].Value : "";
+                        {
+                            ___m_playerGrid.m_gridRoot.transform.GetChild(i).Find("binding").GetComponent<TMP_Text>().text = hotkeys[i].Value;
+                        }
                     }
-                    catch
+                }
+                else if (hideNumbers.Value)
+                {
+                    Dbgl("Switching to Nothing");
+                    for (int i = 0; i < 8; i++)
                     {
-                        return;
+                        if (___m_playerGrid.m_gridRoot.transform.GetChild(i)?.Find("binding"))
+                        {
+                            ___m_playerGrid.m_gridRoot.transform.GetChild(i).Find("binding").GetComponent<TMP_Text>().text = "";
+                        }
+                    }
+                }
+                else
+                {
+                    Dbgl("Switching to Numbers");
+                    for (int i = 0; i < 8; i++)
+                    {
+                        if (___m_playerGrid.m_gridRoot.transform.GetChild(i)?.Find("binding"))
+                        {
+                            ___m_playerGrid.m_gridRoot.transform.GetChild(i).Find("binding").GetComponent<TMP_Text>().text = (i + 1).ToString();
+                        }
                     }
                 }
             }

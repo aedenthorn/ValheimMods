@@ -18,6 +18,8 @@ namespace CustomContainerSizes
         private static ConfigEntry<int> chestHeight;
         private static ConfigEntry<int> vikingShipChestWidth;
         private static ConfigEntry<int> vikingShipChestHeight;
+        private static ConfigEntry<int> drakkarShipChestWidth;
+        private static ConfigEntry<int> drakkarShipChestHeight;
         private static ConfigEntry<int> privateChestWidth;
         private static ConfigEntry<int> privateChestHeight;
         private static ConfigEntry<int> reinforcedChestWidth;
@@ -46,6 +48,8 @@ namespace CustomContainerSizes
             karveChestHeight = Config.Bind<int>("Sizes", "KarveChestHeight", 2, "Number of items tall for karve chest containers");
             vikingShipChestWidth = Config.Bind<int>("Sizes", "VikingShipChestWidth", 6, "Number of items wide for longship chest containers (max. 8)");
             vikingShipChestHeight = Config.Bind<int>("Sizes", "VikingShipChestHeight", 3, "Number of items tall for longship chest containers");
+            drakkarShipChestWidth = Config.Bind<int>("Sizes", "DrakkarShipChestWidth", 8, "Number of items wide for Drakkar chest containers (max. 8)");
+            drakkarShipChestHeight = Config.Bind<int>("Sizes", "DrakkarShipChestHeight", 4, "Number of items tall for Drakkar chest containers");
             privateChestWidth = Config.Bind<int>("Sizes", "PrivateChestWidth", 3, "Number of items wide for private chest containers (max. 8)");
             privateChestHeight = Config.Bind<int>("Sizes", "PrivateChestHeight", 2, "Number of items tall for private chest containers");
             reinforcedChestWidth = Config.Bind<int>("Sizes", "ReinforcedChestWidth", 6, "Number of items wide for reinforced chest containers (max. 8)");
@@ -60,6 +64,7 @@ namespace CustomContainerSizes
             chestWidth.Value = Math.Min(chestWidth.Value, 8);
             karveChestWidth.Value = Math.Min(karveChestWidth.Value, 8);
             vikingShipChestWidth.Value = Math.Min(vikingShipChestWidth.Value, 8);
+            drakkarShipChestWidth.Value = Math.Min(drakkarShipChestWidth.Value, 8);
             privateChestWidth.Value = Math.Min(privateChestWidth.Value, 8);
             reinforcedChestWidth.Value = Math.Min(reinforcedChestWidth.Value, 8);
             wagonWidth.Value = Math.Min(wagonWidth.Value, 8);
@@ -91,6 +96,13 @@ namespace CustomContainerSizes
                         typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, karveChestWidth.Value);
                         typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, karveChestHeight.Value);
                     }
+                    else if (ship.name.ToLower().Contains("ashland"))
+                    {
+                        Dbgl($"setting Drakkar chest size to {drakkarShipChestWidth.Value},{drakkarShipChestHeight.Value}");
+
+                        typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, drakkarShipChestWidth.Value);
+                        typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, drakkarShipChestHeight.Value);
+                    }
                     else if (ship.name.ToLower().Contains("vikingship"))
                     {
                         Dbgl($"setting VikingShip chest size to {vikingShipChestWidth.Value},{vikingShipChestHeight.Value}");
@@ -98,6 +110,7 @@ namespace CustomContainerSizes
                         typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, vikingShipChestWidth.Value);
                         typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, vikingShipChestHeight.Value);
                     }
+                    
                 }
                 else if (__instance.m_wagon)
                 {

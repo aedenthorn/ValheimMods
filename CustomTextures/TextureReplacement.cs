@@ -71,7 +71,7 @@ namespace CustomTextures
             var namedPrefabs = ((Dictionary<int, GameObject>)AccessTools.Field(typeof(ZNetScene), "m_namedPrefabs").GetValue(ZNetScene.instance)).Values;
             foreach (GameObject go in namedPrefabs)
             {
-                if (!gos.Contains(go))
+                if (go != null && !gos.Contains(go))
                     gos.Add(go);
             }
 
@@ -81,6 +81,7 @@ namespace CustomTextures
             {
                 if (gameObject == null || gameObject.name == "_NetSceneRoot")
                     continue;
+                }
                 ReplaceOneGameObjectTextures(gameObject, gameObject.name, "object");
             }
 

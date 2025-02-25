@@ -11,7 +11,7 @@ namespace MiningMod
     [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.8.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        private static readonly bool isDebug = false;
         private static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
@@ -131,7 +131,7 @@ namespace MiningMod
                         {
                             count = Mathf.RoundToInt(count * oreDropMult.Value);
                         }
-                        //Dbgl($"loot drop had {kvp.Value.Count} {(kvp.Value.Count > 0? kvp.Value[0].name :"")} - changed amount to {count}");
+                        Dbgl($"loot drop had {kvp.Value.Count} {(kvp.Value.Count > 0? kvp.Value[0].name :"")} - changed amount to {count}");
                         if(kvp.Value.Count < count)
                         {
                             for (int i = kvp.Value.Count; i < count; i++)
@@ -190,7 +190,7 @@ namespace MiningMod
         {
             static void Prefix(MineRock __instance, ref HitData hit)
             {
-                //Dbgl($"Damaging {__instance.gameObject.name}");
+                Dbgl($"Damaging {__instance.gameObject.name}");
                 hit.m_damage.m_pickaxe *= damageMult.Value;
                 hit.m_damage.m_blunt *= damageMult.Value;
                 hit.m_damage.m_chop *= damageMult.Value;
@@ -202,7 +202,7 @@ namespace MiningMod
         {
             static void Prefix(MineRock5 __instance, ref HitData hit)
             {
-                //Dbgl($"Damaging {__instance.gameObject.name}");
+                Dbgl($"Damaging {__instance.gameObject.name}");
 
                 hit.m_damage.m_pickaxe *= damageMult.Value;
                 hit.m_damage.m_blunt *= damageMult.Value;
@@ -217,7 +217,7 @@ namespace MiningMod
             {
                 if (__instance.GetComponent<DropOnDestroyed>() && __instance.gameObject.name.Contains("Rock"))
                 {
-                    //Dbgl($"Damaging {__instance.gameObject.name}");
+                    Dbgl($"Damaging {__instance.gameObject.name}");
                     hit.m_damage.m_pickaxe *= damageMult.Value;
                     hit.m_damage.m_blunt *= damageMult.Value;
                     hit.m_damage.m_chop *= damageMult.Value;

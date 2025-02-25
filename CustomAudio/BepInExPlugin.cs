@@ -17,8 +17,10 @@ namespace CustomAudio
     {
         public static ConfigEntry<bool> isDebug;
 
+        
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> dumpInfo;
+        public static ConfigEntry<bool> overwriteVol;
         public static ConfigEntry<float> sfxVol;
         public static ConfigEntry<float> musicVol;
         public static ConfigEntry<float> ambientVol;
@@ -47,7 +49,7 @@ namespace CustomAudio
             dumpInfo = Config.Bind<bool>("General", "DumpInfo", false, "Dump audio info to the console");
             musicVol = Config.Bind<float>("General", "MusicVol", 0.6f, "Music volume, 0.0 - 1.0");
             //sfxVol = Config.Bind<float>("General", "SfxVol", 1f, "SFX volume");
-            ambientVol = Config.Bind<float>("General", "AmbientVol", 0.3f, "Ambient volume");
+            ambientVol = Config.Bind<float>("General", "AmbientVol", 0.3f, "Ambient volume, 0.0 - 1.0");
             nexusID = Config.Bind<int>("General", "NexusID", 90, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
@@ -427,9 +429,10 @@ namespace CustomAudio
                 if (!modEnabled.Value)
                     return;
 
-                if (___m_queuedMusic != null)
+                if (___m_queuedMusic != null && overwriteVol.Value)
                 {
                     ___m_queuedMusic.m_volume = musicVol.Value;
+                    Dbgl($"Set MusVol {musicVol.Value}");
 
                 }
 
@@ -470,11 +473,12 @@ namespace CustomAudio
         {
             static void Prefix(ref float ___m_queuedAmbientVol, ref float ___m_ambientVol, ref float vol)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || !overwriteVol.Value)
                     return;
                 vol = ambientVol.Value;
                 ___m_ambientVol = ambientVol.Value;
                 ___m_queuedAmbientVol = ambientVol.Value;
+                Dbgl($"Set AmbVol {ambientVol.Value}");
             }
         }
 

@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 
 namespace CartSupport
 {
@@ -68,7 +69,7 @@ namespace CartSupport
                 if(players.Count > (includePuller.Value ? 0 : 1))
                     mass = Mathf.Max(0.1f, mass - mass * playerMassReduction.Value * Mathf.Min(maxPlayers.Value, players.Count - (includePuller.Value ? 0 : 1)));
 
-                //Dbgl($"mass players {players.Count} distance {Vector3.Distance(__instance.gameObject.transform.position, Player.m_localPlayer.transform.position)} before {before} after {mass} is owner {___m_nview.IsOwner()}");
+                Dbgl($"mass players {playerCount} distance {Vector3.Distance(__instance.gameObject.transform.position, Player.m_localPlayer.transform.position)} before {before} after {mass} is owner {___m_nview.IsOwner()}");
             }
         }
 
