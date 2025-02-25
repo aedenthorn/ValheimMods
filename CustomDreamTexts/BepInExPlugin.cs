@@ -4,6 +4,7 @@ using HarmonyLib;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
 
 namespace CustomDreamTexts
@@ -23,7 +24,7 @@ namespace CustomDreamTexts
         public static ConfigEntry<Color> textColor;
 
         private static BepInExPlugin context;
-        private static Font currentFont;
+        public static TMP_FontAsset currentFont;
         private static string lastFontName;
 
 
@@ -168,7 +169,7 @@ namespace CustomDreamTexts
                 {
                     lastFontName = fontName.Value;
                     Dbgl($"new font {fontName.Value}");
-                    Font font = GetFont(fontName.Value, 20);
+                    TMP_FontAsset font = GetFont(fontName.Value, 20);
                     if (font == null)
                         Dbgl($"new font not found");
                     else
@@ -182,17 +183,17 @@ namespace CustomDreamTexts
 
             }
         }
-        private static Font GetFont(string fontName, int fontSize)
+        private static TMP_FontAsset GetFont(string fontName, int fontSize)
         {
-            Font[] fonts = Resources.FindObjectsOfTypeAll<Font>();
-            foreach (Font font in fonts)
+            TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
+            foreach (TMP_FontAsset font in fonts)
             {
                 if (font.name == fontName)
                 {
                     return font;
                 }
             }
-            return Font.CreateDynamicFontFromOSFont(fontName, fontSize);
+            return null;
         }
 
 

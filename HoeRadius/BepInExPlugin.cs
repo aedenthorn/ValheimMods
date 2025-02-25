@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HoeRadius
 {
-    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.3.0")]
+    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -15,24 +15,24 @@ namespace HoeRadius
         public static ConfigEntry<int> nexusID;
 
         public static ConfigEntry<bool> useScrollWheel;
-        public static ConfigEntry<string> scrollModKey;
-        public static ConfigEntry<string> increaseHotKey;
-        public static ConfigEntry<string> decreaseHotKey;
+        public static ConfigEntry<KeyCode> scrollModKey;
+        public static ConfigEntry<KeyCode> increaseHotKey;
+        public static ConfigEntry<KeyCode> decreaseHotKey;
         
         public static ConfigEntry<float> scrollWheelScale;
         public static ConfigEntry<float> hotkeyScale;
 
-        private static BepInExPlugin context;
-        private static float lastOriginalRadius;
-        private static float lastModdedRadius;
-        private static float lastTotalDelta;
+        public static BepInExPlugin context;
+        public static float lastOriginalRadius;
+        public static float lastModdedRadius;
+        public static float lastTotalDelta;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             
             context = this;
@@ -41,19 +41,19 @@ namespace HoeRadius
             nexusID = Config.Bind<int>("General", "NexusID", 1199, "Nexus mod ID for updates");
             
             useScrollWheel = Config.Bind<bool>("Settings", "UseScrollWheel", true, "Use scroll wheel to modify radius");
-            scrollWheelScale = Config.Bind<float>("Settings", "ScrollWheelScale", 0.1f, "Scroll wheel change scale");
-            scrollModKey = Config.Bind<string>("Settings", "ScrollModKey", "left alt", "Modifer key to allow scroll wheel change. Use https://docs.unity3d.com/Manual/class-InputManager.html");
+            scrollWheelScale = Config.Bind<float>("Settings", "ScrollWheelScale", 0.3f, "Scroll wheel change scale");
+            scrollModKey = Config.Bind<KeyCode>("Settings", "ScrollModKey", KeyCode.LeftAlt, "Modifer key to allow scroll wheel change.");
             
-            increaseHotKey = Config.Bind<string>("Settings", "IncreaseHotKey", "", "Hotkey to increase radius. Use https://docs.unity3d.com/Manual/class-InputManager.html");
-            decreaseHotKey = Config.Bind<string>("Settings", "DecreaseHotKey", "", "Hotkey to decrease radius. Use https://docs.unity3d.com/Manual/class-InputManager.html");
-            hotkeyScale = Config.Bind<float>("Settings", "HotkeyScale", 0.1f, "Hotkey change scale");
+            decreaseHotKey = Config.Bind<KeyCode>("Settings", "DecreaseHotKey", KeyCode.Equals, "Hotkey to decrease radius.");
+            increaseHotKey = Config.Bind<KeyCode>("Settings", "IncreaseHotKey", KeyCode.Minus, "Hotkey to increase radius.");
+            hotkeyScale = Config.Bind<float>("Settings", "HotkeyScale", 0.03f, "Hotkey change scale");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
         }
-        private void Update()
+        public void Update()
         {
-            if (false && !modEnabled.Value || !Player.m_localPlayer || !Player.m_localPlayer.InPlaceMode() || Hud.IsPieceSelectionVisible())
+            if (!modEnabled.Value || !Player.m_localPlayer || !Player.m_localPlayer.InPlaceMode() || Hud.IsPieceSelectionVisible())
             {
                 if(lastOriginalRadius != 0)
                 {
@@ -65,21 +65,21 @@ namespace HoeRadius
                 return;
             }
 
-            if(useScrollWheel.Value && AedenthornUtils.CheckKeyHeld(scrollModKey.Value, false) && Input.mouseScrollDelta.y != 0)
+            if(useScrollWheel.Value && (scrollModKey.Value == KeyCode.None || Input.GetKey(scrollModKey.Value)) && Input.mouseScrollDelta.y != 0)
             {
                 SetRadius(Input.mouseScrollDelta.y * scrollWheelScale.Value);
             }
-            else if(AedenthornUtils.CheckKeyDown(increaseHotKey.Value))
+            else if(Input.GetKey(increaseHotKey.Value))
             {
                 SetRadius(hotkeyScale.Value);
             }
-            else if(AedenthornUtils.CheckKeyDown(decreaseHotKey.Value))
+            else if(Input.GetKey(decreaseHotKey.Value))
             {
                 SetRadius(-hotkeyScale.Value);
             }
         }
 
-        private void SetRadius(float delta)
+        public void SetRadius(float delta)
         {
             Piece selectedPiece = Traverse.Create(Player.m_localPlayer).Field("m_buildPieces")?.GetValue<PieceTable>()?.GetSelectedPiece();
             if (selectedPiece is null)
@@ -128,6 +128,17 @@ namespace HoeRadius
                     //Dbgl($"Adjusting ghost scale to {lastModdedRadius / lastOriginalRadius}x");
                     ghost.localScale = new Vector3(lastModdedRadius / lastOriginalRadius, lastModdedRadius / lastOriginalRadius, lastModdedRadius / lastOriginalRadius);
                 }
+            }
+        }
+        [HarmonyPatch(typeof(ZInput), nameof(ZInput.GetMouseScrollWheel))]
+        public static class ZInput_GetMouseScrollWheel_Patch
+        {
+            public static bool Prefix(ref float __result)
+            {
+                if (!modEnabled.Value || !Player.m_localPlayer || !Player.m_localPlayer.InPlaceMode() || Hud.IsPieceSelectionVisible() || !useScrollWheel.Value || (scrollModKey.Value != KeyCode.None && !Input.GetKey(scrollModKey.Value)))
+                    return true;
+                __result = 0;
+                return false;
             }
         }
 

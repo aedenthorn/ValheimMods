@@ -2,14 +2,11 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEngine;
 
 namespace CombatMusic
 {
-    [BepInPlugin("aedenthorn.CombatMusic", "Combat Music", "0.2.0")]
+    [BepInPlugin("aedenthorn.CombatMusic", "Combat Music", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         private static BepInExPlugin context;
