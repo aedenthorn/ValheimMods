@@ -2,17 +2,13 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
-using UnityEngine.UIElements;
 
 namespace AutoFeed
 {
-    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.8.3")]
+    [BepInPlugin("aedenthorn.AutoFeed", "Auto Feed", "0.9.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;
@@ -32,12 +28,12 @@ namespace AutoFeed
 
         private static BepInExPlugin context;
 
-        public static void Dbgl(string str = "", bool pref = true)
+        public static void Dbgl(string str = "", bool pref = false, BepInEx.Logging.LogLevel logLevel = BepInEx.Logging.LogLevel.Debug)
         {
             if (isDebug.Value)
-                Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
+                context.Logger.Log(logLevel, (pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             containerRange = Config.Bind<float>("Config", "ContainerRange", 10f, "Container range in metres.");
@@ -52,7 +48,7 @@ namespace AutoFeed
             toggleString = Config.Bind<string>("General", "ToggleString", "Auto Feed: {0}", "Text to show on toggle. {0} is replaced with true/false");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             isDebug = Config.Bind<bool>("General", "IsDebug", false, "Show debug logs");
-            nexusID = Config.Bind<int>("General", "NexusID", 2787, "Nexus mod ID for updates");
+            nexusID = Config.Bind<int>("General", "NexusID", 985, "Nexus mod ID for updates");
             
             isOn = Config.Bind<bool>("ZAuto", "IsOn", true, "Behaviour is currently on or not");
 
@@ -62,7 +58,7 @@ namespace AutoFeed
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private void Update()
+        public void Update()
         {
             if (AedenthornUtils.CheckKeyDown(toggleKey.Value) && !AedenthornUtils.IgnoreKeyPresses(true))
             {
@@ -72,7 +68,7 @@ namespace AutoFeed
             }
 
         }
-        private static string GetPrefabName(string name)
+        public static string GetPrefabName(string name)
         {
             char[] anyOf = new char[]{'(',' '};
             int num = name.IndexOfAny(anyOf);
@@ -85,9 +81,9 @@ namespace AutoFeed
         }
 
         [HarmonyPatch(typeof(MonsterAI), "UpdateConsumeItem")]
-        static class UpdateConsumeItem_Patch
+        public static class UpdateConsumeItem_Patch
         {
-            static void Postfix(MonsterAI __instance, ZNetView ___m_nview, Character ___m_character, Tameable ___m_tamable, List<ItemDrop> ___m_consumeItems, float dt, bool __result)
+            public static void Postfix(MonsterAI __instance, ZNetView ___m_nview, Character ___m_character, Tameable ___m_tamable, List<ItemDrop> ___m_consumeItems, float dt, bool __result)
             {
                 string name = GetPrefabName(__instance.gameObject.name);
                 if (!modEnabled.Value || !isOn.Value
@@ -199,7 +195,7 @@ namespace AutoFeed
             }
         }
 
-        private static void ConsumeItem(ItemDrop.ItemData item, MonsterAI monsterAI, Character character)
+        public static void ConsumeItem(ItemDrop.ItemData item, MonsterAI monsterAI, Character character)
         {
             monsterAI.m_onConsumedItem?.Invoke(null);
 
@@ -208,9 +204,9 @@ namespace AutoFeed
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
