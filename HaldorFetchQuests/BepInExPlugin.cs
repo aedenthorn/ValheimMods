@@ -11,7 +11,7 @@ namespace HaldorFetchQuests
     [BepInPlugin("aedenthorn.HaldorFetchQuests", "Haldor Fetch Quests", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<string> modKey;
         public static ConfigEntry<bool> modEnabled;
@@ -41,11 +41,11 @@ namespace HaldorFetchQuests
         public static ConfigEntry<string> fetchQuestDescString;
         public static ConfigEntry<string> killQuestProgressString;
         public static ConfigEntry<string> fetchQuestProgressString;
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
         
         public static double lastRefreshTime = 0;
 
-        private static string buyButtonText = "";
+        public static string buyButtonText = "";
         public static Dictionary<string, FetchQuestData> currentQuestDict;
         public static List<GameObject> possibleKillList = new List<GameObject>();
         public static List<GameObject> possibleFetchList = new List<GameObject>();
@@ -62,7 +62,7 @@ namespace HaldorFetchQuests
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -95,7 +95,7 @@ namespace HaldorFetchQuests
             fetchQuestProgressString = Config.Bind<string>("Text", "FetchQuestProgressString", "Have {current}/{total}", "Fetch quest progress string. {current} is replaced with the amount carried. {total} is replaced with the total amount to fetch.");
 
         }
-        private void Start()
+        public void Start()
         {
             var harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
             if(Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))

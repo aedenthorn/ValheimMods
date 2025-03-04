@@ -11,9 +11,9 @@ namespace EnableConsole
     [BepInPlugin("aedenthorn.EnableConsole", "Enable Console", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
 
@@ -26,7 +26,7 @@ namespace EnableConsole
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             nexusID = Config.Bind<int>("General", "NexusID", 669, "Nexus mod ID for updates");
@@ -40,9 +40,9 @@ namespace EnableConsole
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Start")]
-        static class FejdStartup_Start_Patch
+        public static class FejdStartup_Start_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -52,9 +52,9 @@ namespace EnableConsole
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

@@ -14,7 +14,7 @@ namespace BuildPieceTweaks
     [BepInPlugin("aedenthorn.BuildPieceTweaks", "Build Piece Tweaks", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -25,15 +25,15 @@ namespace BuildPieceTweaks
         public static ConfigEntry<bool> globalRepairPiece;
         public static ConfigEntry<bool> globalCanBeRemoved;
         
-        private static Dictionary<string, PieceData> pieceDatas;
-        private static string assetPath;
+        public static Dictionary<string, PieceData> pieceDatas;
+        public static string assetPath;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
 
             context = this;
@@ -54,9 +54,9 @@ namespace BuildPieceTweaks
         }
 
         [HarmonyPatch(typeof(ObjectDB), "CopyOtherDB")]
-        static class CopyOtherDB_Patch
+        public static class CopyOtherDB_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -66,9 +66,9 @@ namespace BuildPieceTweaks
         }
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
         [HarmonyPriority(Priority.Last)]
-        static class ZNetScene_Awake_Patch
+        public static class ZNetScene_Awake_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -78,9 +78,9 @@ namespace BuildPieceTweaks
 
 
         [HarmonyPatch(typeof(Piece), "Awake")]
-        static class Piece_Awake_Patch
+        public static class Piece_Awake_Patch
         {
-            static void Postfix(Piece __instance)
+            public static void Postfix(Piece __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -90,7 +90,7 @@ namespace BuildPieceTweaks
 
             }
         }
-        private static void SetCustomPieces()
+        public static void SetCustomPieces()
         {
             if (!ObjectDB.instance)
                 return;
@@ -102,7 +102,7 @@ namespace BuildPieceTweaks
             }
         }
 
-        private static void CustomizePiece(Piece piece)
+        public static void CustomizePiece(Piece piece)
         {
             string name = Utils.GetPrefabName(piece.gameObject);
             if (pieceDatas.ContainsKey(name))
@@ -200,7 +200,7 @@ namespace BuildPieceTweaks
             if (globalCanBeRemoved.Value)
                 piece.m_canBeRemoved = true;
         }
-        private static CraftingStation GetCraftingStation(string name)
+        public static CraftingStation GetCraftingStation(string name)
         {
             foreach (Recipe recipe in ObjectDB.instance.m_recipes)
             {
@@ -213,7 +213,7 @@ namespace BuildPieceTweaks
             return null;
         }
 
-        private static Dictionary<string, PieceData> GetDataFromFiles()
+        public static Dictionary<string, PieceData> GetDataFromFiles()
         {
             CheckModFolder();
 
@@ -227,7 +227,7 @@ namespace BuildPieceTweaks
             return datas;
         }
 
-        private static void CheckModFolder()
+        public static void CheckModFolder()
         {
             if (!Directory.Exists(assetPath))
             {
@@ -238,7 +238,7 @@ namespace BuildPieceTweaks
 
 
 
-        private static List<GameObject> GetPieces()
+        public static List<GameObject> GetPieces()
         {
             var pieces = new List<GameObject>();
             if (!ObjectDB.instance)
@@ -255,7 +255,7 @@ namespace BuildPieceTweaks
             return pieces;
 
         }
-        private static PieceData GetDataByName(string pieceName)
+        public static PieceData GetDataByName(string pieceName)
         {
 
             var pieces = GetPieces();
@@ -269,7 +269,7 @@ namespace BuildPieceTweaks
             return null;
         }
 
-        private static PieceData GetDataFromItem(GameObject go, string pieceName)
+        public static PieceData GetDataFromItem(GameObject go, string pieceName)
         {
             Piece piece = go?.GetComponent<Piece>();
 
@@ -335,9 +335,9 @@ namespace BuildPieceTweaks
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

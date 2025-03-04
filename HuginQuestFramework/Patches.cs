@@ -13,9 +13,9 @@ namespace HuginQuestFramework
     {
 
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        static class ZNetScene_Awake_Patch
+        public static class ZNetScene_Awake_Patch
         {
-            static void Postfix(StoreGui __instance)
+            public static void Postfix(StoreGui __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -26,9 +26,9 @@ namespace HuginQuestFramework
 
 
         [HarmonyPatch(typeof(Character), "RPC_Damage")]
-        static class Character_RPC_Damage_Patch
+        public static class Character_RPC_Damage_Patch
         {
-            static void Postfix(Character __instance, HitData hit)
+            public static void Postfix(Character __instance, HitData hit)
             {
                 if (!modEnabled.Value || __instance.GetHealth() > 0 || hit.GetAttacker() != Player.m_localPlayer)
                     return;
@@ -37,9 +37,9 @@ namespace HuginQuestFramework
         }
         
         [HarmonyPatch(typeof(Player), "PlacePiece")]
-        static class Player_PlacePiece_Patch
+        public static class Player_PlacePiece_Patch
         {
-            static void Postfix(Piece piece, bool __result)
+            public static void Postfix(Piece piece, bool __result)
             {
                 if (!modEnabled.Value || !__result)
                     return;
@@ -48,9 +48,9 @@ namespace HuginQuestFramework
         }
         
         [HarmonyPatch(typeof(Inventory), "Changed")]
-        static class Inventory_Changed_Patch
+        public static class Inventory_Changed_Patch
         {
-            static void Postfix(Inventory __instance)
+            public static void Postfix(Inventory __instance)
             {
                 if (!modEnabled.Value || !Player.m_localPlayer || __instance != Player.m_localPlayer.GetInventory())
                     return;
@@ -59,9 +59,9 @@ namespace HuginQuestFramework
         }
         
         [HarmonyPatch(typeof(Menu), nameof(Menu.IsVisible))]
-        static class Menu_IsVisible_Patch
+        public static class Menu_IsVisible_Patch
         {
-            static bool Prefix(Menu __instance, ref bool __result)
+            public static bool Prefix(Menu __instance, ref bool __result)
             {
                 if (!modEnabled.Value || questDialogueTransform?.gameObject.activeSelf != true)
                     return true;
@@ -71,10 +71,10 @@ namespace HuginQuestFramework
         }
         
         [HarmonyPatch(typeof(Raven), "Say")]
-        static class Raven_Say_Patch
+        public static class Raven_Say_Patch
         {
 
-            static void Prefix(ref string topic, ref string text, bool showName, bool longTimeout, bool large)
+            public static void Prefix(ref string topic, ref string text, bool showName, bool longTimeout, bool large)
             {
                 if (!modEnabled.Value || showName || longTimeout || large)
                     return;
@@ -93,20 +93,20 @@ namespace HuginQuestFramework
         }
         
         [HarmonyPatch(typeof(Raven), "FlyAway")]
-        static class Raven_FlyAway_Patch
+        public static class Raven_FlyAway_Patch
         {
 
-            static bool Prefix()
+            public static bool Prefix()
             {
                 return !modEnabled.Value || questDialogueTransform == null || !questDialogueTransform.gameObject.activeSelf;
             }
         }
         
         [HarmonyPatch(typeof(Raven), "GetBestText")]
-        static class Raven_GetBestText_Patch
+        public static class Raven_GetBestText_Patch
         {
 
-            static bool Prefix(Raven __instance, ref Raven.RavenText __result)
+            public static bool Prefix(Raven __instance, ref Raven.RavenText __result)
             {
                 if (!modEnabled.Value || __instance.m_isMunin || Player.m_localPlayer == null)
                     return true;
@@ -132,10 +132,10 @@ namespace HuginQuestFramework
         }
         
         [HarmonyPatch(typeof(Raven), "Talk")]
-        static class Raven_Talk_Patch
+        public static class Raven_Talk_Patch
         {
 
-            static bool Prefix(Raven __instance, ref Raven.RavenText ___m_currentText, ref bool ___m_hasTalked)
+            public static bool Prefix(Raven __instance, ref Raven.RavenText ___m_currentText, ref bool ___m_hasTalked)
             {
                 if (!modEnabled.Value || ___m_currentText == null || Player.m_localPlayer == null)
                     return true;
@@ -210,10 +210,10 @@ namespace HuginQuestFramework
         }
         
         [HarmonyPatch(typeof(Raven), "Update")]
-        static class Raven_Update_Patch
+        public static class Raven_Update_Patch
         {
 
-            static void Prefix(Raven __instance, ref bool ___m_hasTalked, ref Raven.RavenText ___m_currentText)
+            public static void Prefix(Raven __instance, ref bool ___m_hasTalked, ref Raven.RavenText ___m_currentText)
             {
                 if (!modEnabled.Value || __instance.m_isMunin || Player.m_localPlayer == null)
                     return;
@@ -250,9 +250,9 @@ namespace HuginQuestFramework
         }
         
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

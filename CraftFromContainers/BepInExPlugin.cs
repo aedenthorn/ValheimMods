@@ -16,10 +16,10 @@ namespace CraftFromContainers
     [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.7.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static bool wasAllowed;
+        public static bool wasAllowed;
 
-        private static List<ConnectionParams> containerConnections = new List<ConnectionParams>();
-        private static GameObject connectionVfxPrefab = null;
+        public static List<ConnectionParams> containerConnections = new List<ConnectionParams>();
+        public static GameObject connectionVfxPrefab = null;
 
         public static ConfigEntry<bool> showGhostConnections;
         public static ConfigEntry<float> ghostConnectionStartOffset;
@@ -60,9 +60,9 @@ namespace CraftFromContainers
         public static Vector3 lastPosition = Vector3.positiveInfinity;
         public static List<Container> cachedContainerList = new List<Container>();
 
-        private static BepInExPlugin context = null;
+        public static BepInExPlugin context = null;
         
-        private static bool skip;
+        public static bool skip;
 
         public class ConnectionParams
         {
@@ -75,7 +75,7 @@ namespace CraftFromContainers
             if (isDebug.Value)
                 context.Logger.Log(BepInEx.Logging.LogLevel.Debug, (pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
 			context = this;
 
@@ -118,25 +118,25 @@ namespace CraftFromContainers
 
         }
 
-        private void LateUpdate()
+        public void LateUpdate()
         {
             wasAllowed = AllowByKey();
             skip = false;
         }
 
-        private static bool AllowByKey()
+        public static bool AllowByKey()
         {
             if (CheckKeyHeld(preventModKey.Value))
                 return switchPrevent.Value;
             return !switchPrevent.Value;
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             StopConnectionEffects();
         }
 
-        private static bool CheckKeyHeld(string value, bool req = true)
+        public static bool CheckKeyHeld(string value, bool req = true)
         {
             try
             {
@@ -180,17 +180,17 @@ namespace CraftFromContainers
             return containers;
         }
 
-        private static bool AllowContainerType(Container __instance)
+        public static bool AllowContainerType(Container __instance)
         {
             Ship ship = __instance.gameObject.transform.parent?.GetComponent<Ship>();
             return (!ignoreShipContainers.Value || ship is null) && (!ignoreWagonContainers.Value || __instance.m_wagon is null) && (!ignoreWoodChests.Value || !__instance.name.StartsWith("piece_chest_wood(")) && (!ignorePrivateChests.Value || !__instance.name.StartsWith("piece_chest_private(")) && (!ignoreBlackMetalChests.Value || !__instance.name.StartsWith("piece_chest_blackmetal(")) && (!ignoreReinforcedChests.Value || !__instance.name.StartsWith("piece_chest("));
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Awake")]
-        static class FejdStartup_Awake_Patch
+        public static class FejdStartup_Awake_Patch
         {
 
-            static void Postfix(FejdStartup __instance)
+            public static void Postfix(FejdStartup __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -199,9 +199,9 @@ namespace CraftFromContainers
         }
 
         [HarmonyPatch(typeof(Container), "Awake")]
-        static class Container_Awake_Patch
+        public static class Container_Awake_Patch
         {
-            static void Postfix(Container __instance, ZNetView ___m_nview)
+            public static void Postfix(Container __instance, ZNetView ___m_nview)
             {
                 context.StartCoroutine(AddContainer(__instance, ___m_nview));
             }
@@ -229,9 +229,9 @@ namespace CraftFromContainers
 
 
         [HarmonyPatch(typeof(Container), "OnDestroyed")]
-        static class Container_OnDestroyed_Patch
+        public static class Container_OnDestroyed_Patch
         {
-            static void Prefix(Container __instance)
+            public static void Prefix(Container __instance)
             {
                 containerList.Remove(__instance);
 
@@ -240,9 +240,9 @@ namespace CraftFromContainers
 
 
         [HarmonyPatch(typeof(InventoryGui), "Update")]
-        static class InventoryGui_Update_Patch
+        public static class InventoryGui_Update_Patch
         {
-            static void Prefix(InventoryGui __instance, Animator ___m_animator)
+            public static void Prefix(InventoryGui __instance, Animator ___m_animator)
             {
                 if (Player.m_localPlayer && wasAllowed != AllowByKey() && ___m_animator.GetBool("visible"))
                     AccessTools.Method(typeof(InventoryGui), "UpdateCraftingPanel").Invoke(__instance, new object[] { false });
@@ -250,9 +250,9 @@ namespace CraftFromContainers
         }
 
         [HarmonyPatch(typeof(Fireplace), "Interact")]
-        static class Fireplace_Interact_Patch
+        public static class Fireplace_Interact_Patch
         {
-            static bool Prefix(Fireplace __instance, Humanoid user, bool hold, ref bool __result, ZNetView ___m_nview)
+            public static bool Prefix(Fireplace __instance, Humanoid user, bool hold, ref bool __result, ZNetView ___m_nview)
             {
                 __result = true;
                 bool pullAll = CheckKeyHeld(fillAllModKey.Value);
@@ -323,9 +323,9 @@ namespace CraftFromContainers
 
 
         [HarmonyPatch(typeof(CookingStation), "OnAddFuelSwitch")]
-        static class CookingStation_OnAddFuelSwitch_Patch
+        public static class CookingStation_OnAddFuelSwitch_Patch
         {
-            static bool Prefix(CookingStation __instance, ref bool __result, Humanoid user, ItemDrop.ItemData item, ZNetView ___m_nview)
+            public static bool Prefix(CookingStation __instance, ref bool __result, Humanoid user, ItemDrop.ItemData item, ZNetView ___m_nview)
             {
                 Dbgl($"looking for fuel");
 
@@ -363,9 +363,9 @@ namespace CraftFromContainers
         }
 
         [HarmonyPatch(typeof(CookingStation), "FindCookableItem")]
-        static class CookingStation_FindCookableItem_Patch
+        public static class CookingStation_FindCookableItem_Patch
         {
-            static void Postfix(CookingStation __instance, ref ItemDrop.ItemData __result)
+            public static void Postfix(CookingStation __instance, ref ItemDrop.ItemData __result)
             {
                 Dbgl($"looking for cookable");
 
@@ -403,9 +403,9 @@ namespace CraftFromContainers
 
         }
         [HarmonyPatch(typeof(Smelter), "OnHoverAddFuel")]
-        static class Smelter_OnHoverAddFuel_Patch
+        public static class Smelter_OnHoverAddFuel_Patch
         {
-            static void Postfix(Smelter __instance, ref string __result)
+            public static void Postfix(Smelter __instance, ref string __result)
             {
                 if (!modEnabled.Value)
                     return;
@@ -418,9 +418,9 @@ namespace CraftFromContainers
             }
         }
         [HarmonyPatch(typeof(Smelter), "OnHoverAddOre")]
-        static class Smelter_OnHoverAddOre_Patch
+        public static class Smelter_OnHoverAddOre_Patch
         {
-            static void Postfix(Smelter __instance, ref string __result)
+            public static void Postfix(Smelter __instance, ref string __result)
             {
                 if (!modEnabled.Value)
                     return;
@@ -434,9 +434,9 @@ namespace CraftFromContainers
 
 
         [HarmonyPatch(typeof(Smelter), "OnAddOre")]
-        static class Smelter_OnAddOre_Patch
+        public static class Smelter_OnAddOre_Patch
         {
-            static bool Prefix(Smelter __instance, Humanoid user, ItemDrop.ItemData item, ZNetView ___m_nview)
+            public static bool Prefix(Smelter __instance, Humanoid user, ItemDrop.ItemData item, ZNetView ___m_nview)
             {
                 bool pullAll = CheckKeyHeld(fillAllModKey.Value);
                 if (!modEnabled.Value || (!AllowByKey() && !pullAll) || item != null || Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre)
@@ -541,9 +541,9 @@ namespace CraftFromContainers
         
 
         [HarmonyPatch(typeof(Smelter), "OnAddFuel")]
-        static class Smelter_OnAddFuel_Patch
+        public static class Smelter_OnAddFuel_Patch
         {
-            static bool Prefix(Smelter __instance, ref bool __result, ZNetView ___m_nview, Humanoid user, ItemDrop.ItemData item)
+            public static bool Prefix(Smelter __instance, ref bool __result, ZNetView ___m_nview, Humanoid user, ItemDrop.ItemData item)
             {
                 bool pullAll = CheckKeyHeld(fillAllModKey.Value);
                 Inventory inventory = user.GetInventory();
@@ -625,9 +625,9 @@ namespace CraftFromContainers
         // fix flashing red text, add amounts
 
         [HarmonyPatch(typeof(InventoryGui), "SetupRequirement")]
-        static class InventoryGui_SetupRequirement_Patch
+        public static class InventoryGui_SetupRequirement_Patch
         {
-            static void Postfix(InventoryGui __instance, Transform elementRoot, Piece.Requirement req, Player player, bool craft, int quality)
+            public static void Postfix(InventoryGui __instance, Transform elementRoot, Piece.Requirement req, Player player, bool craft, int quality)
             {
                 if (!modEnabled.Value || !AllowByKey())
                     return;
@@ -657,9 +657,9 @@ namespace CraftFromContainers
         }
 
         //[HarmonyPatch(typeof(InventoryGui), "UpdateRecipeList")]
-        static class InventoryGui_UpdateRecipeList_Patch
+        public static class InventoryGui_UpdateRecipeList_Patch
         {
-            static void Postfix(InventoryGui __instance, List<GameObject> ___m_recipeList)
+            public static void Postfix(InventoryGui __instance, List<GameObject> ___m_recipeList)
             {
                 if (!modEnabled.Value || !AllowByKey() || ___m_recipeList.Count == 0)
                     return;
@@ -672,9 +672,9 @@ namespace CraftFromContainers
 
 
         [HarmonyPatch(typeof(Player), "HaveRequirementItems")]
-        static class HaveRequirementItems_Patch
+        public static class HaveRequirementItems_Patch
         {
-            static void Postfix(Player __instance, ref bool __result, Recipe piece, bool discover, int qualityLevel, HashSet<string> ___m_knownMaterial)
+            public static void Postfix(Player __instance, ref bool __result, Recipe piece, bool discover, int qualityLevel, HashSet<string> ___m_knownMaterial)
             { 
                 if (!modEnabled.Value || __result || discover || !AllowByKey())
                     return;
@@ -703,23 +703,23 @@ namespace CraftFromContainers
         }
         
         [HarmonyPatch(typeof(Player), "UpdateKnownRecipesList")]
-        static class UpdateKnownRecipesList_Patch
+        public static class UpdateKnownRecipesList_Patch
         {
 
-            static void Prefix()
+            public static void Prefix()
             {
                 skip = true;
             }
-            static void Postfix()
+            public static void Postfix()
             {
                 skip = false;
             }
         }
 
         [HarmonyPatch(typeof(Player), "HaveRequirements", new Type[] { typeof(Piece), typeof(Player.RequirementMode) })]
-        static class HaveRequirements_Patch
+        public static class HaveRequirements_Patch
         {
-            static void Postfix(Player __instance, ref bool __result, Piece piece, Player.RequirementMode mode, HashSet<string> ___m_knownMaterial, Dictionary<string, int> ___m_knownStations)
+            public static void Postfix(Player __instance, ref bool __result, Piece piece, Player.RequirementMode mode, HashSet<string> ___m_knownMaterial, Dictionary<string, int> ___m_knownStations)
             {
                 if (!modEnabled.Value || __result || skip || __instance?.transform?.position == null || !AllowByKey())
                     return;
@@ -804,9 +804,9 @@ namespace CraftFromContainers
         }
 
         [HarmonyPatch(typeof(Player), "ConsumeResources")]
-        static class ConsumeResources_Patch
+        public static class ConsumeResources_Patch
         {
-            static bool Prefix(Player __instance, Piece.Requirement[] requirements, int qualityLevel)
+            public static bool Prefix(Player __instance, Piece.Requirement[] requirements, int qualityLevel)
             {
                 if (!modEnabled.Value || !AllowByKey())
                     return true;
@@ -898,9 +898,9 @@ namespace CraftFromContainers
         }
 
         [HarmonyPatch(typeof(Player), "UpdatePlacementGhost")]
-        static class UpdatePlacementGhost_Patch
+        public static class UpdatePlacementGhost_Patch
         {
-            static void Postfix(Player __instance, bool flashGuardStone)
+            public static void Postfix(Player __instance, bool flashGuardStone)
             {
                 if (!modEnabled.Value || !showGhostConnections.Value)
                 {
@@ -1024,9 +1024,9 @@ namespace CraftFromContainers
         }
 
         [HarmonyPatch(typeof(InventoryGui), "OnCraftPressed")]
-        static class DoCrafting_Patch
+        public static class DoCrafting_Patch
         {
-            static bool Prefix(InventoryGui __instance, KeyValuePair<Recipe, ItemDrop.ItemData> ___m_selectedRecipe, ItemDrop.ItemData ___m_craftUpgradeItem)
+            public static bool Prefix(InventoryGui __instance, KeyValuePair<Recipe, ItemDrop.ItemData> ___m_selectedRecipe, ItemDrop.ItemData ___m_craftUpgradeItem)
             {
                 if (!modEnabled.Value || !AllowByKey() || !CheckKeyHeld(pullItemsKey.Value) || ___m_selectedRecipe.Key == null)
                     return true;
@@ -1044,9 +1044,9 @@ namespace CraftFromContainers
         }
 
         [HarmonyPatch(typeof(Player), "UpdatePlacement")]
-        static class UpdatePlacement_Patch
+        public static class UpdatePlacement_Patch
         {
-            static bool Prefix(Player __instance, bool takeInput, float dt, PieceTable ___m_buildPieces, GameObject ___m_placementGhost)
+            public static bool Prefix(Player __instance, bool takeInput, float dt, PieceTable ___m_buildPieces, GameObject ___m_placementGhost)
             {
 
                 if (!modEnabled.Value || !AllowByKey() || !CheckKeyHeld(pullItemsKey.Value) || !__instance.InPlaceMode() || !takeInput || Hud.IsPieceSelectionVisible())
@@ -1077,9 +1077,9 @@ namespace CraftFromContainers
         }
         
         [HarmonyPatch(typeof(Turret), nameof(Turret.UseItem))]
-        static class Turret_UseItem_Patch
+        public static class Turret_UseItem_Patch
         {
-            static void Prefix(Turret __instance, Humanoid user, ref ItemDrop.ItemData item)
+            public static void Prefix(Turret __instance, Humanoid user, ref ItemDrop.ItemData item)
             {
 
                 if (!modEnabled.Value || !AllowByKey() || item != null || !(user is Player))
@@ -1104,7 +1104,7 @@ namespace CraftFromContainers
             }
         }
 
-        private static void PullResources(Player player, Piece.Requirement[] resources, int qualityLevel)
+        public static void PullResources(Player player, Piece.Requirement[] resources, int qualityLevel)
         {
             Inventory pInventory = Player.m_localPlayer.GetInventory();
             List<Container> nearbyContainers = GetNearbyContainers(Player.m_localPlayer.transform.position);
@@ -1202,7 +1202,7 @@ namespace CraftFromContainers
                     player.Message(MessageHud.MessageType.Center, pulledMessage.Value, 0, null);
             }
         }
-        static public bool HaveRequiredItemCount(Player player, Piece piece, Player.RequirementMode mode, Inventory inventory, HashSet<string> knownMaterial)
+        public static public bool HaveRequiredItemCount(Player player, Piece piece, Player.RequirementMode mode, Inventory inventory, HashSet<string> knownMaterial)
         {
             List<Container> nearbyContainers = GetNearbyContainers(player.transform.position);
 
@@ -1273,9 +1273,9 @@ namespace CraftFromContainers
         }
 
         //[HarmonyPatch(typeof(Player), "HaveRequirements", new Type[] { typeof(Piece), typeof(Player.RequirementMode) })]
-        static class HaveRequirements_Patch2_broken
+        public static class HaveRequirements_Patch2_broken
         {
-            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
             {
                 var codes = new List<CodeInstruction>(instructions);
 
@@ -1436,9 +1436,9 @@ namespace CraftFromContainers
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

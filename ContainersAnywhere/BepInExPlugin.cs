@@ -13,7 +13,7 @@ namespace ContainersAnywhere
     [BepInPlugin("aedenthorn.ContainersAnywhere", "Containers Anywhere", "0.3.8")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<float> m_range;
         public static ConfigEntry<string> hotKey;
@@ -26,16 +26,16 @@ namespace ContainersAnywhere
 
         
         public static Dictionary<string, List<Container>> containerDict = new Dictionary<string, List<Container>>();
-        private static BepInExPlugin context;
-        private static int currentContainerIndex = 0;
-        private static string currentType = "";
+        public static BepInExPlugin context;
+        public static int currentContainerIndex = 0;
+        public static string currentType = "";
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             m_range = Config.Bind<float>("General", "ContainerRange", -1f, "The maximum range to add containers to the list. Set to -1 to add all active containers in the world");
             hotKey = Config.Bind<string>("General", "HotKey", "i", "Key press to open the containers. Use https://docs.unity3d.com/Manual/class-InputManager.html");
@@ -51,7 +51,7 @@ namespace ContainersAnywhere
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses())
                 return;
@@ -84,7 +84,7 @@ namespace ContainersAnywhere
             }
         }
 
-        private void OpenContainerType(int which)
+        public void OpenContainerType(int which)
         {
             if (!containerDict.Any())
             {
@@ -122,7 +122,7 @@ namespace ContainersAnywhere
             ((ZNetView)typeof(Container).GetField("m_nview", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(containers[0])).InvokeRPC("RequestOpen", new object[] { Player.m_localPlayer.GetPlayerID() });
         }
 
-        private void CheckOpenContainer()
+        public void CheckOpenContainer()
         {
             if (InventoryGui.instance?.IsContainerOpen() == true)
             {
@@ -139,7 +139,7 @@ namespace ContainersAnywhere
             }
         }
 
-        private void OpenContainers(int which)
+        public void OpenContainers(int which)
         {
             CheckOpenContainer();
 
@@ -180,7 +180,7 @@ namespace ContainersAnywhere
             
         }
 
-        private static List<Container> GetContainers(string type)
+        public static List<Container> GetContainers(string type)
         {
             if (!containerDict.ContainsKey(type))
             {
@@ -200,7 +200,7 @@ namespace ContainersAnywhere
             }
             return newContainers;
         }
-        private static bool CheckKeyDown(string value)
+        public static bool CheckKeyDown(string value)
         {
             try
             {
@@ -213,9 +213,9 @@ namespace ContainersAnywhere
         }
 
         [HarmonyPatch(typeof(Container), "Awake")]
-        static class Container_Awake_Patch
+        public static class Container_Awake_Patch
         {
-            static void Postfix(Container __instance, ZNetView ___m_nview)
+            public static void Postfix(Container __instance, ZNetView ___m_nview)
             {
                 if ((__instance.name.StartsWith("piece_chest") || __instance.name.StartsWith("Container")) && __instance.GetInventory() != null)
                 {
@@ -226,9 +226,9 @@ namespace ContainersAnywhere
             }
         }
         [HarmonyPatch(typeof(Container), "OnDestroyed")]
-        static class Container_OnDestroyed_Patch
+        public static class Container_OnDestroyed_Patch
         {
-            static void Prefix(Container __instance)
+            public static void Prefix(Container __instance)
             {
                 if (containerDict.ContainsKey(__instance.name))
                 {
@@ -239,17 +239,17 @@ namespace ContainersAnywhere
             }
         }
         [HarmonyPatch(typeof(InventoryGui), "Awake")]
-        static class InventoryGui_Awake_Patch
+        public static class InventoryGui_Awake_Patch
         {
-            static void Postfix(InventoryGui __instance)
+            public static void Postfix(InventoryGui __instance)
             {
                 __instance.m_autoCloseDistance = float.MaxValue;
             }
         }
         [HarmonyPatch(typeof(InventoryGui), "Show")]
-        static class InventoryGui_Show_Patch
+        public static class InventoryGui_Show_Patch
         {
-            static void Postfix(Container ___m_currentContainer)
+            public static void Postfix(Container ___m_currentContainer)
             {
                 if (!___m_currentContainer)
                     return;

@@ -12,14 +12,14 @@ namespace ConfigurationManager.Utilities
 {
     internal class ComboBox
     {
-        private static bool forceToUnShow;
-        private static int useControlID = -1;
-        private readonly string boxStyle;
-        private readonly string buttonStyle;
-        private bool isClickedComboButton;
-        private readonly GUIContent[] listContent;
-        private readonly GUIStyle listStyle;
-        private readonly int _windowYmax;
+        public static bool forceToUnShow;
+        public static int useControlID = -1;
+        public readonly string boxStyle;
+        public readonly string buttonStyle;
+        public bool isClickedComboButton;
+        public readonly GUIContent[] listContent;
+        public readonly GUIStyle listStyle;
+        public readonly int _windowYmax;
 
         public ComboBox(Rect rect, GUIContent buttonContent, GUIContent[] listContent, GUIStyle listStyle, float windowYmax)
         {
@@ -132,7 +132,7 @@ namespace ConfigurationManager.Utilities
                 isClickedComboButton = false;
         }
 
-        private Vector2 _scrollPosition = Vector2.zero;
+        public Vector2 _scrollPosition = Vector2.zero;
         public static Action CurrentDropdownDrawer { get; set; }
     }
 }

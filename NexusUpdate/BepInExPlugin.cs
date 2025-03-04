@@ -17,8 +17,8 @@ namespace NexusUpdate
     [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "1.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> showAllManagedMods;
@@ -50,21 +50,21 @@ namespace NexusUpdate
 
         public static ConfigEntry<int> nexusID;
 
-        private static List<NexusUpdatable> nexusUpdatables = new List<NexusUpdatable>();
-        private static List<NexusUpdatable> nexusNonupdatables = new List<NexusUpdatable>();
-        private static Vector2 scrollPosition;
-        private static bool finishedChecking = false;
-        private static GUIStyle style;
-        private static GUIStyle style2;
+        public static List<NexusUpdatable> nexusUpdatables = new List<NexusUpdatable>();
+        public static List<NexusUpdatable> nexusNonupdatables = new List<NexusUpdatable>();
+        public static Vector2 scrollPosition;
+        public static bool finishedChecking = false;
+        public static GUIStyle style;
+        public static GUIStyle style2;
         public static float rowWidth;
-        private static Rect windowRect;
+        public static Rect windowRect;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -105,7 +105,7 @@ namespace NexusUpdate
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private static void ApplyConfig()
+        public static void ApplyConfig()
         {
             rowWidth = updateTextWidth.Value + buttonWidth.Value * (!showAllManagedMods.Value && showIgnoreButton.Value ? 2 : 1);
 
@@ -130,13 +130,13 @@ namespace NexusUpdate
 
         }
 
-        private void Start()
+        public void Start()
         {
             if(modEnabled.Value)
                 StartCoroutine(CheckPlugins());
         }
 
-        private void OnGUI()
+        public void OnGUI()
         {
             if (modEnabled.Value && FejdStartup.instance?.enabled == true)
             {
@@ -153,7 +153,7 @@ namespace NexusUpdate
             }
         }
 
-        private void WindowBuilder(int id)
+        public void WindowBuilder(int id)
         {
             GUILayout.BeginVertical();
             GUI.DragWindow(new Rect(0, 0, rowWidth + 50, 20));
@@ -260,13 +260,13 @@ namespace NexusUpdate
             GUILayout.EndVertical();
         }
 
-        private bool IsIgnored(NexusUpdatable nexusUpdatable)
+        public bool IsIgnored(NexusUpdatable nexusUpdatable)
         {
             var dict = GetIgnores();
             return dict.ContainsKey("" + nexusUpdatable.id) && dict["" + nexusUpdatable.id] == nexusUpdatable.version.ToString();
         }
 
-        private void AddIgnore(string str)
+        public void AddIgnore(string str)
         {
             Dictionary<string, string> dict = GetIgnores();
 
@@ -275,14 +275,14 @@ namespace NexusUpdate
                 dict.Add(ignore[0], ignore[1]);
             MakeIgnores(dict);
         }
-        private void RemoveIgnore(string id)
+        public void RemoveIgnore(string id)
         {
             Dictionary<string, string> dict = GetIgnores();
             dict.Remove(id);
             MakeIgnores(dict);
         }
 
-        private Dictionary<string, string> GetIgnores()
+        public Dictionary<string, string> GetIgnores()
         {
             if (ignoreList.Value == null || ignoreList.Value.Length == 0)
                 return new Dictionary<string, string>();
@@ -302,7 +302,7 @@ namespace NexusUpdate
             return dict;
         }
 
-        private void MakeIgnores(Dictionary<string, string> dict)
+        public void MakeIgnores(Dictionary<string, string> dict)
         {
             List<string> strings = new List<string>();
 
@@ -317,7 +317,7 @@ namespace NexusUpdate
             }
         }
 
-        private IEnumerator CheckPlugins()
+        public IEnumerator CheckPlugins()
         {
 
             Dictionary<string, PluginInfo> pluginInfos = Chainloader.PluginInfos;
@@ -422,9 +422,9 @@ namespace NexusUpdate
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

@@ -10,8 +10,8 @@ namespace JumpRunDodgeSneakWalk
     [BepInPlugin("aedenthorn.JumpRunDodgeSneakWalk", "Jump Run Sneak Walk Swim", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<int> maxJumps;
         public static ConfigEntry<bool> modEnabled;
@@ -32,7 +32,7 @@ namespace JumpRunDodgeSneakWalk
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin ).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             maxJumps = Config.Bind<int>("Config", "MaxJumps", 2, "The maximum number of sequential jumps (-1 for infinite)");
@@ -56,13 +56,13 @@ namespace JumpRunDodgeSneakWalk
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        public static int JumpNumber { get; private set; }
+        public static int JumpNumber { get; public set; }
 
 
         [HarmonyPatch(typeof(Player), "GetJogSpeedFactor")]
-        static class GetJogSpeedFactor_Patch
+        public static class GetJogSpeedFactor_Patch
         {
-            static void Postfix(ref float __result)
+            public static void Postfix(ref float __result)
             {
                 if (modEnabled.Value)
                 {
@@ -71,9 +71,9 @@ namespace JumpRunDodgeSneakWalk
             }
         }
         [HarmonyPatch(typeof(Player), "GetRunSpeedFactor")]
-        static class GetRunSpeedFactor_Patch
+        public static class GetRunSpeedFactor_Patch
         {
-            static void Postfix(ref float __result)
+            public static void Postfix(ref float __result)
             {
                 if (modEnabled.Value)
                 {
@@ -83,10 +83,10 @@ namespace JumpRunDodgeSneakWalk
         }
 
         [HarmonyPatch(typeof(Character), "UpdateGroundContact")]
-        static class UpdateGroundContact_Patch
+        public static class UpdateGroundContact_Patch
         {
 
-            static void Prefix(Character __instance, ref float ___m_maxAirAltitude)
+            public static void Prefix(Character __instance, ref float ___m_maxAirAltitude)
             {
                 if (modEnabled.Value && __instance.IsPlayer())
                 {
@@ -96,10 +96,10 @@ namespace JumpRunDodgeSneakWalk
         }
         
         [HarmonyPatch(typeof(Character), "Awake")]
-        static class Character_Awake_Patch
+        public static class Character_Awake_Patch
         {
 
-            static void Prefix(Character __instance)
+            public static void Prefix(Character __instance)
             {
                 if (modEnabled.Value && __instance.IsPlayer())
                 {
@@ -114,10 +114,10 @@ namespace JumpRunDodgeSneakWalk
         }
 
         [HarmonyPatch(typeof(Character), nameof(Character.Jump))]
-        static class Jump_Patch
+        public static class Jump_Patch
         {
 
-            static void Prefix(Character __instance, ref float ___m_lastGroundTouch, ref float ___m_maxAirAltitude)
+            public static void Prefix(Character __instance, ref float ___m_lastGroundTouch, ref float ___m_maxAirAltitude)
             {
                 if (modEnabled.Value && __instance.IsPlayer())
                 {
@@ -137,9 +137,9 @@ namespace JumpRunDodgeSneakWalk
         }
 
         [HarmonyPatch(typeof(CharacterAnimEvent), "Speed")]
-        static class CharacterAnimEvent_Speed_Patch
+        public static class CharacterAnimEvent_Speed_Patch
         {
-            static void Prefix(Animator ___m_animator, Character ___m_character, ref float speedScale)
+            public static void Prefix(Animator ___m_animator, Character ___m_character, ref float speedScale)
             {
                 if (!modEnabled.Value || !(___m_character is Player))
                     return;
@@ -160,9 +160,9 @@ namespace JumpRunDodgeSneakWalk
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

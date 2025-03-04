@@ -9,8 +9,8 @@ namespace QuestFramework
     [BepInPlugin("aedenthorn.QuestFramework", "Quest Framework", "0.2.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -44,7 +44,7 @@ namespace QuestFramework
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -75,7 +75,7 @@ namespace QuestFramework
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), MetadataHelper.GetMetadata(this).GUID);
         }
-        private void Update()
+        public void Update()
         {
             if (!enabled || !Hud.instance || toggleHUDKeyOnPress.Value || !AedenthornUtils.CheckKeyDown(toggleHUDKey.Value) || !AedenthornUtils.CheckKeyHeld(toggleHUDKeyMod.Value, false) || AedenthornUtils.IgnoreKeyPresses(true))
                 return;

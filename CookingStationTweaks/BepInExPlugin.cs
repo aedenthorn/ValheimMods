@@ -185,9 +185,9 @@ namespace CookingStationTweaks
         }
 
         [HarmonyPatch(typeof(CookingStation), "UpdateCooking")]
-        static class CookingStation_UpdateCooking_Patch
+        public static class CookingStation_UpdateCooking_Patch
         {
-            static void Postfix(CookingStation __instance, ZNetView ___m_nview)
+            public static void Postfix(CookingStation __instance, ZNetView ___m_nview)
             {
                 Traverse traverse = Traverse.Create(__instance);
 

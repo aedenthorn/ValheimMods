@@ -9,7 +9,7 @@ namespace BuildRestrictionTweaks
     [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.6.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private enum PlacementStatus
+        public enum PlacementStatus
         {
             Valid,
             Invalid,
@@ -25,7 +25,7 @@ namespace BuildRestrictionTweaks
             NotInDungeon
         }
 
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<string> modKey;
         public static ConfigEntry<bool> modEnabled;
@@ -43,14 +43,14 @@ namespace BuildRestrictionTweaks
         public static ConfigEntry<bool> ignoreDirtRestrictions;
         public static ConfigEntry<bool> ignoreDungeonRestrictions;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
         public static GameObject craftingStationObject;
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -79,9 +79,9 @@ namespace BuildRestrictionTweaks
         }
 
         [HarmonyPatch(typeof(Location), nameof(Location.IsInsideNoBuildLocation))]
-        static class Location_IsInsideNoBuildLocation_Patch
+        public static class Location_IsInsideNoBuildLocation_Patch
         {
-            static void Postfix(ref bool __result)
+            public static void Postfix(ref bool __result)
             {
                 if (!modEnabled.Value || (!ignoreBuildZone.Value && !alwaysValid.Value))
                     return;
@@ -89,9 +89,9 @@ namespace BuildRestrictionTweaks
             }
         }
         [HarmonyPatch(typeof(CraftingStation), "HaveBuildStationInRange")]
-        static class CraftingStation_HaveBuildStationInRange_Patch
+        public static class CraftingStation_HaveBuildStationInRange_Patch
         {
-            static void Postfix(ref CraftingStation __result, string name)
+            public static void Postfix(ref CraftingStation __result, string name)
             {
                 if (!modEnabled.Value || (!ignoreMissingStation.Value && !alwaysValid.Value) || __result != null)
                     return;
@@ -106,9 +106,9 @@ namespace BuildRestrictionTweaks
             }
         }
         [HarmonyPatch(typeof(Player), "UpdatePlacementGhost")]
-        static class Player_UpdatePlacementGhost_Patch
+        public static class Player_UpdatePlacementGhost_Patch
         {
-            static void Postfix(Player __instance, GameObject ___m_placementGhost)
+            public static void Postfix(Player __instance, GameObject ___m_placementGhost)
             {
                 if (!modEnabled.Value || ___m_placementGhost == null)
                     return;

@@ -13,7 +13,7 @@ namespace CustomTextures
 {
     public partial class BepInExPlugin: BaseUnityPlugin
     {
-        private static void LoadCustomTextures()
+        public static void LoadCustomTextures()
         {
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"CustomTextures");
 
@@ -46,7 +46,7 @@ namespace CustomTextures
             }
         }
         public static List<int> reloadedObjects = new List<int>();
-        private static void ReloadTextures(bool locations)
+        public static void ReloadTextures(bool locations)
         {
             reloadedObjects.Clear();
             outputDump.Clear();
@@ -107,7 +107,7 @@ namespace CustomTextures
             }
         }
 
-        private static void SetupVisEquipment(Humanoid humanoid)
+        public static void SetupVisEquipment(Humanoid humanoid)
         {
             VisEquipment ve = (VisEquipment)typeof(Humanoid).GetField("m_visEquipment", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(humanoid);
             if (ve != null)

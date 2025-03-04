@@ -26,7 +26,7 @@ namespace AutoFeed
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = false, BepInEx.Logging.LogLevel logLevel = BepInEx.Logging.LogLevel.Debug)
         {

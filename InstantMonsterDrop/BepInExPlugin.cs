@@ -10,19 +10,19 @@ namespace InstantMonsterDrop
     [BepInPlugin("aedenthorn.InstantMonsterDrop", "Instant Monster Drop", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
-        private static ConfigEntry<bool> modEnabled;
-        private static ConfigEntry<bool> isDebug;
-        private static ConfigEntry<float> dropDelay;
-        private static ConfigEntry<float> destroyDelay;
-        private static ConfigEntry<int> nexusID;
+        public static BepInExPlugin context;
+        public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> isDebug;
+        public static ConfigEntry<float> dropDelay;
+        public static ConfigEntry<float> destroyDelay;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -39,9 +39,9 @@ namespace InstantMonsterDrop
         }
 
         [HarmonyPatch(typeof(Ragdoll), "Awake")]
-        static class Ragdoll_Awake_Patch
+        public static class Ragdoll_Awake_Patch
         {
-            static void Postfix(Ragdoll __instance, ZNetView ___m_nview, EffectList ___m_removeEffect)
+            public static void Postfix(Ragdoll __instance, ZNetView ___m_nview, EffectList ___m_removeEffect)
             {
                 if (!ZNetScene.instance)
                     return;
@@ -51,16 +51,16 @@ namespace InstantMonsterDrop
         }
         
         [HarmonyPatch(typeof(Ragdoll), "DestroyNow")]
-        static class Ragdoll_DestroyNow_Patch
+        public static class Ragdoll_DestroyNow_Patch
         {
-            static bool Prefix(Ragdoll __instance)
+            public static bool Prefix(Ragdoll __instance)
             {
                 //Dbgl($"cancelling destroynow");
                 return !modEnabled.Value;
             }
         }
 
-        private static IEnumerator DropNow(Ragdoll ragdoll, ZNetView nview, EffectList removeEffect)
+        public static IEnumerator DropNow(Ragdoll ragdoll, ZNetView nview, EffectList removeEffect)
         {
             if(dropDelay.Value < 0)
             {
@@ -84,7 +84,7 @@ namespace InstantMonsterDrop
             context.StartCoroutine(DestroyNow(ragdoll, nview, removeEffect));
         }
 
-        private static IEnumerator DestroyNow(Ragdoll ragdoll, ZNetView nview, EffectList m_removeEffect)
+        public static IEnumerator DestroyNow(Ragdoll ragdoll, ZNetView nview, EffectList m_removeEffect)
         {
             Dbgl($"delaying destroying ragdoll");
             yield return new WaitForSeconds(Mathf.Max(destroyDelay.Value - dropDelay.Value, 0));
@@ -103,9 +103,9 @@ namespace InstantMonsterDrop
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

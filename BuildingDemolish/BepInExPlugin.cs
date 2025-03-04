@@ -9,8 +9,8 @@ namespace BuildingDemolish
     [BepInPlugin("aedenthorn.BuildingDemolish", "Building Demolish", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -35,7 +35,7 @@ namespace BuildingDemolish
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -53,7 +53,7 @@ namespace BuildingDemolish
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-        private void Update()
+        public void Update()
         {
             if (!AedenthornUtils.IgnoreKeyPresses(true) && AedenthornUtils.CheckKeyDown(hotKey.Value)) 
             {
@@ -62,7 +62,7 @@ namespace BuildingDemolish
             }
         }
 
-        private static int DemolishPieces(float radius)
+        public static int DemolishPieces(float radius)
         {
             Player player = Player.m_localPlayer;
             if (!player)
@@ -123,9 +123,9 @@ namespace BuildingDemolish
             return count;
         }
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

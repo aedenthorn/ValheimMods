@@ -10,8 +10,8 @@ namespace AutoSplitStack
     [BepInPlugin("aedenthorn.AutoSplitStack", "AutoSplitStack", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -23,7 +23,7 @@ namespace AutoSplitStack
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -35,7 +35,7 @@ namespace AutoSplitStack
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-        private static bool CheckModKey(string value)
+        public static bool CheckModKey(string value)
         {
             try
             {
@@ -48,9 +48,9 @@ namespace AutoSplitStack
         }
 
         [HarmonyPatch(typeof(InventoryGui), "OnRightClickItem")]
-        static class OnRightClickItem_Patch
+        public static class OnRightClickItem_Patch
         {
-            static bool Prefix(InventoryGui __instance, InventoryGrid grid, ItemDrop.ItemData item, int ___m_dragAmount)
+            public static bool Prefix(InventoryGui __instance, InventoryGrid grid, ItemDrop.ItemData item, int ___m_dragAmount)
             {
                 if (ZInput.GetButton("JoyLTrigger") || CheckModKey(modKey.Value))
                 {
@@ -68,9 +68,9 @@ namespace AutoSplitStack
         }
         
         [HarmonyPatch(typeof(InventoryGui), "SetupDragItem")]
-        static class InventoryGui_SetupDragItem_Patch
+        public static class InventoryGui_SetupDragItem_Patch
         {
-            static bool Prefix(ItemDrop.ItemData item, Inventory inventory, int amount)
+            public static bool Prefix(ItemDrop.ItemData item, Inventory inventory, int amount)
             {
                 //Dbgl($"setupdragitem {autoSplitting} {amount} {item?.m_shared.m_name} {Environment.StackTrace}");
                 if (autoSplitting)
@@ -83,18 +83,18 @@ namespace AutoSplitStack
         }
 
         [HarmonyPatch(typeof(InventoryGui), "Update")]
-        static class InventoryGui_Update_Patch
+        public static class InventoryGui_Update_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!Input.GetMouseButton(1))
                     autoSplitting = false;
             }
         }
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

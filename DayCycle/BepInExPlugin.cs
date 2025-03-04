@@ -9,8 +9,8 @@ namespace DayCycle
     [BepInPlugin("aedenthorn.DayCycle", "DayCycle", "0.8.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         //public static ConfigEntry<float> dayStart;
@@ -19,14 +19,14 @@ namespace DayCycle
         public static ConfigEntry<float> nightRate;
         public static ConfigEntry<int> nexusID;
 
-        private static long vanillaDayLengthSec;
+        public static long vanillaDayLengthSec;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -57,10 +57,10 @@ namespace DayCycle
 
 
         [HarmonyPatch(typeof(EnvMan), "Awake")]
-        static class EnvMan_Awake_Patch
+        public static class EnvMan_Awake_Patch
         {
 
-            static void Postfix(ref long ___m_dayLengthSec)
+            public static void Postfix(ref long ___m_dayLengthSec)
             {
                 if (!modEnabled.Value)
                     return;
@@ -70,9 +70,9 @@ namespace DayCycle
         }
         /*
         [HarmonyPatch(typeof(EnvMan), "IsDay")]
-        static class EnvMan_IsDay_Patch
+        public static class EnvMan_IsDay_Patch
         {
-            static bool Prefix(float ___m_smoothDayFraction, ref bool __result)
+            public static bool Prefix(float ___m_smoothDayFraction, ref bool __result)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -81,9 +81,9 @@ namespace DayCycle
             }
         }
         [HarmonyPatch(typeof(EnvMan), "IsAfternoon")]
-        static class EnvMan_IsAfternoon_Patch
+        public static class EnvMan_IsAfternoon_Patch
         {
-            static bool Prefix(float ___m_smoothDayFraction, ref bool __result)
+            public static bool Prefix(float ___m_smoothDayFraction, ref bool __result)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -92,9 +92,9 @@ namespace DayCycle
             }
         }
         [HarmonyPatch(typeof(EnvMan), "IsNight")]
-        static class EnvMan_IsNight_Patch
+        public static class EnvMan_IsNight_Patch
         {
-            static bool Prefix(float ___m_smoothDayFraction, ref bool __result)
+            public static bool Prefix(float ___m_smoothDayFraction, ref bool __result)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -104,9 +104,9 @@ namespace DayCycle
         }
 
         //[HarmonyPatch(typeof(EnvMan), "SetEnv")]
-        static class EnvMan_SetEnv_Patch
+        public static class EnvMan_SetEnv_Patch
         {
-            static void Prefix(EnvMan __instance, ref float dayInt, ref float nightInt, ref float morningInt, ref float eveningInt, float ___m_smoothDayFraction)
+            public static void Prefix(EnvMan __instance, ref float dayInt, ref float nightInt, ref float morningInt, ref float eveningInt, float ___m_smoothDayFraction)
             {
                 if (!modEnabled.Value)
                     return;
@@ -123,10 +123,10 @@ namespace DayCycle
         }
 
         //[HarmonyPatch(typeof(ZNet), "GetWrappedDayTimeSeconds")]
-        static class GetWrappedDayTimeSeconds_Patch
+        public static class GetWrappedDayTimeSeconds_Patch
         {
 
-            static bool Prefix(double ___m_netTime, ref float __result)
+            public static bool Prefix(double ___m_netTime, ref float __result)
             {
                 int fullDays = (int)(___m_netTime / 86400);
                 __result = fullDays * (dayStart.Value + (1 - nightStart.Value)) * 86400 * nightRate.Value + fullDays * (nightStart.Value - dayStart.Value) * 86400 * dayRate.Value;
@@ -148,10 +148,10 @@ namespace DayCycle
             }
         }
         //[HarmonyPatch(typeof(EnvMan), "RescaleDayFraction")]
-        static class RescaleDayFraction_Patch
+        public static class RescaleDayFraction_Patch
         {
 
-            static void Postfix(ref float fraction, ref float ___m_smoothDayFraction)
+            public static void Postfix(ref float fraction, ref float ___m_smoothDayFraction)
             {
                 float newFraction = 0;
                 if (fraction > nightStart.Value)
@@ -173,9 +173,9 @@ namespace DayCycle
         */
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

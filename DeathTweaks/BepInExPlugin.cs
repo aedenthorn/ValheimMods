@@ -43,16 +43,16 @@ namespace DeathTweaks
         public static ConfigEntry<string> dropItemNames;
         public static ConfigEntry<string> destroyItemNames;
 
-        private static BepInExPlugin context;
-        private static List<string> typeEnums = new List<string>();
+        public static BepInExPlugin context;
+        public static List<string> typeEnums = new List<string>();
 
-        private static Assembly quickSlotsAssembly;
+        public static Assembly quickSlotsAssembly;
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             foreach (int i in Enum.GetValues(typeof(ItemDrop.ItemData.ItemType)))
             {
@@ -92,7 +92,7 @@ namespace DeathTweaks
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
         }
-        private void Start()
+        public void Start()
         {
             if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.equipmentandquickslots"))
                 quickSlotsAssembly = Chainloader.PluginInfos["randyknapp.mods.equipmentandquickslots"].Instance.GetType().Assembly;
@@ -111,9 +111,9 @@ namespace DeathTweaks
 
         [HarmonyPatch(typeof(Player), "OnDeath")]
         [HarmonyPriority(Priority.First)]
-        static class OnDeath_Patch
+        public static class OnDeath_Patch
         {
-            static bool Prefix(Player __instance, Inventory ___m_inventory, ref float ___m_timeSinceDeath, float ___m_hardDeathCooldown, ZNetView ___m_nview, List<Player.Food> ___m_foods, Skills ___m_skills, SEMan ___m_seman, HitData ___m_lastHit)
+            public static bool Prefix(Player __instance, Inventory ___m_inventory, ref float ___m_timeSinceDeath, float ___m_hardDeathCooldown, ZNetView ___m_nview, List<Player.Food> ___m_foods, Skills ___m_skills, SEMan ___m_seman, HitData ___m_lastHit)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -420,9 +420,9 @@ namespace DeathTweaks
         }
 
         [HarmonyPatch(typeof(Player), "HardDeath")]
-        static class HardDeath_Patch
+        public static class HardDeath_Patch
         {
-            static bool Prefix(ref bool __result)
+            public static bool Prefix(ref bool __result)
             {
                 if (!modEnabled.Value || !noSkillProtection.Value)
                     return true;
@@ -432,9 +432,9 @@ namespace DeathTweaks
         }
 
         [HarmonyPatch(typeof(Game), "FindSpawnPoint")]
-        static class FindSpawnPoint_Patch
+        public static class FindSpawnPoint_Patch
         {
-            static bool Prefix(ref Vector3 point, ref bool usedLogoutPoint, bool ___m_firstSpawn, ref bool __result)
+            public static bool Prefix(ref Vector3 point, ref bool usedLogoutPoint, bool ___m_firstSpawn, ref bool __result)
             {
                 if (!modEnabled.Value || ___m_firstSpawn)
                     return true;
@@ -478,9 +478,9 @@ namespace DeathTweaks
         }
 
         [HarmonyPatch(typeof(Skills), "OnDeath")]
-        static class Skills_OnDeath_Patch
+        public static class Skills_OnDeath_Patch
         {
-            static bool Prefix()
+            public static bool Prefix()
             {
                 if (!modEnabled.Value)
                     return true;
@@ -490,9 +490,9 @@ namespace DeathTweaks
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

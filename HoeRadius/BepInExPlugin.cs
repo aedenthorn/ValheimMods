@@ -143,9 +143,9 @@ namespace HoeRadius
         }
 
         [HarmonyPatch(typeof(TerrainOp), "Awake")]
-        static class TerrainOp_Patch
+        public static class TerrainOp_Patch
         {
-            static void Prefix(TerrainOp __instance)
+            public static void Prefix(TerrainOp __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -173,9 +173,9 @@ namespace HoeRadius
             }
         }
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

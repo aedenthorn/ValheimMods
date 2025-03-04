@@ -8,17 +8,17 @@ namespace QuestFramework
 {
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static Font hudFont;
-        private static GUIStyle style;
-        private static GUIStyle style2;
-        private static bool configApplied = false;
-        private static Vector2 hudPosition;
-        private static Rect windowRect;
-        private static string newQuestString;
-        private static Rect timeRect;
-        private static int windowId = 1890175403;
+        public static Font hudFont;
+        public static GUIStyle style;
+        public static GUIStyle style2;
+        public static bool configApplied = false;
+        public static Vector2 hudPosition;
+        public static Rect windowRect;
+        public static string newQuestString;
+        public static Rect timeRect;
+        public static int windowId = 1890175403;
 
-        private void OnGUI()
+        public void OnGUI()
         {
             if (Minimap.IsOpen() || Console.IsVisible() || TextInput.IsVisible() || ZNet.instance?.InPasswordDialog() == true || Chat.instance?.HasFocus() == true || StoreGui.IsVisible() || InventoryGui.IsVisible() || Menu.IsVisible() || TextViewer.instance?.IsVisible() == true || currentQuests.questDict.Count == 0 ||
                 (!showHUD.Value && !toggleHUDKeyOnPress.Value) ||
@@ -103,7 +103,7 @@ namespace QuestFramework
             return string.Join("\n", questLines);
          }
 
-        private void WindowBuilder(int id)
+        public void WindowBuilder(int id)
         {
 
             timeRect = GUILayoutUtility.GetRect(new GUIContent(newQuestString), style);
@@ -116,7 +116,7 @@ namespace QuestFramework
             }
             GUI.Label(timeRect, newQuestString, style);
         }
-        private static void ApplyConfig()
+        public static void ApplyConfig()
         {
 
             string[] split = hudLocationString.Value.Split(',');

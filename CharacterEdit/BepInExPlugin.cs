@@ -13,10 +13,10 @@ namespace CharacterEdit
     [BepInPlugin("aedenthorn.CharacterEdit", "Character Edit", "0.9.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static bool editingCharacter = false;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static bool editingCharacter = false;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<string> titleText;
@@ -24,14 +24,14 @@ namespace CharacterEdit
         public static ConfigEntry<string> gamePadButton;
         public static ConfigEntry<string> gamePadButtonHint;
         public static ConfigEntry<int> nexusID;
-        private static Transform title;
+        public static Transform title;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -49,10 +49,10 @@ namespace CharacterEdit
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Awake")]
-        static class FejdStartup_Awake_Patch
+        public static class FejdStartup_Awake_Patch
         {
 
-            static void Postfix(FejdStartup __instance)
+            public static void Postfix(FejdStartup __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -78,9 +78,9 @@ namespace CharacterEdit
             }
         }
         [HarmonyPatch(typeof(FejdStartup), "OnNewCharacterDone")]
-        static class FejdStartup_OnNewCharacterDone_Patch
+        public static class FejdStartup_OnNewCharacterDone_Patch
         {
-            static bool Prefix(FejdStartup __instance, ref List<PlayerProfile> ___m_profiles)
+            public static bool Prefix(FejdStartup __instance, ref List<PlayerProfile> ___m_profiles)
             {
                 Dbgl($"New character done, editing {editingCharacter}");
                 if (!editingCharacter)
@@ -108,9 +108,9 @@ namespace CharacterEdit
             }
         }
         [HarmonyPatch(typeof(FejdStartup), "OnNewCharacterCancel")]
-        static class FejdStartup_OnNewCharacterCancel_Patch
+        public static class FejdStartup_OnNewCharacterCancel_Patch
         {
-            static void Postfix(FejdStartup __instance)
+            public static void Postfix(FejdStartup __instance)
             {
                 Dbgl($"New character cancel, editing {editingCharacter}");
 
@@ -122,9 +122,9 @@ namespace CharacterEdit
         }
         
         [HarmonyPatch(typeof(PlayerCustomizaton), "OnEnable")]
-        static class PlayerCustomizaton_OnEnable_Patch
+        public static class PlayerCustomizaton_OnEnable_Patch
         {
-            static void Postfix(PlayerCustomizaton __instance)
+            public static void Postfix(PlayerCustomizaton __instance)
             {
                 Dbgl($"Player customization enabled");
                 if (!editingCharacter)
@@ -153,7 +153,7 @@ namespace CharacterEdit
             }
         }
 
-        private static void StartCharacterEdit()
+        public static void StartCharacterEdit()
         {
             Dbgl($"Start editing character");
 
@@ -172,9 +172,9 @@ namespace CharacterEdit
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

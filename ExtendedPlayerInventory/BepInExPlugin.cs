@@ -11,11 +11,11 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "1.0.0")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "1.0.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -41,12 +41,12 @@ namespace ExtendedPlayerInventory
 
         public static ConfigEntry<string>[] hotkeys;
         
-        private static ConfigEntry<float> quickAccessX;
-        private static ConfigEntry<float> quickAccessY;
+        public static ConfigEntry<float> quickAccessX;
+        public static ConfigEntry<float> quickAccessY;
 
-        private static GameObject elementPrefab;
+        public static GameObject elementPrefab;
         
-        private static ItemDrop.ItemData.ItemType[] typeEnums = new ItemDrop.ItemData.ItemType[] 
+        public static ItemDrop.ItemData.ItemType[] typeEnums = new ItemDrop.ItemData.ItemType[] 
         {
             ItemDrop.ItemData.ItemType.Helmet,
             ItemDrop.ItemData.ItemType.Chest,
@@ -55,7 +55,7 @@ namespace ExtendedPlayerInventory
             ItemDrop.ItemData.ItemType.Utility,
         };
         
-        private static FieldInfo[] fields = new FieldInfo[] 
+        public static FieldInfo[] fields = new FieldInfo[] 
         {
             AccessTools.Field(typeof(Humanoid), "m_helmetItem"),
             AccessTools.Field(typeof(Humanoid), "m_chestItem"),
@@ -64,14 +64,14 @@ namespace ExtendedPlayerInventory
             AccessTools.Field(typeof(Humanoid), "m_utilityItem"),
         };
 
-        private static ItemDrop.ItemData[] equipItems = new ItemDrop.ItemData[5];
+        public static ItemDrop.ItemData[] equipItems = new ItemDrop.ItemData[5];
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -116,9 +116,9 @@ namespace ExtendedPlayerInventory
         }
 
         [HarmonyPatch(typeof(Player), "Awake")]
-        static class Player_Awake_Patch
+        public static class Player_Awake_Patch
         {
-            static void Prefix(Player __instance, Inventory ___m_inventory)
+            public static void Prefix(Player __instance, Inventory ___m_inventory)
             {
                 if (!modEnabled.Value)
                     return;
@@ -132,9 +132,9 @@ namespace ExtendedPlayerInventory
         }
           
         [HarmonyPatch(typeof(TombStone), "Awake")]
-        static class TombStone_Awake_Patch
+        public static class TombStone_Awake_Patch
         {
-            static void Prefix(TombStone __instance)
+            public static void Prefix(TombStone __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -149,9 +149,9 @@ namespace ExtendedPlayerInventory
         }
                      
         [HarmonyPatch(typeof(TombStone), "Interact")]
-        static class TombStone_Interact_Patch
+        public static class TombStone_Interact_Patch
         {
-            static void Prefix(TombStone __instance, Container ___m_container)
+            public static void Prefix(TombStone __instance, Container ___m_container)
             {
                 if (!modEnabled.Value)
                     return;
@@ -176,9 +176,9 @@ namespace ExtendedPlayerInventory
         }
                 
         [HarmonyPatch(typeof(Inventory), "MoveInventoryToGrave")]
-        static class MoveInventoryToGrave_Patch
+        public static class MoveInventoryToGrave_Patch
         {
-            static void Postfix(Inventory __instance, Inventory original)
+            public static void Postfix(Inventory __instance, Inventory original)
             {
                 if (!modEnabled.Value)
                     return;
@@ -189,9 +189,9 @@ namespace ExtendedPlayerInventory
         }
 
         [HarmonyPatch(typeof(InventoryGui), "Show")]
-        static class InventoryGui_Show_Patch
+        public static class InventoryGui_Show_Patch
         {
-            static void Postfix(InventoryGui __instance)
+            public static void Postfix(InventoryGui __instance)
             {
                 if (!modEnabled.Value || !addEquipmentRow.Value || !Player.m_localPlayer)
                     return;
@@ -216,9 +216,9 @@ namespace ExtendedPlayerInventory
             }
         }
         [HarmonyPatch(typeof(Inventory), "Changed")]
-        static class Inventory_Changed_Patch
+        public static class Inventory_Changed_Patch
         {
-            static void Postfix(Inventory __instance)
+            public static void Postfix(Inventory __instance)
             {
                 if (!modEnabled.Value || !addEquipmentRow.Value || !Player.m_localPlayer || __instance != Player.m_localPlayer.GetInventory())
                     return;
@@ -232,9 +232,9 @@ namespace ExtendedPlayerInventory
         }
 
         [HarmonyPatch(typeof(Humanoid), "SetupEquipment")]
-        static class Humanoid_SetupEquipment_Patch
+        public static class Humanoid_SetupEquipment_Patch
         {
-            static void Postfix(Humanoid __instance)
+            public static void Postfix(Humanoid __instance)
             {
                 if (!modEnabled.Value || !addEquipmentRow.Value || !(__instance is Player) || (__instance != Player.m_localPlayer && (!showGearInMenu.Value || Player.m_localPlayer != null)))
                     return;
@@ -245,9 +245,9 @@ namespace ExtendedPlayerInventory
         }
         
         [HarmonyPatch(typeof(Humanoid), "UnequipItem")]
-        static class Humanoid_UnequipItem_Patch
+        public static class Humanoid_UnequipItem_Patch
         {
-            static void Postfix(Humanoid __instance, ItemDrop.ItemData item)
+            public static void Postfix(Humanoid __instance, ItemDrop.ItemData item)
             {
                 //Dbgl($"Unequip {item?.m_shared.m_name}: " + Environment.StackTrace);
             }
@@ -255,16 +255,16 @@ namespace ExtendedPlayerInventory
         }
 
         [HarmonyPatch(typeof(Player), "EquipInventoryItems")]
-        static class Humanoid_EquipItem_Patch
+        public static class Humanoid_EquipItem_Patch
         {
-            static void Postfix(Player __instance)
+            public static void Postfix(Player __instance)
             {
                 //Dbgl("EquipIventoryItems: " + Environment.StackTrace);
                 ArrangeEquipment(__instance);
             }
         }
 
-        private static void ArrangeEquipment(Player __instance)
+        public static void ArrangeEquipment(Player __instance)
         {
             if (!modEnabled.Value || !addEquipmentRow.Value)
                 return;
@@ -344,9 +344,9 @@ namespace ExtendedPlayerInventory
 
         }
         [HarmonyPatch(typeof(Player), "Update")]
-        static class Player_Update_Patch
+        public static class Player_Update_Patch
         {
-            static void Postfix(Player __instance, Inventory ___m_inventory)
+            public static void Postfix(Player __instance, Inventory ___m_inventory)
             {
                 if (!modEnabled.Value)
                     return;
@@ -381,7 +381,7 @@ namespace ExtendedPlayerInventory
                 }
             }
 
-            private static void CreateTombStone()
+            public static void CreateTombStone()
             {
                 Dbgl($"height {Player.m_localPlayer.m_tombstone.GetComponent<Container>().m_height}");
                 GameObject gameObject = Instantiate(Player.m_localPlayer.m_tombstone, Player.m_localPlayer.GetCenterPoint(), Player.m_localPlayer.transform.rotation);
@@ -403,9 +403,9 @@ namespace ExtendedPlayerInventory
         }
         
         [HarmonyPatch(typeof(InventoryGui), "Update")]
-        static class InventoryGui_Update_Patch
+        public static class InventoryGui_Update_Patch
         {
-            static void Postfix(InventoryGui __instance, Animator ___m_animator, InventoryGrid ___m_playerGrid)
+            public static void Postfix(InventoryGui __instance, Animator ___m_animator, InventoryGrid ___m_playerGrid)
             {
                 if (!modEnabled.Value || !Player.m_localPlayer)
                     return;
@@ -436,9 +436,9 @@ namespace ExtendedPlayerInventory
 
 
         [HarmonyPatch(typeof(InventoryGui), "UpdateInventory")]
-        static class UpdateInventory_Patch
+        public static class UpdateInventory_Patch
         {
-            static void Postfix(InventoryGrid ___m_playerGrid)
+            public static void Postfix(InventoryGrid ___m_playerGrid)
             {
                 if (!modEnabled.Value || !addEquipmentRow.Value)
                     return;
@@ -489,10 +489,10 @@ namespace ExtendedPlayerInventory
         }
         
         [HarmonyPatch(typeof(Inventory), "FindEmptySlot")]
-        static class FindEmptySlot_Patch
+        public static class FindEmptySlot_Patch
         {
 
-            static void Prefix(Inventory __instance, ref int ___m_height)
+            public static void Prefix(Inventory __instance, ref int ___m_height)
             {
                 if (!modEnabled.Value || !addEquipmentRow.Value || !Player.m_localPlayer || __instance != Player.m_localPlayer.GetInventory())
                     return;
@@ -500,7 +500,7 @@ namespace ExtendedPlayerInventory
 
                 ___m_height--;
             }
-            static void Postfix(Inventory __instance, ref int ___m_height)
+            public static void Postfix(Inventory __instance, ref int ___m_height)
             {
                 if (!modEnabled.Value || !addEquipmentRow.Value || !Player.m_localPlayer || __instance != Player.m_localPlayer.GetInventory())
                     return;
@@ -510,10 +510,10 @@ namespace ExtendedPlayerInventory
         }
         
         [HarmonyPatch(typeof(Inventory), "GetEmptySlots")]
-        static class GetEmptySlots_Patch
+        public static class GetEmptySlots_Patch
         {
 
-            static bool Prefix(Inventory __instance, ref int __result, List<ItemDrop.ItemData> ___m_inventory, int ___m_width, int ___m_height)
+            public static bool Prefix(Inventory __instance, ref int __result, List<ItemDrop.ItemData> ___m_inventory, int ___m_width, int ___m_height)
             {
                 if (!modEnabled.Value || !addEquipmentRow.Value || __instance != Player.m_localPlayer.GetInventory())
                     return true;
@@ -525,10 +525,10 @@ namespace ExtendedPlayerInventory
         }
 
         [HarmonyPatch(typeof(Inventory), "HaveEmptySlot")]
-        static class HaveEmptySlot_Patch
+        public static class HaveEmptySlot_Patch
         {
 
-            static bool Prefix(Inventory __instance, ref bool __result, List<ItemDrop.ItemData> ___m_inventory, int ___m_width, int ___m_height)
+            public static bool Prefix(Inventory __instance, ref bool __result, List<ItemDrop.ItemData> ___m_inventory, int ___m_width, int ___m_height)
             {
                 if (!modEnabled.Value || !addEquipmentRow.Value || ___m_inventory is null || __instance != Player.m_localPlayer?.GetInventory())
                     return true;
@@ -541,9 +541,9 @@ namespace ExtendedPlayerInventory
         }
         
         [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(ItemDrop.ItemData) })]
-        static class Inventory_AddItem_Patch1
+        public static class Inventory_AddItem_Patch1
         {
-            static bool Prefix(Inventory __instance, ref bool __result, List<ItemDrop.ItemData> ___m_inventory, ItemDrop.ItemData item)
+            public static bool Prefix(Inventory __instance, ref bool __result, List<ItemDrop.ItemData> ___m_inventory, ItemDrop.ItemData item)
             {
                 if (!modEnabled.Value || !addEquipmentRow.Value || !Player.m_localPlayer || __instance != Player.m_localPlayer.GetInventory())
                     return true;
@@ -566,9 +566,9 @@ namespace ExtendedPlayerInventory
 
 
         [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(int), typeof(int) })]
-        static class Inventory_AddItem_Patch2
+        public static class Inventory_AddItem_Patch2
         {
-            static void Prefix(Inventory __instance, ref int ___m_width, ref int ___m_height, int x, int y)
+            public static void Prefix(Inventory __instance, ref int ___m_width, ref int ___m_height, int x, int y)
             {
                 if (!modEnabled.Value)
                     return;
@@ -584,13 +584,13 @@ namespace ExtendedPlayerInventory
             }
         }
 
-        private static bool IsEquipmentSlotFree(Inventory inventory, ItemDrop.ItemData item, out int which)
+        public static bool IsEquipmentSlotFree(Inventory inventory, ItemDrop.ItemData item, out int which)
         {
             which = Array.IndexOf(typeEnums, item.m_shared.m_itemType);
             return which >= 0 && inventory.GetItemAt(which, inventory.GetHeight() - 1) == null;
         }
 
-        private static bool IsAtEquipmentSlot(Inventory inventory, ItemDrop.ItemData item, out int which)
+        public static bool IsAtEquipmentSlot(Inventory inventory, ItemDrop.ItemData item, out int which)
         {
             if (!addEquipmentRow.Value || item.m_gridPos.x > 4 || item.m_gridPos.y < inventory.GetHeight() - 1)
             {
@@ -602,10 +602,10 @@ namespace ExtendedPlayerInventory
         }
 
         [HarmonyPatch(typeof(Hud), "Awake")]
-        static class Hud_Awake_Patch
+        public static class Hud_Awake_Patch
         {
 
-            static void Postfix(Hud __instance)
+            public static void Postfix(Hud __instance)
             {
                 if (!modEnabled.Value || !addEquipmentRow.Value)
                     return;
@@ -622,18 +622,18 @@ namespace ExtendedPlayerInventory
             }
         }
 
-        private static Vector3 lastMousePos;
-        private static string currentlyDragging;
+        public static Vector3 lastMousePos;
+        public static string currentlyDragging;
 
         [HarmonyPatch(typeof(Hud), "Update")]
-        static class Hud_Update_Patch
+        public static class Hud_Update_Patch
         {
-            static void Postfix(Hud __instance)
+            public static void Postfix(Hud __instance)
             {
                 if (!modEnabled.Value || !addEquipmentRow.Value || Player.m_localPlayer == null)
                     return;
 
-                float gameScale = GameObject.Find("LoadingGUI").GetComponent<CanvasScaler>().scaleFactor;
+                float gameScale = __instance.GetComponent<CanvasScaler>().scaleFactor;
 
                 Vector3 mousePos = Input.mousePosition;
 
@@ -685,7 +685,7 @@ namespace ExtendedPlayerInventory
             }
         }
 
-        private static void SetElementPositions()
+        public static void SetElementPositions()
         {
             Transform hudRoot = Hud.instance.transform.Find("hudroot");
 
@@ -703,9 +703,9 @@ namespace ExtendedPlayerInventory
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

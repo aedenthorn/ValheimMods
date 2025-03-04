@@ -9,10 +9,10 @@ using UnityEngine.UI;
 
 namespace ConfigurationManager
 {
-    static class Patches
+    public static class Patches
     {
         const string OpenLogString = "Show Player.log";
-        private static GameObject OpenMenuButton { get; set; }
+        public static GameObject OpenMenuButton { get; set; }
 
         internal static void ApplyPatches()
         {
@@ -49,7 +49,7 @@ namespace ConfigurationManager
             OpenMenuButton.SetActive(BepInExPlugin._showMenuButton.Value);
         }
 
-        private static bool InputText(Console __instance)
+        public static bool InputText(Console __instance)
         {
             string text = __instance.m_input.text;
             if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
@@ -63,7 +63,7 @@ namespace ConfigurationManager
             return true;
         }
 
-        private static void Start()
+        public static void Start()
         {
             SetupMenuButton();
         }

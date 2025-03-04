@@ -13,7 +13,7 @@ namespace Durability
     [BepInPlugin("aedenthorn.Durability", "Durability", "0.7.0")]
     public class Durability : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<float> torchDurabilityDrain;
         public static ConfigEntry<float> weaponDurabilityLoss;
@@ -39,7 +39,7 @@ namespace Durability
             if (isDebug)
                 Debug.Log((pref ? typeof(Durability ).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             torchDurabilityDrain = Config.Bind<float>("Durability", "TorchDurabilityDrain", 0.033f, "Torch durability drain over time.");
             torchDurabilityLoss = Config.Bind<float>("Durability", "TorchDurabilityLoss", 1f, "Torch durability loss when used to attack.");
@@ -66,10 +66,10 @@ namespace Durability
         }
 
         [HarmonyPatch(typeof(ItemDrop), "Awake")]
-        static class ItemDrop_Patch
+        public static class ItemDrop_Patch
         {
 
-            static void Postfix(ItemDrop __instance)
+            public static void Postfix(ItemDrop __instance)
             {
                 if (modEnabled.Value && __instance.name != null && __instance.m_itemData?.m_shared != null)
                 {
@@ -109,9 +109,9 @@ namespace Durability
         }
 
         [HarmonyPatch(typeof(Player), "DamageArmorDurability")]
-        static class DamageArmorDurability_Patch
+        public static class DamageArmorDurability_Patch
         {
-            static void Prefix(Player __instance, ref float[] __state, ItemDrop.ItemData ___m_chestItem, ItemDrop.ItemData ___m_legItem, ItemDrop.ItemData ___m_shoulderItem, ItemDrop.ItemData ___m_helmetItem)
+            public static void Prefix(Player __instance, ref float[] __state, ItemDrop.ItemData ___m_chestItem, ItemDrop.ItemData ___m_legItem, ItemDrop.ItemData ___m_shoulderItem, ItemDrop.ItemData ___m_helmetItem)
             {
                 __state = new float[4];
                 if (modEnabled.Value)
@@ -122,7 +122,7 @@ namespace Durability
                     __state[3] = ___m_helmetItem?.m_durability ?? -1f;
                 }
             }
-            static void Postfix(Player __instance, float[] __state, ref ItemDrop.ItemData ___m_chestItem, ref ItemDrop.ItemData ___m_legItem, ref ItemDrop.ItemData ___m_shoulderItem, ref ItemDrop.ItemData ___m_helmetItem, HitData hit)
+            public static void Postfix(Player __instance, float[] __state, ref ItemDrop.ItemData ___m_chestItem, ref ItemDrop.ItemData ___m_legItem, ref ItemDrop.ItemData ___m_shoulderItem, ref ItemDrop.ItemData ___m_helmetItem, HitData hit)
             {
                 if (modEnabled.Value)
                 {
@@ -181,16 +181,16 @@ namespace Durability
         }
 
         [HarmonyPatch(typeof(Humanoid), "BlockAttack")]
-        static class BlockAttack_Patch
+        public static class BlockAttack_Patch
         {
-            static void Prefix(Humanoid __instance, ref float __state, ItemDrop.ItemData ___m_leftItem)
+            public static void Prefix(Humanoid __instance, ref float __state, ItemDrop.ItemData ___m_leftItem)
             {
                 if (modEnabled.Value && __instance.IsPlayer() && ___m_leftItem != null)
                 {
                     __state = ___m_leftItem.m_durability;
                 }
             }
-            static void Postfix(Humanoid __instance, float __state, ref ItemDrop.ItemData ___m_leftItem)
+            public static void Postfix(Humanoid __instance, float __state, ref ItemDrop.ItemData ___m_leftItem)
             {
                 if (modEnabled.Value && __instance.IsPlayer())
                 {
@@ -206,7 +206,7 @@ namespace Durability
 
 
         [HarmonyPatch(typeof(Attack), "DoAreaAttack")]
-        static class DoAreaAttack_Patch
+        public static class DoAreaAttack_Patch
         {
             public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {

@@ -9,8 +9,8 @@ namespace CombatMusic
     [BepInPlugin("aedenthorn.CombatMusic", "Combat Music", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -22,7 +22,7 @@ namespace CombatMusic
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -37,9 +37,9 @@ namespace CombatMusic
         }
 
         [HarmonyPatch(typeof(MusicMan), "HandleSailingMusic")]
-        static class MusicMan_HandleSailingMusic_Patch
+        public static class MusicMan_HandleSailingMusic_Patch
         {
-            static bool Prefix(MusicMan __instance, string currentMusic, ref bool __result)
+            public static bool Prefix(MusicMan __instance, string currentMusic, ref bool __result)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -56,9 +56,9 @@ namespace CombatMusic
         }
 
         [HarmonyPatch(typeof(MusicMan), "StartMusic", new Type[] { typeof(string) })]
-        static class MusicMan_StartMusic_Patch
+        public static class MusicMan_StartMusic_Patch
         {
-            static void Prefix(MusicMan __instance, string name)
+            public static void Prefix(MusicMan __instance, string name)
             {
                 if (!modEnabled.Value || name != "combat")
                     return;
@@ -67,9 +67,9 @@ namespace CombatMusic
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

@@ -9,7 +9,7 @@ namespace QuickCart
     [BepInPlugin("aedenthorn.QuickCart", "Quick Cart", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<bool> modEnabled;
@@ -17,14 +17,14 @@ namespace QuickCart
         public static ConfigEntry<bool> allowOutOfPlaceAttach;
         public static ConfigEntry<int> nexusID;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -40,7 +40,7 @@ namespace QuickCart
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses(true))
                 return;
@@ -69,9 +69,9 @@ namespace QuickCart
         }
 
         [HarmonyPatch(typeof(Vagon), "CanAttach")]
-        static class Vagon_CanAttach_Patch
+        public static class Vagon_CanAttach_Patch
         {
-            static bool Prefix(Vagon __instance, GameObject go, ref bool __result)
+            public static bool Prefix(Vagon __instance, GameObject go, ref bool __result)
             {
                 if (!modEnabled.Value || !allowOutOfPlaceAttach.Value || __instance.transform.up.y < 0.1f || go != Player.m_localPlayer.gameObject)
                     return true;
@@ -81,9 +81,9 @@ namespace QuickCart
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

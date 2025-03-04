@@ -113,7 +113,7 @@ namespace HuginQuestFramework
             }
         }
 
-        private static int GetItemValue(ItemDrop itemDrop)
+        public static int GetItemValue(ItemDrop itemDrop)
         {
             int value = itemDrop.m_itemData.m_shared.m_value;
             if (Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))
@@ -287,7 +287,7 @@ namespace HuginQuestFramework
             };
             return qd;
         }
-        private static void DeclineQuest()
+        public static void DeclineQuest()
         {
             Dbgl("Declining quest");
             currentText.m_topic = questDeclinedDialogue.Value;
@@ -295,7 +295,7 @@ namespace HuginQuestFramework
             questDialogueTransform.gameObject.SetActive(false);
         }
 
-        private static void AcceptQuest()
+        public static void AcceptQuest()
         {
             Dbgl("Accepting quest");
             currentText.m_topic = questAcceptedDialogue.Value;
@@ -384,7 +384,7 @@ namespace HuginQuestFramework
             }
         }
 
-        private static void UpdateQuestProgress(ref QuestData qd)
+        public static void UpdateQuestProgress(ref QuestData qd)
         {
             qd.name = ((string)qd.data["qname"]).Replace("{rewardAmount}", $"{qd.data["rewardAmount"]}").Replace("{amount}", $"{qd.data["amount"]}").Replace("{progress}", $"{qd.data["progress"]}");
             qd.desc = ((string)qd.data["qdesc"]).Replace("{rewardAmount}", $"{qd.data["rewardAmount"]}").Replace("{amount}", $"{qd.data["amount"]}").Replace("{progress}", $"{qd.data["progress"]}");

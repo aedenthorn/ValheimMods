@@ -10,8 +10,8 @@ namespace BuildingDamageMod
     [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.5.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
         
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<float> creatorDamageMult;
@@ -27,7 +27,7 @@ namespace BuildingDamageMod
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -44,9 +44,9 @@ namespace BuildingDamageMod
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -63,9 +63,9 @@ namespace BuildingDamageMod
             }
         }
         [HarmonyPatch(typeof(WearNTear), "RPC_HealthChanged")]
-        static class RPC_HealthChanged_Patch
+        public static class RPC_HealthChanged_Patch
         {
-            static bool Prefix(long peer, Piece ___m_piece)
+            public static bool Prefix(long peer, Piece ___m_piece)
             {
                 if (___m_piece is null)
                     return true;
@@ -84,9 +84,9 @@ namespace BuildingDamageMod
         }
         
         [HarmonyPatch(typeof(WearNTear), "RPC_Damage")]
-        static class RPC_Damage_Patch
+        public static class RPC_Damage_Patch
         {
-            static void Prefix(ref HitData hit, Piece ___m_piece)
+            public static void Prefix(ref HitData hit, Piece ___m_piece)
             {
                 if (!modEnabled.Value)
                     return;
@@ -115,7 +115,7 @@ namespace BuildingDamageMod
                 }
                 MultiplyDamage(ref hit, mult);
             }
-            private static void MultiplyDamage(ref HitData hit, float value)
+            public static void MultiplyDamage(ref HitData hit, float value)
             {
                 value = Math.Max(0, value);
                 hit.m_damage.m_damage *= value;
@@ -133,9 +133,9 @@ namespace BuildingDamageMod
         }
         
         [HarmonyPatch(typeof(WearNTear), "ApplyDamage")]
-        static class ApplyDamage_Patch
+        public static class ApplyDamage_Patch
         {
-            static void Prefix(ref float damage)
+            public static void Prefix(ref float damage)
             {
                 if (!modEnabled.Value || Environment.StackTrace.Contains("RPC_Damage"))
                     return;

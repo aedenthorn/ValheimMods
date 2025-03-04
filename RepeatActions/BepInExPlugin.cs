@@ -9,7 +9,7 @@ namespace RepeatActions
     [BepInPlugin("aedenthorn.RepeatActions", "Repeat Actions", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -25,15 +25,15 @@ namespace RepeatActions
         public static ConfigEntry<float> repeatTerrainModDelay;
         public static ConfigEntry<float> repeatBuildPlaceDelay;
 
-        private static bool wasSelecting = false;
-        private static float placeDelay;
+        public static bool wasSelecting = false;
+        public static float placeDelay;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -53,7 +53,7 @@ namespace RepeatActions
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-        private void Update()
+        public void Update()
         {
             if (!AedenthornUtils.IgnoreKeyPresses() && AedenthornUtils.CheckKeyDown(toggleModKey.Value))
             {
@@ -66,19 +66,19 @@ namespace RepeatActions
 
 
         [HarmonyPatch(typeof(Player), "Awake")]
-        static class Player_Awake_Patch
+        public static class Player_Awake_Patch
         {
 
-            static void Prefix(Player __instance)
+            public static void Prefix(Player __instance)
             {
                 placeDelay = __instance.m_placeDelay;
             }
         }
         
         [HarmonyPatch(typeof(Player), "UpdatePlacement")]
-        static class UpdatePlacement_Patch
+        public static class UpdatePlacement_Patch
         {
-            static void Prefix(Player __instance, float ___m_lastToolUseTime, ref float ___m_placePressedTime)
+            public static void Prefix(Player __instance, float ___m_lastToolUseTime, ref float ___m_placePressedTime)
             {
                 __instance.m_placeDelay = placeDelay;
                 
@@ -121,9 +121,9 @@ namespace RepeatActions
         }
 
         [HarmonyPatch(typeof(PlayerController), "FixedUpdate")]
-        static class FixedUpdate_Patch
+        public static class FixedUpdate_Patch
         {
-            static void Prefix(PlayerController __instance, ref bool ___m_attackWasPressed, Player ___m_character)
+            public static void Prefix(PlayerController __instance, ref bool ___m_attackWasPressed, Player ___m_character)
             {
                 if (!modEnabled.Value || !repeatAttacks.Value)
                     return;
@@ -136,9 +136,9 @@ namespace RepeatActions
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

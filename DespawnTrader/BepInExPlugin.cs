@@ -9,19 +9,19 @@ namespace DespawnTrader
     [BepInPlugin("aedenthorn.DespawnTrader", "Despawn Trader", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private static ConfigEntry<bool> modEnabled;
-        private static ConfigEntry<string> modKey;
-        private static ConfigEntry<string> despawnedMessage;
-        private static ConfigEntry<int> nexusID;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<string> modKey;
+        public static ConfigEntry<string> despawnedMessage;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -38,9 +38,9 @@ namespace DespawnTrader
         }
 
         [HarmonyPatch(typeof(Trader), "Interact")]
-        static class Trader_Interact_Patch
+        public static class Trader_Interact_Patch
         {
-            static bool Prefix(Trader __instance, Humanoid character, bool hold)
+            public static bool Prefix(Trader __instance, Humanoid character, bool hold)
             {
                 if (!hold && CheckKeyHeld(modKey.Value) && character.IsPlayer() && (character as Player).GetPlayerID() == Player.m_localPlayer.GetPlayerID())
                 {
@@ -56,7 +56,7 @@ namespace DespawnTrader
             }
         }
 
-        private static bool CheckKeyHeld(string value)
+        public static bool CheckKeyHeld(string value)
         {
             if (value == null || value.Length == 0)
                 return true;
@@ -72,9 +72,9 @@ namespace DespawnTrader
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

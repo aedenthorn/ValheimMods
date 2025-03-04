@@ -10,9 +10,9 @@ namespace ShowContainerContents
     [BepInPlugin("aedenthorn.ShowContainerContents", "Show Container Contents", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -39,7 +39,7 @@ namespace ShowContainerContents
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -60,7 +60,7 @@ namespace ShowContainerContents
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
@@ -68,9 +68,9 @@ namespace ShowContainerContents
 
         /*
         [HarmonyPatch(typeof(Hud), "UpdateCrosshair")]
-        static class Hud_UpdateCrosshair_Patch
+        public static class Hud_UpdateCrosshair_Patch
         {
-            static void Prefix(Hud __instance, Player player)
+            public static void Prefix(Hud __instance, Player player)
             {
                 if (!modEnabled.Value || TextViewer.instance?.IsVisible() == true)
                     return;
@@ -102,9 +102,9 @@ namespace ShowContainerContents
         */
 
         [HarmonyPatch(typeof(Container), "GetHoverText")]
-        static class GetHoverText_Patch
+        public static class GetHoverText_Patch
         {
-            static void Postfix(Container __instance, ref string __result)
+            public static void Postfix(Container __instance, ref string __result)
             {
                 if (!modEnabled.Value || (__instance.m_checkGuardStone && !PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false)) || __instance.GetInventory().NrOfItems() == 0)
                     return;
@@ -156,9 +156,9 @@ namespace ShowContainerContents
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

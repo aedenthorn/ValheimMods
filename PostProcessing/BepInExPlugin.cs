@@ -10,26 +10,26 @@ namespace PostProcessing
     [BepInPlugin("aedenthorn.PostProcessing", "Post Processing", "0.1.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static bool defaultPostProcessingSet = false;
-        private static VignetteModel.Settings defaultVignetteSettings;
-        private static bool defaultVignetteEnabled;
-        private static BloomModel.Settings defaultBloomSettings;
-        private static EyeAdaptationModel.Settings defaultEyeAdaptSettings;
-        private static bool defaultEyeAdaptEnabled;
-        private static MotionBlurModel.Settings defaultMotionBlurSettings;
-        private static DepthOfFieldModel.Settings defaultDepthOfFieldSettings;
-        private static ColorGradingModel.Settings defaultColorGradingSettings;
-        private static AmbientOcclusionModel.Settings defaultAOSettings;
-        private static ChromaticAberrationModel.Settings defaultCASettings;
-        private static ScreenSpaceReflectionModel.Settings defaultSSRSettings;
-        private static bool defaultSSREnabled;
+        public static bool defaultPostProcessingSet = false;
+        public static VignetteModel.Settings defaultVignetteSettings;
+        public static bool defaultVignetteEnabled;
+        public static BloomModel.Settings defaultBloomSettings;
+        public static EyeAdaptationModel.Settings defaultEyeAdaptSettings;
+        public static bool defaultEyeAdaptEnabled;
+        public static MotionBlurModel.Settings defaultMotionBlurSettings;
+        public static DepthOfFieldModel.Settings defaultDepthOfFieldSettings;
+        public static ColorGradingModel.Settings defaultColorGradingSettings;
+        public static AmbientOcclusionModel.Settings defaultAOSettings;
+        public static ChromaticAberrationModel.Settings defaultCASettings;
+        public static ScreenSpaceReflectionModel.Settings defaultSSRSettings;
+        public static bool defaultSSREnabled;
 
-        private static bool defaultAASet = false;
-        private static AntialiasingModel.Settings defaultAATaaSettings;
-        private static AntialiasingModel.Settings defaultAAFxaaSettings;
+        public static bool defaultAASet = false;
+        public static AntialiasingModel.Settings defaultAATaaSettings;
+        public static AntialiasingModel.Settings defaultAAFxaaSettings;
 
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -144,7 +144,7 @@ namespace PostProcessing
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("_General", "Enabled", true, "Enable this mod");
@@ -255,7 +255,7 @@ namespace PostProcessing
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), MetadataHelper.GetMetadata(this).GUID);
         }
 
-        private void Update()
+        public void Update()
         {
             if (AedenthornUtils.CheckKeyDown(hotKey.Value))
             {
@@ -264,10 +264,10 @@ namespace PostProcessing
         }
 
         [HarmonyPatch(typeof(PostProcessingBehaviour), "OnEnable")]
-        static class PostProcessingBehaviour_OnEnable_Patch
+        public static class PostProcessingBehaviour_OnEnable_Patch
         {
 
-            static void Prefix(PostProcessingBehaviour __instance)
+            public static void Prefix(PostProcessingBehaviour __instance)
             {
                 if (__instance.profile != null && !defaultPostProcessingSet)
                 {
@@ -289,9 +289,9 @@ namespace PostProcessing
             }
         }
         [HarmonyPatch(typeof(PostProcessingBehaviour), "OnPreCull")]
-        static class PostProcessingBehaviour_OnPreCull_Patch
+        public static class PostProcessingBehaviour_OnPreCull_Patch
         {
-            static void Postfix(ref VignetteComponent ___m_Vignette, ref BloomComponent ___m_Bloom, ref EyeAdaptationComponent ___m_EyeAdaptation, ref DepthOfFieldComponent ___m_DepthOfField, ref MotionBlurComponent ___m_MotionBlur, ref ColorGradingComponent ___m_ColorGrading, ref TaaComponent ___m_Taa, ref FxaaComponent ___m_Fxaa, ref AmbientOcclusionComponent ___m_AmbientOcclusion, ref ChromaticAberrationComponent ___m_ChromaticAberration, ref ScreenSpaceReflectionComponent ___m_ScreenSpaceReflection)
+            public static void Postfix(ref VignetteComponent ___m_Vignette, ref BloomComponent ___m_Bloom, ref EyeAdaptationComponent ___m_EyeAdaptation, ref DepthOfFieldComponent ___m_DepthOfField, ref MotionBlurComponent ___m_MotionBlur, ref ColorGradingComponent ___m_ColorGrading, ref TaaComponent ___m_Taa, ref FxaaComponent ___m_Fxaa, ref AmbientOcclusionComponent ___m_AmbientOcclusion, ref ChromaticAberrationComponent ___m_ChromaticAberration, ref ScreenSpaceReflectionComponent ___m_ScreenSpaceReflection)
             {
                 if (modEnabled.Value && customVignette.Value)
                 {

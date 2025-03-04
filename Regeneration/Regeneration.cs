@@ -10,7 +10,7 @@ namespace Regeneration
     [BepInPlugin("aedenthorn.Regeneration", "Regeneration", "0.4.1")]
     public class Regeneration : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<float> staminaLossMult;
         public static ConfigEntry<float> sneakStaminaLoss;
@@ -42,7 +42,7 @@ namespace Regeneration
             if (isDebug)
                 Debug.Log((pref ? typeof(Regeneration).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             staminaLossMult = Config.Bind<float>("Options", "StaminaLossMult", 1f, "General stamina loss multiplier (affects all stamina loss).");
 
@@ -79,9 +79,9 @@ namespace Regeneration
 
 
         [HarmonyPatch(typeof(Player), "UpdateFood")]
-        static class UpdateFood_Patch
+        public static class UpdateFood_Patch
         {
-            static void Prefix(float dt, bool forceUpdate, ref float ___m_foodRegenTimer)
+            public static void Prefix(float dt, bool forceUpdate, ref float ___m_foodRegenTimer)
             {
                 if (modEnabled.Value && !forceUpdate)
                 {
@@ -91,9 +91,9 @@ namespace Regeneration
         }
 
         [HarmonyPatch(typeof(Player), "UpdateStats", new Type[] { typeof(float) })]
-        static class UpdateStats_Patch
+        public static class UpdateStats_Patch
         {
-            static void Prefix(Player __instance, ref float __state, float ___m_stamina, ref float ___m_staminaRegenTimer, ref float ___m_eiterRegen)
+            public static void Prefix(Player __instance, ref float __state, float ___m_stamina, ref float ___m_staminaRegenTimer, ref float ___m_eiterRegen)
             {
                 if (modEnabled.Value)
                 {
@@ -113,7 +113,7 @@ namespace Regeneration
                     __state = ___m_stamina;
                 }
             }
-            static void Postfix(Player __instance, float __state, ref float ___m_stamina)
+            public static void Postfix(Player __instance, float __state, ref float ___m_stamina)
             {
                 if (modEnabled.Value)
                 {
@@ -126,16 +126,16 @@ namespace Regeneration
         }
         
         [HarmonyPatch(typeof(Player), "UpdatePlacement")]
-        static class UpdatePlacement_Patch
+        public static class UpdatePlacement_Patch
         {
-            static void Prefix(Player __instance, ref float __state, float ___m_stamina)
+            public static void Prefix(Player __instance, ref float __state, float ___m_stamina)
             {
                 if (modEnabled.Value)
                 {
                     __state = ___m_stamina;
                 }
             }
-            static void Postfix(Player __instance, float __state, ref float ___m_stamina)
+            public static void Postfix(Player __instance, float __state, ref float ___m_stamina)
             {
                 if (modEnabled.Value)
                 {
@@ -149,9 +149,9 @@ namespace Regeneration
 
 
         [HarmonyPatch(typeof(FishingFloat), "Awake")]
-        static class FishingFloat_Awake_Patch
+        public static class FishingFloat_Awake_Patch
         {
-            static void Postfix(ref FishingFloat __instance)
+            public static void Postfix(ref FishingFloat __instance)
             {
                 if (modEnabled.Value)
                 {
@@ -162,9 +162,9 @@ namespace Regeneration
 
 
         [HarmonyPatch(typeof(Player), nameof(Player.UseStamina))]
-        static class UseStamina_Patch
+        public static class UseStamina_Patch
         {
-            static void Prefix(ref float v)
+            public static void Prefix(ref float v)
             {
                 if (modEnabled.Value)
                 {
@@ -174,9 +174,9 @@ namespace Regeneration
         }
 
         [HarmonyPatch(typeof(Character), nameof(Character.Heal))]
-        static class Heal_Patch
+        public static class Heal_Patch
         {
-            static void Prefix(Character __instance, ref float hp)
+            public static void Prefix(Character __instance, ref float hp)
             {
                 if (modEnabled.Value && __instance.IsPlayer())
                 {

@@ -13,7 +13,7 @@ namespace DiscardInventoryItem
     [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard or Recycle Inventory Items", "1.0.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<bool> modEnabled;
@@ -22,15 +22,15 @@ namespace DiscardInventoryItem
         public static ConfigEntry<float> returnResources;
         public static ConfigEntry<int> nexusID;
 
-        private static BepInExPlugin context;
-        private static Assembly epicLootAssembly;
+        public static BepInExPlugin context;
+        public static Assembly epicLootAssembly;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -46,7 +46,7 @@ namespace DiscardInventoryItem
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-        private void Start()
+        public void Start()
         {
             if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.epicloot"))
                 epicLootAssembly = Chainloader.PluginInfos["randyknapp.mods.epicloot"].Instance.GetType().Assembly;
@@ -54,9 +54,9 @@ namespace DiscardInventoryItem
         }
 
         [HarmonyPatch(typeof(InventoryGui), "UpdateItemDrag")]
-        static class UpdateItemDrag_Patch
+        public static class UpdateItemDrag_Patch
         {
-            static void Postfix(InventoryGui __instance, ItemDrop.ItemData ___m_dragItem, Inventory ___m_dragInventory, int ___m_dragAmount, ref GameObject ___m_dragGo)
+            public static void Postfix(InventoryGui __instance, ItemDrop.ItemData ___m_dragItem, Inventory ___m_dragInventory, int ___m_dragAmount, ref GameObject ___m_dragGo)
             {
                 if (!modEnabled.Value || !Input.GetKeyDown(hotKey.Value) || ___m_dragItem == null || !___m_dragInventory.ContainsItem(___m_dragItem))
                     return;
@@ -148,9 +148,9 @@ namespace DiscardInventoryItem
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

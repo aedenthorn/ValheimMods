@@ -15,9 +15,9 @@ namespace AmmoCount
     [BepInPlugin("aedenthorn.AmmoCount", "Ammo Count", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -42,7 +42,7 @@ namespace AmmoCount
             if (isDebug)
                 context.Logger.Log(LogLevel.Info, (pref ? typeof(BepInExPlugin).Namespace + " " : "") + obj?.ToString());
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -78,17 +78,17 @@ namespace AmmoCount
             harmony.PatchAll();
         }
         
-        private void SettingChanged(object sender, EventArgs e)
+        public void SettingChanged(object sender, EventArgs e)
         {
             reset = true;
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
-        private static TMP_FontAsset GetFont(string fontName, int fontSize)
+        public static TMP_FontAsset GetFont(string fontName, int fontSize)
         {
             try
             {
@@ -108,9 +108,9 @@ namespace AmmoCount
             
         }
         [HarmonyPatch(typeof(HotkeyBar), "Update")]
-        static class HotkeyBar_Update_Patch
+        public static class HotkeyBar_Update_Patch
         {
-            static void Postfix(HotkeyBar __instance, List<ItemDrop.ItemData> ___m_items)
+            public static void Postfix(HotkeyBar __instance, List<ItemDrop.ItemData> ___m_items)
             {
                 if (!modEnabled.Value || !Player.m_localPlayer)
                     return;
@@ -174,7 +174,7 @@ namespace AmmoCount
                     CheckAmmo(___m_items[i], t.gameObject);
                 }
             }
-            private static void CheckAmmo(ItemDrop.ItemData itemData, GameObject go)
+            public static void CheckAmmo(ItemDrop.ItemData itemData, GameObject go)
             {
                 if (string.IsNullOrEmpty(itemData.m_shared.m_ammoType) || itemData.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Ammo)
                 {
@@ -198,7 +198,7 @@ namespace AmmoCount
 
                 }
             }
-            private static ItemDrop.ItemData FindAmmo(ItemDrop.ItemData weapon)
+            public static ItemDrop.ItemData FindAmmo(ItemDrop.ItemData weapon)
             {
                 if (string.IsNullOrEmpty(weapon.m_shared.m_ammoType))
                 {
@@ -218,9 +218,9 @@ namespace AmmoCount
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

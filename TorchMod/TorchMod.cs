@@ -10,8 +10,8 @@ namespace TorchMod
 
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin  context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin  context;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
@@ -102,7 +102,7 @@ namespace TorchMod
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin ).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -199,10 +199,10 @@ namespace TorchMod
         }
 
         [HarmonyPatch(typeof(VisEquipment), "AttachItem")]
-        static class AttachItem_Patch
+        public static class AttachItem_Patch
         {
 
-            static void Postfix(VisEquipment __instance, GameObject __result, int itemHash, int ___m_currentRightItemHash, int ___m_currentLeftItemHash)
+            public static void Postfix(VisEquipment __instance, GameObject __result, int itemHash, int ___m_currentRightItemHash, int ___m_currentLeftItemHash)
             {
                 if (!modEnabled.Value || __result == null || !__instance.m_isPlayer)
                     return;
@@ -237,9 +237,9 @@ namespace TorchMod
 
 
         [HarmonyPatch(typeof(VisEquipment), "SetHelmetEquipped")]
-        static class VisEquipment_SetHelmetEquipped_Patch
+        public static class VisEquipment_SetHelmetEquipped_Patch
         {
-            static void Postfix(bool __result, string ___m_helmetItem, GameObject ___m_helmetItemInstance)
+            public static void Postfix(bool __result, string ___m_helmetItem, GameObject ___m_helmetItemInstance)
             {
                 if (!__result || ___m_helmetItem == null)
                     return;
@@ -270,10 +270,10 @@ namespace TorchMod
         }
 
         [HarmonyPatch(typeof(Fireplace), "Start")]
-        static class Fireplace_Patch
+        public static class Fireplace_Patch
         {
 
-            static void Postfix(Fireplace __instance)
+            public static void Postfix(Fireplace __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -400,9 +400,9 @@ namespace TorchMod
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

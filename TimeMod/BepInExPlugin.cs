@@ -12,8 +12,8 @@ namespace TimeMod
     [BepInPlugin("aedenthorn.TimeMod", "Time Mod", "0.8.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<string> m_pauseKey;
         public static ConfigEntry<string> m_speedUpKey;
@@ -37,7 +37,7 @@ namespace TimeMod
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         } 
-        private void Awake()
+        public void Awake()
         {
             context = this;
             m_pauseKey = Config.Bind<string>("General", "PauseKey", "pause", "The hotkey to pause the game");
@@ -58,7 +58,7 @@ namespace TimeMod
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-        private void Update()
+        public void Update()
         {
             if (ZNetScene.instance == null || Console.IsVisible() || Chat.instance?.HasFocus() == true)
                 return;
@@ -161,7 +161,7 @@ namespace TimeMod
 
         }
 
-        private bool CheckKeyDown(string value)
+        public bool CheckKeyDown(string value)
         {
             try
             {
@@ -173,13 +173,13 @@ namespace TimeMod
             }
         }
 
-        private static Image image;
+        public static Image image;
 
         [HarmonyPatch(typeof(Menu), "Update")]
-        static class Menu_Update_Patch
+        public static class Menu_Update_Patch
         {
 
-            static void Prefix(Menu __instance)
+            public static void Prefix(Menu __instance)
             {
 
                 if (pauseOnMenu.Value && Time.timeScale > 0 && !(bool)typeof(Game).GetField("m_shuttingDown", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Game.instance) && __instance.m_root.gameObject.activeSelf && !wasActive)
@@ -211,7 +211,7 @@ namespace TimeMod
             }
         }
 
-        private static IEnumerator SnapPhoto(bool menuPause)
+        public static IEnumerator SnapPhoto(bool menuPause)
         {
             yield return new WaitForEndOfFrame();
 
@@ -245,51 +245,51 @@ namespace TimeMod
 
         
         [HarmonyPatch(typeof(PlayerController), "LateUpdate")]
-        static class PlayerController_LateUpdate_Patch
+        public static class PlayerController_LateUpdate_Patch
         {
-            static bool Prefix()
+            public static bool Prefix()
             {
                 return (!modEnabled.Value || Time.timeScale != 0 || !stopRenderingOnKeyPause.Value || Utils.GetMainCamera() != null);
             }
         }
         [HarmonyPatch(typeof(DamageText), "LateUpdate")]
-        static class DamageText_LateUpdate_Patch
+        public static class DamageText_LateUpdate_Patch
         {
-            static bool Prefix()
+            public static bool Prefix()
             {
                 return (!modEnabled.Value || Utils.GetMainCamera() != null);
             }
         }
         [HarmonyPatch(typeof(Chat), "LateUpdate")]
-        static class Chat_LateUpdate_Patch
+        public static class Chat_LateUpdate_Patch
         {
-            static bool Prefix()
+            public static bool Prefix()
             {
                 return (!modEnabled.Value || Utils.GetMainCamera() != null);
             }
         }
 
         [HarmonyPatch(typeof(Menu), "OnLogoutYes")]
-        static class Menu_OnLogout_Patch
+        public static class Menu_OnLogout_Patch
         {
-            static void Prefix()
+            public static void Prefix()
             {
                 Time.timeScale = 1;
             }
         }
         [HarmonyPatch(typeof(Menu), "OnQuitYes")]
-        static class Menu_OnQuitYes_Patch
+        public static class Menu_OnQuitYes_Patch
         {
-            static void Prefix()
+            public static void Prefix()
             {
                 Time.timeScale = 1;
             }
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

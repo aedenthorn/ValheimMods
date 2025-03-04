@@ -11,8 +11,8 @@ namespace MiningMod
     [BepInPlugin("aedenthorn.MiningMod", "Mining Mod", "0.8.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = false;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = false;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<float> damageMult;
@@ -32,7 +32,7 @@ namespace MiningMod
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -53,12 +53,12 @@ namespace MiningMod
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private static string dropTableObject = "";
+        public static string dropTableObject = "";
 
         [HarmonyPatch(typeof(DropOnDestroyed), "Awake")]
-        static class DropOnDestroyed_Awake_Patch
+        public static class DropOnDestroyed_Awake_Patch
         {
-            static void Postfix(ref DropOnDestroyed __instance)
+            public static void Postfix(ref DropOnDestroyed __instance)
             {
                 if (__instance.gameObject.name.Contains("Rock"))
                 {
@@ -70,21 +70,21 @@ namespace MiningMod
             }
         }
         [HarmonyPatch(typeof(DropOnDestroyed), "OnDestroyed")]
-        static class DropOnDestroyed_OnDestroyed_Patch
+        public static class DropOnDestroyed_OnDestroyed_Patch
         {
-            static void Prefix(ref DropOnDestroyed __instance)
+            public static void Prefix(ref DropOnDestroyed __instance)
             {
                 dropTableObject = __instance.gameObject.name;
             }
-            static void Postfix(ref DropOnDestroyed __instance)
+            public static void Postfix(ref DropOnDestroyed __instance)
             {
                 dropTableObject = "";
             }
         }
         [HarmonyPatch(typeof(MineRock), "Start", new Type[] { })]
-        static class MineRock_Start_Patch
+        public static class MineRock_Start_Patch
         {
-            static void Postfix(ref MineRock __instance)
+            public static void Postfix(ref MineRock __instance)
             {
                 __instance.m_dropItems.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropItems.m_dropMin);
                 __instance.m_dropItems.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropItems.m_dropMax);
@@ -93,9 +93,9 @@ namespace MiningMod
             }
         }
         [HarmonyPatch(typeof(MineRock5), "Awake", new Type[] { })]
-        static class MineRock5_Start_Patch
+        public static class MineRock5_Start_Patch
         {
-            static void Postfix(ref MineRock5 __instance)
+            public static void Postfix(ref MineRock5 __instance)
             {
                 __instance.m_dropItems.m_dropMin = Mathf.RoundToInt(dropMinMult.Value * __instance.m_dropItems.m_dropMin);
                 __instance.m_dropItems.m_dropMax = Mathf.RoundToInt(dropMaxMult.Value * __instance.m_dropItems.m_dropMax);
@@ -103,9 +103,9 @@ namespace MiningMod
             }
         }
         [HarmonyPatch(typeof(DropTable), "GetDropList", new Type[] { })]
-        static class DropTable_GetDropList_Patch
+        public static class DropTable_GetDropList_Patch
         {
-            static void Postfix(ref List<GameObject> __result)
+            public static void Postfix(ref List<GameObject> __result)
             {
                 if (Environment.StackTrace.Contains("MineRock") || (Environment.StackTrace.Contains("DropOnDestroyed") && dropTableObject.Contains("Rock")))
                 {
@@ -173,9 +173,9 @@ namespace MiningMod
             }
         }
         //[HarmonyPatch(typeof(DropTable), "GetDropList", new Type[] {typeof(int) })]
-        static class DropTable_GetDropList_Patch2
+        public static class DropTable_GetDropList_Patch2
         {
-            static void Prefix(ref int amount)
+            public static void Prefix(ref int amount)
             {
                 if (Environment.StackTrace.Contains("MineRock") || (Environment.StackTrace.Contains("DropOnDestroyed") && dropTableObject.Contains("Rock")))
                 {
@@ -186,9 +186,9 @@ namespace MiningMod
         }
 
         [HarmonyPatch(typeof(MineRock), "Damage")]
-        static class MineRock_Damage_Patch
+        public static class MineRock_Damage_Patch
         {
-            static void Prefix(MineRock __instance, ref HitData hit)
+            public static void Prefix(MineRock __instance, ref HitData hit)
             {
                 Dbgl($"Damaging {__instance.gameObject.name}");
                 hit.m_damage.m_pickaxe *= damageMult.Value;
@@ -198,9 +198,9 @@ namespace MiningMod
             }
         }
         [HarmonyPatch(typeof(MineRock5), "Damage")]
-        static class MineRock5_Damage_Patch
+        public static class MineRock5_Damage_Patch
         {
-            static void Prefix(MineRock5 __instance, ref HitData hit)
+            public static void Prefix(MineRock5 __instance, ref HitData hit)
             {
                 Dbgl($"Damaging {__instance.gameObject.name}");
 
@@ -211,9 +211,9 @@ namespace MiningMod
             }
         }
         [HarmonyPatch(typeof(Destructible), "Damage")]
-        static class DropOnDestroyed_Damage_Patch
+        public static class DropOnDestroyed_Damage_Patch
         {
-            static void Prefix(Destructible __instance, ref HitData hit)
+            public static void Prefix(Destructible __instance, ref HitData hit)
             {
                 if (__instance.GetComponent<DropOnDestroyed>() && __instance.gameObject.name.Contains("Rock"))
                 {
@@ -228,9 +228,9 @@ namespace MiningMod
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

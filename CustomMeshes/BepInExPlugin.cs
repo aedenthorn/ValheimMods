@@ -15,10 +15,10 @@ namespace CustomMeshes
     [BepInPlugin("aedenthorn.CustomMeshes", "Custom Meshes", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static Dictionary<string, Dictionary<string, Dictionary<string, CustomMeshData>>> customMeshes = new Dictionary<string, Dictionary<string, Dictionary<string, CustomMeshData>>>();
-        private static Dictionary<string, AssetBundle> customAssetBundles = new Dictionary<string, AssetBundle>();
-        private static Dictionary<string, Dictionary<string, Dictionary<string, GameObject>>> customGameObjects = new Dictionary<string, Dictionary<string, Dictionary<string, GameObject>>>();
-        private static BepInExPlugin context;
+        public static Dictionary<string, Dictionary<string, Dictionary<string, CustomMeshData>>> customMeshes = new Dictionary<string, Dictionary<string, Dictionary<string, CustomMeshData>>>();
+        public static Dictionary<string, AssetBundle> customAssetBundles = new Dictionary<string, AssetBundle>();
+        public static Dictionary<string, Dictionary<string, Dictionary<string, GameObject>>> customGameObjects = new Dictionary<string, Dictionary<string, Dictionary<string, GameObject>>>();
+        public static BepInExPlugin context;
 
         public static ConfigEntry<int> nexusID;
         public static ConfigEntry<bool> modEnabled;
@@ -31,7 +31,7 @@ namespace CustomMeshes
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -47,20 +47,20 @@ namespace CustomMeshes
 
         }
 
-        private void Update()
+        public void Update()
         {
             if (Input.GetKeyDown(KeyCode.U))
             {
             }
         }
 
-        private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
+        public void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
         {
             PreloadMeshes();
         }
 
 
-        private static void PreloadMeshes()
+        public static void PreloadMeshes()
         {
             foreach (AssetBundle ab in customAssetBundles.Values)
                 ab.Unload(true);
@@ -177,7 +177,7 @@ namespace CustomMeshes
                 }
             }
         }
-        private static string GetPrefabName(string name)
+        public static string GetPrefabName(string name)
         {
             char[] anyOf = new char[] { '(', ' ' };
             int num = name.IndexOfAny(anyOf);
@@ -190,9 +190,9 @@ namespace CustomMeshes
         }
 
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        static class ZNetScene_Awake_Patch
+        public static class ZNetScene_Awake_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
 
 
@@ -200,9 +200,9 @@ namespace CustomMeshes
         }
 
         [HarmonyPatch(typeof(ItemDrop), "Awake")]
-        static class ItemDrop_Patch
+        public static class ItemDrop_Patch
         {
-            static void Postfix(ItemDrop __instance)
+            public static void Postfix(ItemDrop __instance)
             {
                 string name = __instance.m_itemData?.m_dropPrefab?.name;
                 if (name != null && customMeshes.ContainsKey(name))
@@ -245,9 +245,9 @@ namespace CustomMeshes
         }
 
         [HarmonyPatch(typeof(Piece), "Awake")]
-        static class Piece_Patch
+        public static class Piece_Patch
         {
-            static void Postfix(Piece __instance)
+            public static void Postfix(Piece __instance)
             {
                 string name = GetPrefabName(__instance.gameObject.name);
                 MeshFilter[] mfs = __instance.gameObject.GetComponentsInChildren<MeshFilter>(true);
@@ -268,7 +268,7 @@ namespace CustomMeshes
             }
         }
 
-        private static Transform RecursiveFind(Transform parent, string childName)
+        public static Transform RecursiveFind(Transform parent, string childName)
         {
             Transform child = null;
             for (int i = 0; i < parent.childCount; i++)
@@ -284,9 +284,9 @@ namespace CustomMeshes
         }
 
         [HarmonyPatch(typeof(VisEquipment), "Awake")]
-        static class Awake_Patch
+        public static class Awake_Patch
         {
-            static void Postfix(VisEquipment __instance)
+            public static void Postfix(VisEquipment __instance)
             {
                 Dbgl($"Vis Awake .");
 
@@ -337,9 +337,9 @@ namespace CustomMeshes
             }
         }
         [HarmonyPatch(typeof(InventoryGui), "SetupDragItem")]
-        static class SetupDragItem_Patch
+        public static class SetupDragItem_Patch
         {
-            static void Postfix(ItemDrop.ItemData item)
+            public static void Postfix(ItemDrop.ItemData item)
             {
                 if (item == null)
                     return;
@@ -352,9 +352,9 @@ namespace CustomMeshes
             }
         }
         [HarmonyPatch(typeof(Player), "Awake")]
-        static class Player_Awake_Patch
+        public static class Player_Awake_Patch
         {
-            static void Postfix(Player __instance)
+            public static void Postfix(Player __instance)
             {
                 return;
                 Dbgl($"Player awake.");
@@ -427,9 +427,9 @@ namespace CustomMeshes
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

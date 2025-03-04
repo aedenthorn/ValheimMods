@@ -10,34 +10,34 @@ namespace CustomContainerSizes
     [BepInPlugin("aedenthorn.CustomContainerSizes", "Custom Container Sizes", "0.8.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
 
-        private static ConfigEntry<bool> modEnabled;
-        private static ConfigEntry<int> chestWidth;
-        private static ConfigEntry<int> chestHeight;
-        private static ConfigEntry<int> vikingShipChestWidth;
-        private static ConfigEntry<int> vikingShipChestHeight;
-        private static ConfigEntry<int> drakkarShipChestWidth;
-        private static ConfigEntry<int> drakkarShipChestHeight;
-        private static ConfigEntry<int> privateChestWidth;
-        private static ConfigEntry<int> privateChestHeight;
-        private static ConfigEntry<int> reinforcedChestWidth;
-        private static ConfigEntry<int> reinforcedChestHeight;
-        private static ConfigEntry<int> blackMetalChestWidth;
-        private static ConfigEntry<int> blackMetalChestHeight;
-        private static ConfigEntry<int> karveChestWidth;
-        private static ConfigEntry<int> karveChestHeight;
-        private static ConfigEntry<int> wagonWidth;
-        private static ConfigEntry<int> wagonHeight;
-        private static ConfigEntry<int> nexusID;
+        public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<int> chestWidth;
+        public static ConfigEntry<int> chestHeight;
+        public static ConfigEntry<int> vikingShipChestWidth;
+        public static ConfigEntry<int> vikingShipChestHeight;
+        public static ConfigEntry<int> drakkarShipChestWidth;
+        public static ConfigEntry<int> drakkarShipChestHeight;
+        public static ConfigEntry<int> privateChestWidth;
+        public static ConfigEntry<int> privateChestHeight;
+        public static ConfigEntry<int> reinforcedChestWidth;
+        public static ConfigEntry<int> reinforcedChestHeight;
+        public static ConfigEntry<int> blackMetalChestWidth;
+        public static ConfigEntry<int> blackMetalChestHeight;
+        public static ConfigEntry<int> karveChestWidth;
+        public static ConfigEntry<int> karveChestHeight;
+        public static ConfigEntry<int> wagonWidth;
+        public static ConfigEntry<int> wagonHeight;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -50,8 +50,8 @@ namespace CustomContainerSizes
             vikingShipChestHeight = Config.Bind<int>("Sizes", "VikingShipChestHeight", 3, "Number of items tall for longship chest containers");
             drakkarShipChestWidth = Config.Bind<int>("Sizes", "DrakkarShipChestWidth", 8, "Number of items wide for Drakkar chest containers (max. 8)");
             drakkarShipChestHeight = Config.Bind<int>("Sizes", "DrakkarShipChestHeight", 4, "Number of items tall for Drakkar chest containers");
-            privateChestWidth = Config.Bind<int>("Sizes", "PrivateChestWidth", 3, "Number of items wide for private chest containers (max. 8)");
-            privateChestHeight = Config.Bind<int>("Sizes", "PrivateChestHeight", 2, "Number of items tall for private chest containers");
+            privateChestWidth = Config.Bind<int>("Sizes", "PrivateChestWidth", 3, "Number of items wide for public chest containers (max. 8)");
+            privateChestHeight = Config.Bind<int>("Sizes", "PrivateChestHeight", 2, "Number of items tall for public chest containers");
             reinforcedChestWidth = Config.Bind<int>("Sizes", "ReinforcedChestWidth", 6, "Number of items wide for reinforced chest containers (max. 8)");
             reinforcedChestHeight = Config.Bind<int>("Sizes", "ReinforcedChestHeight", 4, "Number of items tall for reinforced chest containers");
             blackMetalChestWidth = Config.Bind<int>("Sizes", "BlackMetalChestWidth", 8, "Number of items wide for black metal chest containers (max. 8)");
@@ -77,9 +77,9 @@ namespace CustomContainerSizes
         }
 
         [HarmonyPatch(typeof(Container), "Awake")]
-        static class Container_Awake_Patch
+        public static class Container_Awake_Patch
         {
-            static void Postfix(Container __instance, Inventory ___m_inventory)
+            public static void Postfix(Container __instance, Inventory ___m_inventory)
             {
                 if (___m_inventory == null)
                     return;
@@ -128,7 +128,7 @@ namespace CustomContainerSizes
                 }
                 else if (__instance.name.StartsWith("piece_chest_private("))
                 {
-                    Dbgl($"setting private chest size to {privateChestWidth.Value},{privateChestHeight.Value}");
+                    Dbgl($"setting public chest size to {privateChestWidth.Value},{privateChestHeight.Value}");
 
                     typeof(Inventory).GetField("m_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, privateChestWidth.Value);
                     typeof(Inventory).GetField("m_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(___m_inventory, privateChestHeight.Value);
@@ -151,9 +151,9 @@ namespace CustomContainerSizes
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

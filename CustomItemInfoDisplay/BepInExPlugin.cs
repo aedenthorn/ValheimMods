@@ -12,22 +12,22 @@ namespace CustomItemInfoDisplay
     [BepInPlugin("aedenthorn.CustomItemInfoDisplay", "Custom Item Info Display", "0.5.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
 
-        private static string assetPath;
-        private static string[] baseTemplate;
-        private static Dictionary<ItemDrop.ItemData.ItemType, string[]> typeTemplates = new Dictionary<ItemDrop.ItemData.ItemType, string[]>();
+        public static string assetPath;
+        public static string[] baseTemplate;
+        public static Dictionary<ItemDrop.ItemData.ItemType, string[]> typeTemplates = new Dictionary<ItemDrop.ItemData.ItemType, string[]>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
 
             context = this;
@@ -42,7 +42,7 @@ namespace CustomItemInfoDisplay
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private static void GetTooltipTemplates()
+        public static void GetTooltipTemplates()
         {
             CheckModFiles();
             baseTemplate = File.ReadAllLines(Path.Combine(assetPath, "template.txt"));
@@ -59,7 +59,7 @@ namespace CustomItemInfoDisplay
             }
         }
 
-        private static bool CheckModFiles()
+        public static bool CheckModFiles()
         {
             if (!Directory.Exists(assetPath))
             {
@@ -76,9 +76,9 @@ namespace CustomItemInfoDisplay
         }
 
         [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[]{typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float) })]
-        static class GetTooltip_Patch
+        public static class GetTooltip_Patch
         {
-            static bool Prefix(ItemDrop.ItemData item, int qualityLevel, float worldLevel, bool crafting, ref string __result)
+            public static bool Prefix(ItemDrop.ItemData item, int qualityLevel, float worldLevel, bool crafting, ref string __result)
             {
                 if (!modEnabled.Value || baseTemplate == null)
                     return true;
@@ -94,7 +94,7 @@ namespace CustomItemInfoDisplay
 
         }
 
-        private static string CheckReplaceTemplate(string[] template, ItemDrop.ItemData item, int qualityLevel, float worldLevel, bool crafting)
+        public static string CheckReplaceTemplate(string[] template, ItemDrop.ItemData item, int qualityLevel, float worldLevel, bool crafting)
         {
             List<string> lines = new List<string>();
             for (int i = 0; i < template.Length; i++)
@@ -127,7 +127,7 @@ namespace CustomItemInfoDisplay
         }
 
 
-        private static bool CheckToggles(ItemDrop.ItemData item, int qualityLevel, bool crafting, string[] checks, ref string replace)
+        public static bool CheckToggles(ItemDrop.ItemData item, int qualityLevel, bool crafting, string[] checks, ref string replace)
         {
             foreach (string check in checks) 
             {
@@ -136,7 +136,7 @@ namespace CustomItemInfoDisplay
             }
             return true;
         }
-        private static bool CheckToggle(ItemDrop.ItemData item, int qualityLevel, bool crafting, string check, ref string replace)
+        public static bool CheckToggle(ItemDrop.ItemData item, int qualityLevel, bool crafting, string check, ref string replace)
         {
 
             switch (check)
@@ -247,7 +247,7 @@ namespace CustomItemInfoDisplay
             return false;
         }
 
-        private static string GetHanded(ItemDrop.ItemData item)
+        public static string GetHanded(ItemDrop.ItemData item)
         {
             switch (item.m_shared.m_itemType)
             {
@@ -264,7 +264,7 @@ namespace CustomItemInfoDisplay
             }
         }
 
-        private static string ReplaceLine(ItemDrop.ItemData item, int qualityLevel, float worldLevel, bool crafting, string line)
+        public static string ReplaceLine(ItemDrop.ItemData item, int qualityLevel, float worldLevel, bool crafting, string line)
         {
             if (item is null)
                 return line;
@@ -300,7 +300,7 @@ namespace CustomItemInfoDisplay
                 .Replace("\\n", "\n");
         }
 
-        private static string GetDamageString(ItemDrop.ItemData item, int qualityLevel, float worldLevel)
+        public static string GetDamageString(ItemDrop.ItemData item, int qualityLevel, float worldLevel)
         {
             string str = item.GetDamage(qualityLevel, worldLevel).GetTooltipString(item.m_shared.m_skillType);
             if (str.StartsWith("\n"))
@@ -308,7 +308,7 @@ namespace CustomItemInfoDisplay
             return str;
         }
 
-        private static string GetSpawnName(ItemDrop.ItemData item)
+        public static string GetSpawnName(ItemDrop.ItemData item)
         {
             if (item.m_dropPrefab == null)
                 return "";
@@ -317,9 +317,9 @@ namespace CustomItemInfoDisplay
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

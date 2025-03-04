@@ -31,7 +31,7 @@ public class OBJLoader
     //functions
 #if UNITY_EDITOR
     [MenuItem("GameObject/Import From OBJ")]
-    static void ObjLoadMenu()
+    public static void ObjLoadMenu()
     {
         string pth = UnityEditor.EditorUtility.OpenFilePanel("Import OBJ", "", "obj");
         if (!string.IsNullOrEmpty(pth))

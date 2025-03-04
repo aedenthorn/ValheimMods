@@ -33,8 +33,8 @@ namespace CustomAudio
         public static Dictionary<string, Dictionary<string, AudioClip>> customSFXList = new Dictionary<string, Dictionary<string, AudioClip>>();
         public static ConfigEntry<int> nexusID;
 
-        private static string lastMusicName = "";
-        private static BepInExPlugin context;
+        public static string lastMusicName = "";
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -147,7 +147,7 @@ namespace CustomAudio
             }
         }
 
-        private void PreloadClipCoroutine(string path, AudioType audioType, Dictionary<string, AudioClip> whichDict)
+        public void PreloadClipCoroutine(string path, AudioType audioType, Dictionary<string, AudioClip> whichDict)
         {
             if (path.EndsWith(".txt") || !path.Contains("."))
                 return;
@@ -225,7 +225,7 @@ namespace CustomAudio
             }
             return name;
         }
-        private static void AddMusicList(EnvMan envMan, int index, string which)
+        public static void AddMusicList(EnvMan envMan, int index, string which)
         {
             string name = envMan.m_environments[index].m_name + which;
             Dbgl($"Adding music list by name: {name} ({customMusicList[name].Count})");
@@ -469,9 +469,9 @@ namespace CustomAudio
 
         
         [HarmonyPatch(typeof(AudioMan), "QueueAmbientLoop")]
-        static class QueueAmbientLoop_Patch
+        public static class QueueAmbientLoop_Patch
         {
-            static void Prefix(ref float ___m_queuedAmbientVol, ref float ___m_ambientVol, ref float vol)
+            public static void Prefix(ref float ___m_queuedAmbientVol, ref float ___m_ambientVol, ref float vol)
             {
                 if (!modEnabled.Value || !overwriteVol.Value)
                     return;
@@ -624,8 +624,8 @@ namespace CustomAudio
     }
     public class UnityWebRequestAwaiter : INotifyCompletion
     {
-        private UnityWebRequestAsyncOperation asyncOp;
-        private Action continuation;
+        public UnityWebRequestAsyncOperation asyncOp;
+        public Action continuation;
 
         public UnityWebRequestAwaiter(UnityWebRequestAsyncOperation asyncOp)
         {
@@ -654,7 +654,7 @@ namespace CustomAudio
             BepInExPlugin.Dbgl("on completed");
         }
 
-        private void OnRequestCompleted(AsyncOperation obj)
+        public void OnRequestCompleted(AsyncOperation obj)
         {
             continuation();
             BepInExPlugin.Dbgl("on request completed");

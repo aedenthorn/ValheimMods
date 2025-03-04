@@ -11,7 +11,7 @@ namespace RememberIP
     [BepInPlugin("aedenthorn.RememberIP", "Remember IP Address", "0.1.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<int> nexusID;
         public static ConfigEntry<bool> modEnabled;
@@ -22,14 +22,14 @@ namespace RememberIP
         public static ConfigEntry<string> lastIPAddress;
         public static ConfigEntry<string> lastPort;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -49,9 +49,9 @@ namespace RememberIP
         }
 
         //[HarmonyPatch(typeof(FejdStartup), "OnJoinIPOpen")]
-        static class FejdStartup_OnJoinIPOpen_Patch
+        public static class FejdStartup_OnJoinIPOpen_Patch
         {
-            static void Postfix(FejdStartup __instance)
+            public static void Postfix(FejdStartup __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -73,7 +73,7 @@ namespace RememberIP
             }
 
         }
-        private static void SaveIPAddress(string text)
+        public static void SaveIPAddress(string text)
         {
             if (!modEnabled.Value)
                 return;
@@ -91,9 +91,9 @@ namespace RememberIP
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

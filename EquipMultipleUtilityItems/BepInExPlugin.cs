@@ -11,7 +11,7 @@ namespace EquipMultipleUtilityItems
     [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.7.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
         public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
@@ -276,7 +276,7 @@ namespace EquipMultipleUtilityItems
                     //Dbgl($"Error: {Environment.StackTrace}");
                 }
             }
-            static void Postfix(Humanoid __instance, ItemDrop.ItemData ___m_utilityItem, SEMan ___m_seman)
+            public static void Postfix(Humanoid __instance, ItemDrop.ItemData ___m_utilityItem, SEMan ___m_seman)
             {
                 try
                 {
@@ -321,9 +321,9 @@ namespace EquipMultipleUtilityItems
                     
                     
         [HarmonyPatch(typeof(Player), nameof(Player.UnequipDeathDropItems))]
-        static class UnequipDeathDropItems_PatchUnequipItem
+        public static class UnequipDeathDropItems_PatchUnequipItem
         {
-            static void Postfix(Player __instance, ItemDrop.ItemData ___m_utilityItem)
+            public static void Postfix(Player __instance, ItemDrop.ItemData ___m_utilityItem)
             {
                 try
                 {

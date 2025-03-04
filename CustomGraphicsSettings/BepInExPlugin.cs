@@ -9,7 +9,7 @@ namespace CustomGraphicsSettings
     [BepInPlugin("aedenthorn.CustomGraphicsSettings", "Custom Graphics Settings", "1.0.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -49,14 +49,14 @@ namespace CustomGraphicsSettings
         public static ConfigEntry<string> hotkey;
         public static ConfigEntry<bool> reloadOnChange;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -148,19 +148,19 @@ namespace CustomGraphicsSettings
 
         }
 
-        private void Update()
+        public void Update()
         {
             if (modEnabled.Value && AedenthornUtils.CheckKeyDown(hotkey.Value))
                 SetGraphicsSettings();
         }
 
-        private void BepInExPlugin_SettingChanged(object sender, System.EventArgs e)
+        public void BepInExPlugin_SettingChanged(object sender, System.EventArgs e)
         {
             if(modEnabled.Value && reloadOnChange.Value)
                 SetGraphicsSettings();
         }
 
-        private static void SetGraphicsSettings()
+        public static void SetGraphicsSettings()
         {
             if (!modEnabled.Value)
                 return;
@@ -201,9 +201,9 @@ namespace CustomGraphicsSettings
 
 
         [HarmonyPatch(typeof(Settings), "ApplyQualitySettings")]
-        static class Settings_ApplyQualitySettings_Patch
+        public static class Settings_ApplyQualitySettings_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -212,9 +212,9 @@ namespace CustomGraphicsSettings
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

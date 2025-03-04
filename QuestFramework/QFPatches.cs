@@ -8,9 +8,9 @@ namespace QuestFramework
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        static class ZNetScene_Awake_Patch
+        public static class ZNetScene_Awake_Patch
         {
-            static void Prefix()
+            public static void Prefix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -20,9 +20,9 @@ namespace QuestFramework
             }
         }
         [HarmonyPatch(typeof(PlayerProfile), "SavePlayerToDisk")]
-        static class PlayerProfile_SavePlayerToDisk_Patch
+        public static class PlayerProfile_SavePlayerToDisk_Patch
         {
-            static void Prefix()
+            public static void Prefix()
             {
                 if (!modEnabled.Value || !ZNet.instance || !Player.m_localPlayer)
                     return;
@@ -31,9 +31,9 @@ namespace QuestFramework
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

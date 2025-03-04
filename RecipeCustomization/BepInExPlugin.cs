@@ -14,7 +14,7 @@ namespace RecipeCustomization
     [BepInPlugin("aedenthorn.RecipeCustomization", "Recipe Customization", "0.7.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -25,10 +25,10 @@ namespace RecipeCustomization
         
         public static ConfigEntry<string> waterModifierName;
 
-        private static List<RecipeData> recipeDatas = new List<RecipeData>();
-        private static string assetPath;
+        public static List<RecipeData> recipeDatas = new List<RecipeData>();
+        public static string assetPath;
 
-        private enum NewDamageTypes 
+        public enum NewDamageTypes 
         {
             Water = 1024
         }
@@ -38,7 +38,7 @@ namespace RecipeCustomization
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
 
             context = this;
@@ -54,9 +54,9 @@ namespace RecipeCustomization
 
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
         [HarmonyPriority(Priority.Last)]
-        static class ZNetScene_Awake_Patch
+        public static class ZNetScene_Awake_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -71,7 +71,7 @@ namespace RecipeCustomization
             yield break;
         }
 
-        private static void LoadAllRecipeData(bool reload)
+        public static void LoadAllRecipeData(bool reload)
         {
             if(reload)
                 GetRecipeDataFromFiles();
@@ -81,7 +81,7 @@ namespace RecipeCustomization
             }
         }
 
-        private static void GetRecipeDataFromFiles()
+        public static void GetRecipeDataFromFiles()
         {
             CheckModFolder();
 
@@ -101,7 +101,7 @@ namespace RecipeCustomization
             }
         }
 
-        private static void CheckModFolder()
+        public static void CheckModFolder()
         {
             if (!Directory.Exists(assetPath))
             {
@@ -110,7 +110,7 @@ namespace RecipeCustomization
             }
         }
 
-        private static void SetRecipeData(RecipeData data)
+        public static void SetRecipeData(RecipeData data)
         {
             GameObject go = ObjectDB.instance.GetItemPrefab(data.name);
             if (go == null)
@@ -150,7 +150,7 @@ namespace RecipeCustomization
             }
         }
 
-        private static void SetPieceRecipeData(RecipeData data)
+        public static void SetPieceRecipeData(RecipeData data)
         {
             GameObject go = GetPieces().Find(g => Utils.GetPrefabName(g) == data.name);
             if (go == null)
@@ -192,7 +192,7 @@ namespace RecipeCustomization
             go.GetComponent<Piece>().m_resources = reqs.ToArray();
         }
 
-        private static CraftingStation GetCraftingStation(string name)
+        public static CraftingStation GetCraftingStation(string name)
         {
             if (name == "" || name == null)
                 return null;
@@ -218,7 +218,7 @@ namespace RecipeCustomization
 
             return null;
         }
-        private static List<GameObject> GetPieces()
+        public static List<GameObject> GetPieces()
         {
             var pieces = new List<GameObject>();
             if (!ObjectDB.instance)
@@ -235,7 +235,7 @@ namespace RecipeCustomization
             return pieces;
 
         }
-        private static RecipeData GetRecipeDataByName(string name)
+        public static RecipeData GetRecipeDataByName(string name)
         {
             GameObject go = ObjectDB.instance.GetItemPrefab(name);
             if (go == null)
@@ -286,7 +286,7 @@ namespace RecipeCustomization
             return data;
         }
 
-        private static RecipeData GetPieceRecipeByName(string name)
+        public static RecipeData GetPieceRecipeByName(string name)
         {
             GameObject go = GetPieces().Find(g => Utils.GetPrefabName(g) == name);
             if (go == null)
@@ -316,9 +316,9 @@ namespace RecipeCustomization
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

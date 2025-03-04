@@ -9,10 +9,10 @@ namespace RealClockMod
     public partial class BepInExPlugin : BaseUnityPlugin
     {
 
-        private static string debugName = "realclockmod";
-        private static int windowId = 343434;
+        public static string debugName = "realclockmod";
+        public static int windowId = 343434;
 
-        private void Awake()
+        public void Awake()
         {
             nexusID = Config.Bind<int>("General", "NexusID", 489, "Nexus mod ID for updates");
             toggleClockKey = Config.Bind<string>("General", "ShowClockKey", "delete", "Key used to toggle the clock display. use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
@@ -25,7 +25,7 @@ namespace RealClockMod
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-        private string GetCurrentTimeString()
+        public string GetCurrentTimeString()
         {
             DateTime theTime = DateTime.Now;
             float fraction = (theTime.Hour * 60 * 60 + theTime.Minute * 60 + theTime.Second) / 24 * 60 * 60;

@@ -10,7 +10,7 @@ namespace AutoStore
     [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<float> dropRangeChests;
         public static ConfigEntry<float> dropRangePersonalChests;
@@ -41,14 +41,14 @@ namespace AutoStore
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             dropRangeChests = Config.Bind<float>("General", "DropRangeChests", 5f, "The maximum range to pull dropped items");
@@ -86,7 +86,7 @@ namespace AutoStore
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses())
                 return;
@@ -98,7 +98,7 @@ namespace AutoStore
             }
 
         }
-        private static bool DisallowItem(Container container, ItemDrop.ItemData item)
+        public static bool DisallowItem(Container container, ItemDrop.ItemData item)
         {
             string name = item.m_dropPrefab.name;
             if (itemAllowTypes.Value != null && itemAllowTypes.Value.Length > 0 && !itemAllowTypes.Value.Split(',').Contains(name))
@@ -161,7 +161,7 @@ namespace AutoStore
             return true;
         }
 
-        private static float ContainerRange(Container container)
+        public static float ContainerRange(Container container)
         {
             if (container.GetInventory() == null)
                 return -1f;
@@ -192,9 +192,9 @@ namespace AutoStore
         }
 
         [HarmonyPatch(typeof(Container), "CheckForChanges")]
-        static class Container_CheckForChanges_Patch
+        public static class Container_CheckForChanges_Patch
         {
-            static void Postfix(Container __instance, ZNetView ___m_nview)
+            public static void Postfix(Container __instance, ZNetView ___m_nview)
             {
                 if (!isOn.Value || ___m_nview == null || ___m_nview.GetZDO() == null || (!pullWhileBuilding.Value && (((ItemDrop.ItemData)AccessTools.Method(typeof(Player), "GetLeftItem").Invoke(Player.m_localPlayer, new object[0]))?.m_shared?.m_buildPieces.m_pieces.Count > 0 || ((ItemDrop.ItemData)AccessTools.Method(typeof(Player), "GetRightItem").Invoke(Player.m_localPlayer, new object[0]))?.m_shared?.m_buildPieces.m_pieces.Count > 0)))
                     return;
@@ -222,7 +222,7 @@ namespace AutoStore
             }
         }
 
-        private static bool TryStoreItem(Container __instance, ref ItemDrop.ItemData item)
+        public static bool TryStoreItem(Container __instance, ref ItemDrop.ItemData item)
         {
 
             if (DisallowItem(__instance, item))
@@ -253,9 +253,9 @@ namespace AutoStore
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

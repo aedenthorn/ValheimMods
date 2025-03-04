@@ -17,14 +17,14 @@ public class TextureScale
 		}
 	}
 
-	private static Color[] texColors;
-	private static Color[] newColors;
-	private static int w;
-	private static float ratioX;
-	private static float ratioY;
-	private static int w2;
-	private static int finishCount;
-	private static Mutex mutex;
+	public static Color[] texColors;
+	public static Color[] newColors;
+	public static int w;
+	public static float ratioX;
+	public static float ratioY;
+	public static int w2;
+	public static int finishCount;
+	public static Mutex mutex;
 
 	public static void Point(Texture2D tex, int newWidth, int newHeight)
 	{
@@ -36,7 +36,7 @@ public class TextureScale
 		ThreadedScale(tex, newWidth, newHeight, true);
 	}
 
-	private static void ThreadedScale(Texture2D tex, int newWidth, int newHeight, bool useBilinear)
+	public static void ThreadedScale(Texture2D tex, int newWidth, int newHeight, bool useBilinear)
 	{
 		texColors = tex.GetPixels();
 		newColors = new Color[newWidth * newHeight];
@@ -149,7 +149,7 @@ public class TextureScale
 		mutex.ReleaseMutex();
 	}
 
-	private static Color ColorLerpUnclamped(Color c1, Color c2, float value)
+	public static Color ColorLerpUnclamped(Color c1, Color c2, float value)
 	{
 		return new Color(c1.r + (c2.r - c1.r) * value,
 						  c1.g + (c2.g - c1.g) * value,

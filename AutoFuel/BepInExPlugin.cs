@@ -13,7 +13,7 @@ namespace AutoFuel
     [BepInPlugin("aedenthorn.AutoFuel", "Auto Fuel", "1.3.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = false;
+        public static readonly bool isDebug = false;
 
         public static ConfigEntry<float> dropRange;
         public static ConfigEntry<float> containerRange;
@@ -35,10 +35,10 @@ namespace AutoFuel
         public static ConfigEntry<bool> distributedFilling;
         public static ConfigEntry<int> nexusID;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
-        private static float lastFuel;
-        private static int fuelCount;
+        public static float lastFuel;
+        public static int fuelCount;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -83,7 +83,7 @@ namespace AutoFuel
             }
 
         }
-        private static string GetPrefabName(string name)
+        public static string GetPrefabName(string name)
         {
             char[] anyOf = new char[]{'(',' '};
             int num = name.IndexOfAny(anyOf);
@@ -118,7 +118,7 @@ namespace AutoFuel
             }
         }
 
-        private static Container GetContainer(Transform transform)
+        public static Container GetContainer(Transform transform)
         {
             while(transform != null)
             {

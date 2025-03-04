@@ -34,11 +34,11 @@ namespace CustomMeshes
 {
     class MeshMaterialBinding
     {
-        private string meshName;
-        private UnityEngine.Mesh mesh;
-        private UnityEngine.Material material;
+        public string meshName;
+        public UnityEngine.Mesh mesh;
+        public UnityEngine.Material material;
         
-        private MeshMaterialBinding() {}    // Do not allow default constructor
+        public MeshMaterialBinding() {}    // Do not allow default constructor
 
         public MeshMaterialBinding(string meshName, Mesh mesh, Material material)
         {

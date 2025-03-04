@@ -9,8 +9,8 @@ namespace EmoteKeys
     [BepInPlugin("aedenthorn.EmoteKeys", "Emote Keys", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
@@ -30,7 +30,7 @@ namespace EmoteKeys
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             
@@ -77,7 +77,7 @@ namespace EmoteKeys
                 return !req;
             }
         }
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || Player.m_localPlayer == null || !Traverse.Create(Player.m_localPlayer).Method("TakeInput").GetValue<bool>())
                 return;
@@ -129,9 +129,9 @@ namespace EmoteKeys
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

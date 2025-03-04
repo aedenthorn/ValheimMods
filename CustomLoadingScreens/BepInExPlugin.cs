@@ -15,8 +15,8 @@ namespace CustomLoadingScreens
     [BepInPlugin("aedenthorn.CustomLoadingScreens", "Custom Loading Screens", "0.7.0")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
         public static ConfigEntry<string> loadingText;
@@ -36,17 +36,17 @@ namespace CustomLoadingScreens
         public static string[] loadingTips = new string[0];
         public static Dictionary<string, Texture2D> cachedScreens = new Dictionary<string, Texture2D>();
 
-        private static Sprite loadingSprite;
-        private static Sprite loadingSprite2;
-        private static string loadingTip;
-        private static string loadingTip2;
+        public static Sprite loadingSprite;
+        public static Sprite loadingSprite2;
+        public static string loadingTip;
+        public static string loadingTip2;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -71,7 +71,7 @@ namespace CustomLoadingScreens
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private void LoadTips()
+        public void LoadTips()
         {
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomLoadingScreens", "tips.txt");
             if (!File.Exists(path))
@@ -83,7 +83,7 @@ namespace CustomLoadingScreens
             loadingTips = File.ReadAllLines(path);
         }
 
-        private static void LoadCustomLoadingScreens()
+        public static void LoadCustomLoadingScreens()
         {
             loadingScreens.Clear();
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomLoadingScreens");
@@ -103,7 +103,7 @@ namespace CustomLoadingScreens
 
         }
 
-        private static Sprite GetRandomLoadingScreen()
+        public static Sprite GetRandomLoadingScreen()
         {
             if (!loadingScreens.Any())
                 return null;
@@ -224,9 +224,9 @@ namespace CustomLoadingScreens
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

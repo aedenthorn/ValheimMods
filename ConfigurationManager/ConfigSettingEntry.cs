@@ -39,7 +39,7 @@ namespace ConfigurationManager
             SetFromAttributes(entry.Description?.Tags, owner);
         }
 
-        private void GetAcceptableValues(AcceptableValueBase values)
+        public void GetAcceptableValues(AcceptableValueBase values)
         {
             var t = values.GetType();
             var listProp = t.GetProperty(nameof(AcceptableValueList<bool>.AcceptableValues), BindingFlags.Instance | BindingFlags.Public);

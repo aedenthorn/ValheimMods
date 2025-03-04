@@ -14,7 +14,7 @@ namespace MapDetails
     [BepInPlugin("aedenthorn.MapDetails", "Map Details", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -29,11 +29,11 @@ namespace MapDetails
         public static ConfigEntry<Color> unownedBuildingColor;
         public static ConfigEntry<string> customPlayerColors;
 
-        private static Vector2 lastPos = Vector2.zero;
-        private static List<int> lastPixels = new List<int>();
-        private static Texture2D mapTexture;
-        private static Texture2D tempTexture;
-        private static Dictionary<string, Color> playerColorDict = new Dictionary<string, Color>();
+        public static Vector2 lastPos = Vector2.zero;
+        public static List<int> lastPixels = new List<int>();
+        public static Texture2D mapTexture;
+        public static Texture2D tempTexture;
+        public static Dictionary<string, Color> playerColorDict = new Dictionary<string, Color>();
 
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -41,7 +41,7 @@ namespace MapDetails
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
 
             context = this;
@@ -63,12 +63,12 @@ namespace MapDetails
             ReloadNames();
         }
 
-        private void CustomPlayerColors_SettingChanged(object sender, EventArgs e)
+        public void CustomPlayerColors_SettingChanged(object sender, EventArgs e)
         {
             ReloadNames();
         }
 
-        private void ReloadNames()
+        public void ReloadNames()
         {
             playerColorDict.Clear();
             if (customPlayerColors.Value.Length > 0)
@@ -96,16 +96,16 @@ namespace MapDetails
             Dictionary<long, Color> assignedColors = new Dictionary<long, Color>();
         }
 
-        private void Update()
+        public void Update()
         {
             if(Minimap.instance && Player.m_localPlayer)
                 StartCoroutine(UpdateMap(false));
         }
 
         [HarmonyPatch(typeof(Player), "PlacePiece")]
-        static class Player_PlacePiece_Patch
+        public static class Player_PlacePiece_Patch
         {
-            static void Postfix(bool __result)
+            public static void Postfix(bool __result)
             {
                 if (!modEnabled.Value || !__result)
                     return;
@@ -113,9 +113,9 @@ namespace MapDetails
             }
         }
         [HarmonyPatch(typeof(Player), "RemovePiece")]
-        static class Player_RemovePiece_Patch
+        public static class Player_RemovePiece_Patch
         {
-            static void Postfix(bool __result)
+            public static void Postfix(bool __result)
             {
                 if (!modEnabled.Value || !__result)
                     return;
@@ -124,9 +124,9 @@ namespace MapDetails
         }
 
         [HarmonyPatch(typeof(Minimap), "GenerateWorldMap")]
-        static class GenerateWorldMap_Patch
+        public static class GenerateWorldMap_Patch
         {
-            static void Postfix(Texture2D ___m_mapTexture)
+            public static void Postfix(Texture2D ___m_mapTexture)
             {
                 if (!modEnabled.Value)
                     return;
@@ -225,12 +225,12 @@ namespace MapDetails
             yield break;
         }
 
-        private static void GetUserColor(long id, out Color color)
+        public static void GetUserColor(long id, out Color color)
         {
             color = id == 0 ? unownedBuildingColor.Value : (id == Player.m_localPlayer.GetPlayerID() ? personalBuildingColor.Value : otherBuildingColor.Value);
         }
 
-        private static void SetMaps(Texture2D texture)
+        public static void SetMaps(Texture2D texture)
         {
             Minimap.instance.m_mapImageSmall.material.SetTexture("_MainTex", texture);
             Minimap.instance.m_mapImageLarge.material.SetTexture("_MainTex", texture);
@@ -242,9 +242,9 @@ namespace MapDetails
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

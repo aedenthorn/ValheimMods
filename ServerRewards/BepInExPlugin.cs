@@ -49,31 +49,31 @@ namespace ServerRewards
         public static ConfigEntry<Color> tooltipBackgroundColor;
         public static ConfigEntry<Color> tooltipTextColor;
 
-        private static BepInExPlugin context;
-        private static int myCurrency;
-        private static bool storeOpen;
+        public static BepInExPlugin context;
+        public static int myCurrency;
+        public static bool storeOpen;
 
-        private static float coinFactor = 0.75f;
-        private static Vector2 scrollPosition;
-        private static GUIStyle titleStyle;
-        private static GUIStyle currencyStyle;
-        private static GUIStyle labelStyle;
-        private static GUIStyle tooltipStyle;
-        private static Texture2D tooltipBackground;
-        private static GUIStyle coinStyle;
-        private static GUIStyle tooltipWindowStyle;
-        private static Rect windowRect;
-        private static string windowTitleText;
-        private static List<PackageInfo> storePackages = new List<PackageInfo>();
-        private static Dictionary<string, Texture2D> textureDict = new Dictionary<string, Texture2D>();
-        private string thisTooltip;
+        public static float coinFactor = 0.75f;
+        public static Vector2 scrollPosition;
+        public static GUIStyle titleStyle;
+        public static GUIStyle currencyStyle;
+        public static GUIStyle labelStyle;
+        public static GUIStyle tooltipStyle;
+        public static Texture2D tooltipBackground;
+        public static GUIStyle coinStyle;
+        public static GUIStyle tooltipWindowStyle;
+        public static Rect windowRect;
+        public static string windowTitleText;
+        public static List<PackageInfo> storePackages = new List<PackageInfo>();
+        public static Dictionary<string, Texture2D> textureDict = new Dictionary<string, Texture2D>();
+        public string thisTooltip;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
 
             context = this;
@@ -163,7 +163,7 @@ namespace ServerRewards
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private static void ApplyConfig()
+        public static void ApplyConfig()
         {
 
             windowRect = new Rect(windowPosition.Value.x, windowPosition.Value.y, windowWidth.Value, windowHeight.Value);
@@ -206,7 +206,7 @@ namespace ServerRewards
 
         }
 
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value)
                 return;
@@ -250,7 +250,7 @@ namespace ServerRewards
 
         }
 
-        private void OnGUI()
+        public void OnGUI()
         {
             if (!modEnabled.Value)
                 return;
@@ -304,7 +304,7 @@ namespace ServerRewards
             }
         }
 
-        private void TooltipBuilder(int id)
+        public void TooltipBuilder(int id)
         {
             if (thisTooltip == null || thisTooltip.Length == 0)
                 return;
@@ -316,7 +316,7 @@ namespace ServerRewards
             GUILayout.EndVertical();
         }
 
-        private void WindowBuilder(int id)
+        public void WindowBuilder(int id)
         {
             GUI.DragWindow(new Rect(0,0,windowWidth.Value, 20));
             GUILayout.BeginVertical(new GUILayoutOption[] { GUILayout.Width(windowWidth.Value) });

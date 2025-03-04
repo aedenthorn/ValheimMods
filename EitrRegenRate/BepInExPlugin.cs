@@ -10,7 +10,7 @@ namespace EitrRegenRate
     [BepInPlugin("aedenthorn.EitrRegenRate", "EitrRegenRate", "0.1.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<float> regenRate;
 
@@ -22,7 +22,7 @@ namespace EitrRegenRate
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             regenRate = Config.Bind<float>("Options", "RegenRate", 5f, "Eitr regeneration rate");
 
@@ -37,9 +37,9 @@ namespace EitrRegenRate
 
 
         [HarmonyPatch(typeof(Player), "UpdateStats")]
-        static class UpdateFood_Patch
+        public static class UpdateFood_Patch
         {
-            static void Prefix(ref float ___m_eiterRegen)
+            public static void Prefix(ref float ___m_eiterRegen)
             {
                 if (modEnabled.Value)
                 {

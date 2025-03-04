@@ -10,9 +10,9 @@ namespace ControllerButtonSwitch
     [BepInPlugin("aedenthorn.ControllerButtonSwitch", "Controller Button Switch", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<string> gamePadButton;
@@ -114,7 +114,7 @@ namespace ControllerButtonSwitch
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("Config", "Enabled", true, "Enable this mod");
@@ -215,13 +215,13 @@ namespace ControllerButtonSwitch
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
 
-        static void SetButtons()
+        public static void SetButtons()
         {
             if (!modEnabled.Value)
                 return;
@@ -264,9 +264,9 @@ namespace ControllerButtonSwitch
         }
 
         [HarmonyPatch(typeof(ZInput), "Reset")]
-        static class ZInput_Reset_Patch
+        public static class ZInput_Reset_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (modEnabled.Value)
                     SetButtons();
@@ -274,9 +274,9 @@ namespace ControllerButtonSwitch
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

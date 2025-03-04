@@ -10,9 +10,9 @@ namespace DamageMod
     [BepInPlugin("aedenthorn.DamageMod", "Damage Mod", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -33,7 +33,7 @@ namespace DamageMod
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -59,12 +59,12 @@ namespace DamageMod
             harmony.PatchAll();
         }
 
-        private void SettingChanged(object sender, System.EventArgs e)
+        public void SettingChanged(object sender, System.EventArgs e)
         {
             SetCustomDamages();
         }
 
-        private static void SetCustomDamages()
+        public static void SetCustomDamages()
         {
             Dbgl(customAttackerDamageMult.Value);
             Dbgl(customDefenderDamageMult.Value);
@@ -86,9 +86,9 @@ namespace DamageMod
         }
 
         [HarmonyPatch(typeof(Character), "RPC_Damage")]
-        static class RPC_Damage_Patch
+        public static class RPC_Damage_Patch
         {
-            static void Prefix(Character __instance, ref HitData hit)
+            public static void Prefix(Character __instance, ref HitData hit)
             {
                 if (!modEnabled.Value)
                     return;
@@ -118,9 +118,9 @@ namespace DamageMod
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

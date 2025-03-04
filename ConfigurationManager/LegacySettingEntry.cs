@@ -10,9 +10,9 @@ namespace ConfigurationManager
 {
     internal class LegacySettingEntry : SettingEntryBase
     {
-        private Type _settingType;
+        public Type _settingType;
 
-        private LegacySettingEntry()
+        public LegacySettingEntry()
         {
         }
 

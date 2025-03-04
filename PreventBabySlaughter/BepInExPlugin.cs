@@ -9,7 +9,7 @@ namespace PreventBabySlaughter
     [BepInPlugin("aedenthorn.PreventBabySlaughter", "Prevent Baby Slaughter", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<string> modKey;
         public static ConfigEntry<string> toggleKey;
@@ -19,14 +19,14 @@ namespace PreventBabySlaughter
         public static ConfigEntry<bool> currentlyProtected;
         public static ConfigEntry<int> nexusID;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -43,7 +43,7 @@ namespace PreventBabySlaughter
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses(true))
                 return;
@@ -55,9 +55,9 @@ namespace PreventBabySlaughter
         }
 
         [HarmonyPatch(typeof(Character), nameof(Character.Damage))]
-        static class Character_Damage_Patch
+        public static class Character_Damage_Patch
         {
-            static bool Prefix(Character __instance, HitData hit)
+            public static bool Prefix(Character __instance, HitData hit)
             {
                 if (!modEnabled.Value || (!holdToToggle.Value && !currentlyProtected.Value) || (holdToToggle.Value && AedenthornUtils.CheckKeyHeld(toggleKey.Value) == reverseHoldToToggle.Value) || !(__instance is Character) || !__instance.IsTamed() || !hit.GetAttacker().IsPlayer() || !__instance.GetComponent<Growup>() || __instance.GetBaseAI().GetTimeSinceSpawned().TotalSeconds > __instance.GetComponent<Growup>().m_growTime)
                     return true;
@@ -67,9 +67,9 @@ namespace PreventBabySlaughter
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

@@ -29,26 +29,26 @@ namespace CraftingFilter
         
         public static ConfigEntry<string> categoryFile;
         
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
 
 
-        private static Dictionary<string, List<ItemDrop.ItemData.ItemType>> categoryDict = new Dictionary<string, List<ItemDrop.ItemData.ItemType>>();
-        private static List<string> categoryNames = new List<string>();
-        private static List<GameObject> dropDownList = new List<GameObject>();
+        public static Dictionary<string, List<ItemDrop.ItemData.ItemType>> categoryDict = new Dictionary<string, List<ItemDrop.ItemData.ItemType>>();
+        public static List<string> categoryNames = new List<string>();
+        public static List<GameObject> dropDownList = new List<GameObject>();
 
-        private static int lastCategoryIndex = 0;
-        private Vector3 lastMousePos;
-        private static bool isShowing = false;
-        private static string assetPath;
-        private static int tabCraftPressed = 0;
+        public static int lastCategoryIndex = 0;
+        public Vector3 lastMousePos;
+        public static bool isShowing = false;
+        public static string assetPath;
+        public static int tabCraftPressed = 0;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             
             context = this;
@@ -73,7 +73,7 @@ namespace CraftingFilter
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private void LoadCategories()
+        public void LoadCategories()
         {
             if (!Directory.Exists(assetPath))
             {
@@ -129,7 +129,7 @@ namespace CraftingFilter
         }
 
 
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || !Player.m_localPlayer || !InventoryGui.IsVisible() || (!Player.m_localPlayer.GetCurrentCraftingStation() && !Player.m_localPlayer.NoCostCheat()))
             {
@@ -203,7 +203,7 @@ namespace CraftingFilter
             lastMousePos = Input.mousePosition;
         }
 
-        private static void SwitchFilter(int idx)
+        public static void SwitchFilter(int idx)
         {
             //Dbgl($"switching to filter {idx}");
 
@@ -212,7 +212,7 @@ namespace CraftingFilter
             SwitchFilter();
         }
 
-        private static void SwitchFilter(bool next)
+        public static void SwitchFilter(bool next)
         {
             //Dbgl($"switching to {(next ? "next" : "last")} filter");
 
@@ -249,7 +249,7 @@ namespace CraftingFilter
             SwitchFilter();
         }
 
-        private static void SwitchFilter()
+        public static void SwitchFilter()
         {
             List<Recipe> recipes = new List<Recipe>();
             Player.m_localPlayer.GetAvailableRecipes(ref recipes);
@@ -260,7 +260,7 @@ namespace CraftingFilter
             InventoryGui.instance.m_tabCraft.gameObject.GetComponentInChildren<TMP_Text>().text = Localization.instance.Localize("$inventory_craftbutton") + (categoryDict[categoryNames[lastCategoryIndex]].Contains(ItemDrop.ItemData.ItemType.None) ? "" : "\n" + categoryNames[lastCategoryIndex]);
         }
 
-        private static void GetFilteredRecipes(ref List<Recipe> recipes)
+        public static void GetFilteredRecipes(ref List<Recipe> recipes)
         {
             if(InventoryGui.instance.InCraftTab() && !categoryDict[categoryNames[lastCategoryIndex]].Contains(ItemDrop.ItemData.ItemType.None))
             {
@@ -270,7 +270,7 @@ namespace CraftingFilter
         }
 
 
-        private static void UpdateDropDown(bool show)
+        public static void UpdateDropDown(bool show)
         {
             if (show == isShowing)
                 return;
@@ -307,10 +307,10 @@ namespace CraftingFilter
         }
 
         [HarmonyPatch(typeof(InventoryGui), "UpdateRecipeList")]
-        static class UpdateRecipeList_Patch
+        public static class UpdateRecipeList_Patch
         {
 
-            static void Prefix(ref List<Recipe> recipes)
+            public static void Prefix(ref List<Recipe> recipes)
             {
                 if (!modEnabled.Value || !Player.m_localPlayer.GetCurrentCraftingStation())
                     return;
@@ -322,10 +322,10 @@ namespace CraftingFilter
         }
 
         [HarmonyPatch(typeof(InventoryGui), "Hide")]
-        static class Hide_Patch
+        public static class Hide_Patch
         {
 
-            static void Prefix()
+            public static void Prefix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -336,10 +336,10 @@ namespace CraftingFilter
         }
 
         [HarmonyPatch(typeof(InventoryGui), "OnTabCraftPressed")]
-        static class OnTabCraftPressed_Patch
+        public static class OnTabCraftPressed_Patch
         {
 
-            static void Prefix()
+            public static void Prefix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -349,9 +349,9 @@ namespace CraftingFilter
         }
         
         [HarmonyPatch(typeof(InventoryGui), "Awake")]
-        static class InventoryGui_Awake_Patch
+        public static class InventoryGui_Awake_Patch
         {
-            static void Postfix(InventoryGui __instance)
+            public static void Postfix(InventoryGui __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -376,9 +376,9 @@ namespace CraftingFilter
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

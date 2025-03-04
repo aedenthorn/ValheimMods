@@ -7,8 +7,8 @@ namespace RealClockMod
 {
     public partial class BepInExPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> showingClock;
         public static ConfigEntry<bool> showClockOnChange;
@@ -32,16 +32,16 @@ namespace RealClockMod
         public static ConfigEntry<string> clockFuzzyStrings;
         public static ConfigEntry<int> nexusID;
 
-        private static Font clockFont;
-        private static GUIStyle style;
-        private static GUIStyle style2;
-        private static bool configApplied = false;
-        private static Vector2 clockPosition;
-        private static float shownTime = 0;
-        private static string lastTimeString = "";
-        private static Rect windowRect;
-        private string newTimeString;
-        private static Rect timeRect;
+        public static Font clockFont;
+        public static GUIStyle style;
+        public static GUIStyle style2;
+        public static bool configApplied = false;
+        public static Vector2 clockPosition;
+        public static float shownTime = 0;
+        public static string lastTimeString = "";
+        public static Rect windowRect;
+        public string newTimeString;
+        public static Rect timeRect;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -86,7 +86,7 @@ namespace RealClockMod
             };
 
         }
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses() || toggleClockKeyOnPress.Value || !PressedToggleKey())
                 return;
@@ -96,7 +96,7 @@ namespace RealClockMod
             Config.Save();
         }
 
-        private void OnGUI()
+        public void OnGUI()
         {
             if (modEnabled.Value && configApplied && Player.m_localPlayer && Hud.instance)
             {
@@ -142,7 +142,7 @@ namespace RealClockMod
         }
 
 
-        private void WindowBuilder(int id)
+        public void WindowBuilder(int id)
         {
 
             timeRect = GUILayoutUtility.GetRect(new GUIContent(newTimeString), style);
@@ -156,7 +156,7 @@ namespace RealClockMod
             GUI.Label(timeRect, newTimeString, style);
         }
 
-        private static void ApplyConfig()
+        public static void ApplyConfig()
         {
 
             string[] split = clockLocationString.Value.Split(',');
@@ -198,7 +198,7 @@ namespace RealClockMod
             configApplied = true;
         }
 
-        private string GetCurrentTimeString(DateTime theTime, float fraction, int days)
+        public string GetCurrentTimeString(DateTime theTime, float fraction, int days)
         {
 
             string[] fuzzyStringArray = clockFuzzyStrings.Value.Split(',');
@@ -218,7 +218,7 @@ namespace RealClockMod
             }
         }
 
-        private static bool CheckKeyHeld(string value)
+        public static bool CheckKeyHeld(string value)
         {
             try
             {
@@ -229,7 +229,7 @@ namespace RealClockMod
                 return true;
             }
         }
-        private bool PressedToggleKey()
+        public bool PressedToggleKey()
         {
             try
             {
@@ -242,9 +242,9 @@ namespace RealClockMod
         }
 
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        static class ZNetScene_Awake_Patch
+        public static class ZNetScene_Awake_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -256,9 +256,9 @@ namespace RealClockMod
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

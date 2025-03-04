@@ -24,15 +24,15 @@ namespace TerraformTweaks
         public static ConfigEntry<float> paintRadius;
         public static ConfigEntry<float> smoothPower;
 
-        private static BepInExPlugin context;
-        private static List<string> typeEnums = new List<string>();
+        public static BepInExPlugin context;
+        public static List<string> typeEnums = new List<string>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             
             foreach (int i in Enum.GetValues(typeof(ItemDrop.ItemData.ItemType)))
@@ -56,33 +56,33 @@ namespace TerraformTweaks
         }
 
         [HarmonyPatch(typeof(TerrainModifier), "Awake")]
-        static class TerrainModifier_Patch
+        public static class TerrainModifier_Patch
         {
-            static void Prefix(TerrainModifier __instance)
+            public static void Prefix(TerrainModifier __instance)
             {
                 SetVariables(__instance);
             }
         }
 
         //[HarmonyPatch(typeof(TerrainModifier), "OnDrawGizmosSelected")]
-        static class OnDrawGizmosSelected_Patch
+        public static class OnDrawGizmosSelected_Patch
         {
-            static void Prefix(TerrainModifier __instance)
+            public static void Prefix(TerrainModifier __instance)
             {
                 SetVariables(__instance);
             }
         }
 
         //[HarmonyPatch(typeof(TerrainModifier), "GetRadius")]
-        static class GetRadius_Patch
+        public static class GetRadius_Patch
         {
-            static void Prefix(TerrainModifier __instance)
+            public static void Prefix(TerrainModifier __instance)
             {
                 SetVariables(__instance);
             }
         }
 
-        private static void SetVariables(TerrainModifier __instance)
+        public static void SetVariables(TerrainModifier __instance)
         {
             if (!modEnabled.Value)
                 return;
@@ -94,9 +94,9 @@ namespace TerraformTweaks
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

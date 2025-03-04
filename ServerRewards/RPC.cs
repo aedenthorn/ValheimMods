@@ -10,7 +10,7 @@ namespace ServerRewards
 {
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static void RPC_ConsoleCommand(ZRpc rpc, string command)
+        public static void RPC_ConsoleCommand(ZRpc rpc, string command)
         {
             if (!modEnabled.Value || !ZNet.instance.IsServer())
                 return;
@@ -162,7 +162,7 @@ namespace ServerRewards
             Dbgl(result);
         }
 
-        private static void RPC_SendJSON(ZRpc rpc, string json)
+        public static void RPC_SendJSON(ZRpc rpc, string json)
         {
             if (!modEnabled.Value)
                 return;

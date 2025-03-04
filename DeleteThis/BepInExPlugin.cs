@@ -9,24 +9,24 @@ namespace DeleteThis
     [BepInPlugin("aedenthorn.DeleteThis", "Delete This", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private static ConfigEntry<bool> modEnabled;
-        private static ConfigEntry<string> modKey;
-        private static ConfigEntry<string> layerMaskString;
-        private static ConfigEntry<string> checkKey;
-        private static ConfigEntry<string> deleteKey;
-        private static ConfigEntry<string> checkMessage;
-        private static ConfigEntry<string> deletedMessage;
-        private static ConfigEntry<int> maxDeleteDistance;
-        private static ConfigEntry<int> nexusID;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<string> modKey;
+        public static ConfigEntry<string> layerMaskString;
+        public static ConfigEntry<string> checkKey;
+        public static ConfigEntry<string> deleteKey;
+        public static ConfigEntry<string> checkMessage;
+        public static ConfigEntry<string> deletedMessage;
+        public static ConfigEntry<int> maxDeleteDistance;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -45,7 +45,7 @@ namespace DeleteThis
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
         
-        private void Update()
+        public void Update()
         {
             if(modEnabled.Value && Player.m_localPlayer != null && AedenthornUtils.CheckKeyHeld(modKey.Value, true) && (AedenthornUtils.CheckKeyDown(deleteKey.Value) || AedenthornUtils.CheckKeyDown(checkKey.Value)))
             {
@@ -86,9 +86,9 @@ namespace DeleteThis
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

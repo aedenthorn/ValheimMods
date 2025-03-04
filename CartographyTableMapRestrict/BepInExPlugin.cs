@@ -10,20 +10,20 @@ namespace CartographyTableMapRestrict
     [BepInPlugin("aedenthorn.CartographyTableMapRestrict", "Cartography Table Map Restrict", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> suppressMessage;
         public static ConfigEntry<int> nexusID;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -34,9 +34,9 @@ namespace CartographyTableMapRestrict
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
         [HarmonyPatch(typeof(Minimap), "Update")]
-        static class Minimap_Update_Patch
+        public static class Minimap_Update_Patch
         {
-            static void Postfix(Minimap __instance, Minimap.MapMode ___m_mode)
+            public static void Postfix(Minimap __instance, Minimap.MapMode ___m_mode)
             {
                 if (!modEnabled.Value || Player.m_localPlayer == null)
                     return;
@@ -46,14 +46,14 @@ namespace CartographyTableMapRestrict
             }
         }
         [HarmonyPatch(typeof(MapTable), "OnRead", new Type[] { typeof(Switch), typeof(Humanoid), typeof(ItemDrop.ItemData), typeof(bool) })]
-        static class MapTable_OnRead_Patch
+        public static class MapTable_OnRead_Patch
         {
-            static void Prefix(MapTable __instance, ref bool showMessage)
+            public static void Prefix(MapTable __instance, ref bool showMessage)
             {
                 showMessage = showMessage && !suppressMessage.Value;
             }
 
-            static void Postfix(MapTable __instance, ItemDrop.ItemData item)
+            public static void Postfix(MapTable __instance, ItemDrop.ItemData item)
             {
                 if (!modEnabled.Value || Player.m_localPlayer == null || item != null)
                     return;
@@ -61,9 +61,9 @@ namespace CartographyTableMapRestrict
             }
         }
         [HarmonyPatch(typeof(Minimap), nameof(Minimap.ShowPointOnMap))]
-        static class Minimap_ShowPointOnMap_Patch
+        public static class Minimap_ShowPointOnMap_Patch
         {
-            static bool Prefix()
+            public static bool Prefix()
             {
                 return false;
             }

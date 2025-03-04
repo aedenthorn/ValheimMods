@@ -41,9 +41,9 @@ namespace ServerRewards
         }
 
         [HarmonyPatch(typeof(PlayerController), "TakeInput")]
-        static class TakeInput_Patch
+        public static class TakeInput_Patch
         {
-            static bool Prefix(ref bool __result)
+            public static bool Prefix(ref bool __result)
             {
                 if(!modEnabled.Value || !storeOpen)
                     return true;
@@ -53,9 +53,9 @@ namespace ServerRewards
         }
 
         [HarmonyPatch(typeof(Player), "InCutscene")]
-        static class InCutscene_Patch
+        public static class InCutscene_Patch
         {
-            static bool Prefix(ref bool __result)
+            public static bool Prefix(ref bool __result)
             {
                 if(!modEnabled.Value || !storeOpen)
                     return true;
@@ -65,9 +65,9 @@ namespace ServerRewards
         }
 
         [HarmonyPatch(typeof(TombStone), "GetHoverText")]
-        static class TombStone_GetHoverText_Patch
+        public static class TombStone_GetHoverText_Patch
         {
-            static bool Prefix(ZNetView ___m_nview, ref string __result)
+            public static bool Prefix(ZNetView ___m_nview, ref string __result)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -82,9 +82,9 @@ namespace ServerRewards
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

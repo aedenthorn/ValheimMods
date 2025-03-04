@@ -13,7 +13,7 @@ namespace LockableDoors
     [BepInPlugin("aedenthorn.LockableDoors", "Lockable Doors", "0.6.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -35,17 +35,17 @@ namespace LockableDoors
         public static ConfigEntry<int> maxDoorNames;
         public static GameObject aedenkey;
 
-        private static Dictionary<Vector3, Guid> newDoors = new Dictionary<Vector3, Guid>();
-        private static Dictionary<string, string> doorNameDict = new Dictionary<string, string>();
+        public static Dictionary<Vector3, Guid> newDoors = new Dictionary<Vector3, Guid>();
+        public static Dictionary<string, string> doorNameDict = new Dictionary<string, string>();
 
-        private static Sprite icon = null;
+        public static Sprite icon = null;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
 
             context = this;
@@ -85,7 +85,7 @@ namespace LockableDoors
             zNetScene.m_prefabs.Add(aedenkey);
 
         }
-        private static AssetBundle GetAssetBundleFromResources(string filename)
+        public static AssetBundle GetAssetBundleFromResources(string filename)
         {
             var execAssembly = Assembly.GetExecutingAssembly();
             var resourceName = execAssembly.GetManifestResourceNames()
@@ -124,7 +124,7 @@ namespace LockableDoors
                 Debug.Log("There is no object with ItemDrop attempted to be insterted to objectDB this is bad...");
             }
         }
-        private static void LoadDoorNames()
+        public static void LoadDoorNames()
         {
             if (doorNames.Value.Length == 0)
                 return;
@@ -148,7 +148,7 @@ namespace LockableDoors
                 names.RemoveAt(0);
             doorNames.Value = string.Join(";", names);
         }
-        private static string GetDoorName(string guid)
+        public static string GetDoorName(string guid)
         {
             return doorNameDict.ContainsKey(guid) && doorNameDict[guid].Length > 0 ? doorNameDict[guid] : defaultName.Value;
         }
@@ -162,15 +162,15 @@ namespace LockableDoors
 
             TextInput.instance.RequestText(tr, namePrompt.Value, 255);
         }
-        private static bool IsDoorKey(ItemDrop.ItemData i)
+        public static bool IsDoorKey(ItemDrop.ItemData i)
         {
             return i.m_shared.m_name == "$item_aeden_doorkey" && i.m_crafterID == 0 && i.m_crafterName.Length == 36;
         }
 
         [HarmonyPatch(typeof(Player), "PlacePiece")]
-        static class Player_PlacePiece_Patch
+        public static class Player_PlacePiece_Patch
         {
-            static void Postfix(bool __result, Piece piece, GameObject ___m_placementGhost)
+            public static void Postfix(bool __result, Piece piece, GameObject ___m_placementGhost)
             {
                 if (!modEnabled.Value || !__result || !AedenthornUtils.CheckKeyHeld(modKey.Value))
                     return;
@@ -230,9 +230,9 @@ namespace LockableDoors
             }
         }
         [HarmonyPatch(typeof(Door), "UpdateState")]
-        static class Door_UpdateState_Patch
+        public static class Door_UpdateState_Patch
         {
-            static void Postfix(Door __instance, ZNetView ___m_nview)
+            public static void Postfix(Door __instance, ZNetView ___m_nview)
             {
                 if (!modEnabled.Value || !___m_nview.IsValid() || !newDoors.Any() || !newDoors.ContainsKey(__instance.transform.position))
                     return;
@@ -247,9 +247,9 @@ namespace LockableDoors
         }
                       
         [HarmonyPatch(typeof(Door), "Interact")]
-        static class Door_Interact_Patch
+        public static class Door_Interact_Patch
         {
-            static bool Prefix(Door __instance, ZNetView ___m_nview, bool __result, Humanoid character)
+            public static bool Prefix(Door __instance, ZNetView ___m_nview, bool __result, Humanoid character)
             {
                 if (!modEnabled.Value || ___m_nview.GetZDO() == null || !(character is Player) || !___m_nview.GetZDO().GetBool("LockedDoor"))
                     return true;
@@ -300,9 +300,9 @@ namespace LockableDoors
         }
 
         [HarmonyPatch(typeof(Door), "HaveKey")]
-        static class HaveKey_Patch
+        public static class HaveKey_Patch
         {
-            static void Postfix(Door __instance, ZNetView ___m_nview, ref bool __result, Humanoid player)
+            public static void Postfix(Door __instance, ZNetView ___m_nview, ref bool __result, Humanoid player)
             {
                 if (!__result || ___m_nview.GetZDO() == null || !(player is Player))
                     return;
@@ -318,9 +318,9 @@ namespace LockableDoors
         }
                           
         [HarmonyPatch(typeof(Door), "GetHoverText")]
-        static class Door_GetHoverText_Patch
+        public static class Door_GetHoverText_Patch
         {
-            static void Postfix(Door __instance, ref string __result, ZNetView ___m_nview)
+            public static void Postfix(Door __instance, ref string __result, ZNetView ___m_nview)
             {
                 if (!modEnabled.Value || ___m_nview.GetZDO() == null || !___m_nview.GetZDO().GetBool("LockedDoor"))
                     return;
@@ -330,9 +330,9 @@ namespace LockableDoors
         }
                         
         [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float) })]
-        static class GetTooltip_Patch
+        public static class GetTooltip_Patch
         {
-            static void Postfix(ItemDrop.ItemData item, ref string __result)
+            public static void Postfix(ItemDrop.ItemData item, ref string __result)
             {
                 if (!modEnabled.Value || !IsDoorKey(item))
                     return;
@@ -343,9 +343,9 @@ namespace LockableDoors
         }
 
         [HarmonyPatch(typeof(Character), "ShowPickupMessage")]
-        static class ShowPickupMessage_Patch
+        public static class ShowPickupMessage_Patch
         {
-            static bool Prefix(Character __instance, ItemDrop.ItemData item, int amount)
+            public static bool Prefix(Character __instance, ItemDrop.ItemData item, int amount)
             {
                 if (!modEnabled.Value || !IsDoorKey(item))
                     return true;
@@ -356,9 +356,9 @@ namespace LockableDoors
         }
 
         [HarmonyPatch(typeof(ItemDrop), "GetHoverText")]
-        static class ItemDrop_GetHoverText_Patch
+        public static class ItemDrop_GetHoverText_Patch
         {
-            static void Postfix(ItemDrop __instance, ref string __result)
+            public static void Postfix(ItemDrop __instance, ref string __result)
             {
                 if (!modEnabled.Value || !IsDoorKey(__instance.m_itemData))
                     return;
@@ -368,9 +368,9 @@ namespace LockableDoors
         }
                                   
         [HarmonyPatch(typeof(InventoryGrid), "CreateItemTooltip")]
-        static class CreateItemTooltip_Patch
+        public static class CreateItemTooltip_Patch
         {
-            static void Postfix(ItemDrop.ItemData item, UITooltip tooltip)
+            public static void Postfix(ItemDrop.ItemData item, UITooltip tooltip)
             {
                 if (!modEnabled.Value || !IsDoorKey(item))
                     return;
@@ -380,9 +380,9 @@ namespace LockableDoors
         }
                        
         [HarmonyPatch(typeof(ItemDrop.ItemData), "GetIcon")]
-        static class GetIcon_Patch
+        public static class GetIcon_Patch
         {
-            static void Postfix(ItemDrop.ItemData __instance, ref Sprite __result)
+            public static void Postfix(ItemDrop.ItemData __instance, ref Sprite __result)
             {
                 string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), typeof(BepInExPlugin).Namespace, "icon.png");
                 if (!modEnabled.Value || !IsDoorKey(__instance) || !File.Exists(path))
@@ -400,9 +400,9 @@ namespace LockableDoors
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

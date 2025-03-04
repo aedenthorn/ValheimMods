@@ -23,14 +23,14 @@ namespace TerrainReset
         public static ConfigEntry<string> resetMessage;
         public static ConfigEntry<string> modKey;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             
             context = this;
@@ -47,7 +47,7 @@ namespace TerrainReset
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
         }
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses(true) || !AedenthornUtils.CheckKeyDown(hotKey.Value) || !Player.m_localPlayer)
                 return;
@@ -58,7 +58,7 @@ namespace TerrainReset
         }
 
         
-        private static int ResetTerrain(Vector3 center, float radius)
+        public static int ResetTerrain(Vector3 center, float radius)
         {
             int resets = 0;
             List<Heightmap> list = new List<Heightmap>();
@@ -182,7 +182,7 @@ namespace TerrainReset
             return resets;
         }
 
-        private static float CoordDistance(float x, float y, float rx, float ry)
+        public static float CoordDistance(float x, float y, float rx, float ry)
         {
             float num = x - rx;
             float num2 = y - ry;
@@ -190,9 +190,9 @@ namespace TerrainReset
         }
 
         [HarmonyPatch(typeof(TerrainComp), "DoOperation")]
-        static class DoOperation_Patch
+        public static class DoOperation_Patch
         {
-            static bool Prefix(Vector3 pos, TerrainOp.Settings modifier, bool ___m_initialized)
+            public static bool Prefix(Vector3 pos, TerrainOp.Settings modifier, bool ___m_initialized)
             {
                 if (!___m_initialized)
                     return false;
@@ -207,9 +207,9 @@ namespace TerrainReset
         }
 
         [HarmonyPatch(typeof(TerrainOp), "OnPlaced")]
-        static class OnPlaced_Patch
+        public static class OnPlaced_Patch
         {
-            static bool Prefix(TerrainOp.Settings ___m_settings)
+            public static bool Prefix(TerrainOp.Settings ___m_settings)
             {
                 //Dbgl($"{___m_settings.m_smooth} {AedenthornUtils.CheckKeyHeld(modKey.Value)}");
                 if (!modEnabled.Value || !___m_settings.m_smooth || !AedenthornUtils.CheckKeyHeld(modKey.Value))
@@ -219,9 +219,9 @@ namespace TerrainReset
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

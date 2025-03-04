@@ -11,7 +11,7 @@ namespace HuginQuestFramework
     [BepInPlugin("aedenthorn.HuginQuestFramework", "Hugin Quest Framework", "0.4.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<string> modKey;
         public static ConfigEntry<bool> modEnabled;
@@ -59,7 +59,7 @@ namespace HuginQuestFramework
         public static ConfigEntry<string> fetchQuestString;
         
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
         
         public static double lastCheckTime = 0;
         public static Raven.RavenText currentText = new Raven.RavenText();
@@ -94,7 +94,7 @@ namespace HuginQuestFramework
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");

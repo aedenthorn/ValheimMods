@@ -14,9 +14,9 @@ namespace Backpack
     [BepInPlugin("aedenthorn.Backpack", "Backpack", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -29,19 +29,19 @@ namespace Backpack
         public static ConfigEntry<bool> dropInventoryOnDeath;
         public static ConfigEntry<bool> createTombStone;
 
-        private static GameObject backpack = null;
-        private static ZDO backpackZDO = null;
-        private static string backpackObjectPrefix = "Container_Backpack";
-        private static string backpackObjectName = "";
-        private static bool saving = false;
-        private static bool opening = false;
+        public static GameObject backpack = null;
+        public static ZDO backpackZDO = null;
+        public static string backpackObjectPrefix = "Container_Backpack";
+        public static string backpackObjectName = "";
+        public static bool saving = false;
+        public static bool opening = false;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -64,13 +64,13 @@ namespace Backpack
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
 
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || !Player.m_localPlayer || !ZNetScene.instance)
                 return;
@@ -95,9 +95,9 @@ namespace Backpack
 
 
         [HarmonyPatch(typeof(FejdStartup), "LoadMainScene")]
-        static class LoadMainScene_Patch
+        public static class LoadMainScene_Patch
         {
-            static void Prefix(FejdStartup __instance, List<PlayerProfile> ___m_profiles)
+            public static void Prefix(FejdStartup __instance, List<PlayerProfile> ___m_profiles)
             {
                 if (!modEnabled.Value)
                     return;
@@ -113,9 +113,9 @@ namespace Backpack
         }
 
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        static class ZNetScene_Awake_Patch
+        public static class ZNetScene_Awake_Patch
         {
-            static void Postfix(Dictionary<int, GameObject> ___m_namedPrefabs)
+            public static void Postfix(Dictionary<int, GameObject> ___m_namedPrefabs)
             {
                 if (!modEnabled.Value)
                     return;
@@ -126,9 +126,9 @@ namespace Backpack
         }
 
         [HarmonyPatch(typeof(ZNetScene), "CreateObject")]
-        static class CreateObject_Patch
+        public static class CreateObject_Patch
         {
-            static void Postfix(ZDO zdo, GameObject __result)
+            public static void Postfix(ZDO zdo, GameObject __result)
             {
                 if (!modEnabled.Value || !__result || zdo.GetPrefab() != backpackObjectName.GetStableHashCode())
                     return;
@@ -148,9 +148,9 @@ namespace Backpack
         }
 
         [HarmonyPatch(typeof(Player), "Start")]
-        static class Player_Start_Patch
+        public static class Player_Start_Patch
         {
-            static void Prefix(Player __instance)
+            public static void Prefix(Player __instance)
             {
                 if (!modEnabled.Value || !ZNetScene.instance || Player.m_localPlayer == null || __instance.GetPlayerID() != Player.m_localPlayer.GetPlayerID())
                     return;
@@ -178,7 +178,7 @@ namespace Backpack
                 InitBackpack();
             }
         }
-        private static void InitBackpack()
+        public static void InitBackpack()
         {
             Dbgl("Initializing backpack.");
 
@@ -204,9 +204,9 @@ namespace Backpack
         }
 
         [HarmonyPatch(typeof(Container), "Awake")]
-        static class Container_Awake_Patch
+        public static class Container_Awake_Patch
         {
-            static void Prefix(Container __instance)
+            public static void Prefix(Container __instance)
             {
                 if (!modEnabled.Value || !Player.m_localPlayer)
                     return;
@@ -219,7 +219,7 @@ namespace Backpack
                 }
 
             }
-            static void Postfix(Container __instance, ZNetView ___m_nview)
+            public static void Postfix(Container __instance, ZNetView ___m_nview)
             {
                 if (!modEnabled.Value || !Player.m_localPlayer)
                     return;
@@ -234,9 +234,9 @@ namespace Backpack
         }
         
         [HarmonyPatch(typeof(ZNetScene), "CreateDestroyObjects")]
-        static class CreateDestroyObjects_Patch
+        public static class CreateDestroyObjects_Patch
         {
-            static void Prefix(ZNetScene __instance)
+            public static void Prefix(ZNetScene __instance)
             {
                 if (!modEnabled.Value || !Player.m_localPlayer)
                     return;
@@ -245,9 +245,9 @@ namespace Backpack
         }
                 
         [HarmonyPatch(typeof(InventoryGui), "Update")]
-        static class InventoryGui_Update_Patch
+        public static class InventoryGui_Update_Patch
         {
-            static void Postfix(InventoryGui __instance, Animator ___m_animator, Container ___m_currentContainer)
+            public static void Postfix(InventoryGui __instance, Animator ___m_animator, Container ___m_currentContainer)
             {
                 if (!modEnabled.Value || !backpack || !Player.m_localPlayer || !___m_animator.GetBool("visible") || !AedenthornUtils.CheckKeyDown(hotKey.Value))
                     return;
@@ -272,9 +272,9 @@ namespace Backpack
 
         [HarmonyPatch(typeof(Inventory), "GetTotalWeight")]
         [HarmonyPriority(Priority.Last)]
-        static class GetTotalWeight_Patch
+        public static class GetTotalWeight_Patch
         {
-            static void Postfix(Inventory __instance, ref float __result)
+            public static void Postfix(Inventory __instance, ref float __result)
             {
                 if (!modEnabled.Value || !backpack || !Player.m_localPlayer)
                     return;
@@ -294,9 +294,9 @@ namespace Backpack
         }   
 
         [HarmonyPatch(typeof(Player), "OnDeath")]
-        static class OnDeath_Patch
+        public static class OnDeath_Patch
         {
-            static void Prefix(Player __instance)
+            public static void Prefix(Player __instance)
             {
                 if (!modEnabled.Value || !backpack || !Player.m_localPlayer || __instance.GetPlayerID() != Player.m_localPlayer.GetPlayerID() || backpack.GetComponent<Container>().GetInventory().NrOfItems() == 0)
                     return;
@@ -322,13 +322,13 @@ namespace Backpack
 
         }
 
-        private static void MoveBackpackToScene()
+        public static void MoveBackpackToScene()
         {
             saving = true;
             backpack.transform.SetParent(Traverse.Create(ZNetScene.instance).Field("m_netSceneRoot").GetValue<GameObject>().transform);
             backpack.transform.localPosition = Player.m_localPlayer.transform.localPosition;
         }
-        private static void ResetBackpackSector()
+        public static void ResetBackpackSector()
         {
             if (backpack?.GetComponent<ZNetView>()?.GetZDO() == null)
                 return;
@@ -338,9 +338,9 @@ namespace Backpack
         }
 
         //[HarmonyPatch(typeof(Game), "SavePlayerProfile")]
-        static class SavePlayerProfile_Patch
+        public static class SavePlayerProfile_Patch
         {
-            static void Prefix()
+            public static void Prefix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -356,9 +356,9 @@ namespace Backpack
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

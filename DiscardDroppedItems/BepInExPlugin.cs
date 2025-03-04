@@ -9,18 +9,18 @@ namespace DiscardDroppedItems
     [BepInPlugin("aedenthorn.DiscardDroppedItems", "Discard Dropped Items", "0.2.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static ConfigEntry<bool> modEnabled;
-        private static ConfigEntry<string> destroyModKey;
-        private static ConfigEntry<string> destroyedMessage;
-        private static ConfigEntry<int> nexusID;
+        public static readonly bool isDebug = true;
+        public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<string> destroyModKey;
+        public static ConfigEntry<string> destroyedMessage;
+        public static ConfigEntry<int> nexusID;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             destroyModKey = Config.Bind<string>("General", "DestroyModKey", "left alt", "Modifier key to destroy ground item");
@@ -35,9 +35,9 @@ namespace DiscardDroppedItems
         }
 
         [HarmonyPatch(typeof(ItemDrop), "Pickup")]
-        static class ItemDrop_Pickup_Patch
+        public static class ItemDrop_Pickup_Patch
         {
-            static void Prefix(ItemDrop __instance, Humanoid character, ZNetView ___m_nview)
+            public static void Prefix(ItemDrop __instance, Humanoid character, ZNetView ___m_nview)
             {
                 if (CheckKeyHeld(destroyModKey.Value) && character.IsPlayer() && (character as Player).GetPlayerID() == Player.m_localPlayer.GetPlayerID())
                 {
@@ -51,7 +51,7 @@ namespace DiscardDroppedItems
             }
         }
 
-        private static bool CheckKeyHeld(string value)
+        public static bool CheckKeyHeld(string value)
         {
             if (value == null || value.Length == 0)
                 return true;

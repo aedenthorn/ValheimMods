@@ -7,13 +7,13 @@ namespace ExtendedPlayerInventory
 {
     public class QuickAccessBar : MonoBehaviour
     {
-		private void Update()
+		public void Update()
 		{
 			Player localPlayer = Player.m_localPlayer;
 			UpdateIcons(localPlayer);
 		}
 
-		private void UpdateIcons(Player player)
+		public void UpdateIcons(Player player)
 		{
 			if (!player || player.IsDead())
 			{
@@ -126,13 +126,13 @@ namespace ExtendedPlayerInventory
 
 		public float m_elementSpace = 70f;
 
-		private int m_selected;
+		public int m_selected;
 
-		private List<ElementData> m_elements = new List<ElementData>();
+		public List<ElementData> m_elements = new List<ElementData>();
 
-		private List<ItemDrop.ItemData> m_items = new List<ItemDrop.ItemData>();
+		public List<ItemDrop.ItemData> m_items = new List<ItemDrop.ItemData>();
 
-		private class ElementData
+		public class ElementData
 		{
 				public bool m_used;
 

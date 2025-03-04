@@ -8,8 +8,8 @@ namespace ClockMod
 {
     public partial class BepInExPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> showingClock;
         public static ConfigEntry<bool> showClockOnChange;
@@ -33,16 +33,16 @@ namespace ClockMod
         public static ConfigEntry<string> clockFuzzyStrings;
         public static ConfigEntry<int> nexusID;
 
-        private static Font clockFont;
-        private static GUIStyle style;
-        private static GUIStyle style2;
-        private static bool configApplied = false;
-        private static Vector2 clockPosition;
-        private static float shownTime = 0;
-        private static string lastTimeString = "";
-        private static Rect windowRect;
-        private string newTimeString;
-        private static Rect timeRect;
+        public static Font clockFont;
+        public static GUIStyle style;
+        public static GUIStyle style2;
+        public static bool configApplied = false;
+        public static Vector2 clockPosition;
+        public static float shownTime = 0;
+        public static string lastTimeString = "";
+        public static Rect windowRect;
+        public string newTimeString;
+        public static Rect timeRect;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -144,7 +144,7 @@ namespace ClockMod
         }
 
 
-        private void WindowBuilder(int id)
+        public void WindowBuilder(int id)
         {
 
             timeRect = GUILayoutUtility.GetRect(new GUIContent(newTimeString), style);
@@ -158,7 +158,7 @@ namespace ClockMod
             GUI.Label(timeRect, newTimeString, style);
         }
 
-        private static void ApplyConfig()
+        public static void ApplyConfig()
         {
 
             string[] split = clockLocationString.Value.Split(',');
@@ -203,7 +203,7 @@ namespace ClockMod
             configApplied = true;
         }
 
-        private string GetCurrentTimeString(DateTime theTime, float fraction, int days)
+        public string GetCurrentTimeString(DateTime theTime, float fraction, int days)
         {
 
             string[] fuzzyStringArray = clockFuzzyStrings.Value.Split(',');
@@ -223,12 +223,12 @@ namespace ClockMod
             }
         }
 
-        private static string GetFuzzyFileName(string lang)
+        public static string GetFuzzyFileName(string lang)
         {            
             return context.Info.Location.Replace("ClockMod.dll","") + string.Format("clockmod.lang.{0}.cfg",lang);
         }
 
-        private static bool CheckKeyHeld(string value)
+        public static bool CheckKeyHeld(string value)
         {
             try
             {
@@ -239,7 +239,7 @@ namespace ClockMod
                 return true;
             }
         }
-        private bool PressedToggleKey()
+        public bool PressedToggleKey()
         {
             try
             {
@@ -252,9 +252,9 @@ namespace ClockMod
         }
 
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        static class ZNetScene_Awake_Patch
+        public static class ZNetScene_Awake_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -266,9 +266,9 @@ namespace ClockMod
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

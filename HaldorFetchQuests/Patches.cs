@@ -19,9 +19,9 @@ namespace HaldorFetchQuests
     {
 
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        static class ZNetScene_Awake_Patch
+        public static class ZNetScene_Awake_Patch
         {
-            static void Postfix(StoreGui __instance)
+            public static void Postfix(StoreGui __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -47,9 +47,9 @@ namespace HaldorFetchQuests
         }
 
         [HarmonyPatch(typeof(PlayerProfile), "SavePlayerToDisk")]
-        static class PlayerProfile_SavePlayerToDisk_Patch
+        public static class PlayerProfile_SavePlayerToDisk_Patch
         {
-            static void Prefix()
+            public static void Prefix()
             {
                 if (!modEnabled.Value || !ZNet.instance || !Player.m_localPlayer)
                     return;
@@ -70,9 +70,9 @@ namespace HaldorFetchQuests
         }
 
         [HarmonyPatch(typeof(Character), "RPC_Damage")]
-        static class Character_RPC_Damage_Patch
+        public static class Character_RPC_Damage_Patch
         {
-            static void Postfix(Character __instance, HitData hit)
+            public static void Postfix(Character __instance, HitData hit)
             {
                 if (!modEnabled.Value || __instance.GetHealth() > 0 || hit.GetAttacker() != Player.m_localPlayer)
                     return;
@@ -81,9 +81,9 @@ namespace HaldorFetchQuests
         }
         
         [HarmonyPatch(typeof(Inventory), "Changed")]
-        static class Inventory_Changed_Patch
+        public static class Inventory_Changed_Patch
         {
-            static void Postfix(Inventory __instance)
+            public static void Postfix(Inventory __instance)
             {
                 if (!modEnabled.Value || !Player.m_localPlayer || __instance != Player.m_localPlayer.GetInventory())
                     return;
@@ -92,9 +92,9 @@ namespace HaldorFetchQuests
         }
 
         [HarmonyPatch(typeof(StoreGui), "Show")]
-        static class StoreGui_Show_Patch
+        public static class StoreGui_Show_Patch
         {
-            static void Prefix(StoreGui __instance)
+            public static void Prefix(StoreGui __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -103,9 +103,9 @@ namespace HaldorFetchQuests
         }
         
         [HarmonyPatch(typeof(StoreGui), "UpdateBuyButton")]
-        static class StoreGui_UpdateBuyButton_Patch
+        public static class StoreGui_UpdateBuyButton_Patch
         {
-            static void Postfix(StoreGui __instance, Trader.TradeItem ___m_selectedItem)
+            public static void Postfix(StoreGui __instance, Trader.TradeItem ___m_selectedItem)
             {
                 if (!modEnabled.Value || ___m_selectedItem == null)
                     return;
@@ -129,9 +129,9 @@ namespace HaldorFetchQuests
         }
 
         [HarmonyPatch(typeof(StoreGui), "BuySelectedItem")]
-        static class StoreGui_BuySelectedItem_Patch
+        public static class StoreGui_BuySelectedItem_Patch
         {
-            static bool Prefix(StoreGui __instance, Trader ___m_trader, Trader.TradeItem ___m_selectedItem)
+            public static bool Prefix(StoreGui __instance, Trader ___m_trader, Trader.TradeItem ___m_selectedItem)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -164,9 +164,9 @@ namespace HaldorFetchQuests
         }
 
         [HarmonyPatch(typeof(StoreGui), "FillList")]
-        static class StoreGui_FillList_Patch
+        public static class StoreGui_FillList_Patch
         {
-            static void Prefix(StoreGui __instance, Trader ___m_trader)
+            public static void Prefix(StoreGui __instance, Trader ___m_trader)
             {
                 for(int i = ___m_trader.m_items.Count - 1; i >= 0; i--)
                 {
@@ -179,7 +179,7 @@ namespace HaldorFetchQuests
                     RefreshCurrentQuests();
                 }
             }
-            static void Postfix(StoreGui __instance, Trader ___m_trader, List<GameObject> ___m_itemList)
+            public static void Postfix(StoreGui __instance, Trader ___m_trader, List<GameObject> ___m_itemList)
             {
                 if (!modEnabled.Value || currentQuestDict is null || Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader"))
                     return;
@@ -245,9 +245,9 @@ namespace HaldorFetchQuests
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -271,7 +271,7 @@ namespace HaldorFetchQuests
             }
         }
 
-        private static bool BetterTrader_ItemElementUI_UpdateTradePrice_Prefix(Text ___tradePriceSliderText)
+        public static bool BetterTrader_ItemElementUI_UpdateTradePrice_Prefix(Text ___tradePriceSliderText)
         {
             if (!modEnabled.Value)
                 return true;
@@ -285,7 +285,7 @@ namespace HaldorFetchQuests
             return false;
         }
         
-        private static void BetterTrader_ItemElementUI_UpdateTint_Prefix(object __instance, ref bool tinted)
+        public static void BetterTrader_ItemElementUI_UpdateTint_Prefix(object __instance, ref bool tinted)
         {
             if (!modEnabled.Value || (((Text)AccessTools.Field(__instance.GetType(), "itemNameText").GetValue(__instance)).text != fetchQuestString.Value && ((Text)AccessTools.Field(__instance.GetType(), "itemNameText").GetValue(__instance)).text != killQuestString.Value))
                 return;
@@ -293,7 +293,7 @@ namespace HaldorFetchQuests
             tinted = false;
         }
 
-        private static bool BetterTrader_ItemElementUI_SetSelectionIndicatorActive_Prefix(object __instance)
+        public static bool BetterTrader_ItemElementUI_SetSelectionIndicatorActive_Prefix(object __instance)
         {
             if (!modEnabled.Value || (((Text)AccessTools.Field(__instance.GetType(), "itemNameText").GetValue(__instance)).text != fetchQuestString.Value && ((Text)AccessTools.Field(__instance.GetType(), "itemNameText").GetValue(__instance)).text != killQuestString.Value))
                 return true;
@@ -301,7 +301,7 @@ namespace HaldorFetchQuests
             return false;
         }
 
-        private static void BetterTrader_ItemElementUIListView_SetupElements_Prefix(object __instance, List<object> itemElements)
+        public static void BetterTrader_ItemElementUIListView_SetupElements_Prefix(object __instance, List<object> itemElements)
         {
             if (!modEnabled.Value || (int)AccessTools.Field(itemElements[0].GetType(), "type").GetValue(itemElements[0]) != 0)
                 return;
@@ -345,7 +345,7 @@ namespace HaldorFetchQuests
             }
         }
 
-        private static void OnBuyBetterTraderItem(FetchQuestData fqd)
+        public static void OnBuyBetterTraderItem(FetchQuestData fqd)
         {
 
             QuestFrameworkAPI.AddQuest(MakeQuestData(currentQuestDict[fqd.ID]));
@@ -364,7 +364,7 @@ namespace HaldorFetchQuests
             AdjustFetchQuests();
         }
 
-        private static void OnClickBetterTraderItem(FetchQuestData fqd, object itemElement)
+        public static void OnClickBetterTraderItem(FetchQuestData fqd, object itemElement)
         {
             Dbgl($"Clicked better trader item {fqd.ID}");
             ItemDrop.ItemData data = new ItemDrop.ItemData() { m_shared = new SharedData() };

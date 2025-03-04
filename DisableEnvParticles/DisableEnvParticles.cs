@@ -17,14 +17,14 @@ namespace DisableEnvParticles
                 context.Logger.Log(logLevel, str);
         }
         
-        private static DisableEnvParticles context;
+        public static DisableEnvParticles context;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> autoLoad;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
 
 
-        private void Awake()
+        public void Awake()
         {
             context = this;
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
@@ -38,9 +38,9 @@ namespace DisableEnvParticles
         }
 
         [HarmonyPatch(typeof(EnvMan), "SetParticleArrayEnabled")]
-        static class EnvMan_SetParticleArrayEnabled_Patch
+        public static class EnvMan_SetParticleArrayEnabled_Patch
         {
-            static void Prefix(GameObject[] psystems, ref bool enabled)
+            public static void Prefix(GameObject[] psystems, ref bool enabled)
             {
                 if(!modEnabled.Value)
                     return;

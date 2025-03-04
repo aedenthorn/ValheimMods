@@ -13,8 +13,8 @@ namespace RequirementCheck
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigSync configSync;
-        private static BepInExPlugin context;
-        private static ConfigEntry<bool> serverConfigLocked;
+        public static BepInExPlugin context;
+        public static ConfigEntry<bool> serverConfigLocked;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
@@ -50,7 +50,7 @@ namespace RequirementCheck
         ConfigEntry<T> config<T>(string group, string name, T value, string description, bool synchronizedSetting = true) => config(group, name, value, new ConfigDescription(description), synchronizedSetting);
 
 
-        private void Awake()
+        public void Awake()
         {
             context = this;
             serverConfigLocked = config("General", "Lock Configuration", false, "Lock Configuration");
@@ -77,9 +77,9 @@ namespace RequirementCheck
 
 
         [HarmonyPatch(typeof(Player), "TeleportTo")]
-        static class TeleportTo_Patch
+        public static class TeleportTo_Patch
         {
-            static bool Prefix(Player __instance)
+            public static bool Prefix(Player __instance)
             {
 
                 if (!modEnabled.Value)
@@ -92,9 +92,9 @@ namespace RequirementCheck
         }
 
         [HarmonyPatch(typeof(Inventory), "CanAddItem", new Type[] { typeof(GameObject), typeof(int) })]
-        static class CanPickup_Patch1
+        public static class CanPickup_Patch1
         {
-            static void Postfix(GameObject prefab, ref bool __result)
+            public static void Postfix(GameObject prefab, ref bool __result)
             {
 
                 if (!modEnabled.Value || prefab == null || !__result)
@@ -107,9 +107,9 @@ namespace RequirementCheck
         }
          
         [HarmonyPatch(typeof(Inventory), "CanAddItem", new Type[] { typeof(ItemDrop.ItemData), typeof(int) })]
-        static class CanPickup_Patch2
+        public static class CanPickup_Patch2
         {
-            static void Postfix(ItemDrop.ItemData item, ref bool __result)
+            public static void Postfix(ItemDrop.ItemData item, ref bool __result)
             {
 
                 if (!modEnabled.Value || item.m_dropPrefab == null || !__result)
@@ -122,9 +122,9 @@ namespace RequirementCheck
         }
 
         [HarmonyPatch(typeof(Humanoid), "Pickup")]
-        static class Pickup_Patch
+        public static class Pickup_Patch
         {
-            static bool Prefix(GameObject go)
+            public static bool Prefix(GameObject go)
             {
 
                 if (!modEnabled.Value)
@@ -137,9 +137,9 @@ namespace RequirementCheck
         }
 
         [HarmonyPatch(typeof(Humanoid), "EquipItem")]
-        static class EquipItem_Patch
+        public static class EquipItem_Patch
         {
-            static bool Prefix(Humanoid __instance, ItemDrop.ItemData item)
+            public static bool Prefix(Humanoid __instance, ItemDrop.ItemData item)
             {
                 if (!modEnabled.Value || !(__instance is Player))
                     return true;
@@ -160,9 +160,9 @@ namespace RequirementCheck
         }
 
         [HarmonyPatch(typeof(Player), "AddKnownRecipe")]
-        static class AddKnownRecipe_Patch
+        public static class AddKnownRecipe_Patch
         {
-            static bool Prefix(Recipe recipe)
+            public static bool Prefix(Recipe recipe)
             {
                 if (!modEnabled.Value || recipe.m_item.gameObject == null)
                     return true;
@@ -174,9 +174,9 @@ namespace RequirementCheck
         }
                 
         [HarmonyPatch(typeof(Player), "AddKnownPiece")]
-        static class AddKnownPiece_Patch
+        public static class AddKnownPiece_Patch
         {
-            static bool Prefix(Piece piece)
+            public static bool Prefix(Piece piece)
             {
                 if (!modEnabled.Value || piece.gameObject == null)
                     return true;
@@ -188,9 +188,9 @@ namespace RequirementCheck
         }
 
         [HarmonyPatch(typeof(Player), "AddKnownItem")]
-        static class AddKnownItem_Patch
+        public static class AddKnownItem_Patch
         {
-            static bool Prefix(ItemDrop.ItemData item)
+            public static bool Prefix(ItemDrop.ItemData item)
             {
                 if (!modEnabled.Value || item.m_dropPrefab == null)
                     return true;
@@ -202,9 +202,9 @@ namespace RequirementCheck
         }
 
         [HarmonyPatch(typeof(Skills), "CheatRaiseSkill")]
-        static class CheatRaiseSkill_Patch
+        public static class CheatRaiseSkill_Patch
         {
-            static bool Prefix(string name)
+            public static bool Prefix(string name)
             {
 
                 if (!modEnabled.Value || !Enum.TryParse(name, true, out Skills.SkillType skillType))
@@ -215,9 +215,9 @@ namespace RequirementCheck
         }
 
         [HarmonyPatch(typeof(Skills), "RaiseSkill")]
-        static class RaiseSkill_Patch
+        public static class RaiseSkill_Patch
         {
-            static bool Prefix(Skills.SkillType skillType)
+            public static bool Prefix(Skills.SkillType skillType)
             {
                 if (!modEnabled.Value || skillType == Skills.SkillType.None)
                     return true;
@@ -229,9 +229,9 @@ namespace RequirementCheck
         }
 
         [HarmonyPatch(typeof(Destructible), "RPC_Damage")]
-        static class Destructible_RPC_Damage_Patch
+        public static class Destructible_RPC_Damage_Patch
         {
-            static bool Prefix(Destructible __instance, HitData hit, ZNetView ___m_nview, bool ___m_destroyed)
+            public static bool Prefix(Destructible __instance, HitData hit, ZNetView ___m_nview, bool ___m_destroyed)
             {
 
                 if (!modEnabled.Value)
@@ -246,9 +246,9 @@ namespace RequirementCheck
         }
 
         [HarmonyPatch(typeof(MineRock), "RPC_Hit")]
-        static class MineRock_RPC_Hit_Patch
+        public static class MineRock_RPC_Hit_Patch
         {
-            static bool Prefix(MineRock __instance, HitData hit, ZNetView ___m_nview)
+            public static bool Prefix(MineRock __instance, HitData hit, ZNetView ___m_nview)
             {
 
                 if (!modEnabled.Value)
@@ -262,9 +262,9 @@ namespace RequirementCheck
         }
 
         [HarmonyPatch(typeof(MineRock5), "RPC_Damage")]
-        static class MineRock5_RPC_Damage_Patch
+        public static class MineRock5_RPC_Damage_Patch
         {
-            static bool Prefix(MineRock5 __instance, HitData hit, ZNetView ___m_nview)
+            public static bool Prefix(MineRock5 __instance, HitData hit, ZNetView ___m_nview)
             {
 
                 if (!modEnabled.Value)
@@ -278,7 +278,7 @@ namespace RequirementCheck
         }
 
 
-        private static bool CheckCanDamage(GameObject gameObject, HitData hit)
+        public static bool CheckCanDamage(GameObject gameObject, HitData hit)
         {
             Dbgl("Checking can damage");
             
@@ -295,7 +295,7 @@ namespace RequirementCheck
 
             return true;
         }
-        private static bool CheckNameItemReq(string name, string nameKeyList, Inventory inv)
+        public static bool CheckNameItemReq(string name, string nameKeyList, Inventory inv)
         {
             if (nameKeyList.Length > 0 && inv != null)
             {
@@ -320,7 +320,7 @@ namespace RequirementCheck
             return true;
         }
 
-        private static bool CheckNameKeyReq(string name, string nameKeyList)
+        public static bool CheckNameKeyReq(string name, string nameKeyList)
         {
             if (nameKeyList.Length > 0 && ZoneSystem.instance)
             {
@@ -344,7 +344,7 @@ namespace RequirementCheck
         }
 
 
-        private static bool CheckItemReq(string keyList, Inventory inv)
+        public static bool CheckItemReq(string keyList, Inventory inv)
         {
             if (keyList.Length > 0 && inv != null)
             {
@@ -365,7 +365,7 @@ namespace RequirementCheck
             return true;
         }
 
-        private static bool CheckKeyReq(string keyList)
+        public static bool CheckKeyReq(string keyList)
         {
             if (keyList.Length > 0)
             {
@@ -386,9 +386,9 @@ namespace RequirementCheck
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

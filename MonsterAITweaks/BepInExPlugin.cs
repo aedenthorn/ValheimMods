@@ -12,9 +12,9 @@ namespace MonsterAITweaks
     [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.5.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -39,13 +39,13 @@ namespace MonsterAITweaks
         public static ConfigEntry<float> viewAngleMult;
         public static ConfigEntry<float> hearRangeMult;
 
-        private static string[] neverTargetPlayersList;
-        private static string[] neverAlertedList;
-        private static string[] neverFleeList;
-        private static string[] defaultTamedList;
-        private static string[] noBuildingTargetList;
-        private static string[] fearFireList;
-        private static string[] avoidFireList;
+        public static string[] neverTargetPlayersList;
+        public static string[] neverAlertedList;
+        public static string[] neverFleeList;
+        public static string[] defaultTamedList;
+        public static string[] noBuildingTargetList;
+        public static string[] fearFireList;
+        public static string[] avoidFireList;
 
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -53,7 +53,7 @@ namespace MonsterAITweaks
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -96,9 +96,9 @@ namespace MonsterAITweaks
         }
 
         [HarmonyPatch(typeof(MonsterAI), "Awake")]
-        static class MonsterAI_Awake_Patch
+        public static class MonsterAI_Awake_Patch
         {
-            static void Postfix(MonsterAI __instance)
+            public static void Postfix(MonsterAI __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -114,9 +114,9 @@ namespace MonsterAITweaks
         }
         
         [HarmonyPatch(typeof(BaseAI), "Awake")]
-        static class BaseAI_Awake_Patch
+        public static class BaseAI_Awake_Patch
         {
-            static void Postfix(BaseAI __instance)
+            public static void Postfix(BaseAI __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -130,9 +130,9 @@ namespace MonsterAITweaks
         }
         
         [HarmonyPatch(typeof(MonsterAI), "SetTarget", new Type[] { typeof(Character) })]
-        static class MonsterAI_SetTarget_Patch
+        public static class MonsterAI_SetTarget_Patch
         {
-            static bool Prefix(MonsterAI __instance, Character attacker)
+            public static bool Prefix(MonsterAI __instance, Character attacker)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -146,9 +146,9 @@ namespace MonsterAITweaks
         }
         
         [HarmonyPatch(typeof(BaseAI), "Flee")]
-        static class BaseAI_Flee_Patch
+        public static class BaseAI_Flee_Patch
         {
-            static bool Prefix(BaseAI __instance)
+            public static bool Prefix(BaseAI __instance)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -160,9 +160,9 @@ namespace MonsterAITweaks
         }
 
         [HarmonyPatch(typeof(BaseAI), "FindEnemy")]
-        static class BaseAI_FindEnemy_Patch
+        public static class BaseAI_FindEnemy_Patch
         {
-            static void Postfix(BaseAI __instance, ref Character __result)
+            public static void Postfix(BaseAI __instance, ref Character __result)
             {
                 if (!modEnabled.Value)
                     return;
@@ -177,9 +177,9 @@ namespace MonsterAITweaks
         }
 
         [HarmonyPatch(typeof(BaseAI), "Alert")]
-        static class BaseAI_Alert_Patch
+        public static class BaseAI_Alert_Patch
         {
-            static bool Prefix(BaseAI __instance)
+            public static bool Prefix(BaseAI __instance)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -192,9 +192,9 @@ namespace MonsterAITweaks
             }
         }
         [HarmonyPatch(typeof(BaseAI), "FindClosestStaticPriorityTarget")]
-        static class BaseAI_FindClosestStaticPriorityTarget_Patch
+        public static class BaseAI_FindClosestStaticPriorityTarget_Patch
         {
-            static bool Prefix(BaseAI __instance, ref StaticTarget __result)
+            public static bool Prefix(BaseAI __instance, ref StaticTarget __result)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -208,9 +208,9 @@ namespace MonsterAITweaks
             }
         }
         [HarmonyPatch(typeof(BaseAI), "FindRandomStaticTarget")]
-        static class BaseAI_FindRandomStaticTarget_Patch
+        public static class BaseAI_FindRandomStaticTarget_Patch
         {
-            static bool Prefix(BaseAI __instance, ref StaticTarget __result)
+            public static bool Prefix(BaseAI __instance, ref StaticTarget __result)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -225,9 +225,9 @@ namespace MonsterAITweaks
         }
 
         [HarmonyPatch(typeof(MonsterAI), "SetAlerted")]
-        static class MonsterAI_SetAlerted_Patch
+        public static class MonsterAI_SetAlerted_Patch
         {
-            static bool Prefix(MonsterAI __instance, bool alert)
+            public static bool Prefix(MonsterAI __instance, bool alert)
             {
                 if (!modEnabled.Value || !alert)
                     return true;
@@ -241,9 +241,9 @@ namespace MonsterAITweaks
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

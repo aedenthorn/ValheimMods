@@ -11,9 +11,9 @@ namespace CustomToolbarHotkeys
     [BepInPlugin("aedenthorn.CustomToolbarHotkeys", "Custom Toolbar Hotkeys", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = false;
-        private static BepInExPlugin context;
-        private static bool usingHotkey = false;
+        public static readonly bool isDebug = false;
+        public static BepInExPlugin context;
+        public static bool usingHotkey = false;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -30,14 +30,14 @@ namespace CustomToolbarHotkeys
         public static ConfigEntry<string> hotKey7;
         public static ConfigEntry<string> hotKey8;
 
-        private static ConfigEntry<string>[] hotkeys;
+        public static ConfigEntry<string>[] hotkeys;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -73,9 +73,9 @@ namespace CustomToolbarHotkeys
         }
 
         [HarmonyPatch(typeof(HotkeyBar), "UpdateIcons")]
-        static class HotkeyBar_UpdateIcons_Patch
+        public static class HotkeyBar_UpdateIcons_Patch
         {
-            static void Postfix(HotkeyBar __instance)
+            public static void Postfix(HotkeyBar __instance)
             {
                 if (!modEnabled.Value || __instance.name != "HotKeyBar")
                     return;
@@ -118,9 +118,9 @@ namespace CustomToolbarHotkeys
         }
         
         [HarmonyPatch(typeof(Player), "Update")]
-        static class Player_Update_Patch
+        public static class Player_Update_Patch
         {
-            static bool Prefix(Player __instance)
+            public static bool Prefix(Player __instance)
             {
                 if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses(true))
                     return true;
@@ -151,9 +151,9 @@ namespace CustomToolbarHotkeys
         }
         
         [HarmonyPatch(typeof(Player), "UseHotbarItem")]
-        static class Player_UseHotbarItem_Patch
+        public static class Player_UseHotbarItem_Patch
         {
-            static bool Prefix(int index)
+            public static bool Prefix(int index)
             {
                 if (!modEnabled.Value || !usingHotkey)
                     return false;
@@ -166,9 +166,9 @@ namespace CustomToolbarHotkeys
 
                 
         [HarmonyPatch(typeof(InventoryGui), "Update")]
-        static class InventoryGui_Update_Patch
+        public static class InventoryGui_Update_Patch
         {
-            static void Postfix(InventoryGrid ___m_playerGrid, Animator ___m_animator)
+            public static void Postfix(InventoryGrid ___m_playerGrid, Animator ___m_animator)
             {
                 if (!modEnabled.Value || ___m_playerGrid.m_gridRoot.transform.childCount < 8 || !___m_animator.GetBool("visible"))
                     return;
@@ -210,9 +210,9 @@ namespace CustomToolbarHotkeys
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

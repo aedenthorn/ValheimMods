@@ -9,8 +9,8 @@ namespace MapCoordinateDisplay
     [BepInPlugin("aedenthorn.MapCoordinateDisplay", "Map Coordinate Display", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -32,26 +32,26 @@ namespace MapCoordinateDisplay
         public static ConfigEntry<Color> windowBackgroundColor;
         public static ConfigEntry<TextAnchor> alignment;
 
-        private Rect windowRect;
-        private int windowId = 5318008;
-        private Rect coordRect;
-        private Rect doubleSize;
-        private Rect secondRect;
-        private GUIStyle cursorStyle;
-        private GUIStyle playerStyle;
-        private GUIStyle windowStyle;
+        public Rect windowRect;
+        public int windowId = 5318008;
+        public Rect coordRect;
+        public Rect doubleSize;
+        public Rect secondRect;
+        public GUIStyle cursorStyle;
+        public GUIStyle playerStyle;
+        public GUIStyle windowStyle;
 
-        private static string playerPos = "";
-        private static string cursorPos = "";
-        private string lastFontName;
-        private Font currentFont;
+        public static string playerPos = "";
+        public static string cursorPos = "";
+        public string lastFontName;
+        public Font currentFont;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -80,17 +80,17 @@ namespace MapCoordinateDisplay
             harmony.PatchAll();
         }
 
-        private void CoordPosition_SettingChanged(object sender, System.EventArgs e)
+        public void CoordPosition_SettingChanged(object sender, System.EventArgs e)
         {
             windowRect = new Rect(coordPosition.Value, new Vector2(1000, 100));
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
-        private static Font GetFont(string fontName, int fontSize)
+        public static Font GetFont(string fontName, int fontSize)
         {
             Font[] fonts = Resources.FindObjectsOfTypeAll<Font>();
             foreach (Font font in fonts)
@@ -103,7 +103,7 @@ namespace MapCoordinateDisplay
             return Font.CreateDynamicFontFromOSFont(fontName, fontSize);
         }
 
-        private void OnGUI()
+        public void OnGUI()
         {
             if (!modEnabled.Value || !Player.m_localPlayer || ((!Hud.instance || !Traverse.Create(Hud.instance).Method("IsVisible").GetValue<bool>()) && !Minimap.IsOpen()))
                 return;
@@ -166,7 +166,7 @@ namespace MapCoordinateDisplay
 
         }
 
-        private void WindowBuilder(int id)
+        public void WindowBuilder(int id)
         {
             if (cursorPos.Length > playerPos.Length)
                 coordRect = GUILayoutUtility.GetRect(new GUIContent(cursorPos), cursorStyle);
@@ -206,9 +206,9 @@ namespace MapCoordinateDisplay
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

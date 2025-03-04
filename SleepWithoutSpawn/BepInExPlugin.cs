@@ -9,7 +9,7 @@ namespace SleepWithoutSpawn
     [BepInPlugin("aedenthorn.SleepWithoutSpawn", "Sleep Without Spawn", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<int> nexusID;
         public static ConfigEntry<bool> modEnabled;
@@ -17,14 +17,14 @@ namespace SleepWithoutSpawn
         public static ConfigEntry<bool> allowDaySleep;
         public static ConfigEntry<string> modKey;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -41,9 +41,9 @@ namespace SleepWithoutSpawn
         }
 
         [HarmonyPatch(typeof(Bed), "GetHoverText")]
-        static class Bed_GetHoverText_Patch
+        public static class Bed_GetHoverText_Patch
         {
-            static void Postfix(Bed __instance, ref string __result, ZNetView ___m_nview)
+            public static void Postfix(Bed __instance, ref string __result, ZNetView ___m_nview)
             {
                 if ((unclaimedOnly.Value && ___m_nview.GetZDO().GetLong("owner", 0L) != 0) || Traverse.Create(__instance).Method("IsCurrent").GetValue<bool>())
                 {
@@ -56,9 +56,9 @@ namespace SleepWithoutSpawn
         
         
         [HarmonyPatch(typeof(Bed), "Interact")]
-        static class Bed_Interact_Patch
+        public static class Bed_Interact_Patch
         {
-            static bool Prefix(Bed __instance, Humanoid human, bool repeat, ref bool __result, ZNetView ___m_nview)
+            public static bool Prefix(Bed __instance, Humanoid human, bool repeat, ref bool __result, ZNetView ___m_nview)
             {
                 if (((!allowDaySleep.Value || EnvMan.instance.IsAfternoon() || EnvMan.instance.IsNight()) && Traverse.Create(__instance).Method("IsCurrent").GetValue<bool>()) || repeat || !AedenthornUtils.CheckKeyHeld(modKey.Value) || (unclaimedOnly.Value && ___m_nview.GetZDO().GetLong("owner", 0L) != 0))
                 {
@@ -103,9 +103,9 @@ namespace SleepWithoutSpawn
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

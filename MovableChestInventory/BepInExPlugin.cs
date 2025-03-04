@@ -10,9 +10,9 @@ namespace MovableChestInventory
     [BepInPlugin("aedenthorn.MovableChestInventory", "Movable Chest Inventory", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<float> chestInventoryX;
@@ -26,7 +26,7 @@ namespace MovableChestInventory
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
             chestInventoryX = Config.Bind<float>("General", "ChestInventoryX", -1, "Current X of chest");
@@ -41,13 +41,13 @@ namespace MovableChestInventory
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony.UnpatchAll();
         }
 
-        private static bool CheckKeyHeld(string value)
+        public static bool CheckKeyHeld(string value)
         {
             try
             {
@@ -59,12 +59,12 @@ namespace MovableChestInventory
             }
         }
 
-        private static Vector3 lastMousePos;
+        public static Vector3 lastMousePos;
 
         [HarmonyPatch(typeof(InventoryGui), "Update")]
-        static class InventoryGui_Update_Patch
+        public static class InventoryGui_Update_Patch
         {
-            static void Postfix(InventoryGui __instance, Container ___m_currentContainer)
+            public static void Postfix(InventoryGui __instance, Container ___m_currentContainer)
             {
                 Vector3 mousePos = Input.mousePosition;
                 if (!modEnabled.Value || !___m_currentContainer || !___m_currentContainer.IsOwner())
@@ -115,9 +115,9 @@ namespace MovableChestInventory
             }
         }
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

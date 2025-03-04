@@ -13,7 +13,7 @@ namespace CustomWeaponStats
     [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.7.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -26,15 +26,15 @@ namespace CustomWeaponStats
         public static ConfigEntry<float> globalHoldDurationMinMultiplier;
         public static ConfigEntry<float> globalHoldStaminaDrainMultiplier;
         public static ConfigEntry<float> globalAttackStaminaUseMultiplier;
-        private static List<WeaponData> weaponDatas;
-        private static string assetPath;
+        public static List<WeaponData> weaponDatas;
+        public static string assetPath;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
 
             context = this;
@@ -56,9 +56,9 @@ namespace CustomWeaponStats
         }
 
         [HarmonyPatch(typeof(ObjectDB), "CopyOtherDB")]
-        static class CopyOtherDB_Patch
+        public static class CopyOtherDB_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -68,9 +68,9 @@ namespace CustomWeaponStats
 
         [HarmonyPatch(typeof(InventoryGui), "Show")]
         [HarmonyPriority(Priority.Last)]
-        static class InventoryGui_Show_Patch
+        public static class InventoryGui_Show_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -79,9 +79,9 @@ namespace CustomWeaponStats
         }
 
         [HarmonyPatch(typeof(ItemDrop), "Awake")]
-        static class ItemDrop_Awake_Patch
+        public static class ItemDrop_Awake_Patch
         {
-            static void Postfix(ItemDrop __instance)
+            public static void Postfix(ItemDrop __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -90,9 +90,9 @@ namespace CustomWeaponStats
         }
 
         [HarmonyPatch(typeof(ItemDrop), "SlowUpdate")]
-        static class ItemDrop_SlowUpdate_Patch
+        public static class ItemDrop_SlowUpdate_Patch
         {
-            static void Postfix(ref ItemDrop __instance)
+            public static void Postfix(ref ItemDrop __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -101,9 +101,9 @@ namespace CustomWeaponStats
         }
 
         [HarmonyPatch(typeof(Attack), "GetAttackStamina")]
-        static class GetAttackStamina_Patch
+        public static class GetAttackStamina_Patch
         {
-            static void Postfix(ref float __result)
+            public static void Postfix(ref float __result)
             {
                 if (!modEnabled.Value)
                     return;
@@ -113,9 +113,9 @@ namespace CustomWeaponStats
         }
  
         [HarmonyPatch(typeof(Attack), "Start")]
-        static class Attack_Start_Patch
+        public static class Attack_Start_Patch
         {
-            static void Prefix(ref ItemDrop.ItemData weapon, ref WeaponState __state)
+            public static void Prefix(ref ItemDrop.ItemData weapon, ref WeaponState __state)
             {
                 if (!modEnabled.Value)
                     return;
@@ -143,7 +143,7 @@ namespace CustomWeaponStats
 
                 Dbgl($"post damage {weapon.m_shared.m_damages.m_slash}");
             }
-            static void Postfix(ref ItemDrop.ItemData weapon, WeaponState __state)
+            public static void Postfix(ref ItemDrop.ItemData weapon, WeaponState __state)
             {
                 if (!modEnabled.Value)
                     return;
@@ -165,7 +165,7 @@ namespace CustomWeaponStats
             }
         }
 
-        private static void LoadAllWeaponData(bool reload)
+        public static void LoadAllWeaponData(bool reload)
         {
             if(reload)
                 weaponDatas = GetWeaponDataFromFiles();
@@ -206,7 +206,7 @@ namespace CustomWeaponStats
             }
         }
 
-        private static void CheckWeaponData(ref ItemDrop.ItemData instance)
+        public static void CheckWeaponData(ref ItemDrop.ItemData instance)
         {
             try
             {
@@ -222,7 +222,7 @@ namespace CustomWeaponStats
         }
 
 
-        private static List<WeaponData> GetWeaponDataFromFiles()
+        public static List<WeaponData> GetWeaponDataFromFiles()
         {
 
             CheckModFolder();
@@ -236,7 +236,7 @@ namespace CustomWeaponStats
             }
             return weaponDatas;
         }
-        private static void SetWeaponData(ref ItemDrop.ItemData item, WeaponData weapon)
+        public static void SetWeaponData(ref ItemDrop.ItemData item, WeaponData weapon)
         {
             item.m_shared.m_ammoType = weapon.ammoType;
             item.m_shared.m_useDurability = weapon.useDurability;
@@ -288,7 +288,7 @@ namespace CustomWeaponStats
             //Dbgl($"Set weapon data for {weapon.name}");
         }
 
-        private static WeaponData GetWeaponDataByName(string weapon)
+        public static WeaponData GetWeaponDataByName(string weapon)
         {
             GameObject go = ObjectDB.instance.GetItemPrefab(weapon);
             if (!go)
@@ -303,7 +303,7 @@ namespace CustomWeaponStats
 
         }
 
-        private static WeaponData GetWeaponDataFromItem(ItemDrop.ItemData item, string itemName)
+        public static WeaponData GetWeaponDataFromItem(ItemDrop.ItemData item, string itemName)
         {
             return new WeaponData()
             {
@@ -353,7 +353,7 @@ namespace CustomWeaponStats
                 hitTerrainSecondary = item.m_shared.m_secondaryAttack?.m_hitTerrain == true
             };
         }
-        private static void CheckModFolder()
+        public static void CheckModFolder()
         {
             if (!Directory.Exists(assetPath))
             {
@@ -363,9 +363,9 @@ namespace CustomWeaponStats
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

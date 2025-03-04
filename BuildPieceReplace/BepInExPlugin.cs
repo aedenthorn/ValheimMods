@@ -12,9 +12,9 @@ namespace BuildPieceReplace
     [BepInPlugin("aedenthorn.BuildPieceReplace", "Build Piece Replace", "0.1.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -25,7 +25,7 @@ namespace BuildPieceReplace
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -40,9 +40,9 @@ namespace BuildPieceReplace
         }
 
         [HarmonyPatch(typeof(Player), "IsOverlapingOtherPiece")]
-        static class IsOverlapingOtherPiece_Patch
+        public static class IsOverlapingOtherPiece_Patch
         {
-            static bool Prefix(List<Piece> ___m_tempPieces, Vector3 p, string pieceName, ref bool __result)
+            public static bool Prefix(List<Piece> ___m_tempPieces, Vector3 p, string pieceName, ref bool __result)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -59,9 +59,9 @@ namespace BuildPieceReplace
         }
         
         [HarmonyPatch(typeof(Player), "TestGhostClipping")]
-        static class TestGhostClipping_Patch
+        public static class TestGhostClipping_Patch
         {
-            static void Postfix(ref bool __result, GameObject ghost, float maxPenetration, int ___m_placeRayMask)
+            public static void Postfix(ref bool __result, GameObject ghost, float maxPenetration, int ___m_placeRayMask)
             {
                 if (!modEnabled.Value || !__result)
                     return;
@@ -84,9 +84,9 @@ namespace BuildPieceReplace
         }
                 
         [HarmonyPatch(typeof(Player), "PlacePiece")]
-        static class PlacePiece_Patch
+        public static class PlacePiece_Patch
         {
-            static void Postfix(Player __instance, bool __result, Piece piece, int ___m_placeRayMask, GameObject ___m_placementGhost)
+            public static void Postfix(Player __instance, bool __result, Piece piece, int ___m_placeRayMask, GameObject ___m_placementGhost)
             {
                 if (!modEnabled.Value || !__result)
                     return;
@@ -131,9 +131,9 @@ namespace BuildPieceReplace
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

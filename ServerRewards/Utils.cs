@@ -14,7 +14,7 @@ namespace ServerRewards
     {
 
 
-        private static string GetPackageItems(PackageInfo package, PlayerInfo player)
+        public static string GetPackageItems(PackageInfo package, PlayerInfo player)
         {
             int choiceAdd = 0;
             bool chose = false;
@@ -71,7 +71,7 @@ namespace ServerRewards
             return string.Join(";", output);
         }
 
-        private static List<PackageInfo> GetStorePackagesFromString(List<string> storeInventory)
+        public static List<PackageInfo> GetStorePackagesFromString(List<string> storeInventory)
         {
             List<PackageInfo> packages = new List<PackageInfo>();
             foreach(string package in storeInventory)
@@ -89,7 +89,7 @@ namespace ServerRewards
             return packages;
         }
 
-        private static List<PackageInfo> GetAllPackages()
+        public static List<PackageInfo> GetAllPackages()
         {
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ServerRewards", "StoreInfo");
             if (!Directory.Exists(path))
@@ -107,7 +107,7 @@ namespace ServerRewards
             return packages;
         }
 
-        private static PackageInfo GetPackage(string packageID)
+        public static PackageInfo GetPackage(string packageID)
         {
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ServerRewards", "StoreInfo");
             if (!Directory.Exists(path))
@@ -126,7 +126,7 @@ namespace ServerRewards
         }
 
 
-        private static List<string> GetStoreInventoryString(PlayerInfo player)
+        public static List<string> GetStoreInventoryString(PlayerInfo player)
         {
             List<string> packages = new List<string>();
             foreach(PackageInfo pi in GetAllPackages())
@@ -137,7 +137,7 @@ namespace ServerRewards
             return packages;
         }
 
-        private static int GetUserCurrency(string steamID)
+        public static int GetUserCurrency(string steamID)
         {
             PlayerInfo playerInfo = GetPlayerInfo(steamID);
             if(playerInfo == null)
@@ -145,7 +145,7 @@ namespace ServerRewards
 
             return playerInfo != null ? playerInfo.currency : -1;
         }
-        private static void AddNewPlayerInfo(string steamID)
+        public static void AddNewPlayerInfo(string steamID)
         {
 
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ServerRewards");
@@ -168,7 +168,7 @@ namespace ServerRewards
             string file = Path.Combine(infoPath, steamID + ".json");
             File.WriteAllText(file, json);
         }
-        private static PlayerInfo GetPlayerInfo(string steamID)
+        public static PlayerInfo GetPlayerInfo(string steamID)
         {
 
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ServerRewards", "PlayerInfo", steamID + ".json");
@@ -183,7 +183,7 @@ namespace ServerRewards
             PlayerInfo playerInfo = JsonUtility.FromJson<PlayerInfo>(infoJson);
             return playerInfo;
         }
-        private static string GetSteamID(string idOrName)
+        public static string GetSteamID(string idOrName)
         {
             if(Regex.IsMatch(idOrName, @"[^0-9]"))
             {
@@ -192,7 +192,7 @@ namespace ServerRewards
             }
             return idOrName;
         }
-        private static List<string> GetAllPlayerIDs()
+        public static List<string> GetAllPlayerIDs()
         {
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ServerRewards");
             if (!Directory.Exists(path))
@@ -213,13 +213,13 @@ namespace ServerRewards
             return output;
         }
 
-        private static void WritePlayerData(PlayerInfo playerInfo)
+        public static void WritePlayerData(PlayerInfo playerInfo)
         {
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ServerRewards", "PlayerInfo", playerInfo.id + ".json");
             string infoJson = JsonUtility.ToJson(playerInfo);
             File.WriteAllText(path, infoJson);
         }
-        private static bool CanBuyPackage(ref PlayerInfo player, PackageInfo package, bool checkCurrency, bool checkLimit, out string result)
+        public static bool CanBuyPackage(ref PlayerInfo player, PackageInfo package, bool checkCurrency, bool checkLimit, out string result)
         {
             result = null;
             if (checkCurrency && player.currency < package.price)
@@ -250,7 +250,7 @@ namespace ServerRewards
             return true;
         }
 
-        private static bool AdjustCurrency(string steamID, int amount)
+        public static bool AdjustCurrency(string steamID, int amount)
         {
             var peerList = ZNet.instance.GetConnectedPeers();
             foreach (var peer in peerList)
@@ -274,7 +274,7 @@ namespace ServerRewards
             }
             return steamID == "all";
         }
-        private static bool SetCurrency(string steamID, int amount)
+        public static bool SetCurrency(string steamID, int amount)
         {
             var peerList = ZNet.instance.GetConnectedPeers();
             foreach (var peer in peerList)
@@ -299,7 +299,7 @@ namespace ServerRewards
             return steamID == "all";
         }
 
-        private static string GivePackage(string steamID, string packageID)
+        public static string GivePackage(string steamID, string packageID)
         {
             PlayerInfo player = GetPlayerInfo(steamID);
             if (player == null)
@@ -322,7 +322,7 @@ namespace ServerRewards
             return null;
         }
 
-        private static void PlayEffects()
+        public static void PlayEffects()
         {
             EffectList effects = new EffectList();
             List<EffectList.EffectData> effectList = new List<EffectList.EffectData>();

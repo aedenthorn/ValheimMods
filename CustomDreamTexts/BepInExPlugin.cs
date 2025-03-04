@@ -23,9 +23,9 @@ namespace CustomDreamTexts
         public static ConfigEntry<float> defaultChance;
         public static ConfigEntry<Color> textColor;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
         public static TMP_FontAsset currentFont;
-        private static string lastFontName;
+        public static string lastFontName;
 
 
         public static void Dbgl(string str = "", bool pref = true)
@@ -33,7 +33,7 @@ namespace CustomDreamTexts
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             quoteAuthorSeparator = Config.Bind<string>("Conversion", "QuoteAuthorSeparator", "\r\n\r\n-- ", "String to separate quote and author.");
@@ -57,9 +57,9 @@ namespace CustomDreamTexts
 
 
         [HarmonyPatch(typeof(Hud), "Awake")]
-        static class Hud_Awake_Patch
+        public static class Hud_Awake_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -67,7 +67,7 @@ namespace CustomDreamTexts
             }
         }
 
-        private static void LoadDreams()
+        public static void LoadDreams()
         {
             if (!Hud.instance)
                 return;
@@ -157,10 +157,10 @@ namespace CustomDreamTexts
         }
 
         [HarmonyPatch(typeof(SleepText), "ShowDreamText")]
-        static class ShowDreamText_Patch
+        public static class ShowDreamText_Patch
         {
 
-            static void Prefix(SleepText __instance)
+            public static void Prefix(SleepText __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -183,7 +183,7 @@ namespace CustomDreamTexts
 
             }
         }
-        private static TMP_FontAsset GetFont(string fontName, int fontSize)
+        public static TMP_FontAsset GetFont(string fontName, int fontSize)
         {
             TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
             foreach (TMP_FontAsset font in fonts)
@@ -198,9 +198,9 @@ namespace CustomDreamTexts
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

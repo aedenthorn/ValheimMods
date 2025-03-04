@@ -15,7 +15,7 @@ namespace CustomArmorStats
     [BepInPlugin("aedenthorn.CustomArmorStats", "Custom Armor Stats", "0.6.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -26,10 +26,10 @@ namespace CustomArmorStats
         
         public static ConfigEntry<string> waterModifierName;
 
-        private static List<ArmorData> armorDatas;
-        private static string assetPath;
+        public static List<ArmorData> armorDatas;
+        public static string assetPath;
 
-        private enum NewDamageTypes 
+        public enum NewDamageTypes 
         {
             Water = 1024
         }
@@ -39,7 +39,7 @@ namespace CustomArmorStats
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
 
             context = this;
@@ -59,9 +59,9 @@ namespace CustomArmorStats
         }
 
         [HarmonyPatch(typeof(ZNetScene), "Awake")]
-        static class ZNetScene_Awake_Patch
+        public static class ZNetScene_Awake_Patch
         {
-            static void Postfix(ZNetScene __instance)
+            public static void Postfix(ZNetScene __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -71,9 +71,9 @@ namespace CustomArmorStats
         }
 
         [HarmonyPatch(typeof(ItemDrop), "Awake")]
-        static class ItemDrop_Awake_Patch
+        public static class ItemDrop_Awake_Patch
         {
-            static void Postfix(ItemDrop __instance)
+            public static void Postfix(ItemDrop __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -82,9 +82,9 @@ namespace CustomArmorStats
         }
 
         [HarmonyPatch(typeof(ItemDrop), "SlowUpdate")]
-        static class ItemDrop_SlowUpdate_Patch
+        public static class ItemDrop_SlowUpdate_Patch
         {
-            static void Postfix(ref ItemDrop __instance)
+            public static void Postfix(ref ItemDrop __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -93,9 +93,9 @@ namespace CustomArmorStats
         }
 
         [HarmonyPatch(typeof(Player), "DamageArmorDurability")]
-        static class Player_DamageArmorDurability_Patch
+        public static class Player_DamageArmorDurability_Patch
         {
-            static void Prefix(ref HitData hit)
+            public static void Prefix(ref HitData hit)
             {
                 if (!modEnabled.Value)
                     return;
@@ -104,9 +104,9 @@ namespace CustomArmorStats
         }
 
         [HarmonyPatch(typeof(Player), "GetEquipmentMovementModifier")]
-        static class GetEquipmentMovementModifier_Patch
+        public static class GetEquipmentMovementModifier_Patch
         {
-            static void Postfix(ref float __result)
+            public static void Postfix(ref float __result)
             {
                 if (!modEnabled.Value)
                     return;
@@ -115,9 +115,9 @@ namespace CustomArmorStats
         }
         
         [HarmonyPatch(typeof(SEMan), "AddStatusEffect", new Type[] { typeof(StatusEffect), typeof(bool), typeof(int), typeof(float) })]
-        static class SEMan_AddStatusEffect_Patch
+        public static class SEMan_AddStatusEffect_Patch
         {
-            static bool Prefix(SEMan __instance, StatusEffect statusEffect, Character ___m_character, ref StatusEffect __result)
+            public static bool Prefix(SEMan __instance, StatusEffect statusEffect, Character ___m_character, ref StatusEffect __result)
             {
                 if (!modEnabled.Value || !___m_character.IsPlayer())
                     return true;
@@ -138,9 +138,9 @@ namespace CustomArmorStats
         }
         
         [HarmonyPatch(typeof(SE_Stats), "GetDamageModifiersTooltipString")]
-        static class GetDamageModifiersTooltipString_Patch
+        public static class GetDamageModifiersTooltipString_Patch
         {
-            static void Postfix(ref string __result, List<HitData.DamageModPair> mods)
+            public static void Postfix(ref string __result, List<HitData.DamageModPair> mods)
             {
                 if (!modEnabled.Value)
                     return;
@@ -181,7 +181,7 @@ namespace CustomArmorStats
         }
 
         [HarmonyPatch(typeof(Player), "UpdateEnvStatusEffects")]
-        static class UpdateEnvStatusEffects_Patch
+        public static class UpdateEnvStatusEffects_Patch
         {
             public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
@@ -209,7 +209,7 @@ namespace CustomArmorStats
 
                 return outCodes.AsEnumerable();
             }
-            static void Postfix(float dt, Player __instance, ItemDrop.ItemData ___m_chestItem, ItemDrop.ItemData ___m_legItem, ItemDrop.ItemData ___m_helmetItem, ItemDrop.ItemData ___m_shoulderItem, SEMan ___m_seman)
+            public static void Postfix(float dt, Player __instance, ItemDrop.ItemData ___m_chestItem, ItemDrop.ItemData ___m_legItem, ItemDrop.ItemData ___m_helmetItem, ItemDrop.ItemData ___m_shoulderItem, SEMan ___m_seman)
             {
                 if (!modEnabled.Value)
                     return;
@@ -249,13 +249,13 @@ namespace CustomArmorStats
                 }
             }
         }
-        private static HitData.DamageModifier GetNewDamageTypeMod(NewDamageTypes type, Character character)
+        public static HitData.DamageModifier GetNewDamageTypeMod(NewDamageTypes type, Character character)
         {
             Traverse t = Traverse.Create(character);
             return GetNewDamageTypeMod(type, t.Field("m_chestItem").GetValue<ItemDrop.ItemData>(), t.Field("m_legItem").GetValue<ItemDrop.ItemData>(), t.Field("m_helmetItem").GetValue<ItemDrop.ItemData>(), t.Field("m_shoulderItem").GetValue<ItemDrop.ItemData>());
         }
 
-        private static HitData.DamageModifier GetNewDamageTypeMod(NewDamageTypes type, ItemDrop.ItemData chestItem, ItemDrop.ItemData legItem, ItemDrop.ItemData helmetItem, ItemDrop.ItemData shoulderItem)
+        public static HitData.DamageModifier GetNewDamageTypeMod(NewDamageTypes type, ItemDrop.ItemData chestItem, ItemDrop.ItemData legItem, ItemDrop.ItemData helmetItem, ItemDrop.ItemData shoulderItem)
         {
             HitData.DamageModPair modPair = new HitData.DamageModPair();
             
@@ -282,12 +282,12 @@ namespace CustomArmorStats
             }
             return modPair.m_modifier;
         }
-        private static bool ShouldOverride(HitData.DamageModifier a, HitData.DamageModifier b)
+        public static bool ShouldOverride(HitData.DamageModifier a, HitData.DamageModifier b)
         {
             return a != HitData.DamageModifier.Ignore && (b == HitData.DamageModifier.Immune || ((a != HitData.DamageModifier.VeryResistant || b != HitData.DamageModifier.Resistant) && (a != HitData.DamageModifier.VeryWeak || b != HitData.DamageModifier.Weak)));
         }
 
-        private static void LoadAllArmorData(ZNetScene scene)
+        public static void LoadAllArmorData(ZNetScene scene)
         {
             armorDatas = GetArmorDataFromFiles();
             foreach (var armor in armorDatas)
@@ -301,7 +301,7 @@ namespace CustomArmorStats
             }
         }
 
-        private static void CheckArmorData(ref ItemDrop.ItemData instance)
+        public static void CheckArmorData(ref ItemDrop.ItemData instance)
         {
             try
             {
@@ -316,7 +316,7 @@ namespace CustomArmorStats
             }
         }
 
-        private static List<ArmorData> GetArmorDataFromFiles()
+        public static List<ArmorData> GetArmorDataFromFiles()
         {
             CheckModFolder();
 
@@ -330,7 +330,7 @@ namespace CustomArmorStats
             return armorDatas;
         }
 
-        private static void CheckModFolder()
+        public static void CheckModFolder()
         {
             if (!Directory.Exists(assetPath))
             {
@@ -339,7 +339,7 @@ namespace CustomArmorStats
             }
         }
 
-        private static void SetArmorData(ref ItemDrop.ItemData item, ArmorData armor)
+        public static void SetArmorData(ref ItemDrop.ItemData item, ArmorData armor)
         {
             item.m_shared.m_armor = armor.armor;
             item.m_shared.m_armorPerLevel = armor.armorPerLevel;
@@ -354,7 +354,7 @@ namespace CustomArmorStats
             }
         }
 
-        private static ArmorData GetArmorDataByName(string armor)
+        public static ArmorData GetArmorDataByName(string armor)
         {
             GameObject go = ObjectDB.instance.GetItemPrefab(armor);
             if (!go)
@@ -368,7 +368,7 @@ namespace CustomArmorStats
             return GetArmorDataFromItem(item, armor);
         }
 
-        private static ArmorData GetArmorDataFromItem(ItemDrop.ItemData item, string itemName)
+        public static ArmorData GetArmorDataFromItem(ItemDrop.ItemData item, string itemName)
         {
             var armor = new ArmorData()
             {
@@ -384,9 +384,9 @@ namespace CustomArmorStats
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

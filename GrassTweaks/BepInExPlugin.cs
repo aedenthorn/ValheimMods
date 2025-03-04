@@ -11,30 +11,30 @@ namespace GrassTweaks
     [BepInPlugin("aedenthorn.GrassTweaks", "Grass Tweaks", "0.5.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
         
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
         public static ConfigEntry<bool> useLod;
         public static ConfigEntry<bool> useXZLodDistance;
-        private static ConfigEntry<float> lodMinDistanceMult;
-        private static ConfigEntry<float> lodMaxDistanceMult;
-        private static ConfigEntry<float> scaleMinMult;
-        private static ConfigEntry<float> scaleMaxMult;
-        private static ConfigEntry<float> amountMult;
-        private static ConfigEntry<float> clutterDistance;
-        private static ConfigEntry<float> grassPatchSize;
-        private static ConfigEntry<float> playerPushFade;
-        private static ConfigEntry<ShadowCastingMode> shadowCastingMode;
+        public static ConfigEntry<float> lodMinDistanceMult;
+        public static ConfigEntry<float> lodMaxDistanceMult;
+        public static ConfigEntry<float> scaleMinMult;
+        public static ConfigEntry<float> scaleMaxMult;
+        public static ConfigEntry<float> amountMult;
+        public static ConfigEntry<float> clutterDistance;
+        public static ConfigEntry<float> grassPatchSize;
+        public static ConfigEntry<float> playerPushFade;
+        public static ConfigEntry<ShadowCastingMode> shadowCastingMode;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -60,9 +60,9 @@ namespace GrassTweaks
 
 
         [HarmonyPatch(typeof(ClutterSystem), "Awake")]
-        static class ClutterSystem_Awake_Patch
+        public static class ClutterSystem_Awake_Patch
         {
-            static void Prefix(ClutterSystem __instance)
+            public static void Prefix(ClutterSystem __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -80,9 +80,9 @@ namespace GrassTweaks
             }
         }
         [HarmonyPatch(typeof(MonoBehaviour), MethodType.Constructor, new Type[] { })]
-        static class MonoBehaviour_Patch
+        public static class MonoBehaviour_Patch
         {
-            static void Postfix(MonoBehaviour __instance)
+            public static void Postfix(MonoBehaviour __instance)
             {
                 if (!modEnabled.Value || !(__instance is InstanceRenderer))
                     return;
@@ -95,9 +95,9 @@ namespace GrassTweaks
             }   
         }
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

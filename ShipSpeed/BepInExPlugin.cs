@@ -10,48 +10,48 @@ namespace ShipSpeed
     [BepInPlugin("aedenthorn.ShipSpeed", "Ship Speed Mod", "0.3.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
 
-        private static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
-        private static ConfigEntry<float> forceDistanceMult;
-        private static ConfigEntry<float> forceMult;
-        private static ConfigEntry<float> dampingMult;
-        private static ConfigEntry<float> dampingSidewayMult;
-        private static ConfigEntry<float> dampingForwardMult;
-        private static ConfigEntry<float> angularDampingMult;
-        private static ConfigEntry<float> disableLevelMult;
-        private static ConfigEntry<float> sailForceFactorMult;
-        private static ConfigEntry<float> rudderSpeedMult;
-        private static ConfigEntry<float> stearForceOffsetMult;
-        private static ConfigEntry<float> stearForceMult;
-        private static ConfigEntry<float> stearVelForceFactorMult;
-        private static ConfigEntry<float> backwardForceMult;
-        private static ConfigEntry<float> rudderRotationMaxMult;
-        //private static ConfigEntry<float> rudderRotationSpeedMult;
-        private static ConfigEntry<float> minWaterImpactForceMult;
-        private static ConfigEntry<float> minWaterImpactIntervalMult;
-        private static ConfigEntry<float> waterImpactDamageMult;
-        private static ConfigEntry<float> upsideDownDmgIntervalMult;
-        private static ConfigEntry<float> upsideDownDmgMult;
+        public static ConfigEntry<float> forceDistanceMult;
+        public static ConfigEntry<float> forceMult;
+        public static ConfigEntry<float> dampingMult;
+        public static ConfigEntry<float> dampingSidewayMult;
+        public static ConfigEntry<float> dampingForwardMult;
+        public static ConfigEntry<float> angularDampingMult;
+        public static ConfigEntry<float> disableLevelMult;
+        public static ConfigEntry<float> sailForceFactorMult;
+        public static ConfigEntry<float> rudderSpeedMult;
+        public static ConfigEntry<float> stearForceOffsetMult;
+        public static ConfigEntry<float> stearForceMult;
+        public static ConfigEntry<float> stearVelForceFactorMult;
+        public static ConfigEntry<float> backwardForceMult;
+        public static ConfigEntry<float> rudderRotationMaxMult;
+        //public static ConfigEntry<float> rudderRotationSpeedMult;
+        public static ConfigEntry<float> minWaterImpactForceMult;
+        public static ConfigEntry<float> minWaterImpactIntervalMult;
+        public static ConfigEntry<float> waterImpactDamageMult;
+        public static ConfigEntry<float> upsideDownDmgIntervalMult;
+        public static ConfigEntry<float> upsideDownDmgMult;
 
-        private static ConfigEntry<float> windAngleFactorMin;
-        private static ConfigEntry<float> windAngleFactorMult;
-        private static ConfigEntry<float> headWindDegrees;
-        private static ConfigEntry<float> tailWindMult;
-        private static ConfigEntry<float> headWindMult;
-        private static ConfigEntry<float> damageMult;
+        public static ConfigEntry<float> windAngleFactorMin;
+        public static ConfigEntry<float> windAngleFactorMult;
+        public static ConfigEntry<float> headWindDegrees;
+        public static ConfigEntry<float> tailWindMult;
+        public static ConfigEntry<float> headWindMult;
+        public static ConfigEntry<float> damageMult;
 
-        private Harmony harmony;
+        public Harmony harmony;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -92,7 +92,7 @@ namespace ShipSpeed
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony.UnpatchAll();
@@ -100,9 +100,9 @@ namespace ShipSpeed
 
 
         [HarmonyPatch(typeof(Ship), "Awake")]
-        static class Awake_Patch
+        public static class Awake_Patch
         {
-            static void Postfix(Ship __instance, ref float ___m_forceDistance, ref float ___m_force, ref float ___m_damping, ref float ___m_dampingSideway, ref float ___m_dampingForward, ref float ___m_angularDamping, ref float ___m_disableLevel, ref float ___m_sailForceFactor, ref float ___m_rudderSpeed, ref float ___m_stearForceOffset, ref float ___m_stearForce, ref float ___m_stearVelForceFactor, ref float ___m_backwardForce, ref float ___m_rudderRotationMax, ref float ___m_minWaterImpactForce, ref float ___m_minWaterImpactInterval, ref float ___m_waterImpactDamage, ref float ___m_upsideDownDmgInterval, ref float ___m_upsideDownDmg)
+            public static void Postfix(Ship __instance, ref float ___m_forceDistance, ref float ___m_force, ref float ___m_damping, ref float ___m_dampingSideway, ref float ___m_dampingForward, ref float ___m_angularDamping, ref float ___m_disableLevel, ref float ___m_sailForceFactor, ref float ___m_rudderSpeed, ref float ___m_stearForceOffset, ref float ___m_stearForce, ref float ___m_stearVelForceFactor, ref float ___m_backwardForce, ref float ___m_rudderRotationMax, ref float ___m_minWaterImpactForce, ref float ___m_minWaterImpactInterval, ref float ___m_waterImpactDamage, ref float ___m_upsideDownDmgInterval, ref float ___m_upsideDownDmg)
             {
                 ___m_forceDistance *= forceDistanceMult.Value;
                 ___m_force *= forceMult.Value;
@@ -129,9 +129,9 @@ namespace ShipSpeed
         }
 
         [HarmonyPatch(typeof(WearNTear), "Damage")]
-        static class Damage_Patch
+        public static class Damage_Patch
         {
-            static void Prefix(WearNTear __instance, ref HitData hit)
+            public static void Prefix(WearNTear __instance, ref HitData hit)
             {
                 if (__instance.gameObject.GetComponent<Ship>() == null)
                     return;
@@ -140,7 +140,7 @@ namespace ShipSpeed
             }
         }
 
-        private static void MultiplyDamage(ref HitData hit, float value)
+        public static void MultiplyDamage(ref HitData hit, float value)
         {
             value = Math.Max(0, value);
             hit.m_damage.m_damage *= value;
@@ -157,9 +157,9 @@ namespace ShipSpeed
         }
 
         [HarmonyPatch(typeof(Ship), "GetSailForce")]
-        static class FixedUpdate_Patch
+        public static class FixedUpdate_Patch
         {
-            static void Postfix(Ship __instance, ref Vector3 __result)
+            public static void Postfix(Ship __instance, ref Vector3 __result)
             {
                 
                 float degrees = Vector3.Angle(EnvMan.instance.GetWindDir(), __instance.transform.forward);
@@ -176,18 +176,18 @@ namespace ShipSpeed
             }
         }
         [HarmonyPatch(typeof(Ship), "GetWindAngleFactor")]
-        static class GetWindAngleFactor_Patch
+        public static class GetWindAngleFactor_Patch
         {
-            static void Postfix(Ship __instance, ref float __result)
+            public static void Postfix(Ship __instance, ref float __result)
             {
                 __result = Math.Max(windAngleFactorMin.Value, __result * windAngleFactorMult.Value);
                 __result = Math.Min(1, __result);
             }
         }
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

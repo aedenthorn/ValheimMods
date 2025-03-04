@@ -9,7 +9,7 @@ namespace CustomTextures
 {
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        private static void ReplaceOneGameObjectTextures(GameObject gameObject, string thingName, string prefix)
+        public static void ReplaceOneGameObjectTextures(GameObject gameObject, string thingName, string prefix)
         {
             if (reloadedObjects.Contains(gameObject.GetInstanceID()))
                 return;
@@ -245,7 +245,7 @@ namespace CustomTextures
             //LogStopwatch("OneObject");
         }
 
-        private static void ReplaceMaterialTextures(string goName, Material m, string thingName, string prefix, string rendererType, string rendererName, bool dump)
+        public static void ReplaceMaterialTextures(string goName, Material m, string thingName, string prefix, string rendererType, string rendererName, bool dump)
         {
             if (m == null)
                 return;
@@ -273,7 +273,7 @@ namespace CustomTextures
             }
         }
 
-        private static void CheckSetMatTextures(string goName, Material m, string prefix, string thingName, string rendererType, string rendererName, string name, string property)
+        public static void CheckSetMatTextures(string goName, Material m, string prefix, string thingName, string rendererType, string rendererName, string name, string property)
         {
             foreach (string str in MakePrefixStrings(prefix, thingName, rendererName, m.name, name))
             {
@@ -314,7 +314,7 @@ namespace CustomTextures
             }
         }
 
-        private static string[] MakePrefixStrings(string prefix, string thingName, string rendererName, string matName, string name)
+        public static string[] MakePrefixStrings(string prefix, string thingName, string rendererName, string matName, string name)
         {
             var outstrings = new string[]
             {
@@ -351,7 +351,7 @@ namespace CustomTextures
         }
 
 
-        private static Texture2D LoadTexture(string id, Texture vanilla, bool isBump, bool point = true, bool needCustom = false, bool isSprite = false)
+        public static Texture2D LoadTexture(string id, Texture vanilla, bool isBump, bool point = true, bool needCustom = false, bool isSprite = false)
         {
             Texture2D texture;
             if (cachedTextures.ContainsKey(id))

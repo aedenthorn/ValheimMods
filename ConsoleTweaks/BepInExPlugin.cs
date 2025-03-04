@@ -15,8 +15,8 @@ namespace ConsoleTweaks
     [BepInPlugin("aedenthorn.ConsoleTweaks", "Console Tweaks", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> cheatsEnabled;
@@ -135,14 +135,14 @@ namespace ConsoleTweaks
         };
         public static List<string> commandStrings = new List<string>();
         
-        private static List<string> aedenthornPlugins = new List<string>();
+        public static List<string> aedenthornPlugins = new List<string>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -160,7 +160,7 @@ namespace ConsoleTweaks
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-        private void Start()
+        public void Start()
         {
             foreach(var plugin in Chainloader.PluginInfos)
             {
@@ -170,7 +170,7 @@ namespace ConsoleTweaks
                 }
             }
         }
-        private void Update()
+        public void Update()
         {
             if (Input.GetKeyDown(KeyCode.F5) && Console.instance.m_chatWindow.gameObject.activeSelf) 
             {
@@ -194,9 +194,9 @@ namespace ConsoleTweaks
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Start")]
-        static class FejdStartup_Start_Patch
+        public static class FejdStartup_Start_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -205,7 +205,7 @@ namespace ConsoleTweaks
             }
         }
 
-        private void LoadSpawnStrings()
+        public void LoadSpawnStrings()
         {
             if (ZNetScene.instance == null)
                 return;
@@ -218,9 +218,9 @@ namespace ConsoleTweaks
         }
 
         [HarmonyPatch(typeof(Console), "Update")]
-        static class UpdateChat_Patch
+        public static class UpdateChat_Patch
         {
-            static void Postfix(Console __instance)
+            public static void Postfix(Console __instance)
             {
                 if (!modEnabled.Value || !Console.instance.m_chatWindow.gameObject.activeSelf)
                     return;
@@ -308,9 +308,9 @@ namespace ConsoleTweaks
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

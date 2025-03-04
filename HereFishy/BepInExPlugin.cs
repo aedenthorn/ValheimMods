@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace HereFishy
 {
-    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.5.1")]
+    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -263,18 +263,18 @@ namespace HereFishy
 
 
         [HarmonyPatch(typeof(CharacterAnimEvent), "GPower")]
-        static class CharacterAnimEvent_GPower_Patch
+        public static class CharacterAnimEvent_GPower_Patch
         {
-            static bool Prefix()
+            public static bool Prefix()
             {
                 return (fishyClip is null || Time.realtimeSinceStartup - lastHereFishy > fishyClip.length);
             }
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

@@ -14,7 +14,7 @@ namespace RepairRequiresMats
     [BepInPlugin("aedenthorn.RepairRequiresMats", "Repair Requires Mats", "0.6.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static bool isDebug = true;
+        public static bool isDebug = true;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> showAllRepairsInToolTip;
@@ -23,21 +23,21 @@ namespace RepairRequiresMats
         public static ConfigEntry<string> hasEnoughTooltipColor;
         public static ConfigEntry<string> notEnoughTooltipColor;
         public static ConfigEntry<int> nexusID;
-        private static List<ItemDrop.ItemData> orderedWornItems = new List<ItemDrop.ItemData>();
+        public static List<ItemDrop.ItemData> orderedWornItems = new List<ItemDrop.ItemData>();
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
-        private static Assembly epicLootAssembly;
-        private static MethodInfo epicLootIsMagic;
-        private static MethodInfo epicLootGetRarity;
-        private static MethodInfo epicLootGetEnchantCosts;
+        public static Assembly epicLootAssembly;
+        public static MethodInfo epicLootIsMagic;
+        public static MethodInfo epicLootGetRarity;
+        public static MethodInfo epicLootGetEnchantCosts;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -51,7 +51,7 @@ namespace RepairRequiresMats
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
         }
-        private void Start()
+        public void Start()
         {
             if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.epicloot"))
             {
@@ -66,9 +66,9 @@ namespace RepairRequiresMats
 
 
         [HarmonyPatch(typeof(UITooltip), "LateUpdate")]
-        static class UITooltip_LateUpdate_Patch
+        public static class UITooltip_LateUpdate_Patch
         {
-            static void Postfix(UITooltip __instance, UITooltip ___m_current, GameObject ___m_tooltip)
+            public static void Postfix(UITooltip __instance, UITooltip ___m_current, GameObject ___m_tooltip)
             {
 
                 if (!modEnabled.Value)
@@ -83,9 +83,9 @@ namespace RepairRequiresMats
 
 
         [HarmonyPatch(typeof(InventoryGui), "UpdateRepair")]
-        static class InventoryGui_UpdateRepair_Patch
+        public static class InventoryGui_UpdateRepair_Patch
         {
-            static void Postfix(InventoryGui __instance, ref List<ItemDrop.ItemData> ___m_tempWornItems)
+            public static void Postfix(InventoryGui __instance, ref List<ItemDrop.ItemData> ___m_tempWornItems)
             {
                 if (!modEnabled.Value)
                     return;
@@ -174,9 +174,9 @@ namespace RepairRequiresMats
         }
 
         [HarmonyPatch(typeof(InventoryGui), "CanRepair")]
-        static class InventoryGui_CanRepair_Patch
+        public static class InventoryGui_CanRepair_Patch
         {
-            static void Postfix(ItemDrop.ItemData item, ref bool __result)
+            public static void Postfix(ItemDrop.ItemData item, ref bool __result)
             {
                 if (!modEnabled.Value)
                     return;
@@ -232,7 +232,7 @@ namespace RepairRequiresMats
             }
         }
 
-        private static List<Piece.Requirement> RepairReqs(ItemDrop.ItemData item, bool log = false)
+        public static List<Piece.Requirement> RepairReqs(ItemDrop.ItemData item, bool log = false)
         {
             float percent = (item.GetMaxDurability() - item.m_durability) / item.GetMaxDurability();
             Recipe fullRecipe = ObjectDB.instance.GetRecipe(item);
@@ -308,9 +308,9 @@ namespace RepairRequiresMats
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

@@ -9,8 +9,8 @@ namespace MapTeleport
     [BepInPlugin("aedenthorn.MapTeleport", "Map Teleport", "0.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
         
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<string> modKey;
@@ -21,7 +21,7 @@ namespace MapTeleport
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -36,9 +36,9 @@ namespace MapTeleport
 
 
         [HarmonyPatch(typeof(Minimap), "OnMapLeftClick")]
-        static class OnMapLeftClick_Patch
+        public static class OnMapLeftClick_Patch
         {
-            static bool Prefix(Minimap __instance)
+            public static bool Prefix(Minimap __instance)
             {
                 if (!modEnabled.Value || !CheckKeyHeld(modKey.Value) || !Player.m_localPlayer)
                     return true;
@@ -67,9 +67,9 @@ namespace MapTeleport
             }
         }
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -85,7 +85,7 @@ namespace MapTeleport
                 return true;
             }
         }
-        private static bool CheckKeyHeld(string value)
+        public static bool CheckKeyHeld(string value)
         {
             try
             {

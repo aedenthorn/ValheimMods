@@ -21,9 +21,9 @@ namespace CustomTextures
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<int> nexusID;
 
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private static Stopwatch stopwatch = new Stopwatch();
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public static Stopwatch stopwatch = new Stopwatch();
 
         public static Dictionary<string, string> customTextures = new Dictionary<string, string>();
         public static Dictionary<string, DateTime> fileWriteTimes = new Dictionary<string, DateTime>();
@@ -39,7 +39,7 @@ namespace CustomTextures
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -59,7 +59,7 @@ namespace CustomTextures
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private void Update()
+        public void Update()
         {
             if (ZNetScene.instance != null && CheckKeyDown(hotKey.Value))
             {
@@ -68,7 +68,7 @@ namespace CustomTextures
                 ReloadTextures(reloadLocationTextures.Value && replaceLocationTextures.Value);
             }
         }
-        private static bool CheckKeyDown(string value)
+        public static bool CheckKeyDown(string value)
         {
             try
             {
@@ -79,7 +79,7 @@ namespace CustomTextures
                 return false;
             }
         }
-        private static void LogStopwatch(string str)
+        public static void LogStopwatch(string str)
         {
             stopwatch.Stop();
             // Get the elapsed time as a TimeSpan value.
@@ -92,19 +92,19 @@ namespace CustomTextures
             Dbgl($"{str} RunTime " + elapsedTime);
         }
 
-        private static bool HasCustomTexture(string id)
+        public static bool HasCustomTexture(string id)
         {
             return customTextures.ContainsKey(id) || customTextures.Keys.ToList().Exists(p => p.StartsWith(id));
         }
-        private static bool ShouldLoadCustomTexture(string id)
+        public static bool ShouldLoadCustomTexture(string id)
         {
             return texturesToLoad.Contains(id) || layersToLoad.Contains(id);
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

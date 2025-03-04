@@ -11,9 +11,9 @@ namespace SimpleSort
     [BepInPlugin("aedenthorn.SimpleSort", "Simple Sort", "0.9.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> useGamePad;
@@ -45,7 +45,7 @@ namespace SimpleSort
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -72,16 +72,16 @@ namespace SimpleSort
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony.UnpatchAll();
         }
 
         [HarmonyPatch(typeof(InventoryGui), "Show")]
-        static class InventoryGui_Show_Patch
+        public static class InventoryGui_Show_Patch
         {
-            static void Postfix(Container ___m_currentContainer)
+            public static void Postfix(Container ___m_currentContainer)
             {
                 if (!modEnabled.Value)
                     return;
@@ -97,9 +97,9 @@ namespace SimpleSort
         }
 
         [HarmonyPatch(typeof(InventoryGui), "Update")]
-        static class InventoryGui_Update_Patch
+        public static class InventoryGui_Update_Patch
         {
-            static void Postfix(InventoryGui __instance, Container ___m_currentContainer, int ___m_activeGroup)
+            public static void Postfix(InventoryGui __instance, Container ___m_currentContainer, int ___m_activeGroup)
             {
                 Vector3 mousePos = Input.mousePosition;
                 if (!modEnabled.Value)
@@ -195,7 +195,7 @@ namespace SimpleSort
             }
         }
 
-        private static void SortByType(SortType type, Inventory inventory, bool asc, bool player)
+        public static void SortByType(SortType type, Inventory inventory, bool asc, bool player)
         {
             // combine
             var items = inventory.GetAllItems();
@@ -253,9 +253,9 @@ namespace SimpleSort
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

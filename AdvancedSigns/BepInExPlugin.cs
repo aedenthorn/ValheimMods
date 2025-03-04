@@ -9,9 +9,9 @@ namespace AdvancedSigns
     [BepInPlugin("aedenthorn.AdvancedSigns", "Advanced Signs", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -30,7 +30,7 @@ namespace AdvancedSigns
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -53,24 +53,24 @@ namespace AdvancedSigns
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
 
         [HarmonyPatch(typeof(Sign), "Awake")]
-        static class Sign_Awake_Patch
+        public static class Sign_Awake_Patch
         {
-            static void Postfix(Sign __instance)
+            public static void Postfix(Sign __instance)
             {
                 FixSign(ref __instance);
             }
         }
         [HarmonyPatch(typeof(Sign), "UpdateText")]
-        static class Sign_UpdateText_Patch
+        public static class Sign_UpdateText_Patch
         {
-            static bool Prefix(Sign __instance, ZNetView ___m_nview)
+            public static bool Prefix(Sign __instance, ZNetView ___m_nview)
             {
                 string text = ___m_nview.GetZDO().GetString(ZDOVars.s_text, __instance.m_defaultText);
                 if (!string.IsNullOrEmpty(text))
@@ -92,12 +92,12 @@ namespace AdvancedSigns
                 return true;
             }
 
-            static void Postfix(Sign __instance)
+            public static void Postfix(Sign __instance)
             {
                 FixSign(ref __instance);
             }
         }
-        private static void FixSign(ref Sign sign)
+        public static void FixSign(ref Sign sign)
         {
             if (!modEnabled.Value)
                 return;
@@ -125,7 +125,7 @@ namespace AdvancedSigns
                 sign.m_textWidget.font = currentFont;
             }
         }
-        private static TMP_FontAsset GetFont(string fontName, int fontSize)
+        public static TMP_FontAsset GetFont(string fontName, int fontSize)
         {
             TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
             foreach (TMP_FontAsset font in fonts)
@@ -139,9 +139,9 @@ namespace AdvancedSigns
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

@@ -9,9 +9,9 @@ namespace CustomUI
     [BepInPlugin("aedenthorn.CustomUI", "Custom UI", "0.7.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
 
@@ -60,7 +60,7 @@ namespace CustomUI
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             nexusID = Config.Bind<int>("General", "NexusID", 625, "Nexus mod ID for updates");
@@ -110,13 +110,13 @@ namespace CustomUI
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony.UnpatchAll();
         }
 
-        private static bool CheckKeyHeld(string value)
+        public static bool CheckKeyHeld(string value)
         {
             try
             {
@@ -128,13 +128,13 @@ namespace CustomUI
             }
         }
 
-        private static Vector3 lastMousePos;
-        private static string currentlyDragging;
+        public static Vector3 lastMousePos;
+        public static string currentlyDragging;
 
         [HarmonyPatch(typeof(HotkeyBar), "UpdateIcons")]
-        static class HotkeyBar_UpdateIcons_Patch
+        public static class HotkeyBar_UpdateIcons_Patch
         {
-            static void Postfix(HotkeyBar __instance)
+            public static void Postfix(HotkeyBar __instance)
             {
                 if (!modEnabled.Value || Player.m_localPlayer == null || __instance.name != "HotKeyBar")
                     return;
@@ -157,9 +157,9 @@ namespace CustomUI
         }
 
         [HarmonyPatch(typeof(Hud), "Update")]
-        static class Hud_Update_Patch
+        public static class Hud_Update_Patch
         {
-            static void Postfix(Hud __instance)
+            public static void Postfix(Hud __instance)
             {
                 if (!modEnabled.Value || Player.m_localPlayer == null || InventoryGui.IsVisible() == true)
                     return;
@@ -353,7 +353,7 @@ namespace CustomUI
             }
         }
 
-        private static void SetElementPositions()
+        public static void SetElementPositions()
         {
             Transform hudRoot = Hud.instance.transform.Find("hudroot");
             int healthRot = healthbarRotation.Value / 90 % 4 * 90;
@@ -435,9 +435,9 @@ namespace CustomUI
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

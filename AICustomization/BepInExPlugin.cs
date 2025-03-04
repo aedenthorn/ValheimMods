@@ -12,21 +12,21 @@ namespace MonsterAITweaks
     [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
-        private static Dictionary<string, AIData> aiDataDict = new Dictionary<string, AIData>();
+        public static Dictionary<string, AIData> aiDataDict = new Dictionary<string, AIData>();
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -38,9 +38,9 @@ namespace MonsterAITweaks
         }
 
         [HarmonyPatch(typeof(MonsterAI), "Awake")]
-        static class MonsterAI_Awake_Patch
+        public static class MonsterAI_Awake_Patch
         {
-            static void Postfix(MonsterAI __instance)
+            public static void Postfix(MonsterAI __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -54,9 +54,9 @@ namespace MonsterAITweaks
         }
 
         [HarmonyPatch(typeof(AnimalAI), "Awake")]
-        static class AnimalAI_Awake_Patch
+        public static class AnimalAI_Awake_Patch
         {
-            static void Postfix(AnimalAI __instance)
+            public static void Postfix(AnimalAI __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -71,9 +71,9 @@ namespace MonsterAITweaks
         }
 
         [HarmonyPatch(typeof(BaseAI), "Awake")]
-        static class BaseAI_Awake_Patch
+        public static class BaseAI_Awake_Patch
         {
-            static void Postfix(BaseAI __instance)
+            public static void Postfix(BaseAI __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -87,9 +87,9 @@ namespace MonsterAITweaks
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -154,7 +154,7 @@ namespace MonsterAITweaks
             }
         }
 
-        private static void SetMonsterAIData(MonsterAI instance, AIData data)
+        public static void SetMonsterAIData(MonsterAI instance, AIData data)
         {
             instance.m_alertRange = data.alertRange;
             instance.m_fleeIfHurtWhenTargetCantBeReached = data.fleeIfHurtWhenTargetCantBeReached;
@@ -184,12 +184,12 @@ namespace MonsterAITweaks
             SetBaseAIData(instance, data);
         }
 
-        private static void SetAnimalAIData(AnimalAI instance, AIData data)
+        public static void SetAnimalAIData(AnimalAI instance, AIData data)
         {
             instance.m_timeToSafe = data.timeToSafe;
         }
 
-        private static void SetBaseAIData(BaseAI instance, AIData data)
+        public static void SetBaseAIData(BaseAI instance, AIData data)
         {
             instance.m_viewRange = data.viewRange;
             instance.m_viewAngle = data.viewAngle;

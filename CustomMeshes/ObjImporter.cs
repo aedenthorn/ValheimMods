@@ -11,7 +11,7 @@ namespace CustomMeshes
     public class ObjImporter
     {
 
-        private struct meshStruct
+        public struct meshStruct
         {
             public Vector3[] vertices;
             public Vector3[] normals;
@@ -63,7 +63,7 @@ namespace CustomMeshes
             return mesh;
         }
 
-        private static meshStruct createMeshStruct(string filename)
+        public static meshStruct createMeshStruct(string filename)
         {
             int triangles = 0;
             int vertices = 0;
@@ -129,7 +129,7 @@ namespace CustomMeshes
             return mesh;
         }
 
-        private static void populateMeshStruct(ref meshStruct mesh)
+        public static void populateMeshStruct(ref meshStruct mesh)
         {
             StreamReader stream = File.OpenText(mesh.fileName);
             string entireText = stream.ReadToEnd();

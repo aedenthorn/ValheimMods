@@ -9,7 +9,7 @@ namespace PlayerModelSwitch
     [BepInPlugin("aedenthorn.PlayerModelSwitch", "Player Model Switch", "0.1.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<int> nexusID;
         public static ConfigEntry<bool> modEnabled;
@@ -17,14 +17,14 @@ namespace PlayerModelSwitch
         public static ConfigEntry<string> femaleModelName;
         public static ConfigEntry<string> maleModelName;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -41,9 +41,9 @@ namespace PlayerModelSwitch
         }
 
         [HarmonyPatch(typeof(VisEquipment), "Awake")]
-        static class VisEquipment_Awake_Patch
+        public static class VisEquipment_Awake_Patch
         {
-            static void Prefix(VisEquipment __instance)
+            public static void Prefix(VisEquipment __instance)
             {
                 if (!__instance.m_isPlayer || __instance.m_models.Length == 0 || !ZNetScene.instance)
                     return;
@@ -58,7 +58,7 @@ namespace PlayerModelSwitch
                 }
             }
 
-            private static void ChangeModel(ref VisEquipment vis, string value, int which)
+            public static void ChangeModel(ref VisEquipment vis, string value, int which)
             {
                 GameObject go = ZNetScene.instance.GetPrefab(value);
 
@@ -104,9 +104,9 @@ namespace PlayerModelSwitch
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

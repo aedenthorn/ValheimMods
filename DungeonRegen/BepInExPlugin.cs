@@ -12,9 +12,9 @@ namespace DungeonRegen
     [BepInPlugin("aedenthorn.DungeonRegen", "Dungeon Regen", "0.3.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -34,7 +34,7 @@ namespace DungeonRegen
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -57,14 +57,14 @@ namespace DungeonRegen
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
 
 
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || Player.m_localPlayer == null || AedenthornUtils.IgnoreKeyPresses())
                 return;
@@ -81,7 +81,7 @@ namespace DungeonRegen
             }
         }
 
-        private static List<string> GetLocationNames()
+        public static List<string> GetLocationNames()
         {
             List<string> names = new List<string>();
             foreach (ZoneSystem.ZoneLocation zoneLocation in from a in ZoneSystem.instance.m_locations
@@ -96,7 +96,7 @@ namespace DungeonRegen
             return names;
         }
 
-        private static void RegenDungeons(bool force)
+        public static void RegenDungeons(bool force)
         {
             List<string> op = new List<string>();
 
@@ -218,7 +218,7 @@ namespace DungeonRegen
 
             Player.m_localPlayer.Message(MessageHud.MessageType.Center, regenText.Value);
         }
-        private static void RegenDungeons2(bool force)
+        public static void RegenDungeons2(bool force)
         {
             GameObject root = Traverse.Create(ZNetScene.instance).Field("m_netSceneRoot").GetValue<GameObject>();
 
@@ -315,7 +315,7 @@ namespace DungeonRegen
             Player.m_localPlayer.Message(MessageHud.MessageType.Center, regenText.Value);
         }
 
-        private static void RegenDungeon(DungeonGenerator dg)
+        public static void RegenDungeon(DungeonGenerator dg)
         {
             Dbgl($"Regenerating dungeon {dg.name} {dg.transform.position}");
 
@@ -379,9 +379,9 @@ namespace DungeonRegen
         }
 
         //[HarmonyPatch(typeof(DungeonGenerator), "Load")]
-        static class DungeonGenerator_Load_Patch
+        public static class DungeonGenerator_Load_Patch
         {
-            static bool Prefix(DungeonGenerator __instance)
+            public static bool Prefix(DungeonGenerator __instance)
             {
                 return true;
                 if (!modEnabled.Value)
@@ -404,9 +404,9 @@ namespace DungeonRegen
             }
         }
         [HarmonyPatch(typeof(Teleport), "Interact")]
-        static class Teleport_Interact_Patch
+        public static class Teleport_Interact_Patch
         {
-            static void Prefix(Teleport __instance)
+            public static void Prefix(Teleport __instance)
             {
                 if (!modEnabled.Value || __instance.m_targetPoint.transform.position.y < 3000)
                     return;
@@ -426,7 +426,7 @@ namespace DungeonRegen
             }
         }
 
-        private static IEnumerator ReloadDungeon(Teleport teleport, DungeonGenerator dg)
+        public static IEnumerator ReloadDungeon(Teleport teleport, DungeonGenerator dg)
         {
             yield return null;
             int seed1;
@@ -465,9 +465,9 @@ namespace DungeonRegen
         }
 
         [HarmonyPatch(typeof(EnvMan), "OnMorning")]
-        static class OnMorning_Patch
+        public static class OnMorning_Patch
         {
-            static void Postfix(EnvMan __instance)
+            public static void Postfix(EnvMan __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -484,9 +484,9 @@ namespace DungeonRegen
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

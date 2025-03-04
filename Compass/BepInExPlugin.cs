@@ -11,12 +11,12 @@ using UnityEngine.UI;
 
 namespace Compass
 {
-    [BepInPlugin("aedenthorn.Compass", "Compass", "1.4.0")]
+    [BepInPlugin("aedenthorn.Compass", "Compass", "1.4.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -59,7 +59,7 @@ namespace Compass
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -104,27 +104,27 @@ namespace Compass
             harmony.PatchAll();
         }
 
-        private void IgnoredMarkerTypes_SettingChanged(object sender, EventArgs e)
+        public void IgnoredMarkerTypes_SettingChanged(object sender, EventArgs e)
         {
             ignoredTypes = ignoredMarkerTypes.Value.Split(',');
         }
 
-        private void IgnoredMarkerNames_SettingChanged(object sender, EventArgs e)
+        public void IgnoredMarkerNames_SettingChanged(object sender, EventArgs e)
         {
             ignoredNames = ignoredMarkerNames.Value.Split(',');
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
 
         [HarmonyPatch(typeof(Hud), "Awake")]
-        static class Hud_Awake_Patch
+        public static class Hud_Awake_Patch
         {
 
-            static void Postfix(Hud __instance)
+            public static void Postfix(Hud __instance)
             {
                 string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Compass");
 
@@ -319,9 +319,9 @@ namespace Compass
 
 
         [HarmonyPatch(typeof(Hud), "Update")]
-        static class Hud_Update_Patch
+        public static class Hud_Update_Patch
         {
-            static void Prefix(Hud __instance)
+            public static void Prefix(Hud __instance)
             {
                 if (!modEnabled.Value || Player.m_localPlayer is null || compassObject is null)
                     return;
@@ -343,7 +343,7 @@ namespace Compass
                 {
                     return;
                 }
-                float imageScale = GameObject.Find("LoadingGUI").GetComponent<CanvasScaler>().scaleFactor;
+                float imageScale = __instance.GetComponent<CanvasScaler>().scaleFactor;
 
                 compassObject.GetComponent<RectTransform>().localPosition = Vector3.right * (rect.width / 2) * angle / (2f * Mathf.PI) - new Vector3(rect.width * 0.125f, 0, 0);
 
@@ -443,9 +443,9 @@ namespace Compass
             }
         }
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

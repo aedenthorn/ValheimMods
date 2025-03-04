@@ -10,8 +10,8 @@ namespace CartSupport
     [BepInPlugin("aedenthorn.CartSupport", "CartSupport", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -28,7 +28,7 @@ namespace CartSupport
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -48,16 +48,16 @@ namespace CartSupport
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
 
         [HarmonyPatch(typeof(Vagon), "SetMass")]
-        static class SetMass_Patch
+        public static class SetMass_Patch
         {
-            static void Prefix(Vagon __instance, ZNetView ___m_nview,  ref float mass)
+            public static void Prefix(Vagon __instance, ZNetView ___m_nview,  ref float mass)
             {
                 if (!modEnabled.Value || !___m_nview.IsOwner())
                     return;
@@ -74,9 +74,9 @@ namespace CartSupport
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

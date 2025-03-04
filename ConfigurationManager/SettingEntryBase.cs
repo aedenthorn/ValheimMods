@@ -33,7 +33,7 @@ namespace ConfigurationManager
         /// <summary>
         /// Custom setting draw action
         /// </summary>
-        public Action<BepInEx.Configuration.ConfigEntryBase> CustomDrawer { get; private set; }
+        public Action<BepInEx.Configuration.ConfigEntryBase> CustomDrawer { get; public set; }
 
         /// <summary>
         /// Show this setting in the settings screen at all? If false, don't show.
@@ -89,7 +89,7 @@ namespace ConfigurationManager
         /// <summary>
         /// Instance of the plugin that owns this setting
         /// </summary>
-        public BaseUnityPlugin PluginInstance { get; private set; }
+        public BaseUnityPlugin PluginInstance { get; public set; }
 
         /// <summary>
         /// Is this setting advanced
@@ -130,7 +130,7 @@ namespace ConfigurationManager
         /// </summary>
         public Func<string, object> StrToObj { get; internal set; }
 
-        private static readonly PropertyInfo[] _myProperties = typeof(SettingEntryBase).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        public static readonly PropertyInfo[] _myProperties = typeof(SettingEntryBase).GetProperties(BindingFlags.Instance | BindingFlags.Public);
 
         internal void SetFromAttributes(object[] attribs, BaseUnityPlugin pluginInstance)
         {

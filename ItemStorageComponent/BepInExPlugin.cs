@@ -15,8 +15,8 @@ namespace ItemStorageComponent
     [BepInPlugin("aedenthorn.ItemStorageComponent", "Item Storage Component", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> isDebug;
@@ -25,11 +25,11 @@ namespace ItemStorageComponent
         public static ConfigEntry<bool> requireEquipped;
         public static ConfigEntry<bool> requireExistingTemplate;
 
-        //private static GameObject backpack;
-        private static ItemStorage itemStorage;
-        private static Container playerContainer;
-        private static Dictionary<string, ItemStorage> itemStorageDict = new Dictionary<string, ItemStorage>();
-        private static Dictionary<string, ItemStorageMeta> itemStorageMetaDict = new Dictionary<string, ItemStorageMeta>();
+        //public static GameObject backpack;
+        public static ItemStorage itemStorage;
+        public static Container playerContainer;
+        public static Dictionary<string, ItemStorage> itemStorageDict = new Dictionary<string, ItemStorage>();
+        public static Dictionary<string, ItemStorageMeta> itemStorageMetaDict = new Dictionary<string, ItemStorageMeta>();
         
         public static string assetPath;
         public static string templatesPath;
@@ -40,7 +40,7 @@ namespace ItemStorageComponent
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -67,7 +67,7 @@ namespace ItemStorageComponent
             harmony.PatchAll();
         }
 
-        private static void OpenItemStorage(ItemDrop.ItemData item)
+        public static void OpenItemStorage(ItemDrop.ItemData item)
         {
             if(requireExistingTemplate.Value && !itemStorageMetaDict.ContainsKey(item.m_dropPrefab.name))
             {
@@ -107,7 +107,7 @@ namespace ItemStorageComponent
             AccessTools.FieldRefAccess<Container, Inventory>(playerContainer, "m_inventory") = itemStorage.inventory;
             InventoryGui.instance.Show(playerContainer);
         }
-        private static void LoadDataFromDisk()
+        public static void LoadDataFromDisk()
         {
             Dbgl("Loading item inventories");
 
@@ -145,7 +145,7 @@ namespace ItemStorageComponent
             }
         }
 
-        private static void OnSelectedItem(InventoryGrid grid, ItemDrop.ItemData item, Vector2i pos, InventoryGrid.Modifier mod)
+        public static void OnSelectedItem(InventoryGrid grid, ItemDrop.ItemData item, Vector2i pos, InventoryGrid.Modifier mod)
         {
             if (!modEnabled.Value || !CanBeContainer(item) || mod != InventoryGrid.Modifier.Split)
                 return;
@@ -163,7 +163,7 @@ namespace ItemStorageComponent
 
         }
 
-        private static void CloseContainer()
+        public static void CloseContainer()
         {
             itemStorage.inventory = playerContainer.GetInventory();
             SaveInventory(itemStorage);
@@ -172,15 +172,15 @@ namespace ItemStorageComponent
             itemStorage = null;
         }
         
-        private static bool CanBeContainer(ItemDrop.ItemData item)
+        public static bool CanBeContainer(ItemDrop.ItemData item)
         {
             return item != null && (!requireEquipped.Value || item.m_equipped) && (!requireExistingTemplate.Value || itemStorageMetaDict.ContainsKey(item.m_dropPrefab.name)) && item.m_shared.m_maxStackSize <= 1;
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Start")]
-        static class FejdStartup_Start_Patch
+        public static class FejdStartup_Start_Patch
         {
-            static void Postfix()
+            public static void Postfix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -189,9 +189,9 @@ namespace ItemStorageComponent
         }                
         
         [HarmonyPatch(typeof(InventoryGui), "Awake")]
-        static class InventoryGui_Awake_Patch
+        public static class InventoryGui_Awake_Patch
         {
-            static void Postfix(InventoryGrid ___m_playerGrid)
+            public static void Postfix(InventoryGrid ___m_playerGrid)
             {
                 if (!modEnabled.Value)
                     return;
@@ -202,9 +202,9 @@ namespace ItemStorageComponent
         }                
         
         [HarmonyPatch(typeof(InventoryGui), "OnSelectedItem")]
-        static class InventoryGui_OnSelectedItem_Patch
+        public static class InventoryGui_OnSelectedItem_Patch
         {
-            static bool Prefix(ItemDrop.ItemData item, InventoryGrid.Modifier mod)
+            public static bool Prefix(ItemDrop.ItemData item, InventoryGrid.Modifier mod)
             {
                 var result = !modEnabled.Value || !CanBeContainer(item) || mod != InventoryGrid.Modifier.Split;
                 //Dbgl("result " + result + " " + !modEnabled.Value + " " + !CanBeContainer(item) + " "+(mod != InventoryGrid.Modifier.Split));
@@ -213,9 +213,9 @@ namespace ItemStorageComponent
         }                
 
         [HarmonyPatch(typeof(InventoryGui), "Update")]
-        static class InventoryGui_Update_Patch
+        public static class InventoryGui_Update_Patch
         {
-            static void Postfix(Animator ___m_animator, ref Container ___m_currentContainer, ItemDrop.ItemData ___m_dragItem)
+            public static void Postfix(Animator ___m_animator, ref Container ___m_currentContainer, ItemDrop.ItemData ___m_dragItem)
             {
 
                 if (!modEnabled.Value || ___m_animator.GetBool("visible") || playerContainer == null || itemStorage == null)
@@ -224,7 +224,7 @@ namespace ItemStorageComponent
                 CloseContainer();
             }
         }
-        private static void SaveInventory(ItemStorage itemStorage)
+        public static void SaveInventory(ItemStorage itemStorage)
         {
             string itemFile = Path.Combine(itemsPath, itemStorage.meta.itemId + "_" + itemStorage.guid);
             if (!File.Exists(itemFile) && itemStorage.inventory.NrOfItems() == 0)
@@ -249,9 +249,9 @@ namespace ItemStorageComponent
 
         [HarmonyPatch(typeof(Inventory), "GetTotalWeight")]
         [HarmonyPriority(Priority.Last)]
-        static class GetTotalWeight_Patch
+        public static class GetTotalWeight_Patch
         {
-            static void Postfix(Inventory __instance, ref float __result)
+            public static void Postfix(Inventory __instance, ref float __result)
             {
                 if (!modEnabled.Value || !playerContainer || !Player.m_localPlayer)
                     return;
@@ -274,9 +274,9 @@ namespace ItemStorageComponent
         }
 
         [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float) })]
-        static class GetTooltip_Patch
+        public static class GetTooltip_Patch
         {
-            static void Postfix(ItemDrop.ItemData item, ref string __result)
+            public static void Postfix(ItemDrop.ItemData item, ref string __result)
             {
                 if (!modEnabled.Value || !item.m_crafterName.Contains("_") || item.m_crafterName.Split('_')[item.m_crafterName.Split('_').Length - 1].Length != 36)
                     return;
@@ -286,9 +286,9 @@ namespace ItemStorageComponent
         }
         
         [HarmonyPatch(typeof(Inventory), "CanAddItem", new Type[] { typeof(GameObject), typeof(int) })]
-        static class CanAddItem_Patch1
+        public static class CanAddItem_Patch1
         {
-            static bool Prefix(ref bool __result, Inventory __instance, GameObject prefab)
+            public static bool Prefix(ref bool __result, Inventory __instance, GameObject prefab)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -302,9 +302,9 @@ namespace ItemStorageComponent
             }
         }
         [HarmonyPatch(typeof(Inventory), "CanAddItem", new Type[] { typeof(ItemDrop.ItemData), typeof(int) })]
-        static class CanAddItem_Patch2
+        public static class CanAddItem_Patch2
         {
-            static bool Prefix(ref bool __result, Inventory __instance, ItemDrop.ItemData item)
+            public static bool Prefix(ref bool __result, Inventory __instance, ItemDrop.ItemData item)
             {
                 if (!modEnabled.Value || item.m_dropPrefab == null)
                     return true;
@@ -319,9 +319,9 @@ namespace ItemStorageComponent
         }
                 
         [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(ItemDrop.ItemData) })]
-        static class AddItem_Patch1
+        public static class AddItem_Patch1
         {
-            static bool Prefix(ref bool __result, Inventory __instance, ItemDrop.ItemData item)
+            public static bool Prefix(ref bool __result, Inventory __instance, ItemDrop.ItemData item)
             {
                 if (!modEnabled.Value || item.m_dropPrefab == null)
                     return true;
@@ -335,9 +335,9 @@ namespace ItemStorageComponent
             }
         }                
         [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(int), typeof(int) })]
-        static class AddItem_Patch2
+        public static class AddItem_Patch2
         {
-            static bool Prefix(ref bool __result, Inventory __instance, ItemDrop.ItemData item)
+            public static bool Prefix(ref bool __result, Inventory __instance, ItemDrop.ItemData item)
             {
                 if (!modEnabled.Value || item.m_dropPrefab == null)
                     return true;
@@ -351,9 +351,9 @@ namespace ItemStorageComponent
             }
         }
         [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(string), typeof(int), typeof(float), typeof(Vector2i), typeof(bool), typeof(int), typeof(int), typeof(long), typeof(string), typeof(Dictionary<string, string>), typeof(int), typeof(bool) })]
-        static class AddItem_Patch3
+        public static class AddItem_Patch3
         {
-            static bool Prefix(ref bool __result, Inventory __instance, string name)
+            public static bool Prefix(ref bool __result, Inventory __instance, string name)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -367,7 +367,7 @@ namespace ItemStorageComponent
             }
         }
 
-        private static bool ItemIsAllowed(string inventoryName, string itemName)
+        public static bool ItemIsAllowed(string inventoryName, string itemName)
         {
             if (!itemStorageDict.Values.ToList().Exists(i => i.meta.itemName == inventoryName))
                 return true;
@@ -378,9 +378,9 @@ namespace ItemStorageComponent
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

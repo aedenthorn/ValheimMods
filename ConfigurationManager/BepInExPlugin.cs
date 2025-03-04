@@ -24,7 +24,7 @@ namespace ConfigurationManager
         /// GUID of this plugin
         /// </summary>
         public const string GUID = "aedenthorn.ConfigurationManager";
-        private static bool isDebug = true;
+        public static bool isDebug = true;
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
@@ -33,13 +33,13 @@ namespace ConfigurationManager
 
         internal static BepInExPlugin context;
         internal static new ManualLogSource Logger;
-        private static SettingFieldDrawer _fieldDrawer;
+        public static SettingFieldDrawer _fieldDrawer;
 
-        private const int WindowId = -68;
+        public const int WindowId = -68;
 
-        private const string SearchBoxName = "searchBox";
-        private bool _focusSearchBox;
-        private string _searchString = string.Empty;
+        public const string SearchBoxName = "searchBox";
+        public bool _focusSearchBox;
+        public string _searchString = string.Empty;
 
         /// <summary>
         /// Event fired every time the manager window is shown or hidden.
@@ -51,32 +51,32 @@ namespace ConfigurationManager
         /// </summary>
         public bool OverrideHotkey;
 
-        private bool _displayingWindow;
-        private bool _obsoleteCursor;
+        public bool _displayingWindow;
+        public bool _obsoleteCursor;
 
-        private string _modsWithoutSettings;
+        public string _modsWithoutSettings;
 
-        private List<SettingEntryBase> _allSettings;
-        private List<PluginSettingsData> _filteredSetings = new List<PluginSettingsData>();
+        public List<SettingEntryBase> _allSettings;
+        public List<PluginSettingsData> _filteredSetings = new List<PluginSettingsData>();
 
-        internal Rect DefaultWindowRect { get; private set; }
-        private Rect _screenRect;
-        private Rect currentWindowRect;
-        private Vector2 _settingWindowScrollPos;
-        private int _tipsHeight;
-        private bool _showDebug;
+        internal Rect DefaultWindowRect { get; public set; }
+        public Rect _screenRect;
+        public Rect currentWindowRect;
+        public Vector2 _settingWindowScrollPos;
+        public int _tipsHeight;
+        public bool _showDebug;
 
-        private PropertyInfo _curLockState;
-        private PropertyInfo _curVisible;
-        private int _previousCursorLockState;
-        private bool _previousCursorVisible;
+        public PropertyInfo _curLockState;
+        public PropertyInfo _curVisible;
+        public int _previousCursorLockState;
+        public bool _previousCursorVisible;
 
-        internal static Texture2D WindowBackground { get; private set; }
-        internal static Texture2D EntryBackground { get; private set; }
-        internal static Texture2D WidgetBackground { get; private set; }
+        internal static Texture2D WindowBackground { get; public set; }
+        internal static Texture2D EntryBackground { get; public set; }
+        internal static Texture2D WidgetBackground { get; public set; }
 
-        internal int LeftColumnWidth { get; private set; }
-        internal int RightColumnWidth { get; private set; }
+        internal int LeftColumnWidth { get; public set; }
+        internal int RightColumnWidth { get; public set; }
 
         public static ConfigEntry<bool> _showAdvanced;
         public static ConfigEntry<bool> _showKeybinds;
@@ -172,7 +172,7 @@ namespace ConfigurationManager
             Patches.ApplyPatches();
         }
 
-        private void OnGUI()
+        public void OnGUI()
         {
             if (DisplayingWindow)
             {
@@ -212,7 +212,7 @@ namespace ConfigurationManager
             }
         }
 
-        private void SettingsWindow(int id)
+        public void SettingsWindow(int id)
         {
             GUI.DragWindow(new Rect(0, 0, currentWindowRect.width, 20));
             DrawWindowHeader();
@@ -285,7 +285,7 @@ namespace ConfigurationManager
                 DrawTooltip(currentWindowRect);
         }
 
-        private void DrawTips()
+        public void DrawTips()
         {
             GUILayout.BeginHorizontal();
             {
@@ -307,7 +307,7 @@ namespace ConfigurationManager
             GUILayout.EndHorizontal();
         }
 
-        private void DrawWindowHeader()
+        public void DrawWindowHeader()
         {
             GUI.backgroundColor = _entryBackgroundColor.Value;
             GUILayout.BeginHorizontal();
@@ -376,7 +376,7 @@ namespace ConfigurationManager
             GUILayout.EndHorizontal();
         }
 
-        private void DrawSinglePlugin(PluginSettingsData plugin)
+        public void DrawSinglePlugin(PluginSettingsData plugin)
         {
 
             var style = new GUIStyle(GUI.skin.box);
@@ -446,7 +446,7 @@ namespace ConfigurationManager
             GUILayout.EndVertical();
         }
 
-        private void DrawSingleSetting(SettingEntryBase setting)
+        public void DrawSingleSetting(SettingEntryBase setting)
         {
             GUILayout.BeginHorizontal();
             {
@@ -465,7 +465,7 @@ namespace ConfigurationManager
             GUILayout.EndHorizontal();
         }
 
-        private void DrawSettingName(SettingEntryBase setting)
+        public void DrawSettingName(SettingEntryBase setting)
         {
             if (setting.HideSettingName) return;
 
@@ -475,7 +475,7 @@ namespace ConfigurationManager
 
         }
 
-        private static void DrawDefaultButton(SettingEntryBase setting)
+        public static void DrawDefaultButton(SettingEntryBase setting)
         {
             if (setting.HideDefaultButton) return;
 
@@ -562,7 +562,7 @@ namespace ConfigurationManager
             BuildFilteredSettingList();
         }
 
-        private void BuildFilteredSettingList()
+        public void BuildFilteredSettingList()
         {
             IEnumerable<SettingEntryBase> results = _allSettings;
 
@@ -615,12 +615,12 @@ namespace ConfigurationManager
                 .ToList();
         }
 
-        private static bool IsKeyboardShortcut(SettingEntryBase x)
+        public static bool IsKeyboardShortcut(SettingEntryBase x)
         {
             return x.SettingType == typeof(KeyboardShortcut);
         }
 
-        private static bool ContainsSearchString(SettingEntryBase setting, string[] searchStrings)
+        public static bool ContainsSearchString(SettingEntryBase setting, string[] searchStrings)
         {
             var combinedSearchTarget = setting.PluginInfo.Name + "\n" +
                                        setting.PluginInfo.GUID + "\n" +
@@ -633,7 +633,7 @@ namespace ConfigurationManager
             return searchStrings.All(s => combinedSearchTarget.IndexOf(s, StringComparison.InvariantCultureIgnoreCase) >= 0);
         }
 
-        private void CalculateDefaultWindowRect()
+        public void CalculateDefaultWindowRect()
         {
             var width = Mathf.Min(Screen.width, 650);
             var height = Screen.height < 800 ? Screen.height : 800;
@@ -647,7 +647,7 @@ namespace ConfigurationManager
             RightColumnWidth = (int)DefaultWindowRect.width - LeftColumnWidth - 115;
         }
 
-        private static void DrawTooltip(Rect area)
+        public static void DrawTooltip(Rect area)
         {
             if (!string.IsNullOrEmpty(GUI.tooltip))
             {
@@ -683,7 +683,7 @@ namespace ConfigurationManager
         public string SearchString
         {
             get => _searchString;
-            private set
+            public set
             {
                 if (value == null)
                     value = string.Empty;
@@ -697,7 +697,7 @@ namespace ConfigurationManager
             }
         }
 
-        private void Start()
+        public void Start()
         {
 
             try
@@ -732,7 +732,7 @@ namespace ConfigurationManager
             catch (UnauthorizedAccessException ex) { Logger.Log(LogLevel.Message | LogLevel.Warning, "WARNING: Permission denied to write to config directory, expect issues!\nError message:" + ex.Message); }
         }
 
-        private void Update()
+        public void Update()
         {
             if (DisplayingWindow) SetUnlockCursor(0, true);
 
@@ -746,7 +746,7 @@ namespace ConfigurationManager
             }
         }
 
-        private void CreateStyles()
+        public void CreateStyles()
         {
             windowStyle = new GUIStyle(GUI.skin.window);
             windowStyle.normal.textColor = _fontColor.Value;
@@ -787,7 +787,7 @@ namespace ConfigurationManager
 
             thumbStyle = new GUIStyle(GUI.skin.horizontalSliderThumb);
         }
-        private void CreateBackgrounds()
+        public void CreateBackgrounds()
         {
             var background = new Texture2D(1, 1, TextureFormat.ARGB32, false);
             background.SetPixel(0, 0, _windowBackgroundColor.Value);
@@ -800,12 +800,12 @@ namespace ConfigurationManager
             EntryBackground = entryBackground;
         }
 
-        private void LateUpdate()
+        public void LateUpdate()
         {
             if (DisplayingWindow) SetUnlockCursor(0, true);
         }
 
-        private void SetUnlockCursor(int lockState, bool cursorVisible)
+        public void SetUnlockCursor(int lockState, bool cursorVisible)
         {
             if (_curLockState != null)
             {
@@ -821,11 +821,11 @@ namespace ConfigurationManager
             }
         }
 
-        private sealed class PluginSettingsData
+        public sealed class PluginSettingsData
         {
             public BepInPlugin Info;
             public List<PluginSettingsGroupData> Categories;
-            private bool _collapsed;
+            public bool _collapsed;
 
             public bool Collapsed
             {

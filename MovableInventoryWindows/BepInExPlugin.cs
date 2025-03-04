@@ -10,9 +10,9 @@ namespace MovableInventoryWindows
     [BepInPlugin("aedenthorn.MovableInventoryWindows", "Movable Inventory Windows", "0.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<Vector2> inventoryPosition;
@@ -32,7 +32,7 @@ namespace MovableInventoryWindows
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -56,13 +56,13 @@ namespace MovableInventoryWindows
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony.UnpatchAll();
         }
 
-        private static bool CheckKeyHeld(string value)
+        public static bool CheckKeyHeld(string value)
         {
             try
             {
@@ -74,14 +74,14 @@ namespace MovableInventoryWindows
             }
         }
 
-        private static Vector3 lastMousePos;
-        private static string currentlyDragging;
+        public static Vector3 lastMousePos;
+        public static string currentlyDragging;
 
         [HarmonyPatch(typeof(InventoryGui), "Update")]
-        static class InventoryGui_Update_Patch
+        public static class InventoryGui_Update_Patch
         {
 
-            static void Postfix(InventoryGui __instance)
+            public static void Postfix(InventoryGui __instance)
             {
                 Vector3 mousePos = Input.mousePosition;
                 if (!modEnabled.Value)
@@ -157,7 +157,7 @@ namespace MovableInventoryWindows
                 lastMousePos = mousePos;
             }
         }
-        private static bool IsDragging(RaycastResult rcr, string name)
+        public static bool IsDragging(RaycastResult rcr, string name)
         {
             if(rcr.gameObject.transform.parent.name == name)
             {
@@ -173,9 +173,9 @@ namespace MovableInventoryWindows
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

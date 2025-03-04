@@ -16,9 +16,9 @@ namespace BackpackRedux
     [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.8.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -33,20 +33,20 @@ namespace BackpackRedux
         public static ConfigEntry<bool> createTombStone;
         public static ConfigEntry<bool> allowTeleportingMetal;
 
-        //private static GameObject backpack;
-        private static Container backpackContainer;
-        private static Inventory backpackInventory;
+        //public static GameObject backpack;
+        public static Container backpackContainer;
+        public static Inventory backpackInventory;
         
-        private static string assetPath;
-        private static bool opening = false;
-        private static string backpackFileName;
+        public static string assetPath;
+        public static bool opening = false;
+        public static string backpackFileName;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -74,7 +74,7 @@ namespace BackpackRedux
             harmony = new Harmony(Info.Metadata.GUID);
             harmony.PatchAll();
         }
-        private void Start()
+        public void Start()
         {
 
             try
@@ -91,7 +91,7 @@ namespace BackpackRedux
         }
 
 
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || !Player.m_localPlayer || !ZNetScene.instance)
                 return;
@@ -103,12 +103,12 @@ namespace BackpackRedux
             }
         }
 
-        private static bool CanOpenBackpack()
+        public static bool CanOpenBackpack()
         {
             return backpackItem.Value == "" || Player.m_localPlayer.GetInventory().GetEquippedItems().Exists(i => i.m_dropPrefab?.name == backpackItem.Value);
         }
 
-        private static void OpenBackpack()
+        public static void OpenBackpack()
         {
             /*
             backpack = Instantiate(ZNetScene.instance.GetPrefab("piece_chest"));
@@ -134,7 +134,7 @@ namespace BackpackRedux
             InventoryGui.instance.Show(backpackContainer);
 
         }
-        private static void LoadBackpackInventory()
+        public static void LoadBackpackInventory()
         {
             backpackInventory = new Inventory(backpackName.Value, null, (int)backpackSize.Value.x, (int)backpackSize.Value.y);
             if (File.Exists(Path.Combine(assetPath, backpackFileName)))
@@ -153,9 +153,9 @@ namespace BackpackRedux
         }
 
         [HarmonyPatch(typeof(FejdStartup), "LoadMainScene")]
-        static class LoadMainScene_Patch
+        public static class LoadMainScene_Patch
         {
-            static void Prefix(FejdStartup __instance, List<PlayerProfile> ___m_profiles)
+            public static void Prefix(FejdStartup __instance, List<PlayerProfile> ___m_profiles)
             {
                 if (!modEnabled.Value || ___m_profiles == null)
                     return;
@@ -169,9 +169,9 @@ namespace BackpackRedux
         }
                 
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.IsTeleportable))]
-        static class Humanoid_IsTeleportable_Patch
+        public static class Humanoid_IsTeleportable_Patch
         {
-            static void Postfix(Humanoid __instance, ref bool __result)
+            public static void Postfix(Humanoid __instance, ref bool __result)
             {
                 if (!modEnabled.Value || !__result || __instance != Player.m_localPlayer || backpackInventory == null)
                     return;
@@ -182,9 +182,9 @@ namespace BackpackRedux
         }
                 
         [HarmonyPatch(typeof(InventoryGui), "Update")]
-        static class InventoryGui_Update_Patch
+        public static class InventoryGui_Update_Patch
         {
-            static void Postfix(Animator ___m_animator, ref Container ___m_currentContainer)
+            public static void Postfix(Animator ___m_animator, ref Container ___m_currentContainer)
             {
                 /*
                 if(!___m_animator.GetBool("visible") && backpack != null)
@@ -218,9 +218,9 @@ namespace BackpackRedux
 
         [HarmonyPatch(typeof(Inventory), "GetTotalWeight")]
         [HarmonyPriority(Priority.Last)]
-        static class GetTotalWeight_Patch
+        public static class GetTotalWeight_Patch
         {
-            static void Postfix(Inventory __instance, ref float __result)
+            public static void Postfix(Inventory __instance, ref float __result)
             {
                 if (!modEnabled.Value || !backpackContainer || !Player.m_localPlayer)
                     return;
@@ -240,9 +240,9 @@ namespace BackpackRedux
         }   
 
         [HarmonyPatch(typeof(Player), "OnDeath")]
-        static class OnDeath_Patch
+        public static class OnDeath_Patch
         {
-            static void Prefix(Player __instance)
+            public static void Prefix(Player __instance)
             {
                 if (!modEnabled.Value || !Player.m_localPlayer || backpackInventory == null || __instance.GetPlayerID() != Player.m_localPlayer.GetPlayerID() || backpackInventory.NrOfItems() == 0)
                     return;
@@ -273,9 +273,9 @@ namespace BackpackRedux
         }
 
        [HarmonyPatch(typeof(Game), "SavePlayerProfile")]
-        static class SavePlayerProfile_Patch
+        public static class SavePlayerProfile_Patch
         {
-            static void Prefix()
+            public static void Prefix()
             {
                 if (!modEnabled.Value)
                     return;
@@ -293,9 +293,9 @@ namespace BackpackRedux
             }
         }
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

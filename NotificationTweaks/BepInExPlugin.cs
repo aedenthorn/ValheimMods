@@ -12,9 +12,9 @@ namespace NotificationTweaks
     [BepInPlugin("aedenthorn.NotificationTweaks", "Notification Tweaks", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -43,7 +43,7 @@ namespace NotificationTweaks
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -65,7 +65,7 @@ namespace NotificationTweaks
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
@@ -74,9 +74,9 @@ namespace NotificationTweaks
 
 
         [HarmonyPatch(typeof(MessageHud), "Awake")]
-        static class Awake_Patch
+        public static class Awake_Patch
         {
-            static void Prefix(MessageHud __instance)
+            public static void Prefix(MessageHud __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -88,9 +88,9 @@ namespace NotificationTweaks
         
 
         [HarmonyPatch(typeof(MessageHud), "ShowMessage")]
-        static class ShowMessage_Patch
+        public static class ShowMessage_Patch
         {
-            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
             {
                 if (!modEnabled.Value)
                     return instructions;
@@ -109,9 +109,9 @@ namespace NotificationTweaks
         
 
         [HarmonyPatch(typeof(MessageHud), "UpdateMessage")]
-        static class UpdateMessage_Patch
+        public static class UpdateMessage_Patch
         {
-            static void Prefix(MessageHud __instance, ref float dt)
+            public static void Prefix(MessageHud __instance, ref float dt)
             {
                 if (!modEnabled.Value)
                     return;
@@ -121,7 +121,7 @@ namespace NotificationTweaks
                 __instance.m_messageCenterText.color = largeColor.Value;
                 __instance.m_messageText.transform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(smallNotificationPosition.Value.x, -smallNotificationPosition.Value.y);
             }
-            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
             {
                 if (!modEnabled.Value)
                     return instructions;
@@ -137,7 +137,7 @@ namespace NotificationTweaks
                 return codes;
             }
 
-            static void Postfix(MessageHud __instance)
+            public static void Postfix(MessageHud __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -199,9 +199,9 @@ namespace NotificationTweaks
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

@@ -13,7 +13,7 @@ namespace ConfigurationManager
 {
     internal static class SettingSearcher
     {
-        private static readonly ICollection<string> _updateMethodNames = new[]
+        public static readonly ICollection<string> _updateMethodNames = new[]
         {
             "Update",
             "FixedUpdate",
@@ -103,7 +103,7 @@ namespace ConfigurationManager
         /// <summary>
         /// Bepinex 5 config
         /// </summary>
-        private static IEnumerable<SettingEntryBase> GetBepInExCoreConfig()
+        public static IEnumerable<SettingEntryBase> GetBepInExCoreConfig()
         {
             var coreConfigProp = typeof(ConfigFile).GetProperty("CoreConfig", BindingFlags.Static | BindingFlags.NonPublic);
             if (coreConfigProp == null) throw new ArgumentNullException(nameof(coreConfigProp));
@@ -119,7 +119,7 @@ namespace ConfigurationManager
         /// <summary>
         /// Used by bepinex 5 plugins
         /// </summary>
-        private static IEnumerable<ConfigSettingEntry> GetPluginConfig(BaseUnityPlugin plugin)
+        public static IEnumerable<ConfigSettingEntry> GetPluginConfig(BaseUnityPlugin plugin)
         {
             return plugin.Config.Select(x => new ConfigSettingEntry(x.Value, plugin));
         }

@@ -13,9 +13,9 @@ namespace InventoryHUD
     [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.4.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -50,7 +50,7 @@ namespace InventoryHUD
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -79,12 +79,12 @@ namespace InventoryHUD
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
-        private static TMP_FontAsset GetFont(string fontName, int fontSize)
+        public static TMP_FontAsset GetFont(string fontName, int fontSize)
         {
             TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
             foreach (TMP_FontAsset font in fonts)
@@ -97,7 +97,7 @@ namespace InventoryHUD
             return null;
         }
 
-        private static void AddWeightObject(Hud hud)
+        public static void AddWeightObject(Hud hud)
         {
 
             if (!modEnabled.Value)
@@ -183,7 +183,7 @@ namespace InventoryHUD
             Dbgl("Added weight object to hud");
         }
 
-        private static void AddInfoString(Hud hud)
+        public static void AddInfoString(Hud hud)
         {
             infoObject = new GameObject
             {
@@ -205,9 +205,9 @@ namespace InventoryHUD
 
 
         [HarmonyPatch(typeof(Hud), "Awake")]
-        static class Hud_Awake_Patch
+        public static class Hud_Awake_Patch
         {
-            static void Postfix(Hud __instance)
+            public static void Postfix(Hud __instance)
             {
                 if (!modEnabled.Value)
                     return;
@@ -222,10 +222,10 @@ namespace InventoryHUD
 
 
         [HarmonyPatch(typeof(Hud), "Update")]
-        static class Hud_Update_Patch
+        public static class Hud_Update_Patch
         {
             public static Vector3 lastPosition = Vector3.zero;
-            static void Prefix(Hud __instance)
+            public static void Prefix(Hud __instance)
             {
                 if (!modEnabled.Value || Player.m_localPlayer is null)
                     return;
@@ -301,9 +301,9 @@ namespace InventoryHUD
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

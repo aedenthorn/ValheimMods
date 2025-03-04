@@ -10,7 +10,7 @@ namespace HelmetHairToggle
     [BepInPlugin("aedenthorn.HelmetHairToggle", "Helmet Hair Toggle", "0.5.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<string> hairToggleKey;
         public static ConfigEntry<string> beardToggleKey;
@@ -23,14 +23,14 @@ namespace HelmetHairToggle
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             hairToggleString = Config.Bind<string>("General", "HairToggleString", "Show hair with helmet: {0}", "Text to show on toggle. {0} is replaced with true/false");
@@ -50,7 +50,7 @@ namespace HelmetHairToggle
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private void Update()
+        public void Update()
         {
             if (!modEnabled.Value || AedenthornUtils.IgnoreKeyPresses(true))
                 return;
@@ -85,9 +85,9 @@ namespace HelmetHairToggle
         }
 
         [HarmonyPatch(typeof(VisEquipment), "HelmetHides")]
-        static class HelmetHides_Patch
+        public static class HelmetHides_Patch
         {
-            static bool Prefix(ref bool hideHair, ref bool hideBeard)
+            public static bool Prefix(ref bool hideHair, ref bool hideBeard)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -97,9 +97,9 @@ namespace HelmetHairToggle
             }
         }
         [HarmonyPatch(typeof(VisEquipment), "UpdateEquipmentVisuals")]
-        static class UpdateEquipmentVisuals_Patch
+        public static class UpdateEquipmentVisuals_Patch
         {
-            static void Postfix(VisEquipment __instance, GameObject ___m_helmetItemInstance)
+            public static void Postfix(VisEquipment __instance, GameObject ___m_helmetItemInstance)
             {
                 if (!modEnabled.Value || showBeard.Value != ItemDrop.ItemData.HelmetHairType.Hidden || ___m_helmetItemInstance == null)
                     return;
@@ -111,9 +111,9 @@ namespace HelmetHairToggle
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

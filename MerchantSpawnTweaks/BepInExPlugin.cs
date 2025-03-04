@@ -13,9 +13,9 @@ namespace MerchantSpawnTweaks
     [BepInPlugin("aedenthorn.MerchantSpawnTweaks", "Merchant Spawn Tweaks", "0.1.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -32,7 +32,7 @@ namespace MerchantSpawnTweaks
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -52,16 +52,16 @@ namespace MerchantSpawnTweaks
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             Dbgl("Destroying plugin");
             harmony?.UnpatchAll();
         }
 
         [HarmonyPatch(typeof(ZoneSystem), "Start")]
-        static class ZoneSystem_Start_Patch
+        public static class ZoneSystem_Start_Patch
         {
-            static void Prefix(ZoneSystem __instance, Dictionary<Vector2i, ZoneSystem.LocationInstance> ___m_locationInstances)
+            public static void Prefix(ZoneSystem __instance, Dictionary<Vector2i, ZoneSystem.LocationInstance> ___m_locationInstances)
             {
 
                 if (!modEnabled.Value)
@@ -89,9 +89,9 @@ namespace MerchantSpawnTweaks
             }
         }
         [HarmonyPatch(typeof(EnvMan), "OnMorning")]
-        static class OnMorning_Patch
+        public static class OnMorning_Patch
         {
-            static void Prefix(EnvMan __instance, double ___m_totalSeconds)
+            public static void Prefix(EnvMan __instance, double ___m_totalSeconds)
             {
                 if (!modEnabled.Value)
                     return;
@@ -102,7 +102,7 @@ namespace MerchantSpawnTweaks
                 }
             }
         }
-        private static void RelocateMerchant()
+        public static void RelocateMerchant()
         {
             float size = Minimap.instance.m_textureSize / 2f;
             Vector2 pos = Vector2.zero;
@@ -112,7 +112,7 @@ namespace MerchantSpawnTweaks
             }
             RelocateMerchant(pos);
         }
-        private static void RelocateMerchant(Vector2 coords)
+        public static void RelocateMerchant(Vector2 coords)
         {
             if (merchantObject != null)
             {
@@ -137,9 +137,9 @@ namespace MerchantSpawnTweaks
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

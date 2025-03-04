@@ -18,14 +18,14 @@ namespace MapPinExport
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             
@@ -40,9 +40,9 @@ namespace MapPinExport
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
@@ -125,7 +125,7 @@ namespace MapPinExport
                 return true;
             }
 
-            private static bool IsCustomPin(Minimap.PinData pin)
+            public static bool IsCustomPin(Minimap.PinData pin)
             {
                 return pin.m_save && (pin.m_type == Minimap.PinType.Icon0 || pin.m_type == Minimap.PinType.Icon1 || pin.m_type == Minimap.PinType.Icon2 || pin.m_type == Minimap.PinType.Icon3 || pin.m_type == Minimap.PinType.Icon4);
                 //return pin.m_save && pin.m_type != Minimap.PinType.Death && pin.m_type != Minimap.PinType.Bed && pin.m_type != Minimap.PinType.Icon4 && pin.m_type != Minimap.PinType.Shout && pin.m_type != Minimap.PinType.None && pin.m_type != Minimap.PinType.Boss && pin.m_type != Minimap.PinType.Player && pin.m_type != Minimap.PinType.RandomEvent && pin.m_type != Minimap.PinType.Ping && pin.m_type != Minimap.PinType.EventArea && pin.m_type != Minimap.PinType.Hildir1 && pin.m_type != Minimap.PinType.Hildir2 && pin.m_type != Minimap.PinType.Hildir3;

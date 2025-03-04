@@ -8,9 +8,9 @@ namespace CustomizableToolbar
     [BepInPlugin("aedenthorn.CustomizableToolbar", "Customizable Toolbar", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
-        private Harmony harmony;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
+        public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<float> toolbarX;
@@ -28,7 +28,7 @@ namespace CustomizableToolbar
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -48,7 +48,7 @@ namespace CustomizableToolbar
             harmony.PatchAll();
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             if (!modEnabled.Value)
                 return;
@@ -57,7 +57,7 @@ namespace CustomizableToolbar
             harmony.UnpatchAll();
         }
 
-        private static bool CheckKeyHeld(string value)
+        public static bool CheckKeyHeld(string value)
         {
             try
             {
@@ -69,12 +69,12 @@ namespace CustomizableToolbar
             }
         }
 
-        private static Vector3 lastMousePos;
+        public static Vector3 lastMousePos;
 
         [HarmonyPatch(typeof(HotkeyBar), "UpdateIcons")]
-        static class HotkeyBar_Update_Patch
+        public static class HotkeyBar_Update_Patch
         {
-            static void Postfix(HotkeyBar __instance)
+            public static void Postfix(HotkeyBar __instance)
             {
                 if (!Player.m_localPlayer)
                     return;
@@ -137,9 +137,9 @@ namespace CustomizableToolbar
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

@@ -15,32 +15,32 @@ namespace CustomServerLoadingScreen
     [BepInPlugin("aedenthorn.CustomServerLoadingScreen", "Custom Server Loading Screen", "0.4.0")]
     public partial class BepInExPlugin: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
-        private static BepInExPlugin context;
+        public static readonly bool isDebug = true;
+        public static BepInExPlugin context;
 
-        private static ConfigEntry<bool> modEnabled;
-        private static ConfigEntry<int> nexusID;
+        public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<int> nexusID;
         
-        private static ConfigEntry<int> maxWaitTime;
+        public static ConfigEntry<int> maxWaitTime;
 
-        private static ConfigEntry<string> serverLoadingScreen;
-        //private static ConfigEntry<bool> differentSpawnScreen;
-        private static ConfigEntry<bool> removeVignette;
-        private static ConfigEntry<Color> spawnColorMask;
-        private static ConfigEntry<Color> tipTextColor;
+        public static ConfigEntry<string> serverLoadingScreen;
+        //public static ConfigEntry<bool> differentSpawnScreen;
+        public static ConfigEntry<bool> removeVignette;
+        public static ConfigEntry<Color> spawnColorMask;
+        public static ConfigEntry<Color> tipTextColor;
 
-        private static string loadingTip = "";
-        private static Sprite loadingSprite = null;
-        private static bool loadedSprite = true;
-        //private static Sprite loadingSprite2 = null;
-        private static int secondsWaited = 0;
+        public static string loadingTip = "";
+        public static Sprite loadingSprite = null;
+        public static bool loadedSprite = true;
+        //public static Sprite loadingSprite2 = null;
+        public static int secondsWaited = 0;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
 
@@ -100,7 +100,7 @@ namespace CustomServerLoadingScreen
         }
 
 
-        private static void RPC_ShareLoadingScreen(ZRpc rpc, string screen)
+        public static void RPC_ShareLoadingScreen(ZRpc rpc, string screen)
         {
             Dbgl($"RPC_ShareLoadingScreen received");
             if (!ZNet.instance.IsServer())
@@ -204,7 +204,7 @@ namespace CustomServerLoadingScreen
             }
         }
 
-        private static async void WaitForSpriteLoad(ZNet __instance, ZRpc rpc, bool needPassword)
+        public static async void WaitForSpriteLoad(ZNet __instance, ZRpc rpc, bool needPassword)
         {
             await Task.Delay(1000);
             Traverse.Create(__instance).Method("RPC_ClientHandshake", new object[] { rpc, needPassword }).GetValue();
@@ -252,9 +252,9 @@ namespace CustomServerLoadingScreen
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

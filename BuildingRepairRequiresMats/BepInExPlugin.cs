@@ -28,15 +28,15 @@ namespace BuildingRepairRequiresMats
         public static ConfigEntry<int> nexusID;
         public static List<Container> containerList = new List<Container>();
 
-        private static BepInExPlugin context;
-        private static Assembly epicLootAssembly;
+        public static BepInExPlugin context;
+        public static Assembly epicLootAssembly;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -54,14 +54,14 @@ namespace BuildingRepairRequiresMats
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
 
         }
-        private void Start()
+        public void Start()
         {
             if(Chainloader.PluginInfos.ContainsKey("randyknapp.mods.epicloot"))
                 epicLootAssembly = Chainloader.PluginInfos["randyknapp.mods.epicloot"].Instance.GetType().Assembly;
 
         }
 
-        private static void RepairClickedItem(InventoryGrid grid, UIInputHandler element, Inventory inventory)
+        public static void RepairClickedItem(InventoryGrid grid, UIInputHandler element, Inventory inventory)
         {
             Vector2i buttonPos = Traverse.Create(grid).Method("GetButtonPos", new object[] { element.gameObject }).GetValue<Vector2i>();
             ItemDrop.ItemData itemData = inventory.GetItemAt(buttonPos.x, buttonPos.y);
@@ -85,9 +85,9 @@ namespace BuildingRepairRequiresMats
         }
 
         //[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool) })]
-        static class GetTooltip_Patch
+        public static class GetTooltip_Patch
         {
-            static void Postfix(ItemDrop.ItemData item, int qualityLevel, bool crafting, ref string __result)
+            public static void Postfix(ItemDrop.ItemData item, int qualityLevel, bool crafting, ref string __result)
             {
                 if (modEnabled.Value && requireMats.Value && Player.m_localPlayer)
                 {
@@ -133,9 +133,9 @@ namespace BuildingRepairRequiresMats
         }
         
         //[HarmonyPatch(typeof(InventoryGui), "CanRepair")]
-        static class InventoryGui_CanRepair_Patch
+        public static class InventoryGui_CanRepair_Patch
         {
-            static void Postfix(ItemDrop.ItemData item, ref bool __result)
+            public static void Postfix(ItemDrop.ItemData item, ref bool __result)
             {
                 if (modEnabled.Value && requireMats.Value && Environment.StackTrace.Contains("RepairClickedItem") && !Environment.StackTrace.Contains("HaveRepairableItems") && __result == true && item?.m_shared != null && Player.m_localPlayer != null)
                 {
@@ -169,7 +169,7 @@ namespace BuildingRepairRequiresMats
             }
         }
 
-        private static Recipe RepairRecipe(ItemDrop.ItemData item)
+        public static Recipe RepairRecipe(ItemDrop.ItemData item)
         {
             float percent = (item.GetMaxDurability() - item.m_durability) / item.GetMaxDurability();
             Recipe fullRecipe = ObjectDB.instance.GetRecipe(item);
@@ -229,9 +229,9 @@ namespace BuildingRepairRequiresMats
 
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;

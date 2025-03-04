@@ -14,7 +14,7 @@ namespace TreeRespawn
     [BepInPlugin("aedenthorn.TreeRespawn", "Tree Respawn", "0.8.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -22,7 +22,7 @@ namespace TreeRespawn
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<int> nexusID;
@@ -30,7 +30,7 @@ namespace TreeRespawn
 
         public static Dictionary<string, string> seedsDic = new Dictionary<string, string>();
 
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -43,7 +43,7 @@ namespace TreeRespawn
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
 
-        private void Start()
+        public void Start()
         {
             string jsonFile = "tree_dict.json";
             if (Chainloader.PluginInfos.ContainsKey("advize.PlantEverything"))
@@ -70,9 +70,9 @@ namespace TreeRespawn
         }
 
         [HarmonyPatch(typeof(Destructible), "Destroy")]
-        static class Destroy_Patch
+        public static class Destroy_Patch
         {
-            static void Prefix(Destructible __instance)
+            public static void Prefix(Destructible __instance)
             {
                 Dbgl($"destroyed destructible {__instance.name}");
 
@@ -95,7 +95,7 @@ namespace TreeRespawn
             }
         }
 
-        private static IEnumerator SpawnTree(GameObject prefab, Vector3 position)
+        public static IEnumerator SpawnTree(GameObject prefab, Vector3 position)
         {
             Dbgl($"spawning new tree");
             yield return new WaitForSeconds(respawnDelay.Value);

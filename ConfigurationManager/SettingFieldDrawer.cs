@@ -15,19 +15,19 @@ namespace ConfigurationManager
 {
     internal class SettingFieldDrawer
     {
-        private static readonly IEnumerable<KeyCode> _keysToCheck = BepInEx.Configuration.KeyboardShortcut.AllKeyCodes.Except(new[] { KeyCode.Mouse0, KeyCode.None }).ToArray();
+        public static readonly IEnumerable<KeyCode> _keysToCheck = BepInEx.Configuration.KeyboardShortcut.AllKeyCodes.Except(new[] { KeyCode.Mouse0, KeyCode.None }).ToArray();
 
         public static Dictionary<Type, Action<SettingEntryBase>> SettingDrawHandlers { get; }
 
-        private static readonly Dictionary<SettingEntryBase, ComboBox> _comboBoxCache = new Dictionary<SettingEntryBase, ComboBox>();
-        private static readonly Dictionary<SettingEntryBase, ColorCacheEntry> _colorCache = new Dictionary<SettingEntryBase, ColorCacheEntry>();
+        public static readonly Dictionary<SettingEntryBase, ComboBox> _comboBoxCache = new Dictionary<SettingEntryBase, ComboBox>();
+        public static readonly Dictionary<SettingEntryBase, ColorCacheEntry> _colorCache = new Dictionary<SettingEntryBase, ColorCacheEntry>();
 
-        private readonly BepInExPlugin _instance;
+        public readonly BepInExPlugin _instance;
 
-        private static SettingEntryBase _currentKeyboardShortcutToSet;
+        public static SettingEntryBase _currentKeyboardShortcutToSet;
         public static bool SettingKeyboardShortcut => _currentKeyboardShortcutToSet != null;
 
-        static SettingFieldDrawer()
+        public static SettingFieldDrawer()
         {
             SettingDrawHandlers = new Dictionary<Type, Action<SettingEntryBase>>
             {
@@ -109,7 +109,7 @@ namespace ConfigurationManager
             return false;
         }
 
-        private void DrawListField(SettingEntryBase setting)
+        public void DrawListField(SettingEntryBase setting)
         {
             var acceptableValues = setting.AcceptableValues;
             if (acceptableValues.Length == 0)
@@ -121,7 +121,7 @@ namespace ConfigurationManager
             DrawComboboxField(setting, acceptableValues, _instance.DefaultWindowRect.yMax);
         }
 
-        private void DrawFieldBasedOnValueType(SettingEntryBase setting)
+        public void DrawFieldBasedOnValueType(SettingEntryBase setting)
         {
             if (SettingDrawHandlers.TryGetValue(setting.SettingType, out var drawMethod))
                 drawMethod(setting);
@@ -129,7 +129,7 @@ namespace ConfigurationManager
                 DrawUnknownField(setting, _instance.RightColumnWidth);
         }
 
-        private static void DrawBoolField(SettingEntryBase setting)
+        public static void DrawBoolField(SettingEntryBase setting)
         {
             GUI.backgroundColor = BepInExPlugin._widgetBackgroundColor.Value;
             var boolVal = (bool)setting.Get();
@@ -138,7 +138,7 @@ namespace ConfigurationManager
                 setting.Set(result);
         }
 
-        private static void DrawFlagsField(SettingEntryBase setting, IList enumValues, int maxWidth)
+        public static void DrawFlagsField(SettingEntryBase setting, IList enumValues, int maxWidth)
         {
             var currentValue = Convert.ToInt64(setting.Get());
             var allValues = enumValues.Cast<Enum>().Select(x => new { name = x.ToString(), val = Convert.ToInt64(x) }).ToArray();
@@ -187,7 +187,7 @@ namespace ConfigurationManager
             GUILayout.FlexibleSpace();
         }
 
-        private static void DrawComboboxField(SettingEntryBase setting, IList list, float windowYmax)
+        public static void DrawComboboxField(SettingEntryBase setting, IList list, float windowYmax)
         {
             var buttonText = ObjectToGuiContent(setting.Get());
             var dispRect = GUILayoutUtility.GetRect(buttonText, GUI.skin.button, GUILayout.ExpandWidth(true));
@@ -210,7 +210,7 @@ namespace ConfigurationManager
             });
         }
 
-        private static GUIContent ObjectToGuiContent(object x)
+        public static GUIContent ObjectToGuiContent(object x)
         {
             if (x is Enum)
             {
@@ -224,7 +224,7 @@ namespace ConfigurationManager
             return new GUIContent(x.ToString());
         }
 
-        private static void DrawRangeField(SettingEntryBase setting)
+        public static void DrawRangeField(SettingEntryBase setting)
         {
             var value = setting.Get();
             var converted = (float)Convert.ToDouble(value, CultureInfo.InvariantCulture);
@@ -264,7 +264,7 @@ namespace ConfigurationManager
             }
         }
 
-        private void DrawUnknownField(SettingEntryBase setting, int rightColumnWidth)
+        public void DrawUnknownField(SettingEntryBase setting, int rightColumnWidth)
         {
             // Try to use user-supplied converters
             if (setting.ObjToStr != null && setting.StrToObj != null)
@@ -295,8 +295,8 @@ namespace ConfigurationManager
             GUILayout.FlexibleSpace();
         }
 
-        private readonly Dictionary<Type, bool> _canCovertCache = new Dictionary<Type, bool>();
-        private bool CanCovert(string value, Type type)
+        public readonly Dictionary<Type, bool> _canCovertCache = new Dictionary<Type, bool>();
+        public bool CanCovert(string value, Type type)
         {
             if (_canCovertCache.ContainsKey(type))
                 return _canCovertCache[type];
@@ -314,7 +314,7 @@ namespace ConfigurationManager
             }
         }
 
-        private static void DrawKeyboardShortcut(SettingEntryBase setting)
+        public static void DrawKeyboardShortcut(SettingEntryBase setting)
         {
             var value = setting.Get();
             if (value.GetType() == typeof(KeyCode)){
@@ -352,7 +352,7 @@ namespace ConfigurationManager
             }
         }
 
-        private static void DrawVector2(SettingEntryBase obj)
+        public static void DrawVector2(SettingEntryBase obj)
         {
             var setting = (Vector2)obj.Get();
             var copy = setting;
@@ -361,7 +361,7 @@ namespace ConfigurationManager
             if (setting != copy) obj.Set(setting);
         }
 
-        private static void DrawVector3(SettingEntryBase obj)
+        public static void DrawVector3(SettingEntryBase obj)
         {
             var setting = (Vector3)obj.Get();
             var copy = setting;
@@ -371,7 +371,7 @@ namespace ConfigurationManager
             if (setting != copy) obj.Set(setting);
         }
 
-        private static void DrawVector4(SettingEntryBase obj)
+        public static void DrawVector4(SettingEntryBase obj)
         {
             var setting = (Vector4)obj.Get();
             var copy = setting;
@@ -382,7 +382,7 @@ namespace ConfigurationManager
             if (setting != copy) obj.Set(setting);
         }
 
-        private static void DrawQuaternion(SettingEntryBase obj)
+        public static void DrawQuaternion(SettingEntryBase obj)
         {
             var setting = (Quaternion)obj.Get();
             var copy = setting;
@@ -393,14 +393,14 @@ namespace ConfigurationManager
             if (setting != copy) obj.Set(setting);
         }
 
-        private static float DrawSingleVectorSlider(float setting, string label)
+        public static float DrawSingleVectorSlider(float setting, string label)
         {
             GUILayout.Label(label, BepInExPlugin.labelStyle, GUILayout.ExpandWidth(false));
             float.TryParse(GUILayout.TextField(setting.ToString("F", CultureInfo.InvariantCulture), GUILayout.ExpandWidth(true)), NumberStyles.Any, CultureInfo.InvariantCulture, out var x);
             return x;
         }
 
-        private static void DrawColor(SettingEntryBase obj)
+        public static void DrawColor(SettingEntryBase obj)
         {
             var setting = (Color)obj.Get();
 
@@ -432,7 +432,7 @@ namespace ConfigurationManager
             GUILayout.Label(cacheEntry.Tex, BepInExPlugin.labelStyle, GUILayout.ExpandWidth(false));
         }
 
-        private sealed class ColorCacheEntry
+        public sealed class ColorCacheEntry
         {
             public Color Last;
             public Texture2D Tex;

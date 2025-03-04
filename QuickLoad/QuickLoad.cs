@@ -12,7 +12,7 @@ namespace QuickLoad
     [BepInPlugin("aedenthorn.QuickLoad", "Quick Load", "0.7.0")]
     public class QuickLoad: BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
@@ -26,7 +26,7 @@ namespace QuickLoad
         public static ConfigEntry<int> nexusID;
 
 
-        private void Awake()
+        public void Awake()
         {
             hotKey = Config.Bind<string>("General", "HotKey", "f7", "Hot key code to perform quick load.");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -38,7 +38,7 @@ namespace QuickLoad
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), null);
         }
-        private static bool CheckKeyDown(string value)
+        public static bool CheckKeyDown(string value)
         {
             try
             {
@@ -51,9 +51,9 @@ namespace QuickLoad
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Start")]
-        static class Start_Patch
+        public static class Start_Patch
         {
-            static void Postfix(List<PlayerProfile> ___m_profiles, int ___m_profileIndex)
+            public static void Postfix(List<PlayerProfile> ___m_profiles, int ___m_profileIndex)
             {
                 if (autoLoad.Value)
                 {
@@ -65,9 +65,9 @@ namespace QuickLoad
         }
 
         [HarmonyPatch(typeof(FejdStartup), "Update")]
-        static class Update_Patch
+        public static class Update_Patch
         {
-            static void Postfix(List<PlayerProfile> ___m_profiles, int ___m_profileIndex)
+            public static void Postfix(List<PlayerProfile> ___m_profiles, int ___m_profileIndex)
             {
                 if (CheckKeyDown(hotKey.Value))
                 {
@@ -77,7 +77,7 @@ namespace QuickLoad
                 }
             }
         }
-        private static void DoQuickLoad(string fileName, FileHelpers.FileSource fileSource)
+        public static void DoQuickLoad(string fileName, FileHelpers.FileSource fileSource)
         {
 
             string worldName = PlayerPrefs.GetString("world");

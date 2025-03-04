@@ -17,7 +17,7 @@ namespace RemoveBossTrophy
                 context.Logger.Log(logLevel, str);
         }
 
-        private static RemoveBossTrophy context;
+        public static RemoveBossTrophy context;
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<bool> modEnabled;
         public static ConfigEntry<bool> autoLoad;
@@ -25,7 +25,7 @@ namespace RemoveBossTrophy
         public static ConfigEntry<int> nexusID;
 
 
-        private void Awake()
+        public void Awake()
         {
             context = this;
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
@@ -38,9 +38,9 @@ namespace RemoveBossTrophy
         }
 
         [HarmonyPatch(typeof(ItemStand), nameof(ItemStand.GetHoverText))]
-        static class ItemStand_GetHoverText_Patch
+        public static class ItemStand_GetHoverText_Patch
         {
-            static void Prefix(ItemStand __instance)
+            public static void Prefix(ItemStand __instance)
             {
                 if(!modEnabled.Value || !Player.m_localPlayer)
                     return;

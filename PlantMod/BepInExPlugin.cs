@@ -11,7 +11,7 @@ namespace PlantMod
     [BepInPlugin("aedenthorn.PlantMod", "Plant Mod", "0.4.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        private static readonly bool isDebug = true;
+        public static readonly bool isDebug = true;
 
         public static ConfigEntry<int> nexusID;
         public static ConfigEntry<bool> modEnabled;
@@ -30,14 +30,14 @@ namespace PlantMod
         public static ConfigEntry<float> minScaleMultPlant;
         public static ConfigEntry<float> maxScaleMultPlant;
 
-        private static BepInExPlugin context;
+        public static BepInExPlugin context;
 
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
-        private void Awake()
+        public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
@@ -66,9 +66,9 @@ namespace PlantMod
         }
 
         [HarmonyPatch(typeof(Player), "UpdatePlacementGhost")]
-        static class Player_UpdatePlacementGhost_Patch
+        public static class Player_UpdatePlacementGhost_Patch
         {
-            static void Postfix(Player __instance, ref GameObject ___m_placementGhost, GameObject ___m_placementMarkerInstance)
+            public static void Postfix(Player __instance, ref GameObject ___m_placementGhost, GameObject ___m_placementMarkerInstance)
             {
                 if (___m_placementMarkerInstance != null && ___m_placementGhost?.GetComponent<Plant>() != null)
                 {
@@ -85,7 +85,7 @@ namespace PlantMod
             }
         }
 
-        private static bool HaveGrowSpace(Plant plant)
+        public static bool HaveGrowSpace(Plant plant)
         {
             var spaceMask = LayerMask.GetMask(new string[]
             {
@@ -122,9 +122,9 @@ namespace PlantMod
         }
 
         [HarmonyPatch(typeof(Piece), "Awake")]
-        static class Piece_Awake_Patch
+        public static class Piece_Awake_Patch
         {
-            static void Postfix(ref Piece __instance)
+            public static void Postfix(ref Piece __instance)
             {
                 if (__instance.gameObject.GetComponent<Plant>() != null)
                 {
@@ -140,9 +140,9 @@ namespace PlantMod
         
         
         [HarmonyPatch(typeof(Plant), "GetHoverText")]
-        static class Plant_GetHoverText_Patch
+        public static class Plant_GetHoverText_Patch
         {
-            static void Postfix(ref Plant __instance, ref string __result)
+            public static void Postfix(ref Plant __instance, ref string __result)
             {
                 if (!displayGrowth.Value)
                     return;
@@ -155,9 +155,9 @@ namespace PlantMod
         
         
         [HarmonyPatch(typeof(Plant), "Awake")]
-        static class Plant_Awake_Patch
+        public static class Plant_Awake_Patch
         {
-            static void Postfix(ref Plant __instance)
+            public static void Postfix(ref Plant __instance)
             {
                 if (plantAnywhere.Value)
                 {
@@ -199,9 +199,9 @@ namespace PlantMod
         
           
         [HarmonyPatch(typeof(Plant), "GetGrowTime")]
-        static class Plant_GetGrowTime_Patch
+        public static class Plant_GetGrowTime_Patch
         {
-            static void Postfix(ref Plant __instance, ref float __result)
+            public static void Postfix(ref Plant __instance, ref float __result)
             {
                 if (modEnabled.Value)
                 {
@@ -210,9 +210,9 @@ namespace PlantMod
             }
         }               
         [HarmonyPatch(typeof(Plant), "HaveRoof")]
-        static class Plant_HaveRoof_Patch
+        public static class Plant_HaveRoof_Patch
         {
-            static bool Prefix(ref bool __result)
+            public static bool Prefix(ref bool __result)
             {
                 if (modEnabled.Value && ignoreSun.Value)
                 {
@@ -223,9 +223,9 @@ namespace PlantMod
             }
         }          
         [HarmonyPatch(typeof(Plant), "HaveGrowSpace")]
-        static class Plant_HaveGrowSpace_Patch
+        public static class Plant_HaveGrowSpace_Patch
         {
-            static bool Prefix(Plant __instance, ref bool __result)
+            public static bool Prefix(Plant __instance, ref bool __result)
             {
                 //Dbgl($"checking too close?");
 
@@ -236,7 +236,7 @@ namespace PlantMod
                 }
                 return true;
             }
-            static void Postfix(Plant __instance, ref bool __result)
+            public static void Postfix(Plant __instance, ref bool __result)
             {
                 return;
                 if (!__result)
@@ -265,9 +265,9 @@ namespace PlantMod
                  
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
-        static class InputText_Patch
+        public static class InputText_Patch
         {
-            static bool Prefix(Terminal __instance)
+            public static bool Prefix(Terminal __instance)
             {
                 if (!modEnabled.Value)
                     return true;
