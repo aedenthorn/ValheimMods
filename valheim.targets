@@ -118,6 +118,11 @@
       <HintPath>$(ManagedDataPath)\netstandard.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="SPlatform">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\SPlatform.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
 
   <!-- Add Unity references -->
