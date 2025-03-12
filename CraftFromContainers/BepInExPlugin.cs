@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.7.3")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.7.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static bool wasAllowed;
@@ -806,7 +806,7 @@ namespace CraftFromContainers
         [HarmonyPatch(typeof(Player), "ConsumeResources")]
         public static class ConsumeResources_Patch
         {
-            public static bool Prefix(Player __instance, Piece.Requirement[] requirements, int qualityLevel)
+            public static bool Prefix(Player __instance, Piece.Requirement[] requirements, int qualityLevel, int multiplier)
             {
                 if (!modEnabled.Value || !AllowByKey())
                     return true;
@@ -817,7 +817,7 @@ namespace CraftFromContainers
                 {
                     if (requirement.m_resItem)
                     {
-                        int totalRequirement = requirement.GetAmount(qualityLevel);
+                        int totalRequirement = requirement.GetAmount(qualityLevel) * multiplier;
                         if (totalRequirement <= 0)
                             continue;
 
@@ -1026,7 +1026,7 @@ namespace CraftFromContainers
         [HarmonyPatch(typeof(InventoryGui), "OnCraftPressed")]
         public static class DoCrafting_Patch
         {
-            public static bool Prefix(InventoryGui __instance, KeyValuePair<Recipe, ItemDrop.ItemData> ___m_selectedRecipe, ItemDrop.ItemData ___m_craftUpgradeItem)
+            public static bool Prefix(InventoryGui __instance, KeyValuePair<Recipe, ItemDrop.ItemData> ___m_selectedRecipe, ItemDrop.ItemData ___m_craftUpgradeItem, bool ___m_multiCrafting, int ___m_multiCraftAmount)
             {
                 if (!modEnabled.Value || !AllowByKey() || !CheckKeyHeld(pullItemsKey.Value) || ___m_selectedRecipe.Key == null)
                     return true;
@@ -1037,7 +1037,8 @@ namespace CraftFromContainers
                     return true;
                 }
                 Dbgl($"pulling resources to player inventory for crafting item {___m_selectedRecipe.Key.m_item.m_itemData.m_shared.m_name}");
-                PullResources(Player.m_localPlayer, ___m_selectedRecipe.Key.m_resources, qualityLevel);
+                int multiple = ___m_multiCrafting ? ___m_multiCraftAmount : 1;
+                PullResources(Player.m_localPlayer, ___m_selectedRecipe.Key.m_resources, qualityLevel, multiple);
                 return false;
             }
 
@@ -1066,7 +1067,7 @@ namespace CraftFromContainers
                             if (placementStatus == 0)
                             {
                                 Dbgl($"pulling resources to player inventory for piece {selectedPiece.name}");
-                                PullResources(__instance, selectedPiece.m_resources, 0);
+                                PullResources(__instance, selectedPiece.m_resources, 0, 1);
                             }
                         }
                     }
@@ -1099,12 +1100,12 @@ namespace CraftFromContainers
                         ZLog.LogWarning("Turret '" + __instance.name + "' is trying to fire but has no ammo or default ammo!");
                         return;
                     }
-                    PullResources(user as Player, new Piece.Requirement[] { new Piece.Requirement() { m_amount = 1, m_resItem = prefab.GetComponent<ItemDrop>() } }, prefab.GetComponent<ItemDrop>().m_itemData.m_quality);
+                    PullResources(user as Player, new Piece.Requirement[] { new Piece.Requirement() { m_amount = 1, m_resItem = prefab.GetComponent<ItemDrop>() } }, prefab.GetComponent<ItemDrop>().m_itemData.m_quality, 1);
                 }
             }
         }
 
-        public static void PullResources(Player player, Piece.Requirement[] resources, int qualityLevel)
+        public static void PullResources(Player player, Piece.Requirement[] resources, int qualityLevel, int multiple)
         {
             Inventory pInventory = Player.m_localPlayer.GetInventory();
             List<Container> nearbyContainers = GetNearbyContainers(Player.m_localPlayer.transform.position);
@@ -1112,7 +1113,7 @@ namespace CraftFromContainers
             {
                 if (requirement.m_resItem)
                 {
-                    int totalRequirement = requirement.GetAmount(qualityLevel);
+                    int totalRequirement = requirement.GetAmount(qualityLevel) * multiple;
                     if (totalRequirement <= 0)
                         continue;
 
@@ -1202,7 +1203,7 @@ namespace CraftFromContainers
                     player.Message(MessageHud.MessageType.Center, pulledMessage.Value, 0, null);
             }
         }
-        public static public bool HaveRequiredItemCount(Player player, Piece piece, Player.RequirementMode mode, Inventory inventory, HashSet<string> knownMaterial)
+        public static bool HaveRequiredItemCount(Player player, Piece piece, Player.RequirementMode mode, Inventory inventory, HashSet<string> knownMaterial)
         {
             List<Container> nearbyContainers = GetNearbyContainers(player.transform.position);
 
