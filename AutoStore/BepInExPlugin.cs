@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace AutoStore
 {
-    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.6.0")]
+    [BepInPlugin("aedenthorn.AutoStore", "Auto Store", "0.7.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static readonly bool isDebug = true;

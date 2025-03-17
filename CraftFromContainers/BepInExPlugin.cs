@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.7.4")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.7.5")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static bool wasAllowed;
@@ -627,14 +627,14 @@ namespace CraftFromContainers
         [HarmonyPatch(typeof(InventoryGui), "SetupRequirement")]
         public static class InventoryGui_SetupRequirement_Patch
         {
-            public static void Postfix(InventoryGui __instance, Transform elementRoot, Piece.Requirement req, Player player, bool craft, int quality)
+            public static void Postfix(InventoryGui __instance, Transform elementRoot, Piece.Requirement req, Player player, bool craft, int quality, int craftMultiplier)
             {
                 if (!modEnabled.Value || !AllowByKey())
                     return;
                 if (req.m_resItem != null)
                 {
                     int invAmount = player.GetInventory().CountItems(req.m_resItem.m_itemData.m_shared.m_name);
-                    int amount = req.GetAmount(quality);
+                    int amount = req.GetAmount(quality) * craftMultiplier;
                     if (amount <= 0)
                     {
                         return;
@@ -674,7 +674,7 @@ namespace CraftFromContainers
         [HarmonyPatch(typeof(Player), "HaveRequirementItems")]
         public static class HaveRequirementItems_Patch
         {
-            public static void Postfix(Player __instance, ref bool __result, Recipe piece, bool discover, int qualityLevel, HashSet<string> ___m_knownMaterial)
+            public static void Postfix(Player __instance, ref bool __result, Recipe piece, bool discover, int qualityLevel, HashSet<string> ___m_knownMaterial, int amount)
             { 
                 if (!modEnabled.Value || __result || discover || !AllowByKey())
                     return;
@@ -687,13 +687,13 @@ namespace CraftFromContainers
                 {
                     if (requirement.m_resItem)
                     {
-                        int amount = requirement.GetAmount(qualityLevel);
+                        int num = requirement.GetAmount(qualityLevel) * amount;
                         int invAmount = __instance.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
-                        if(invAmount < amount)
+                        if(invAmount < num)
                         {
                             foreach(Container c in nearbyContainers)
                                 invAmount += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) - leaveMod;
-                            if (invAmount < amount)
+                            if (invAmount < num)
                                 return;
                         }
                     }
