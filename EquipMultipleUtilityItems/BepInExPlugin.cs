@@ -86,31 +86,14 @@ namespace EquipMultipleUtilityItems
                 {
                     return;
                 }
-                for (int i = 0; i < ___m_equipmentModifierValues.Length; i++)
-                {
-                    float num = 0f;
-                    try
-                    {
-                        var list = __instance.GetInventory().GetAllItems().FindAll(item => item.m_equipped && item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && item != ___m_utilityItem);
-
-                        foreach (var item in list)
-                        {
-                            num += (float)___s_equipmentModifierSourceFields[i].GetValue(item.m_shared);
-                        }
-                    }
-                    catch
-                    {
-                        //Dbgl($"Error: {Environment.StackTrace}");
-
-                    }
-
-                    ___m_equipmentModifierValues[i] += num;
-                }
+            }
+            else
+            {
+                Dbgl("AzuExtendedPlayerInventory API is not loaded.", true);
             }
         }
 
-        //[HarmonyPatch(typeof(Player), "ApplyArmorDamageMods")]
-        public static class ApplyArmorDamageMods_Patch
+        private ItemDrop.ItemData? GetUtilityItem(Player player)
         {
             public static void Postfix(Player __instance, ref HitData.DamageModifiers mods, ItemDrop.ItemData ___m_utilityItem)
             {
@@ -126,17 +109,9 @@ namespace EquipMultipleUtilityItems
                         mods.Apply(item.m_shared.m_damageModifiers);
                     }
 
-                }
-                catch
-                {
-                    //Dbgl($"Error: {Environment.StackTrace}");
+#nullable disable
 
-                }
-            }
-        }
-
-        //[HarmonyPatch(typeof(Player), "GetBodyArmor")]
-        public static class GetBodyArmor_Patch
+        private bool IsValidUtilityItem(ItemDrop.ItemData item)
         {
             public static void Postfix(Player __instance, ref float __result)
             {
@@ -181,7 +156,7 @@ namespace EquipMultipleUtilityItems
         [HarmonyPatch(typeof(Player), nameof(Player.GetEquipmentEitrRegenModifier))]
         public static class GetEquipmentEitrRegenModifier_Patch
         {
-            public static void Postfix(Player __instance, ItemDrop.ItemData ___m_utilityItem, ref float __result)
+            public static void Postfix(Player __instance, FieldInfo[] ___s_equipmentModifierSourceFields, float[] ___m_equipmentModifierValues, ItemDrop.ItemData ___m_utilityItem)
             {
                 if (!modEnabled.Value)
                     return;
@@ -217,10 +192,7 @@ namespace EquipMultipleUtilityItems
                     if (items.Exists(i => i.m_shared.m_name == item.m_shared.m_name))
                         return false;
 
-                    if (items.Count >= maxEquippedItems.Value)
-                        return false;
-                }
-                catch
+                if (___s_equipmentModifierSourceFields == null)
                 {
                     Dbgl($"Error: {Environment.StackTrace}");
 
@@ -302,16 +274,10 @@ namespace EquipMultipleUtilityItems
                 }
                 catch
                 {
-                    //Dbgl($"Error: {Environment.StackTrace}");
-                }
-            }
-            public static void Postfix(Humanoid __instance, ItemDrop.ItemData ___m_utilityItem, SEMan ___m_seman)
-            {
-                try
-                {
-                    if (!modEnabled.Value || !__instance.IsPlayer())
-                        return;
-                    var list = __instance.GetInventory().GetAllItems().FindAll(i => i.m_equipped && i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i != ___m_utilityItem && i.m_shared.m_equipStatusEffect);
+                    float num = 0f;
+                    try
+                    {
+                        var list = __instance.GetInventory().GetAllItems().FindAll(item => item.m_equipped && item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && item != ___m_utilityItem);
 
                     foreach (var item in list)
                     {
@@ -382,14 +348,9 @@ namespace EquipMultipleUtilityItems
                     if (!modEnabled.Value || item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Utility)
                         return;
 
-                    __result += string.Format("\n\n$item_armor: <color=orange>{0}</color>", item.GetArmor(qualityLevel, worldLevel));
-                    if (item.m_shared.m_damageModifiers.Count > 0)
-                        __result += SE_Stats.GetDamageModifiersTooltipString(item.m_shared.m_damageModifiers);
-                }
-                catch
-                {
-                    //Dbgl($"Error: {Environment.StackTrace}");
+                    }
 
+                    ___m_equipmentModifierValues[i] += num;
                 }
             }
         }
