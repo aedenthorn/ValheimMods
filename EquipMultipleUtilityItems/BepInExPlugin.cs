@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Debug = UnityEngine.Debug;
+using AzuExtendedPlayerInventory;
 
 namespace EquipMultipleUtilityItems
 {
+    [BepInDependency("Azumatt.AzuExtendedPlayerInventory", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin("aedenthorn.EquipMultipleUtilityItems", "Equip Multiple Utility Items", "0.7.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
@@ -20,12 +22,12 @@ namespace EquipMultipleUtilityItems
 
         public static ConfigEntry<int> maxEquippedItems;
 
-
         public static void Dbgl(string str = "", bool pref = true)
         {
             if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
+
         public void Awake()
         {
             context = this;
@@ -41,15 +43,43 @@ namespace EquipMultipleUtilityItems
 
             harmony = new Harmony(Info.Metadata.GUID);
             harmony.PatchAll();
+
+            if (AzuExtendedPlayerInventory.API.IsLoaded())
+            {
+                Dbgl("AzuExtendedPlayerInventory API is loaded.", true);
+                for (int i = 1; i <= maxEquippedItems.Value; i++)
+                {
+                    AzuExtendedPlayerInventory.API.AddSlot($"Utility{i}", GetUtilityItem, IsValidUtilityItem);
+                }
+            }
+            else
+            {
+                Dbgl("AzuExtendedPlayerInventory API is not loaded.", true);
+            }
         }
 
+#nullable enable
+
+        private ItemDrop.ItemData? GetUtilityItem(Player player)
+        {
+            // Logic to get the utility item for the player
+            return player.GetInventory().GetAllItems().Find(item => item.m_equipped && item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
+        }
+
+#nullable disable
+
+        private bool IsValidUtilityItem(ItemDrop.ItemData item)
+        {
+            // Logic to validate if the item is a utility item
+            return item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility;
+        }
 
         [HarmonyPatch(typeof(Player), "UpdateModifiers")]
         public static class Player_UpdateModifiers_Patch
         {
             public static void Postfix(Player __instance, FieldInfo[] ___s_equipmentModifierSourceFields, float[] ___m_equipmentModifierValues, ItemDrop.ItemData ___m_utilityItem)
             {
-                if (!modEnabled.Value) 
+                if (!modEnabled.Value)
                     return;
 
                 if (___s_equipmentModifierSourceFields == null)
@@ -79,13 +109,12 @@ namespace EquipMultipleUtilityItems
             }
         }
 
-
         //[HarmonyPatch(typeof(Player), "ApplyArmorDamageMods")]
         public static class ApplyArmorDamageMods_Patch
         {
             public static void Postfix(Player __instance, ref HitData.DamageModifiers mods, ItemDrop.ItemData ___m_utilityItem)
             {
-                if (!modEnabled.Value) 
+                if (!modEnabled.Value)
                     return;
 
                 try
@@ -111,7 +140,7 @@ namespace EquipMultipleUtilityItems
         {
             public static void Postfix(Player __instance, ref float __result)
             {
-                if (!modEnabled.Value) 
+                if (!modEnabled.Value)
                     return;
                 try
                 {
@@ -129,14 +158,14 @@ namespace EquipMultipleUtilityItems
 
                 }
             }
-        }                
-        
+        }
+
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.IsItemEquiped))]
         public static class Humanoid_IsItemEquiped_Patch
         {
             public static void Postfix(Humanoid __instance, ItemDrop.ItemData item, ItemDrop.ItemData ___m_utilityItem, ref bool __result)
             {
-                if (!modEnabled.Value || __result) 
+                if (!modEnabled.Value || __result)
                     return;
                 try
                 {
@@ -147,14 +176,14 @@ namespace EquipMultipleUtilityItems
                     //Dbgl($"Error: {Environment.StackTrace}");
                 }
             }
-        }  
-        
+        }
+
         [HarmonyPatch(typeof(Player), nameof(Player.GetEquipmentEitrRegenModifier))]
         public static class GetEquipmentEitrRegenModifier_Patch
         {
             public static void Postfix(Player __instance, ItemDrop.ItemData ___m_utilityItem, ref float __result)
             {
-                if (!modEnabled.Value) 
+                if (!modEnabled.Value)
                     return;
                 try
                 {
@@ -172,15 +201,15 @@ namespace EquipMultipleUtilityItems
 
                 }
             }
-        }                
-        
+        }
+
 
         [HarmonyPatch(typeof(Player), "QueueEquipAction")]
         public static class QueueEquipItem_Patch
         {
             public static bool Prefix(Player __instance, ItemDrop.ItemData item)
             {
-                if (!modEnabled.Value || item == null || __instance.IsEquipActionQueued(item) || item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Utility) 
+                if (!modEnabled.Value || item == null || __instance.IsEquipActionQueued(item) || item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Utility)
                     return true;
                 try
                 {
@@ -199,8 +228,8 @@ namespace EquipMultipleUtilityItems
 
                 return true;
             }
-        }                
-        
+        }
+
         [HarmonyPatch(typeof(Humanoid), "EquipItem")]
         public static class EquipItem_Patch
         {
@@ -210,7 +239,7 @@ namespace EquipMultipleUtilityItems
                 {
 
                     //Dbgl($"trying to equip item {item.m_shared.m_name}");
-                    
+
                     if (!modEnabled.Value || item == null || item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Utility || !__instance.IsPlayer() || !___m_inventory.ContainsItem(item) || __instance.InAttack() || __instance.InDodge() || (__instance.IsPlayer() && !__instance.IsDead() && __instance.IsSwimming() && !__instance.IsOnGround()) || (item.m_shared.m_useDurability && item.m_durability <= 0f) || (item.m_shared.m_dlc.Length > 0 && !DLCMan.instance.IsDLCInstalled(item.m_shared.m_dlc)))
                         return true;
 
@@ -245,8 +274,8 @@ namespace EquipMultipleUtilityItems
                 }
                 return true;
             }
-        }                
-        
+        }
+
 
         [HarmonyPatch(typeof(Humanoid), "UpdateEquipmentStatusEffects")]
         public static class UpdateEquipmentStatusEffects_Patch
@@ -295,8 +324,8 @@ namespace EquipMultipleUtilityItems
                     //Dbgl($"Error: {Environment.StackTrace}");
                 }
             }
-        }                
-        
+        }
+
         [HarmonyPatch(typeof(Humanoid), "UnequipAllItems")]
         public static class UnequipAllItems_Patch
         {
@@ -318,8 +347,8 @@ namespace EquipMultipleUtilityItems
                 }
             }
         }
-                    
-                    
+
+
         [HarmonyPatch(typeof(Player), nameof(Player.UnequipDeathDropItems))]
         public static class UnequipDeathDropItems_PatchUnequipItem
         {
@@ -341,7 +370,7 @@ namespace EquipMultipleUtilityItems
                 }
             }
         }
-                    
+
 
         [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int) })]
         public static class GetTooltip_Patch
@@ -364,7 +393,6 @@ namespace EquipMultipleUtilityItems
                 }
             }
         }
-
 
         [HarmonyPatch(typeof(Terminal), "InputText")]
         public static class InputText_Patch
