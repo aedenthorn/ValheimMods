@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Target Name="CopyDependencies" BeforeTargets="ILRepacker">
+        <Message Text="Copying AzuExtendedPlayerInventoryAPI.dll to $(OutputPath)net480" Importance="High" />
+        <Copy SourceFiles="C:\Users\bpodo\AppData\Roaming\com.kesomannen.gale\cache\Azumatt-AzuExtendedPlayerInventory\1.4.9\BepInEx\plugins\Azumatt-AzuExtendedPlayerInventory\AzuExtendedPlayerInventoryAPI.dll" DestinationFolder="$(OutputPath)net480" />
+    </Target>
+
+    <Target Name="ILRepacker" AfterTargets="Build">
+        <Message Text="TargetPath: $(TargetPath)" Importance="High" />
+        <Message Text="OutputPath: $(OutputPath)" Importance="High" />
+        <ItemGroup>
+            <InputAssemblies Include="$(TargetPath)"/>
+            <InputAssemblies Include="C:\Users\bpodo\Source\repos\aedenthorn.ValheimMods\EquipMultipleUtilityItems\bin\Release\net480\AzuExtendedPlayerInventoryAPI.dll"/>
+        </ItemGroup>
+        <ILRepack Parallel="true" DebugInfo="true" Internalize="true" InputAssemblies="@(InputAssemblies)" OutputFile="$(TargetPath)" TargetKind="SameAsPrimaryAssembly" LibraryPath="$(OutputPath)"/>
+    </Target>
+
+    <Target Name="LogBuildOutput" AfterTargets="ILRepacker">
+        <Exec Command="msbuild /verbosity:detailed /fileLogger /fileLoggerParameters:LogFile=build.log;Append" />
+    </Target>
+</Project>

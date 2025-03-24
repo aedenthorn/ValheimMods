@@ -117,9 +117,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlayerInventory", "PlayerIn
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{490F0E66-9372-49F1-8E48-91034AE7DE18}"
 	ProjectSection(SolutionItems) = preProject
+		ILRepack.targets = ILRepack.targets
 		LICENSE.txt = LICENSE.txt
 		Mods.html = Mods.html
-		valheim_private.targets = valheim_private.targets
+		valheim.targets = valheim.targets
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConfigurationManager", "ConfigurationManager\ConfigurationManager.csproj", "{104215E5-C277-4D43-A52C-B31467312299}"
