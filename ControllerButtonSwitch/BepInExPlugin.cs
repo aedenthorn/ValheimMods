@@ -3,11 +3,12 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace ControllerButtonSwitch
 {
-    [BepInPlugin("aedenthorn.ControllerButtonSwitch", "Controller Button Switch", "0.4.0")]
+    [BepInPlugin("aedenthorn.ControllerButtonSwitch", "Controller Button Switch", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -232,7 +233,8 @@ namespace ControllerButtonSwitch
             }
 
             ZInput zInput = ZInput.instance;
-            Dictionary<string, ZInput.ButtonDef> m_buttons = Traverse.Create(zInput).Field("m_buttons").GetValue<Dictionary<string, ZInput.ButtonDef>>();
+            Dictionary<string, ZInput.ButtonDef> m_buttons = AccessTools.FieldRefAccess<ZInput, Dictionary<string, ZInput.ButtonDef>>(zInput, "m_buttons");
+            MethodInfo AddButton = AccessTools.Method(typeof(ZInput), "AddButton");
 
 
             using (var enumerator = context.Config.GetEnumerator())
@@ -248,12 +250,10 @@ namespace ControllerButtonSwitch
                         {
                             m_buttons.Remove(info.button);
                         }
-                        if (Enum.TryParse(info.key, out KeyCode keyCode))
-                            zInput.AddButton(info.button, keyCode, info.repeatDelay, info.repeatInterval);
-                        else
-                            zInput.AddButton(info.button, info.key, info.inverted, info.repeatDelay, info.repeatInterval);
+                        AddButton.Invoke(zInput, new object[] { info.button, info.key, info.inverted, true, false, info.repeatDelay, info.repeatInterval });
+
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Dbgl($"Error setting button {enumerator.Current.Key.Key}: {ex}");
                     }

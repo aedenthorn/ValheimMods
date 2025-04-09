@@ -1,6 +1,6 @@
 ﻿namespace CustomWeaponStats
 {
-    internal class WeaponData
+    public class WeaponData
     {
         public string name;
         public bool useDurability;
@@ -13,6 +13,8 @@
         public float holdStaminaDrain;
         public int toolTier;
         public string ammoType;
+        public string attackStatusEffect;
+        public string equipStatusEffect;
         public string statusEffect;
         
         public float backStabBonus;

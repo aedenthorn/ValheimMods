@@ -9,11 +9,11 @@ namespace CustomUI
     [BepInPlugin("aedenthorn.CustomUI", "Custom UI", "0.8.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        public static readonly bool isDebug = true;
         public static BepInExPlugin context;
         public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> isDebug;
 
         public static ConfigEntry<float> toolbarX;
         public static ConfigEntry<float> toolbarY;
@@ -57,7 +57,7 @@ namespace CustomUI
 
         public static void Dbgl(string str = "", bool pref = true)
         {
-            if (isDebug)
+            if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
         public void Awake()
@@ -65,6 +65,7 @@ namespace CustomUI
             context = this;
             nexusID = Config.Bind<int>("General", "NexusID", 625, "Nexus mod ID for updates");
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug log");
             modKeyOne = Config.Bind<string>("General", "ModKeyOne", "mouse 0", "First modifier key. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html format.");
             modKeyTwo = Config.Bind<string>("General", "ModKeyTwo", "left ctrl", "Second modifier key. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html format.");
             toolbarItemsPerRow = Config.Bind<int>("General", "ToolbarItemsPerRow", 8, "Number of items per row in the toolbar");
@@ -342,7 +343,9 @@ namespace CustomUI
                     else
                     {
                         //Dbgl($"mouse {mousePos}, hotkey rect {hotkeyRect}, health rect {healthRect}, guardian rect {guardianRect}, map rect {mapRect}, chat rect {chatRect}");
-                        Dbgl($"mouse {mousePos} build rect {buildRect} game scale {gameScale}");
+                        var bt = Hud.instance.m_pieceSelectionWindow.GetComponent<RectTransform>().anchoredPosition;
+                        var br = Hud.instance.m_pieceSelectionWindow.GetComponent<RectTransform>().rect;
+                        Dbgl($"mouse {mousePos} build rect {buildRect} game scale {gameScale} build anchor y {Screen.height / 2 + bt.y * gameScale}, build rect y  {Screen.height / 2 + br.y * gameScale}, build height {br.height * gameScale}");
                         currentlyDragging = "";
                     }
                 }

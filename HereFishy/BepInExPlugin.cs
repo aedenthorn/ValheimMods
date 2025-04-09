@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 
 namespace HereFishy
 {
-    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.6.0")]
+    [BepInPlugin("aedenthorn.HereFishy", "Here Fishy", "0.6.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -78,8 +78,11 @@ namespace HereFishy
                 ((ZSyncAnimation)typeof(Player).GetField("m_zanim", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Player.m_localPlayer)).SetTrigger("gpower");
                 if (playHereFishy.Value)
                 {
-                    Destroy(Player.m_localPlayer.gameObject.GetComponent<AudioSource>());
-                    AudioSource playerAudio = Player.m_localPlayer.gameObject.AddComponent<AudioSource>();
+                    AudioSource playerAudio = Player.m_localPlayer.gameObject.GetComponent<AudioSource>();
+                    if(playerAudio == null)
+                    {
+                        playerAudio = Player.m_localPlayer.gameObject.AddComponent<AudioSource>();
+                    }
                     playerAudio.volume = Mathf.Clamp(hereFishyVolume.Value, 0.1f, 1f);
                     playerAudio.clip = fishyClip;
                     playerAudio.loop = false;

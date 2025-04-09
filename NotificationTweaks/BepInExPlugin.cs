@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace NotificationTweaks
 {
-    [BepInPlugin("aedenthorn.NotificationTweaks", "Notification Tweaks", "0.5.0")]
+    [BepInPlugin("aedenthorn.NotificationTweaks", "Notification Tweaks", "0.6.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;

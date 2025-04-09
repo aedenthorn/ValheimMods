@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomWeaponStats
 {
-    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.7.0")]
+    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.8.1")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -281,9 +281,12 @@ namespace CustomWeaponStats
             if(item.m_shared.m_secondaryAttack != null)
                 item.m_shared.m_secondaryAttack.m_hitTerrain = weapon.hitTerrainSecondary;
 
-            item.m_shared.m_attackStatusEffect = ObjectDB.instance.GetStatusEffect((string.IsNullOrEmpty(weapon.statusEffect) ? 0 : weapon.statusEffect.GetStableHashCode()));
-
-
+            if(!string.IsNullOrEmpty(weapon.equipStatusEffect))
+                item.m_shared.m_equipStatusEffect = ObjectDB.instance.GetStatusEffect(weapon.equipStatusEffect.GetStableHashCode());
+            if(!string.IsNullOrEmpty(weapon.attackStatusEffect))
+                item.m_shared.m_attackStatusEffect = ObjectDB.instance.GetStatusEffect(weapon.attackStatusEffect.GetStableHashCode());
+            else if(!string.IsNullOrEmpty(weapon.statusEffect))
+                item.m_shared.m_attackStatusEffect = ObjectDB.instance.GetStatusEffect(weapon.statusEffect.GetStableHashCode());
 
             //Dbgl($"Set weapon data for {weapon.name}");
         }

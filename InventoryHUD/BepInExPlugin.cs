@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace InventoryHUD
 {
-    [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.4.1")]
+    [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -251,7 +251,7 @@ namespace InventoryHUD
                 float totalWeight = Player.m_localPlayer.GetMaxCarryWeight();
                 if (fullObject != null)
                 {
-                    float hudScale = GameObject.Find("LoadingGUI").GetComponent<CanvasScaler>().scaleFactor;
+                    float hudScale = Hud.instance.GetComponent<CanvasScaler>().scaleFactor;
 
                     float maskOffset = (1 - weight / totalWeight ) * weightTexture.height * weightScale.Value * hudScale;
 
