@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace ConfigurationManager
 {
-    internal class LegacySettingEntry : SettingEntryBase
+    public class LegacySettingEntry : SettingEntryBase
     {
         public Type _settingType;
 
@@ -19,11 +19,11 @@ namespace ConfigurationManager
         public override string DispName
         {
             get => string.IsNullOrEmpty(base.DispName) ? Property.Name : base.DispName;
-            protected internal set => base.DispName = value;
+            protected public set => base.DispName = value;
         }
 
-        public object Instance { get; internal set; }
-        public PropertyInfo Property { get; internal set; }
+        public object Instance { get; public set; }
+        public PropertyInfo Property { get; public set; }
 
         public override Type SettingType => _settingType ?? (_settingType = Property.PropertyType);
 
@@ -35,7 +35,7 @@ namespace ConfigurationManager
         /// Instance of the object that holds this setting. 
         /// Null if setting is not in a ConfigWrapper.
         /// </summary>
-        public object Wrapper { get; internal set; }
+        public object Wrapper { get; public set; }
 
         public static LegacySettingEntry FromConfigWrapper(object instance, PropertyInfo settingProp,
             BepInPlugin pluginInfo, BaseUnityPlugin pluginInstance)

@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace ConfigurationManager.Utilities
 {
-    internal class ComboBox
+    public class ComboBox
     {
         public static bool forceToUnShow;
         public static int useControlID = -1;

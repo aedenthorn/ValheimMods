@@ -14,7 +14,7 @@ namespace ConfigurationManager
         const string OpenLogString = "Show Player.log";
         public static GameObject OpenMenuButton { get; set; }
 
-        internal static void ApplyPatches()
+        public static void ApplyPatches()
         {
             Harmony harmony = new Harmony(BepInExPlugin.GUID);
 
@@ -32,7 +32,7 @@ namespace ConfigurationManager
             BepInExPlugin._showMenuButton.SettingChanged += (s,e) => SetupMenuButton();
         }
 
-        internal static void SetupMenuButton()
+        public static void SetupMenuButton()
         {
             if (OpenMenuButton == null && FejdStartup.instance?.m_mainMenu.GetComponentsInChildren<TMP_Text>().FirstOrDefault(t => t.text == OpenLogString || t.text == Localization.instance.Localize(OpenLogString)) is Text openLogButton)
             {

@@ -11,7 +11,7 @@ using System.Reflection;
 
 namespace ConfigurationManager
 {
-    internal static class SettingSearcher
+    public static class SettingSearcher
     {
         public static readonly ICollection<string> _updateMethodNames = new[]
         {

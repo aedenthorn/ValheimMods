@@ -2,7 +2,7 @@
 
 namespace CustomMeshes
 {
-    internal class CustomMeshData
+    public class CustomMeshData
     {
         public string objName;
         public string meshName;

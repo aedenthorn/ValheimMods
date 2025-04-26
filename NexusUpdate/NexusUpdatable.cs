@@ -2,7 +2,7 @@
 
 namespace NexusUpdate
 {
-    internal class NexusUpdatable
+    public class NexusUpdatable
     {
         public string name;
         public int id;

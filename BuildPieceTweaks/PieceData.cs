@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace BuildPieceTweaks
 {
-    internal class PieceData
+    public class PieceData
     {
         public string name;
 

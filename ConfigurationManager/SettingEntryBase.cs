@@ -64,17 +64,17 @@ namespace ConfigurationManager
         /// <summary>
         /// Optional description shown when hovering over the setting
         /// </summary>
-        public string Description { get; protected internal set; }
+        public string Description { get; protected public set; }
 
         /// <summary>
         /// Name of the setting
         /// </summary>
-        public virtual string DispName { get; protected internal set; }
+        public virtual string DispName { get; protected public set; }
 
         /// <summary>
         /// Plugin this setting belongs to
         /// </summary>
-        public BepInPlugin PluginInfo { get; protected internal set; }
+        public BepInPlugin PluginInfo { get; protected public set; }
 
         /// <summary>
         /// Only allow showing of the value. False whenever possible by default.
@@ -94,7 +94,7 @@ namespace ConfigurationManager
         /// <summary>
         /// Is this setting advanced
         /// </summary>
-        public bool? IsAdvanced { get; internal set; }
+        public bool? IsAdvanced { get; public set; }
 
         /// <summary>
         /// Order of the setting on the settings list relative to other settings in a category. 0 by default, lower is higher on the list.
@@ -123,16 +123,16 @@ namespace ConfigurationManager
         /// <summary>
         /// Custom converter from setting type to string for the textbox
         /// </summary>
-        public Func<object, string> ObjToStr { get; internal set; }
+        public Func<object, string> ObjToStr { get; public set; }
 
         /// <summary>
         /// Custom converter from string to setting type for the textbox
         /// </summary>
-        public Func<string, object> StrToObj { get; internal set; }
+        public Func<string, object> StrToObj { get; public set; }
 
         public static readonly PropertyInfo[] _myProperties = typeof(SettingEntryBase).GetProperties(BindingFlags.Instance | BindingFlags.Public);
 
-        internal void SetFromAttributes(object[] attribs, BaseUnityPlugin pluginInstance)
+        public void SetFromAttributes(object[] attribs, BaseUnityPlugin pluginInstance)
         {
             PluginInstance = pluginInstance;
             PluginInfo = pluginInstance?.Info.Metadata;

@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace ConfigurationManager
 {
-    internal class SettingFieldDrawer
+    public class SettingFieldDrawer
     {
         public static readonly IEnumerable<KeyCode> _keysToCheck = BepInEx.Configuration.KeyboardShortcut.AllKeyCodes.Except(new[] { KeyCode.Mouse0, KeyCode.None }).ToArray();
 

@@ -2,7 +2,7 @@
 
 namespace RepairSpecificItems
 {
-    internal class RepairItemData : ItemDrop.ItemData
+    public class RepairItemData : ItemDrop.ItemData
     {
         public List<string> reqstring;
         public ItemDrop.ItemData item;

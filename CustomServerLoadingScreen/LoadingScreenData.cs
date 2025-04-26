@@ -1,6 +1,6 @@
 ﻿namespace CustomServerLoadingScreen
 {
-    internal class LoadingScreenData
+    public class LoadingScreenData
     {
         public string screen = "";
         public string tip = "";

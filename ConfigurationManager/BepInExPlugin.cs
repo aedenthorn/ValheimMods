@@ -31,8 +31,8 @@ namespace ConfigurationManager
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
 
-        internal static BepInExPlugin context;
-        internal static new ManualLogSource Logger;
+        public static BepInExPlugin context;
+        public static new ManualLogSource Logger;
         public static SettingFieldDrawer _fieldDrawer;
 
         public const int WindowId = -68;
@@ -59,7 +59,7 @@ namespace ConfigurationManager
         public List<SettingEntryBase> _allSettings;
         public List<PluginSettingsData> _filteredSetings = new List<PluginSettingsData>();
 
-        internal Rect DefaultWindowRect { get; public set; }
+        public Rect DefaultWindowRect { get; public set; }
         public Rect _screenRect;
         public Rect currentWindowRect;
         public Vector2 _settingWindowScrollPos;
@@ -71,12 +71,12 @@ namespace ConfigurationManager
         public int _previousCursorLockState;
         public bool _previousCursorVisible;
 
-        internal static Texture2D WindowBackground { get; public set; }
-        internal static Texture2D EntryBackground { get; public set; }
-        internal static Texture2D WidgetBackground { get; public set; }
+        public static Texture2D WindowBackground { get; public set; }
+        public static Texture2D EntryBackground { get; public set; }
+        public static Texture2D WidgetBackground { get; public set; }
 
-        internal int LeftColumnWidth { get; public set; }
-        internal int RightColumnWidth { get; public set; }
+        public int LeftColumnWidth { get; public set; }
+        public int RightColumnWidth { get; public set; }
 
         public static ConfigEntry<bool> _showAdvanced;
         public static ConfigEntry<bool> _showKeybinds;

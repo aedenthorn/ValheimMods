@@ -2,7 +2,7 @@
 
 namespace RecipeCustomization
 {
-    internal class RecipeData
+    public class RecipeData
     {
         public string name;
         public int originalAmount;

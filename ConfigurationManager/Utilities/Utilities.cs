@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 
 namespace ConfigurationManager.Utilities
 {
-    internal static class Utils
+    public static class Utils
     {
         public static string ToProperCase(this string str)
         {

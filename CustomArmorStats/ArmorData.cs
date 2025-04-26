@@ -2,7 +2,7 @@
 
 namespace CustomArmorStats
 {
-    internal class ArmorData
+    public class ArmorData
     {
         public string name;
 

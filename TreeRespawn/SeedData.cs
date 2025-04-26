@@ -2,7 +2,7 @@
 
 namespace TreeRespawn
 {
-    internal class SeedData
+    public class SeedData
     {
         public List<string> seeds = new List<string>();
     }

@@ -11,7 +11,7 @@ using BepInEx.Configuration;
 
 namespace ConfigurationManager
 {
-    internal sealed class ConfigSettingEntry : SettingEntryBase
+    public sealed class ConfigSettingEntry : SettingEntryBase
     {
         public ConfigEntryBase Entry { get; }
 
