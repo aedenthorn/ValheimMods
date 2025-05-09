@@ -5,6 +5,7 @@ using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -13,7 +14,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.7.5")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.8.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static bool wasAllowed;
@@ -34,6 +35,7 @@ namespace CraftFromContainers
         public static ConfigEntry<string> fuelDisallowTypes;
         public static ConfigEntry<string> oreDisallowTypes;
         public static ConfigEntry<bool> leaveOne;
+        public static ConfigEntry<bool> pullByDistance;
 
         public static ConfigEntry<string> pullItemsKey;
         public static ConfigEntry<string> preventModKey;
@@ -91,7 +93,8 @@ namespace CraftFromContainers
             pulledMessage = Config.Bind<string>("General", "PulledMessage", "Pulled items to inventory", "Message to show after pulling items to player inventory");
             fuelDisallowTypes = Config.Bind<string>("General", "FuelDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as fuel (i.e. anything that is consumed), comma-separated.");
             oreDisallowTypes = Config.Bind<string>("General", "OreDisallowTypes", "RoundLog,FineWood", "Types of item to disallow as ore (i.e. anything that is transformed), comma-separated).");
-            leaveOne = Config.Bind<bool>("General", "LeaveOne", false, "if true, always leave the last of an item in A container.");
+            leaveOne = Config.Bind<bool>("General", "LeaveOne", false, "Always leave the last of an item in a container.");
+            pullByDistance = Config.Bind<bool>("General", "PullByDistance", false, "When pulling, pull from closest containers first.");
 
             showGhostConnections = Config.Bind<bool>("Station Connections", "ShowConnections", false, "If true, will display connections to nearby workstations within range when building containers");
             ghostConnectionStartOffset = Config.Bind<float>("Station Connections", "ConnectionStartOffset", 1.25f, "Height offset for the connection VFX start position");
@@ -176,6 +179,15 @@ namespace CraftFromContainers
             }
             Dbgl($"Got {containers.Count} containers.");
             lastPosition = center;
+
+            if (pullByDistance.Value)
+            {
+                containers.Sort(delegate (Container a, Container b)
+                {
+                    return Vector3.Distance(center, a.transform.position).CompareTo(Vector3.Distance(center, b.transform.position)); 
+                });
+            }
+
             cachedContainerList = containers;
             return containers;
         }

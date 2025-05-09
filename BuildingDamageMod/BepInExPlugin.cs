@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BuildingDamageMod
 {
-    [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.5.2")]
+    [BepInPlugin("aedenthorn.BuildingDamageMod", "Building Damage Mod", "0.5.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
