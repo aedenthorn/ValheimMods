@@ -633,8 +633,14 @@ namespace ExtendedPlayerInventory
                 if (!modEnabled.Value || !addEquipmentRow.Value || Player.m_localPlayer == null)
                     return;
 
-                float gameScale = __instance.GetComponent<CanvasScaler>().scaleFactor;
+                if (__instance == null)
+                    return;
 
+                CanvasScaler canvasScaler = __instance.GetComponent<CanvasScaler>();
+                if (canvasScaler == null)
+                    return;
+
+                float gameScale = canvasScaler.scaleFactor;
                 Vector3 mousePos = Input.mousePosition;
 
                 if (!modEnabled.Value)
@@ -648,25 +654,30 @@ namespace ExtendedPlayerInventory
                 if (lastMousePos == Vector3.zero)
                     lastMousePos = mousePos;
 
+                if (Hud.instance == null)
+                    return;
 
                 Transform hudRoot = Hud.instance.transform.Find("hudroot");
-
+                if (hudRoot == null)
+                    return;
 
                 if (AedenthornUtils.CheckKeyHeld(modKeyOne.Value) && AedenthornUtils.CheckKeyHeld(modKeyTwo.Value))
                 {
+                    Transform quickAccessBar = hudRoot.Find("QuickAccessBar");
+                    if (quickAccessBar == null)
+                        return;
 
-                   
-                    Rect quickSlotsRect = Rect.zero;
-                    if (hudRoot.Find("QuickAccessBar")?.GetComponent<RectTransform>() != null)
-                    {
-                        quickSlotsRect = new Rect(
-                            hudRoot.Find("QuickAccessBar").GetComponent<RectTransform>().anchoredPosition.x * gameScale,
-                            hudRoot.Find("QuickAccessBar").GetComponent<RectTransform>().anchoredPosition.y * gameScale + Screen.height - hudRoot.Find("QuickAccessBar").GetComponent<RectTransform>().sizeDelta.y * gameScale * quickAccessScale.Value,
-                            hudRoot.Find("QuickAccessBar").GetComponent<RectTransform>().sizeDelta.x * gameScale * quickAccessScale.Value * (3 / 8f),
-                            hudRoot.Find("QuickAccessBar").GetComponent<RectTransform>().sizeDelta.y * gameScale * quickAccessScale.Value
-                        );
-                    }
-                    
+                    RectTransform quickAccessRectTransform = quickAccessBar.GetComponent<RectTransform>();
+                    if (quickAccessRectTransform == null)
+                        return;
+
+                    Rect quickSlotsRect = new Rect(
+                        quickAccessRectTransform.anchoredPosition.x * gameScale,
+                        quickAccessRectTransform.anchoredPosition.y * gameScale + Screen.height - quickAccessRectTransform.sizeDelta.y * gameScale * quickAccessScale.Value,
+                        quickAccessRectTransform.sizeDelta.x * gameScale * quickAccessScale.Value * (3 / 8f),
+                        quickAccessRectTransform.sizeDelta.y * gameScale * quickAccessScale.Value
+                    );
+
                     if (quickSlotsRect.Contains(lastMousePos) && (currentlyDragging == "" || currentlyDragging == "QuickAccessBar"))
                     {
                         quickAccessX.Value += (mousePos.x - lastMousePos.x) / gameScale;
@@ -679,7 +690,9 @@ namespace ExtendedPlayerInventory
                     }
                 }
                 else
+                {
                     currentlyDragging = "";
+                }
 
                 lastMousePos = mousePos;
             }
