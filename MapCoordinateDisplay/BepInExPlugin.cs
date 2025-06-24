@@ -6,7 +6,7 @@ using Debug = UnityEngine.Debug;
 
 namespace MapCoordinateDisplay
 {
-    [BepInPlugin("aedenthorn.MapCoordinateDisplay", "Map Coordinate Display", "0.4.0")]
+    [BepInPlugin("aedenthorn.MapCoordinateDisplay", "Map Coordinate Display", "0.4.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;

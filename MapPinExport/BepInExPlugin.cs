@@ -11,7 +11,7 @@ using UnityEngine.UI;
 
 namespace MapPinExport
 {
-    [BepInPlugin("aedenthorn.MapPinExport", "Map Pin Export", "0.3.1")]
+    [BepInPlugin("aedenthorn.MapPinExport", "Map Pin Export", "0.3.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static ConfigEntry<bool> isDebug;

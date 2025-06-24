@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.8.0")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.8.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static bool wasAllowed;
@@ -308,7 +308,10 @@ namespace CraftFromContainers
 
                             int amount = pullAll ? (int)Mathf.Min(__instance.m_maxFuel - Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)), item.m_stack) : 1;
 
-                            amount -= leaveOne.Value ? 1 : 0;
+                            if(amount > 0)
+                                amount -= leaveOne.Value ? 1 : 0;
+                            if (amount == 0)
+                                continue;
 
                             Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking {amount}");
 
@@ -512,7 +515,10 @@ namespace CraftFromContainers
                             }
                             int amount = pullAll ? (int)Mathf.Min(__instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>(), c.GetInventory().CountItems(name)) : 1;
 
-                            amount -= leaveOne.Value ? 1 : 0;
+                            if (amount > 0)
+                                amount -= leaveOne.Value ? 1 : 0;
+                            if (amount == 0)
+                                continue;
 
                             if (!added.ContainsKey(name))
                                 added[name] = 0;
@@ -603,7 +609,10 @@ namespace CraftFromContainers
                         }
                         int amount = pullAll ? (int)Mathf.Min(__instance.m_maxFuel - ((float)typeof(Smelter).GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })), newItem.m_stack) : 1;
 
-                        amount -= leaveOne.Value ? 1 : 0;
+                        if (amount > 0)
+                            amount -= leaveOne.Value ? 1 : 0;
+                        if (amount == 0)
+                            continue;
 
                         Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name}, taking {amount}");
 
@@ -704,7 +713,12 @@ namespace CraftFromContainers
                         if(invAmount < num)
                         {
                             foreach(Container c in nearbyContainers)
-                                invAmount += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) - leaveMod;
+                            {
+                                invAmount += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
+                                if (invAmount > 0)
+                                    amount -= leaveMod;
+
+                            }
                             if (invAmount < num)
                                 return;
                         }
@@ -798,7 +812,10 @@ namespace CraftFromContainers
                             {
                                 try
                                 {
-                                    hasItems += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) - leaveMod;
+                                    hasItems += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
+                                    if (hasItems > 0)
+                                        hasItems -= leaveMod;
+
                                     if (hasItems >= requirement.m_amount)
                                     {
                                         break;
@@ -850,9 +867,10 @@ namespace CraftFromContainers
 
                                 Dbgl($"Container at {c.transform.position} has {cInventory.CountItems(reqName)}");
 
-                                thisAmount -= leaveOne.Value ? 1 : 0;
+                                if(thisAmount > 0)
+                                    thisAmount -= leaveOne.Value ? 1 : 0;
 
-                                if (thisAmount == 0)
+                                if (thisAmount <= 0)
                                     continue;
 
 
