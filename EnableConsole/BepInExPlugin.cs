@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace EnableConsole
 {
-    [BepInPlugin("aedenthorn.EnableConsole", "Enable Console", "0.2.0")]
+    [BepInPlugin("aedenthorn.EnableConsole", "Enable Console", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;

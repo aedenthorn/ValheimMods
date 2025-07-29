@@ -5,7 +5,6 @@ using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -14,7 +13,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.8.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.8.3")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static bool wasAllowed;
@@ -27,7 +26,7 @@ namespace CraftFromContainers
         public static ConfigEntry<float> ghostConnectionRemovalDelay;
 
         //public static ConfigEntry<bool> ignoreRangeInBuildArea;
-        public static ConfigEntry<float> m_range;
+        public static ConfigEntry<float> maxRange;
         public static ConfigEntry<Color> flashColor;
         public static ConfigEntry<Color> unFlashColor;
         public static ConfigEntry<string> resourceString;
@@ -85,7 +84,7 @@ namespace CraftFromContainers
             isDebug = Config.Bind<bool>("General", "IsDebug", true, "Show debug messages in log");
             nexusID = Config.Bind<int>("General", "NexusID", 40, "Nexus mod ID for updates");
 
-            m_range = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from");
+            maxRange = Config.Bind<float>("General", "ContainerRange", 10f, "The maximum range from which to pull items from");
             //ignoreRangeInBuildArea = Config.Bind<bool>("General", "IgnoreRangeInBuildArea", true, "Ignore range for building pieces when in build area.");
             resourceString = Config.Bind<string>("General", "ResourceCostString", "{0}/{1}", "String used to show required and available resources. {0} is replaced by how much is available, and {1} is replaced by how much is required. Set to nothing to leave it as default.");
             flashColor = Config.Bind<Color>("General", "FlashColor", Color.yellow, "Resource amounts will flash to this colour when coming from containers");
@@ -162,7 +161,7 @@ namespace CraftFromContainers
             foreach (Container container in containerList)
             {
                 if (container != null && container.transform != null
-                    && (m_range.Value <= 0 || Vector3.Distance(center, container.transform.position) < m_range.Value)
+                    && (maxRange.Value <= 0 || Vector3.Distance(center, container.transform.position) < maxRange.Value)
                     && AllowContainerType(container)
                     && (bool)checkAccess.Invoke(container, new object[] { Player.m_localPlayer.GetPlayerID() }) 
                     && !container.IsInUse()
@@ -714,10 +713,7 @@ namespace CraftFromContainers
                         {
                             foreach(Container c in nearbyContainers)
                             {
-                                invAmount += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
-                                if (invAmount > 0)
-                                    amount -= leaveMod;
-
+                                invAmount += Math.Max(0, c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) - leaveMod);
                             }
                             if (invAmount < num)
                                 return;
@@ -812,9 +808,7 @@ namespace CraftFromContainers
                             {
                                 try
                                 {
-                                    hasItems += c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
-                                    if (hasItems > 0)
-                                        hasItems -= leaveMod;
+                                    hasItems += Math.Max(0, c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) - leaveMod);
 
                                     if (hasItems >= requirement.m_amount)
                                     {
@@ -866,13 +860,6 @@ namespace CraftFromContainers
                                 int thisAmount = Mathf.Min(cInventory.CountItems(reqName), totalRequirement - totalAmount);
 
                                 Dbgl($"Container at {c.transform.position} has {cInventory.CountItems(reqName)}");
-
-                                if(thisAmount > 0)
-                                    thisAmount -= leaveOne.Value ? 1 : 0;
-
-                                if (thisAmount <= 0)
-                                    continue;
-
 
                                 for (int i = 0; i < cInventory.GetAllItems().Count; i++)
                                 {
@@ -978,7 +965,7 @@ namespace CraftFromContainers
                         int connectionIndex = ConnectionExists(station);
                         bool connectionAlreadyExists = connectionIndex != -1;
 
-                        if (Vector3.Distance(station.transform.position, placementGhost.transform.position) < m_range.Value)
+                        if (Vector3.Distance(station.transform.position, placementGhost.transform.position) < maxRange.Value)
                         {
                             bAddedConnections = true;
 

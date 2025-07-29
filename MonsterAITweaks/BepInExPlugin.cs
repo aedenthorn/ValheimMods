@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 
 namespace MonsterAITweaks
 {
-    [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.5.0")]
+    [BepInPlugin("aedenthorn.MonsterAITweaks", "Monster AI Tweaks", "0.6.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static readonly bool isDebug = true;

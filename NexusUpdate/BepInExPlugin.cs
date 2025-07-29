@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace NexusUpdate
 {
-    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "1.3.0")]
+    [BepInPlugin("aedenthorn.NexusUpdate", "Nexus Update", "1.4.0")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -429,14 +429,14 @@ namespace NexusUpdate
                 if (!modEnabled.Value)
                     return true;
                 string text = __instance.m_input.text;
-                if (text.ToLower().Equals("nexusupdate reset"))
+                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
                 {
                     context.Config.Reload();
                     context.Config.Save();
                     ApplyConfig();
 
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { "Nexus Update Check config reloaded" }).GetValue();
+                    __instance.AddString(text);
+                    __instance.AddString($"{context.Info.Metadata.Name} config reloaded");
                     return false;
                 }
                 return true;
