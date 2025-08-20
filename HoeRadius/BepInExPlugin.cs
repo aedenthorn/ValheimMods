@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HoeRadius
 {
-    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.4.0")]
+    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.4.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -184,8 +184,8 @@ namespace HoeRadius
                 {
                     context.Config.Reload();
                     context.Config.Save();
-                    Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();
-                    Traverse.Create(__instance).Method("AddString", new object[] { $"{context.Info.Metadata.Name} config reloaded" }).GetValue();
+                    __instance.AddString(text);
+                    __instance.AddString($"{context.Info.Metadata.Name} config reloaded");
                     return false;
                 }
                 return true;
