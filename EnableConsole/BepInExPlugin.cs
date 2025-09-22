@@ -1,14 +1,11 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace EnableConsole
 {
-    [BepInPlugin("aedenthorn.EnableConsole", "Enable Console", "0.3.0")]
+    [BepInPlugin("aedenthorn.EnableConsole", "Enable Console", "0.4.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -47,7 +44,16 @@ namespace EnableConsole
                 if (!modEnabled.Value)
                     return;
 
-                Console.SetConsoleEnabled(true);
+                Console.SetConsoleEnabledForThisSession();
+            }
+        }
+        [HarmonyPatch(typeof(Console), nameof(Console.SetConsoleEnabled))]
+        public static class Console_SetConsoleEnabled_Patch
+        {
+            public static void Prefix(ref bool enabled)
+            {
+                if (modEnabled.Value)
+                    enabled = true;
             }
         }
 

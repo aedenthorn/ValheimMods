@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace BuildingHealthDisplay
 {
-    [BepInPlugin("aedenthorn.BuildingHealthDisplay", "Building Health Display", "0.6.0")]
+    [BepInPlugin("aedenthorn.BuildingHealthDisplay", "Building Health Display", "0.7.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
