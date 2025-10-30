@@ -5,7 +5,7 @@ using System.Globalization;
 namespace CustomControls
 {
     [Serializable()]
-    public class ButtonInfo
+    public class ControlInfo
     {
         public string name;
         public string path;
@@ -15,7 +15,7 @@ namespace CustomControls
         public float repeatDelay;
         public float repeatInterval;
 
-        public ButtonInfo()
+        public ControlInfo()
         {
         }
     }

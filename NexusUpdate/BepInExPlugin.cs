@@ -148,7 +148,6 @@ namespace NexusUpdate
                 if(!Input.GetKey(KeyCode.Mouse0) && ( windowRect.x != updatesPosition.Value.x || windowRect.y != updatesPosition.Value.y))
                 {
                     updatesPosition.Value = new Vector2(windowRect.x, windowRect.y);
-                    Config.Save();
                 }
             }
         }
