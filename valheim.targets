@@ -118,6 +118,11 @@
       <HintPath>$(ManagedDataPath)\netstandard.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="mscorlib">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(ManagedDataPath)\mscorlib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="SPlatform">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(ManagedDataPath)\SPlatform.dll</HintPath>
@@ -165,6 +170,11 @@
     <Reference Include="UnityEngine.InputLegacyModule">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(UnityPath)\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.InputSystem">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(UnityPath)\Unity.InputSystem.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.ParticleSystemModule">

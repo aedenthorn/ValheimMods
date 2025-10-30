@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 
 namespace MovableInventoryWindows
 {
-    [BepInPlugin("aedenthorn.MovableInventoryWindows", "Movable Inventory Windows", "0.4.0")]
+    [BepInPlugin("aedenthorn.MovableInventoryWindows", "Movable Inventory Windows", "0.4.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -43,7 +43,7 @@ namespace MovableInventoryWindows
             craftingPanelScale = Config.Bind<float>("General", "CraftingPanelScale", 1f, "Scale of crafting panel");
             infoPanelScale = Config.Bind<float>("General", "InfoPanelScale", 1f, "Scale of crafting panel");
             modKeyOne = Config.Bind<string>("General", "ModKeyOne", "mouse 0", "First modifier key. Use https://docs.unity3d.com/Manual/class-InputManager.html format.");
-            modKeyTwo = Config.Bind<string>("General", "ModKeyTwo", "left ctrl", "Second modifier key. Use https://docs.unity3d.com/Manual/class-InputManager.html format.");
+            modKeyTwo = Config.Bind<string>("General", "ModKeyTwo", "right ctrl", "Second modifier key. Use https://docs.unity3d.com/Manual/class-InputManager.html format.");
 
             inventoryPosition = Config.Bind<Vector2>("ZPositions", "InventoryPosition", new Vector2(9999,9999), "Current position of inventory");
             chestInventoryPosition = Config.Bind<Vector2>("ZPositions", "ChestInventoryPosition", new Vector2(9999,9999), "Current position of chest");

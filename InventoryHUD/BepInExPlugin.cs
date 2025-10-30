@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace InventoryHUD
 {
-    [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.5.0")]
+    [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.5.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -185,24 +185,23 @@ namespace InventoryHUD
 
         public static void AddInfoString(Hud hud)
         {
-            infoObject = new GameObject
-            {
-                name = "InventoryHUDInfo"
-            };
+            infoObject = new GameObject("InventoryHUDInfo");
+            infoObject.transform.SetParent(hud.m_rootObject.transform);
 
             RectTransform rt = infoObject.AddComponent<RectTransform>();
-            rt.SetParent(hud.m_rootObject.transform);
-            rt.localScale = Vector3.one;
+            rt.SetParent(infoObject.transform);
+            rt.localScale = Vector3.one * weightScale.Value;
             rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(500, 500);
+            rt.position = new Vector3(hudPosition.Value.x + infoStringOffset.Value.x, hudPosition.Value.y + infoStringOffset.Value.y, 0);
 
             TextMeshProUGUI text = infoObject.AddComponent<TextMeshProUGUI>();
-            Dbgl($"text: {text?.GetType()}");
-            Dbgl($"{text.text}");
+            text.font = hud.m_hoverName.font;
             var font = GetFont(infoStringFont.Value, infoStringSize.Value);
             if (font != null)
                 text.font = font;
-        }
 
+        }
 
         [HarmonyPatch(typeof(Hud), "Awake")]
         public static class Hud_Awake_Patch
@@ -249,29 +248,28 @@ namespace InventoryHUD
 
                 float weight = inv.GetTotalWeight();
                 float totalWeight = Player.m_localPlayer.GetMaxCarryWeight();
+                float hudScale = Hud.instance.GetComponent<CanvasScaler>().scaleFactor;
+                float maskOffset = (1 - weight / totalWeight) * weightTexture.height * weightScale.Value * hudScale;
+
+                if (AedenthornUtils.CheckKeyHeld(modKey.Value, true) && Input.GetKeyDown(KeyCode.Mouse0))
+                {
+                    Dbgl($"{lastPosition} {hudPos} {Vector3.Distance(lastPosition, hudPos)} {(weightTexture.height + weightTexture.width) / 4f} {maskOffset}");
+
+                    if (Vector3.Distance(Input.mousePosition, hudPos) < (weightTexture.height + weightTexture.width) / 4f * weightScale.Value * hudScale)
+                    {
+                        Dbgl("dragging start");
+                        lastPosition = Input.mousePosition;
+                    }
+                }
+                else if (AedenthornUtils.CheckKeyHeld(modKey.Value, true) && Input.GetKey(KeyCode.Mouse0) && Vector3.Distance(lastPosition, weightPos) < (weightTexture.height + weightTexture.width) / 4f * weightScale.Value * hudScale)
+                {
+                    hudPos += Input.mousePosition - lastPosition;
+                    hudPosition.Value = new Vector2(hudPos.x, hudPos.y);
+                }
+                lastPosition = Input.mousePosition;
+
                 if (fullObject != null)
                 {
-                    float hudScale = Hud.instance.GetComponent<CanvasScaler>().scaleFactor;
-
-                    float maskOffset = (1 - weight / totalWeight ) * weightTexture.height * weightScale.Value * hudScale;
-
-                    if (AedenthornUtils.CheckKeyHeld(modKey.Value, true) && Input.GetKeyDown(KeyCode.Mouse0))
-                    {
-                        Dbgl($"{lastPosition} {hudPos} {Vector3.Distance(lastPosition, hudPos)} {(weightTexture.height + weightTexture.width) / 4f} {maskOffset}");
-
-                        if (Vector3.Distance(Input.mousePosition, hudPos) < (weightTexture.height + weightTexture.width) / 4f * weightScale.Value * hudScale)
-                        {
-                            Dbgl("dragging start");
-                            lastPosition = Input.mousePosition;
-                        }
-                    }
-                    else if (AedenthornUtils.CheckKeyHeld(modKey.Value, true) && Input.GetKey(KeyCode.Mouse0) && Vector3.Distance(lastPosition, weightPos) < (weightTexture.height + weightTexture.width) / 4f * weightScale.Value * hudScale)
-                    {
-                        hudPos += Input.mousePosition - lastPosition;
-                        hudPosition.Value = new Vector2(hudPos.x, hudPos.y);
-                    }
-                    lastPosition = Input.mousePosition;
-
                     partialObject.GetComponent<Image>().color = fillColor.Value;
                     fullObject.GetComponent<Image>().color = weightColor.Value;
 
@@ -281,7 +279,6 @@ namespace InventoryHUD
                 }
                 if(infoObject != null)
                 {
-                    infoObject.transform.position = hudPos + new Vector3(infoStringOffset.Value.x, infoStringOffset.Value.y, 0);
 
                     int items = inv.GetAllItems().Count;
                     int slots = inv.GetWidth() * inv.GetHeight() + extraSlots.Value;
@@ -290,6 +287,9 @@ namespace InventoryHUD
                     text.color = infoStringColor.Value;
                     text.alignment = infoStringAlignment.Value;
                     text.fontSize = infoStringSize.Value;
+
+                    infoObject.transform.position = new Vector3(hudPosition.Value.x + infoStringOffset.Value.x, hudPosition.Value.y + infoStringOffset.Value.y, 0);
+
                 }
 
                 /*

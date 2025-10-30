@@ -2,21 +2,19 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections.Generic;
-using System.IO;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace BuildingHealthDisplay
 {
     [BepInPlugin("aedenthorn.BuildingHealthDisplay", "Building Health Display", "0.7.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        public static readonly bool isDebug = true;
         public static BepInExPlugin context;
         public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
 
         public static ConfigEntry<bool> showHealthBar;
@@ -47,13 +45,14 @@ namespace BuildingHealthDisplay
 
         public static void Dbgl(string str = "", bool pref = true)
         {
-            if (isDebug)
+            if (isDebug.Value)
                 Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
         public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            isDebug = Config.Bind<bool>("General", "Debug", false, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 793, "Nexus mod ID for updates");
 
             showHealthBar = Config.Bind<bool>("General", "ShowHealthBar", true, "Show health bar?");

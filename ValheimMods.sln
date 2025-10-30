@@ -236,6 +236,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmmoCount", "AmmoCount\Ammo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EitrRegenRate", "EitrRegenRate\EitrRegenRate.csproj", "{935DEB5B-8D26-4925-80B1-12F1A9AF2883}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomControls", "CustomControls\CustomControls.csproj", "{FAB9E065-02A9-8455-87FD-7F36EC34AE37}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -694,6 +696,10 @@ Global
 		{935DEB5B-8D26-4925-80B1-12F1A9AF2883}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{935DEB5B-8D26-4925-80B1-12F1A9AF2883}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{935DEB5B-8D26-4925-80B1-12F1A9AF2883}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FAB9E065-02A9-8455-87FD-7F36EC34AE37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FAB9E065-02A9-8455-87FD-7F36EC34AE37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FAB9E065-02A9-8455-87FD-7F36EC34AE37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FAB9E065-02A9-8455-87FD-7F36EC34AE37}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
