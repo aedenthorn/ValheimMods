@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace HuginQuestFramework
 {
-    [BepInPlugin("aedenthorn.HuginQuestFramework", "Hugin Quest Framework", "0.4.0")]
+    [BepInPlugin("aedenthorn.HuginQuestFramework", "Hugin Quest Framework", "0.4.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;

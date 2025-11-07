@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -407,9 +408,9 @@ namespace HuginQuestFramework
                     Dbgl($"Error getting reward {qd.data["rewardName"]}");
                     return;
                 }
-                        
-                int emptySlots = Player.m_localPlayer.GetInventory().GetWidth() * Player.m_localPlayer.GetInventory().GetHeight() - Player.m_localPlayer.GetInventory().GetAllItems().Count;
-                int stackSpace = (int)AccessTools.Method(typeof(Inventory), "FindFreeStackSpace").Invoke(Player.m_localPlayer.GetInventory(), new object[] { itemDrop.m_itemData.m_shared.m_name });
+                var inv = Player.m_localPlayer.GetInventory();
+                int emptySlots = inv.GetWidth() * inv.GetHeight() - inv.GetAllItems().Count;
+                int stackSpace = inv.FindFreeStackSpace(itemDrop.m_itemData.m_shared.m_name, itemDrop.m_itemData.m_worldLevel);
                 stackSpace += emptySlots * itemDrop.m_itemData.m_shared.m_maxStackSize;
                 if (stackSpace < (int)qd.data["rewardAmount"])
                 {
@@ -420,7 +421,7 @@ namespace HuginQuestFramework
                 }
                 if ((QuestType)qd.data["type"] == QuestType.Fetch)
                 {
-                    if (Player.m_localPlayer.GetInventory().CountItems((string)qd.data["thing"]) < (int)qd.data["amount"])
+                    if (inv.CountItems((string)qd.data["thing"]) < (int)qd.data["amount"])
                     {
                         currentText.m_topic = "It seems you have not completed your quest...";
                         Dbgl($"not enough to complete quest!");
@@ -429,10 +430,10 @@ namespace HuginQuestFramework
                         AdjustFetchQuests();
                         return;
                     }
-                    Player.m_localPlayer.GetInventory().RemoveItem((string)qd.data["thing"], (int)qd.data["amount"]);
+                    inv.RemoveItem((string)qd.data["thing"], (int)qd.data["amount"]);
                 }
 
-                Player.m_localPlayer.GetInventory().AddItem(itemDrop.gameObject.name, (int)qd.data["rewardAmount"], itemDrop.m_itemData.m_quality, itemDrop.m_itemData.m_variant, 0L, "");
+                inv.AddItem(itemDrop.gameObject.name, (int)qd.data["rewardAmount"], itemDrop.m_itemData.m_quality, itemDrop.m_itemData.m_variant, 0L, "");
                 Player.m_localPlayer.ShowPickupMessage(itemDrop.m_itemData, (int)qd.data["rewardAmount"]);
                 Player.m_localPlayer.Message(MessageHud.MessageType.Center, completeString.Value, 0, null);
                 QuestFrameworkAPI.RemoveQuest(qd.ID);

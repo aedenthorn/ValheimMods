@@ -36,7 +36,7 @@ namespace HuginQuestFramework
             }
         }
         
-        [HarmonyPatch(typeof(Player), "PlacePiece")]
+        [HarmonyPatch(typeof(Player), "TryPlacePiece")]
         public static class Player_PlacePiece_Patch
         {
             public static void Postfix(Piece piece, bool __result)
