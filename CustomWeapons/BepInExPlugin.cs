@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CustomWeaponStats
 {
-    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.8.1")]
+    [BepInPlugin("aedenthorn.CustomWeaponStats", "Custom Weapon Stats", "0.9.0")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -39,7 +39,7 @@ namespace CustomWeaponStats
 
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
-            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Enable debug logs");
+            isDebug = Config.Bind<bool>("General", "IsDebug", false, "Enable debug logs");
             nexusID = Config.Bind<int>("General", "NexusID", 1151, "Nexus mod ID for updates");
 
             globalDamageMultiplier = Config.Bind<float>("Global", "GlobalDamageMultiplier", 1f, "Global damage multiplier for all weapons");
@@ -112,56 +112,56 @@ namespace CustomWeaponStats
             }
         }
  
-        [HarmonyPatch(typeof(Attack), "Start")]
+        [HarmonyPatch(typeof(Attack), nameof(Attack.OnAttackTrigger))]
         public static class Attack_Start_Patch
         {
-            public static void Prefix(ref ItemDrop.ItemData weapon, ref WeaponState __state)
+            public static void Prefix(ref ItemDrop.ItemData ___m_weapon, ref WeaponState __state)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || ___m_weapon is null)
                     return;
 
-                CheckWeaponData(ref weapon);
+                CheckWeaponData(ref ___m_weapon);
 
-                Dbgl($"pre damage {weapon.m_shared.m_damages.m_slash}");
+                Dbgl($"pre damage {___m_weapon.m_shared.m_damages.m_slash}");
 
-                __state = new WeaponState(weapon);
+                __state = new WeaponState(___m_weapon);
 
-                weapon.m_shared.m_useDurabilityDrain *= globalUseDurabilityMultiplier.Value;
-                weapon.m_shared.m_attackForce *= globalAttackForceMultiplier.Value;
-                weapon.m_shared.m_backstabBonus *= globalBackstabBonusMultiplier.Value;
-                weapon.m_shared.m_damages.m_damage *= globalDamageMultiplier.Value;
-                weapon.m_shared.m_damages.m_blunt *= globalDamageMultiplier.Value;
-                weapon.m_shared.m_damages.m_slash *= globalDamageMultiplier.Value;
-                weapon.m_shared.m_damages.m_pierce *= globalDamageMultiplier.Value;
-                weapon.m_shared.m_damages.m_chop *= globalDamageMultiplier.Value;
-                weapon.m_shared.m_damages.m_pickaxe *= globalDamageMultiplier.Value;
-                weapon.m_shared.m_damages.m_fire *= globalDamageMultiplier.Value;
-                weapon.m_shared.m_damages.m_frost *= globalDamageMultiplier.Value;
-                weapon.m_shared.m_damages.m_lightning *= globalDamageMultiplier.Value;
-                weapon.m_shared.m_damages.m_poison *= globalDamageMultiplier.Value;
-                weapon.m_shared.m_damages.m_spirit *= globalDamageMultiplier.Value;
+                ___m_weapon.m_shared.m_useDurabilityDrain *= globalUseDurabilityMultiplier.Value;
+                ___m_weapon.m_shared.m_attackForce *= globalAttackForceMultiplier.Value;
+                ___m_weapon.m_shared.m_backstabBonus *= globalBackstabBonusMultiplier.Value;
+                ___m_weapon.m_shared.m_damages.m_damage *= globalDamageMultiplier.Value;
+                ___m_weapon.m_shared.m_damages.m_blunt *= globalDamageMultiplier.Value;
+                ___m_weapon.m_shared.m_damages.m_slash *= globalDamageMultiplier.Value;
+                ___m_weapon.m_shared.m_damages.m_pierce *= globalDamageMultiplier.Value;
+                ___m_weapon.m_shared.m_damages.m_chop *= globalDamageMultiplier.Value;
+                ___m_weapon.m_shared.m_damages.m_pickaxe *= globalDamageMultiplier.Value;
+                ___m_weapon.m_shared.m_damages.m_fire *= globalDamageMultiplier.Value;
+                ___m_weapon.m_shared.m_damages.m_frost *= globalDamageMultiplier.Value;
+                ___m_weapon.m_shared.m_damages.m_lightning *= globalDamageMultiplier.Value;
+                ___m_weapon.m_shared.m_damages.m_poison *= globalDamageMultiplier.Value;
+                ___m_weapon.m_shared.m_damages.m_spirit *= globalDamageMultiplier.Value;
 
-                Dbgl($"post damage {weapon.m_shared.m_damages.m_slash}");
+                Dbgl($"post damage {___m_weapon.m_shared.m_damages.m_slash}");
             }
-            public static void Postfix(ref ItemDrop.ItemData weapon, WeaponState __state)
+            public static void Postfix(ref ItemDrop.ItemData ___m_weapon, WeaponState __state)
             {
                 if (!modEnabled.Value)
                     return;
 
-                weapon.m_shared.m_useDurabilityDrain = __state.useDurabilityDrain;
-                weapon.m_shared.m_attackForce = __state.attackForce;
-                weapon.m_shared.m_backstabBonus = __state.backstabBonus;
-                weapon.m_shared.m_damages.m_damage = __state.damage;
-                weapon.m_shared.m_damages.m_blunt = __state.blunt;
-                weapon.m_shared.m_damages.m_slash = __state.slash;
-                weapon.m_shared.m_damages.m_pierce = __state.pierce;
-                weapon.m_shared.m_damages.m_chop = __state.chop;
-                weapon.m_shared.m_damages.m_pickaxe = __state.pickaxe;
-                weapon.m_shared.m_damages.m_fire = __state.fire;
-                weapon.m_shared.m_damages.m_frost = __state.frost;
-                weapon.m_shared.m_damages.m_lightning = __state.lightning;
-                weapon.m_shared.m_damages.m_poison = __state.poison;
-                weapon.m_shared.m_damages.m_spirit = __state.spirit;
+                ___m_weapon.m_shared.m_useDurabilityDrain = __state.useDurabilityDrain;
+                ___m_weapon.m_shared.m_attackForce = __state.attackForce;
+                ___m_weapon.m_shared.m_backstabBonus = __state.backstabBonus;
+                ___m_weapon.m_shared.m_damages.m_damage = __state.damage;
+                ___m_weapon.m_shared.m_damages.m_blunt = __state.blunt;
+                ___m_weapon.m_shared.m_damages.m_slash = __state.slash;
+                ___m_weapon.m_shared.m_damages.m_pierce = __state.pierce;
+                ___m_weapon.m_shared.m_damages.m_chop = __state.chop;
+                ___m_weapon.m_shared.m_damages.m_pickaxe = __state.pickaxe;
+                ___m_weapon.m_shared.m_damages.m_fire = __state.fire;
+                ___m_weapon.m_shared.m_damages.m_frost = __state.frost;
+                ___m_weapon.m_shared.m_damages.m_lightning = __state.lightning;
+                ___m_weapon.m_shared.m_damages.m_poison = __state.poison;
+                ___m_weapon.m_shared.m_damages.m_spirit = __state.spirit;
             }
         }
 

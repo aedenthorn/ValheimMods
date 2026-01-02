@@ -6,13 +6,13 @@ using UnityEngine;
 
 namespace TorchMod
 {
-    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "0.9.0")]
+    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "1.0.0")]
 
     public class BepInExPlugin : BaseUnityPlugin
     {
-        public static readonly bool isDebug = true;
         public static BepInExPlugin  context;
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
 
         public static ConfigEntry<Color> torchColor;
@@ -49,6 +49,14 @@ namespace TorchMod
         public static ConfigEntry<float> helmetShadowStrength;
         public static ConfigEntry<bool> helmetUseColorTemperature;
         public static ConfigEntry<float> helmetColorTemperature;
+
+        public static ConfigEntry<Color> wispColor;
+        public static ConfigEntry<float> wispRange;
+        public static ConfigEntry<float> wispIntensity;
+        public static ConfigEntry<float> wispBounceIntensity;
+        public static ConfigEntry<float> wispShadowStrength;
+        public static ConfigEntry<bool> wispUseColorTemperature;
+        public static ConfigEntry<float> wispColorTemperature;
 
         public static ConfigEntry<Color> firePitColorLow;
         public static ConfigEntry<float> firePitRangeLow;
@@ -97,16 +105,17 @@ namespace TorchMod
         public static ConfigEntry<float> hearthShadowStrengthHigh;
         public static ConfigEntry<bool> hearthUseColorTemperatureHigh;
         public static ConfigEntry<float> hearthColorTemperatureHigh;
-        public static void Dbgl(string str = "", bool pref = true)
+        public static void Dbgl(object str, BepInEx.Logging.LogLevel level = BepInEx.Logging.LogLevel.Debug)
         {
-            if (isDebug)
-                Debug.Log((pref ? typeof(BepInExPlugin ).Namespace + " " : "") + str);
+            if (isDebug.Value)
+                context.Logger.Log(level, str);
         }
         public void Awake()
         {
             context = this;
 
             modEnabled = Config.Bind("General", "Enabled", true, "Enable this mod");
+            isDebug = Config.Bind("General", "IsDebug", false, "Show debug log messages");
             nexusID = Config.Bind<int>("General", "NexusID", 11, "Nexus mod ID for updates");
 
             torchUseColor = Config.Bind("Torches", "TorchUseColor", false, "Set all torches to use custom color.");
@@ -192,6 +201,14 @@ namespace TorchMod
             hearthUseColorTemperatureHigh = Config.Bind("Hearths", "HearthUseColorTemperatureHigh", false, "Set to true to use the color temperature.");
             hearthColorTemperatureHigh = Config.Bind("Hearths", "HearthColorTemperatureHigh", 6570f, "The color temperature of the light. (float)");
 
+            wispColor = Config.Bind("Wisps", "WispColor", new Color(0.4824f, 0.803f, 1f, 1f), "The color of the light.");
+            wispRange = Config.Bind("Wisps", "WispRange", 10f, "The range of the light. (float)");
+            wispIntensity = Config.Bind("Wisps", "WispIntensity", 1.4761f, "The Intensity of a light is multiplied with the Light color. (float 0-8)");
+            wispBounceIntensity = Config.Bind("Wisps", "WispBounceIntensity", 1f, "The multiplier that defines the strength of the bounce lighting. (float 0+)");
+            wispShadowStrength = Config.Bind("Wisps", "WispshadowStrength", 1f, "Strength of light's shadows. (float)");
+            wispUseColorTemperature = Config.Bind("Wisps", "WispUseColorTemperature", false, "Set to true to use the color temperature.");
+            wispColorTemperature = Config.Bind("Wisps", "WispColorTemperature", 6570f, "The color temperature of the light. (float)");
+
             if (!modEnabled.Value)
                 return;
 
@@ -235,6 +252,35 @@ namespace TorchMod
             }
         }
 
+
+        [HarmonyPatch(typeof(Demister), "OnEnable")]
+        public static class Demister_OnEnable_Patch
+        {
+            public static void Postfix(Demister __instance)
+            {
+                Light light = __instance.transform.parent?.GetComponentInChildren<Light>();
+                if (light != null)
+                {
+
+                    Dbgl($"color: {light.color}");
+                    Dbgl($"range: {light.range}");
+                    Dbgl($"bounceIntensity: {light.bounceIntensity}");
+                    Dbgl($"useColorTemperature: {light.useColorTemperature}");
+                    Dbgl($"colorTemperature: {light.colorTemperature}");
+                    Dbgl($"shadowStrength: {light.shadowStrength}");
+                    Dbgl($"intensity: {light.intensity}");
+
+                    Dbgl("Setting light for wisp");
+                    light.color = wispColor.Value;
+                    light.range = wispRange.Value;
+                    light.intensity = wispIntensity.Value;
+                    light.bounceIntensity = wispBounceIntensity.Value;
+                    light.shadowStrength = wispShadowStrength.Value;
+                    light.useColorTemperature = wispUseColorTemperature.Value;
+                    light.colorTemperature = wispColorTemperature.Value;
+                }
+            }
+        }
 
         [HarmonyPatch(typeof(VisEquipment), "SetHelmetEquipped")]
         public static class VisEquipment_SetHelmetEquipped_Patch

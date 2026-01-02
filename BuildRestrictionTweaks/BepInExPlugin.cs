@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BuildRestrictionTweaks
 {
-    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.6.1")]
+    [BepInPlugin("aedenthorn.BuildRestrictionTweaks", "Build Restriction Tweaks", "0.6.2")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public enum PlacementStatus

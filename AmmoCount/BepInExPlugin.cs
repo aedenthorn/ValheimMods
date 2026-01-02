@@ -4,6 +4,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using TMPro;
@@ -12,14 +13,14 @@ using UnityEngine.UI;
 
 namespace AmmoCount
 {
-    [BepInPlugin("aedenthorn.AmmoCount", "Ammo Count", "0.4.0")]
+    [BepInPlugin("aedenthorn.AmmoCount", "Ammo Count", "0.5.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
-        public static readonly bool isDebug = true;
         public static BepInExPlugin context;
         public Harmony harmony;
 
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
         
         public static ConfigEntry<bool> showIcon;
@@ -27,7 +28,7 @@ namespace AmmoCount
         public static ConfigEntry<Vector2> iconSize;
         public static ConfigEntry<string> ammoStringFormat;
         public static ConfigEntry<int> ammoStringSize;
-        public static ConfigEntry<string> ammoStringFont;
+        public static ConfigEntry<string> ammoStringFontName;
         public static ConfigEntry<FontStyles> ammoStringFontStyle;
         public static ConfigEntry<TextAlignmentOptions> ammoStringAlignment;
         public static ConfigEntry<Color> ammoStringColor;
@@ -37,15 +38,16 @@ namespace AmmoCount
         public static TMP_FontAsset currentFont;
         public static bool reset = true;
 
-        public static void Dbgl(object obj, bool pref = true)
+        public static void Dbgl(object obj, LogLevel level = LogLevel.Debug)
         {
-            if (isDebug)
-                context.Logger.Log(LogLevel.Info, (pref ? typeof(BepInExPlugin).Namespace + " " : "") + obj?.ToString());
+            if (isDebug.Value)
+                context.Logger.Log(level, obj);
         }
         public void Awake()
         {
             context = this;
             modEnabled = Config.Bind<bool>("General", "Enabled", true, "Enable this mod");
+            isDebug = Config.Bind<bool>("General", "IsDebug", true, "Show debug messages");
             nexusID = Config.Bind<int>("General", "NexusID", 2273, "Nexus mod ID for updates");
 
             showIcon = Config.Bind<bool>("Options", "ShowIcon", true, "Show Ammo Icon");
@@ -53,7 +55,7 @@ namespace AmmoCount
             iconSize = Config.Bind<Vector2>("Options", "IconSize", new Vector2(20,20), "Icon Size");
             ammoStringFormat = Config.Bind<string>("Options", "AmmoTextFormat", "{amount}", "Ammo string. Use {amount} and/or {name}");
             ammoStringSize = Config.Bind<int>("Options", "AmmoTextSize", 16, "Ammo count size.");
-            ammoStringFont = Config.Bind<string>("Options", "AmmoTextFont", "AveriaSansLibre-Bold", "Ammo count font");
+            ammoStringFontName = Config.Bind<string>("Options", "AmmoStringFontName", "Valheim-AveriaSansLibre", "Ammo count font");
             ammoStringFontStyle = Config.Bind<FontStyles>("Options", "AmmoTextFontStyle", FontStyles.Bold, "Ammo count font style");
             ammoStringAlignment = Config.Bind<TextAlignmentOptions>("Options", "AmmoTextAlignment", TextAlignmentOptions.TopRight, "Ammo count alignment");
             ammoStringColor = Config.Bind<Color>("Options", "AmmoTextColor", new Color(1, 1, 1, 1), "Ammo count color");
@@ -61,7 +63,7 @@ namespace AmmoCount
 
             elementsAmmo = AccessTools.Field(typeof(HotkeyBar), "m_elements");
 
-            ammoStringFont.SettingChanged += SettingChanged;
+            ammoStringFontName.SettingChanged += SettingChanged;
 
             showIcon.SettingChanged += SettingChanged;
             iconPosition.SettingChanged += SettingChanged;
@@ -95,8 +97,10 @@ namespace AmmoCount
                 TMP_FontAsset[] fonts = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
                 foreach (TMP_FontAsset font in fonts)
                 {
+                    Dbgl($"got font {font.name}");
                     if (font.name == fontName)
                     {
+                        Dbgl($"Matches");
                         return font;
                     }
                 }
@@ -118,7 +122,7 @@ namespace AmmoCount
                 var list = elementsAmmo.GetValue(__instance) as IEnumerable<object>;
                 if (reset)
                 {
-                    currentFont = GetFont(ammoStringFont.Value, ammoStringSize.Value);
+                    currentFont = GetFont(ammoStringFontName.Value, ammoStringSize.Value);
                 }
 
                 using (var e = list.GetEnumerator())
@@ -230,7 +234,7 @@ namespace AmmoCount
                     context.Config.Reload();
                     context.Config.Save();
 
-                    currentFont = GetFont(ammoStringFont.Value, ammoStringSize.Value);
+                    currentFont = GetFont(ammoStringFontName.Value, ammoStringSize.Value);
                     reset = true;
 
                     Traverse.Create(__instance).Method("AddString", new object[] { text }).GetValue();

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace AdvancedSigns
 {
-    [BepInPlugin("aedenthorn.AdvancedSigns", "Advanced Signs", "0.3.0")]
+    [BepInPlugin("aedenthorn.AdvancedSigns", "Advanced Signs", "0.3.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -39,7 +39,7 @@ namespace AdvancedSigns
             signScale = Config.Bind<Vector3>("Signs", "SignScale", new Vector3(1,1,1), "Sign scale (w,h,d)");
             textPositionOffset = Config.Bind<Vector2>("Signs", "TextPositionOffset", new Vector2(0,0), "Default font size");
             useRichText = Config.Bind<bool>("Signs", "UseRichText", true, "Enable rich text");
-            fontName = Config.Bind<string>("Signs", "FontName", "AveriaSerifLibre-Bold", "Font name");
+            fontName = Config.Bind<string>("Signs", "FontName", "Valheim-AveriaSansLibre", "Font name");
             defaultColor = Config.Bind<string>("Signs", "DefaultColor", "#00ffffff", "Default color");
             removeRichText = Config.Bind<bool>("Signs", "RemoveRichText", false, "Remove rich text");
             

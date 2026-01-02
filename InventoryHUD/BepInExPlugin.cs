@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace InventoryHUD
 {
-    [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.5.1")]
+    [BepInPlugin("aedenthorn.InventoryHUD", "InventoryHUD", "0.5.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -65,7 +65,7 @@ namespace InventoryHUD
             infoStringOffset = Config.Bind<Vector2>("Info", "InfoStringOffset", new Vector2(-64,0), "Inventory info string offset");
             infoString = Config.Bind<string>("Info", "InfoString", "{0}/{1}\r\n{2}/{3}", "Inventory info string to show. {0} is replaced by current number of items. {1} is replaced by number of slots total. {2} is replaced by current weight. {3} is replaced by total weight. See string.Format API for advanced usage.");
             infoStringSize = Config.Bind<int>("Info", "InfoStringSize", 12, "Inventory info string size.");
-            infoStringFont = Config.Bind<string>("Info", "InfoStringFont", "AveriaSerifLibre-Bold", "Inventory info string font.");
+            infoStringFont = Config.Bind<string>("Info", "InfoStringFont", "Valheim-AveriaSansLibre", "Inventory info string font.");
             infoStringAlignment = Config.Bind<TextAlignmentOptions>("Info", "InfoStringAlignment", TextAlignmentOptions.Center, "Info string alignment");
             infoStringColor = Config.Bind<Color>("Info", "InfoStringColor", new Color(1, 1, 1, 0.5f), "Info string color");
 
