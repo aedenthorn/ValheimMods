@@ -80,7 +80,7 @@ namespace ExtendedPlayerInventory
             nexusID.Value = 1356;
 
 
-            extraRows = Config.Bind<int>("Toggles", "ExtraRows", 0, "Number of extra ordinary rows.");
+            extraRows = Config.Bind<int>("Toggles", "ExtraRows", 2, "Number of extra ordinary rows.");
             addEquipmentRow = Config.Bind<bool>("Toggles", "AddEquipmentRow", true, "Add special row for equipped items and quick slots.");
             showGearInMenu = Config.Bind<bool>("Toggles", "ShowGearInMenu", true, "Display equipped items in the main menu.");
             displayEquipmentRowSeparate = Config.Bind<bool>("Toggles", "DisplayEquipmentRowSeparate", true, "Display equipment and quickslots in their own area.");
@@ -692,9 +692,9 @@ namespace ExtendedPlayerInventory
             if (hudRoot.Find("QuickAccessBar")?.GetComponent<RectTransform>() != null)
             {
                 if (quickAccessX.Value == 9999)
-                    quickAccessX.Value = hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x - 32;
+                    quickAccessX.Value = hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.x + 170;
                 if (quickAccessY.Value == 9999)
-                    quickAccessY.Value = hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y - 870;
+                    quickAccessY.Value = hudRoot.Find("healthpanel").GetComponent<RectTransform>().anchoredPosition.y - 1203;
 
                 hudRoot.Find("QuickAccessBar").GetComponent<RectTransform>().anchoredPosition = new Vector2(quickAccessX.Value, quickAccessY.Value);
                 hudRoot.Find("QuickAccessBar").GetComponent<RectTransform>().localScale = new Vector3(quickAccessScale.Value, quickAccessScale.Value, 1);
