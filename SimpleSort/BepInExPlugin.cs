@@ -210,14 +210,19 @@ namespace SimpleSort
                 {
                     int amount = Mathf.Min(items[i].m_shared.m_maxStackSize - items[i].m_stack, items[i + 1].m_stack);
                     items[i].m_stack += amount;
-                    if (amount == items[i + 1].m_stack)
-                    {
-                        items.RemoveAt(i + 1);
-                    }
-                    else
+                    if (amount == items[i + 1].m_stack) {
                         items[i + 1].m_stack -= amount;
+                        items.RemoveAt(i+1);
+                        
+                        // Dummy call, only using it to remove all items from inventory where stack size <= 0
+                        // This needs to be done because the reference to the original items list gets broken somehow when using EquipmentAndQuickSlots mod
+                        Traverse.Create(inventory).Method("RemoveItem", new object[]{"", 0}).GetValue();
+                    } else {
+                        items[i + 1].m_stack -= amount;
+                    }
                 }
             }
+            
             switch (type)
             {
                 case SortType.Name:
