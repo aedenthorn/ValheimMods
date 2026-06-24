@@ -176,7 +176,7 @@ namespace CraftFromContainers
                     containers.Add(container);
                 }
             }
-            Dbgl($"Got {containers.Count} containers.");
+            //Dbgl($"Got {containers.Count} containers.");
             lastPosition = center;
 
             if (pullByDistance.Value)

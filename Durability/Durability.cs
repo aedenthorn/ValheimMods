@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Durability
 {
-    [BepInPlugin("aedenthorn.Durability", "Durability", "0.7.0")]
+    [BepInPlugin("aedenthorn.Durability", "Durability", "0.7.1")]
     public class Durability : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;

@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace MapDetails
 {
-    [BepInPlugin("aedenthorn.MapDetails", "Map Details", "0.4.2")]
+    [BepInPlugin("aedenthorn.MapDetails", "Map Details", "0.4.3")]
     public partial class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -132,12 +132,16 @@ namespace MapDetails
                     return;
                 Color32[] data = ___m_mapTexture.GetPixels32();
 
-                mapTexture = new Texture2D(___m_mapTexture.width, ___m_mapTexture.height, TextureFormat.RGBA32, false);
-                mapTexture.wrapMode = TextureWrapMode.Clamp;
+                mapTexture = new Texture2D(___m_mapTexture.width, ___m_mapTexture.height, TextureFormat.RGBA32, false)
+                {
+                    wrapMode = TextureWrapMode.Clamp
+                };
                 mapTexture.SetPixels32(data);
                 mapTexture.Apply();
-                tempTexture = new Texture2D(mapTexture.width, mapTexture.height, TextureFormat.RGBA32, false);
-                tempTexture.wrapMode = TextureWrapMode.Clamp;
+                tempTexture = new Texture2D(mapTexture.width, mapTexture.height, TextureFormat.RGBA32, false)
+                {
+                    wrapMode = TextureWrapMode.Clamp
+                };
             }
         }
 

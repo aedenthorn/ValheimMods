@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace PreventBabySlaughter
 {
-    [BepInPlugin("aedenthorn.PreventBabySlaughter", "Prevent Baby Slaughter", "0.2.0")]
+    [BepInPlugin("aedenthorn.PreventBabySlaughter", "Prevent Baby Slaughter", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -66,24 +66,5 @@ namespace PreventBabySlaughter
             }
         }
 
-        [HarmonyPatch(typeof(Terminal), "InputText")]
-        public static class InputText_Patch
-        {
-            public static bool Prefix(Terminal __instance)
-            {
-                if (!modEnabled.Value)
-                    return true;
-                string text = __instance.m_input.text;
-                if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} reset"))
-                {
-                    context.Config.Reload();
-                    context.Config.Save();
-                    __instance.AddString( text );
-                    __instance.AddString( $"{context.Info.Metadata.Name} config reloaded" );
-                    return false;
-                }
-                return true;
-            }
-        }
     }
 }
