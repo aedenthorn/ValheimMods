@@ -112,6 +112,7 @@ namespace CustomTextures
                     stopwatch.Restart();
 
                     ReplaceLocationTextures();
+                    ReloadTextures(reloadLocationTextures.Value && replaceLocationTextures.Value);
 
                     LogStopwatch("ZoneSystem Locations");
                 }
