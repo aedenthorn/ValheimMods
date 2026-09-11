@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace InstantMonsterDrop
 {
-    [BepInPlugin("aedenthorn.InstantMonsterDrop", "Instant Monster Drop", "0.6.0")]
+    [BepInPlugin("aedenthorn.InstantMonsterDrop", "Instant Monster Drop", "0.6.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -46,7 +46,7 @@ namespace InstantMonsterDrop
                 if (!ZNetScene.instance)
                     return;
                 Dbgl($"Changing death time from {__instance.m_ttl} to {destroyDelay.Value}, drop time from {__instance.m_ttl} to {dropDelay.Value}");
-                context.StartCoroutine(DropNow(__instance, ___m_nview, ___m_removeEffect));
+                __instance.StartCoroutine(DropNow(__instance, ___m_nview, ___m_removeEffect));
             }
         }
         
@@ -62,33 +62,30 @@ namespace InstantMonsterDrop
 
         public static IEnumerator DropNow(Ragdoll ragdoll, ZNetView nview, EffectList removeEffect)
         {
-            if(dropDelay.Value < 0)
-            {
-                context.StartCoroutine(DestroyNow(ragdoll, nview, removeEffect));
-                yield break;
-            }
-
-            Dbgl($"delaying dropping loot");
-            yield return new WaitForSeconds(dropDelay.Value);
-
             if (!modEnabled.Value)
                 yield break;
+            if (dropDelay.Value > 0)
+            {
+                Dbgl($"delaying dropping loot");
+                yield return new WaitForSeconds(dropDelay.Value);
+            }
 
             if (!nview.IsValid() || !nview.IsOwner())
             {
                 yield break;
             }
             Dbgl($"dropping loot");
-            Vector3 averageBodyPosition = ragdoll.GetAverageBodyPosition();
-            Traverse.Create(ragdoll).Method("SpawnLoot", new object[] { averageBodyPosition }).GetValue();
+            Vector3 vector = ragdoll.GetAverageBodyPosition();
+            if (ragdoll.m_lootSpawnJoint != null)
+            {
+                vector = ragdoll.m_lootSpawnJoint.transform.position;
+            }
+            AccessTools.Method(typeof(Ragdoll), "SpawnLoot").Invoke(ragdoll, new object[] { vector });
             context.StartCoroutine(DestroyNow(ragdoll, nview, removeEffect));
         }
 
         public static IEnumerator DestroyNow(Ragdoll ragdoll, ZNetView nview, EffectList m_removeEffect)
         {
-            Dbgl($"delaying destroying ragdoll");
-            yield return new WaitForSeconds(Mathf.Max(destroyDelay.Value - dropDelay.Value, 0));
-
             if (!modEnabled.Value)
                 yield break;
 
@@ -96,9 +93,12 @@ namespace InstantMonsterDrop
             {
                 yield break;
             }
+            Dbgl($"delaying destroying ragdoll");
+            yield return new WaitForSeconds(Mathf.Max(destroyDelay.Value - dropDelay.Value, 0));
+
             Dbgl($"destroying ragdoll");
             Vector3 averageBodyPosition = ragdoll.GetAverageBodyPosition();
-            m_removeEffect.Create(averageBodyPosition, Quaternion.identity, null, 1f, -1);
+            m_removeEffect.Create(averageBodyPosition, Quaternion.identity);
             ZNetScene.instance.Destroy(ragdoll.gameObject);
         }
 

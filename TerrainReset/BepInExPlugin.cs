@@ -79,7 +79,7 @@ namespace TerrainReset
                     foreach (Heightmap heightmap in list)
                     {
                         if (heightmap.TerrainVSModifier(terrainModifier))
-                            heightmap.Poke(true);
+                            heightmap.Poke();
                     }
                     nview.Destroy();
                 }
@@ -170,7 +170,7 @@ namespace TerrainReset
                         traverse.Field("m_paintMask").SetValue(m_paintMask);
 
                         traverse.Method("Save").GetValue();
-                        enumerator.Current.Poke(true);
+                        enumerator.Current.Poke();
                     }
 
                 }

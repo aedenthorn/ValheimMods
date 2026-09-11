@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "1.0.1")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "1.0.3")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -381,25 +381,25 @@ namespace ExtendedPlayerInventory
                 }
             }
 
-            public static void CreateTombStone()
-            {
-                Dbgl($"height {Player.m_localPlayer.m_tombstone.GetComponent<Container>().m_height}");
-                GameObject gameObject = Instantiate(Player.m_localPlayer.m_tombstone, Player.m_localPlayer.GetCenterPoint(), Player.m_localPlayer.transform.rotation);
-                TombStone component = gameObject.GetComponent<TombStone>();
+            //public static void CreateTombStone()
+            //{
+            //    Dbgl($"height {Player.m_localPlayer.m_tombstone.GetComponent<Container>().m_height}");
+            //    GameObject gameObject = Instantiate(Player.m_localPlayer.m_tombstone, Player.m_localPlayer.GetCenterPoint(), Player.m_localPlayer.transform.rotation);
+            //    TombStone component = gameObject.GetComponent<TombStone>();
 
-                Dbgl($"height {gameObject.GetComponent<Container>().m_height}");
-                Dbgl($"inv height {gameObject.GetComponent<Container>().GetInventory().GetHeight()}");
-                Dbgl($"inv slots {gameObject.GetComponent<Container>().GetInventory().GetEmptySlots()}");
+            //    Dbgl($"height {gameObject.GetComponent<Container>().m_height}");
+            //    Dbgl($"inv height {gameObject.GetComponent<Container>().GetInventory().GetHeight()}");
+            //    Dbgl($"inv slots {gameObject.GetComponent<Container>().GetInventory().GetEmptySlots()}");
 
-                for (int i = 0; i < gameObject.GetComponent<Container>().GetInventory().GetEmptySlots(); i++)
-                {
-                    gameObject.GetComponent<Container>().GetInventory().AddItem("SwordBronze", 1, 1, 0, 0, "");
-                }
-                Dbgl($"no items: {gameObject.GetComponent<Container>().GetInventory().NrOfItems()}");
-                PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
-                component.Setup(playerProfile.GetName(), playerProfile.GetPlayerID());
+            //    for (int i = 0; i < gameObject.GetComponent<Container>().GetInventory().GetEmptySlots(); i++)
+            //    {
+            //        gameObject.GetComponent<Container>().GetInventory().AddItem("SwordBronze", 1, 1, 0, 0, "");
+            //    }
+            //    Dbgl($"no items: {gameObject.GetComponent<Container>().GetInventory().NrOfItems()}");
+            //    PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
+            //    component.Setup(playerProfile.GetName(), playerProfile.GetPlayerID());
 
-            }
+            //}
         }
         
         [HarmonyPatch(typeof(InventoryGui), "Update")]
@@ -558,14 +558,14 @@ namespace ExtendedPlayerInventory
                     return true;
                 ___m_inventory.Add(item);
                 Player.m_localPlayer.EquipItem(item, false);
-                typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { });
+                typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { false, false });
                 __result = true;
                 return false;
             }
         }
 
 
-        [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(int), typeof(int) })]
+        [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(int), typeof(int), typeof(bool) })]
         public static class Inventory_AddItem_Patch2
         {
             public static void Prefix(Inventory __instance, ref int ___m_width, ref int ___m_height, int x, int y)

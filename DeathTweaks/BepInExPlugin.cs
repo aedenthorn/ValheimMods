@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DeathTweaks
 {
-    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "1.4.1")]
+    [BepInPlugin("aedenthorn.DeathTweaks", "Death Tweaks", "1.4.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> modEnabled;

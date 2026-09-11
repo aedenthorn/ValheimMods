@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DiscardInventoryItem
 {
-    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard or Recycle Inventory Items", "1.0.0")]
+    [BepInPlugin("aedenthorn.DiscardInventoryItem", "Discard or Recycle Inventory Items", "1.0.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -105,10 +105,12 @@ namespace DiscardInventoryItem
                             {
                                 foreach (Piece.Requirement req in reqs)
                                 {
+                                    if (!req.m_resItem)
+                                        continue;
                                     int quality = ___m_dragItem.m_quality;
                                     for (int j = quality; j > 0; j--)
                                     {
-                                        GameObject prefab = ObjectDB.instance.m_items.FirstOrDefault(item => item.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == req.m_resItem.m_itemData.m_shared.m_name);
+                                        GameObject prefab = ObjectDB.instance.m_items.FirstOrDefault(item => item.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_name != null && item.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_name == req.m_resItem.m_itemData?.m_shared?.m_name);
                                         ItemDrop.ItemData newItem = prefab.GetComponent<ItemDrop>().m_itemData.Clone();
                                         int numToAdd = Mathf.RoundToInt(req.GetAmount(j) * returnResources.Value);
                                         Dbgl($"Returning {numToAdd}/{req.GetAmount(j)} {prefab.name}");
@@ -117,7 +119,7 @@ namespace DiscardInventoryItem
                                             int stack = Mathf.Min(req.m_resItem.m_itemData.m_shared.m_maxStackSize, numToAdd);
                                             numToAdd -= stack;
 
-                                            if (Player.m_localPlayer.GetInventory().AddItem(prefab.name, stack, req.m_resItem.m_itemData.m_quality, req.m_resItem.m_itemData.m_variant, 0, "") == null)
+                                            if (Player.m_localPlayer.GetInventory().AddItem(prefab.name, stack, req.m_resItem.m_itemData.m_quality, req.m_resItem.m_itemData.m_variant, 0, "", false) == null)
                                             {
                                                 ItemDrop component = Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward + Player.m_localPlayer.transform.up, Player.m_localPlayer.transform.rotation).GetComponent<ItemDrop>();
                                                 component.m_itemData = newItem;

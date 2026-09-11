@@ -285,11 +285,10 @@ namespace TorchMod
         [HarmonyPatch(typeof(VisEquipment), "SetHelmetEquipped")]
         public static class VisEquipment_SetHelmetEquipped_Patch
         {
-            public static void Postfix(bool __result, string ___m_helmetItem, GameObject ___m_helmetItemInstance)
+            public static void Postfix(bool __result, GameObject ___m_helmetItemInstance)
             {
-                if (!__result || ___m_helmetItem == null)
+                if (!__result || ___m_helmetItemInstance == null)
                     return;
-                Dbgl($"checking {___m_helmetItem}");
 
                 Light light = ___m_helmetItemInstance?.GetComponentInChildren<Light>();
                 if (light != null)

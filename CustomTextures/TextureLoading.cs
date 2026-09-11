@@ -112,15 +112,15 @@ namespace CustomTextures
             VisEquipment ve = (VisEquipment)typeof(Humanoid).GetField("m_visEquipment", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(humanoid);
             if (ve != null)
             {
-                SetEquipmentTexture(Traverse.Create(ve).Field("m_leftItem").GetValue<string>(), Traverse.Create(ve).Field("m_leftItemInstance").GetValue<GameObject>());
-                SetEquipmentTexture(Traverse.Create(ve).Field("m_rightItem").GetValue<string>(), Traverse.Create(ve).Field("m_rightItemInstance").GetValue<GameObject>());
-                SetEquipmentTexture(Traverse.Create(ve).Field("m_helmetItem").GetValue<string>(), Traverse.Create(ve).Field("m_helmetItemInstance").GetValue<GameObject>());
-                SetEquipmentTexture(Traverse.Create(ve).Field("m_leftBackItem").GetValue<string>(), Traverse.Create(ve).Field("m_leftBackItemInstance").GetValue<GameObject>());
-                SetEquipmentTexture(Traverse.Create(ve).Field("m_rightBackItem").GetValue<string>(), Traverse.Create(ve).Field("m_rightBackItemInstance").GetValue<GameObject>());
-                SetEquipmentListTexture(Traverse.Create(ve).Field("m_shoulderItem").GetValue<string>(), Traverse.Create(ve).Field("m_shoulderItemInstances").GetValue<List<GameObject>>());
-                SetEquipmentListTexture(Traverse.Create(ve).Field("m_utilityItem").GetValue<string>(), Traverse.Create(ve).Field("m_utilityItemInstances").GetValue<List<GameObject>>());
-                SetBodyEquipmentTexture(ve, Traverse.Create(ve).Field("m_legItem").GetValue<string>(), ve.m_bodyModel, Traverse.Create(ve).Field("m_legItemInstances").GetValue<List<GameObject>>());
-                SetBodyEquipmentTexture(ve, Traverse.Create(ve).Field("m_chestItem").GetValue<string>(), ve.m_bodyModel, Traverse.Create(ve).Field("m_chestItemInstances").GetValue<List<GameObject>>());
+                SetEquipmentTexture((int)AccessTools.Field(typeof(VisEquipment), "m_leftItem").GetValue(ve), Traverse.Create(ve).Field("m_leftItemInstance").GetValue<GameObject>());
+                SetEquipmentTexture((int)AccessTools.Field(typeof(VisEquipment), "m_rightItem").GetValue(ve), Traverse.Create(ve).Field("m_rightItemInstance").GetValue<GameObject>());
+                SetEquipmentTexture((int)AccessTools.Field(typeof(VisEquipment), "m_helmetItem").GetValue(ve), Traverse.Create(ve).Field("m_helmetItemInstance").GetValue<GameObject>());
+                SetEquipmentTexture((int)AccessTools.Field(typeof(VisEquipment), "m_leftBackItem").GetValue(ve), Traverse.Create(ve).Field("m_leftBackItemInstance").GetValue<GameObject>());
+                SetEquipmentTexture((int)AccessTools.Field(typeof(VisEquipment), "m_rightBackItem").GetValue(ve), Traverse.Create(ve).Field("m_rightBackItemInstance").GetValue<GameObject>());
+                SetEquipmentListTexture((int)AccessTools.Field(typeof(VisEquipment), "m_shoulderItem").GetValue(ve), Traverse.Create(ve).Field("m_shoulderItemInstances").GetValue<List<GameObject>>());
+                SetEquipmentListTexture((int)AccessTools.Field(typeof(VisEquipment), "m_utilityItem").GetValue(ve), Traverse.Create(ve).Field("m_utilityItemInstances").GetValue<List<GameObject>>());
+                SetBodyEquipmentTexture(ve, (int)AccessTools.Field(typeof(VisEquipment), "m_legItem").GetValue(ve), ve.m_bodyModel, Traverse.Create(ve).Field("m_legItemInstances").GetValue<List<GameObject>>());
+                SetBodyEquipmentTexture(ve, (int)AccessTools.Field(typeof(VisEquipment), "m_chestItem").GetValue(ve), ve.m_bodyModel, Traverse.Create(ve).Field("m_chestItemInstances").GetValue<List<GameObject>>());
             }
         }
     }

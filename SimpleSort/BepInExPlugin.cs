@@ -248,7 +248,7 @@ namespace SimpleSort
                 items[i].m_gridPos = new Vector2i(x, y);
                 idx++;
             }
-            Traverse.Create(inventory).Method("Changed").GetValue();
+            AccessTools.Method(typeof(Inventory), "Changed").Invoke(inventory, new object[] { false, false });
         }
 
 

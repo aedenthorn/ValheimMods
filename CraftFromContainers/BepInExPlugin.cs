@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "3.8.3")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "4.0.1")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static bool wasAllowed;
@@ -76,6 +76,9 @@ namespace CraftFromContainers
             if (isDebug.Value)
                 context.Logger.Log(BepInEx.Logging.LogLevel.Debug, (pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
         }
+
+
+
         public void Awake()
         {
 			context = this;
@@ -281,7 +284,7 @@ namespace CraftFromContainers
                 {
                     int amount = (int)Mathf.Min(__instance.m_maxFuel - Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)), inventory.CountItems(__instance.m_fuelItem.m_itemData.m_shared.m_name));
                     inventory.RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
-                    typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { });
+                    typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { false, false });
                     for (int i = 0; i < amount; i++)
                         ___m_nview.InvokeRPC("RPC_AddFuel", new object[] { });
 
@@ -697,15 +700,18 @@ namespace CraftFromContainers
             public static void Postfix(Player __instance, ref bool __result, Recipe piece, bool discover, int qualityLevel, HashSet<string> ___m_knownMaterial, int amount)
             { 
                 if (!modEnabled.Value || __result || discover || !AllowByKey())
+                {
                     return;
+                }
 
                 var leaveMod = leaveOne.Value ? 1 : 0;
 
                 List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
+                CraftingStation currentCraftingStation = __instance.GetCurrentCraftingStation();
 
                 foreach (Piece.Requirement requirement in piece.m_resources)
                 {
-                    if (requirement.m_resItem)
+                    if ((!(currentCraftingStation != null) || currentCraftingStation.m_upgrader == requirement.m_upgraderResource) && (!(currentCraftingStation == null) || !requirement.m_upgraderResource) && requirement.m_resItem)
                     {
                         int num = requirement.GetAmount(qualityLevel) * amount;
                         int invAmount = __instance.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name);
@@ -716,7 +722,9 @@ namespace CraftFromContainers
                                 invAmount += Math.Max(0, c.GetInventory().CountItems(requirement.m_resItem.m_itemData.m_shared.m_name) - leaveMod);
                             }
                             if (invAmount < num)
+                            {
                                 return;
+                            }
                         }
                     }
                 }
@@ -899,7 +907,7 @@ namespace CraftFromContainers
                                 Dbgl("Saving container");
                                 typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                                 Dbgl("Setting inventory changed");
-                                typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(cInventory, new object[] { });
+                                typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(cInventory, new object[] { false, false });
 
                                 if (totalAmount >= totalRequirement)
                                 {
@@ -1207,7 +1215,7 @@ namespace CraftFromContainers
                             }
                         }
                         c.GetType().GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                        cInventory.GetType().GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(cInventory, new object[] { });
+                        cInventory.GetType().GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(cInventory, new object[] { false, false });
 
                         if (totalAmount >= totalRequirement)
                         {

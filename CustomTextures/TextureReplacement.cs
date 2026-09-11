@@ -3,6 +3,7 @@ using HarmonyLib;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Policy;
 using UnityEngine;
 
 namespace CustomTextures
@@ -81,7 +82,6 @@ namespace CustomTextures
             {
                 if (gameObject == null || gameObject.name == "_NetSceneRoot")
                     continue;
-                }
                 ReplaceOneGameObjectTextures(gameObject, gameObject.name, "object");
             }
 
@@ -288,30 +288,35 @@ namespace CustomTextures
 
         }
 
-        public static void SetEquipmentTexture(string itemName, GameObject item)
+        public static void SetEquipmentTexture(int hash, GameObject item)
         {
-            if (item != null && itemName != null && itemName.Length > 0)
+            string itemName = ObjectDB.instance.GetItemPrefab(hash)?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_name;
+            if (item != null && !string.IsNullOrEmpty(itemName))
             {
                 ReplaceOneGameObjectTextures(item.gameObject, itemName, "object");
             }
         }
 
-        public static void SetEquipmentListTexture(string itemName, List<GameObject> items)
+        public static void SetEquipmentListTexture(int hash, List<GameObject> items)
         {
-            if (items != null && items.Any() && itemName != null && itemName.Length > 0)
+
+            if (items != null && items.Any())
             {
                 for (int i = 0; i < items.Count; i++)
                 {
                     if (items[i] == null)
                         continue;
-                    SetEquipmentTexture(itemName, items[i]);
+                    SetEquipmentTexture(hash, items[i]);
 
                 }
             }
         }
 
-        public static void SetBodyEquipmentTexture(VisEquipment instance, string itemName, SkinnedMeshRenderer smr, List<GameObject> itemInstances)
+        public static void SetBodyEquipmentTexture(VisEquipment instance, int hash, SkinnedMeshRenderer smr, List<GameObject> itemInstances)
         {
+            string itemName = ObjectDB.instance.GetItemPrefab(hash)?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_name;
+            if (string.IsNullOrEmpty(itemName))
+                return;
             if (smr != null)
                 ReplaceOneGameObjectTextures(smr.gameObject, itemName, "object");
             if (itemInstances != null)

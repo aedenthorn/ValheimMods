@@ -343,7 +343,7 @@ namespace EquipMultipleUtilityItems
         }
                     
 
-        [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int) })]
+        [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int), typeof(bool) })]
         public static class GetTooltip_Patch
         {
             public static void Postfix(ref ItemDrop.ItemData item, int qualityLevel, float worldLevel, ref string __result)

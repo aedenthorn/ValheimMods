@@ -9,6 +9,7 @@ using System.IO;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 namespace CustomControls
 {
@@ -338,7 +339,7 @@ namespace CustomControls
 
             Dictionary<string, ZInput.ButtonDef> m_buttons = AccessTools.FieldRefAccess<ZInput, Dictionary<string, ZInput.ButtonDef>>(zInput, "m_buttons");
             MethodInfo UnsubscribeButton = AccessTools.Method(typeof(ZInput), "UnsubscribeButton");
-            MethodInfo AddButton = AccessTools.Method(typeof(ZInput), "AddButton");
+            MethodInfo AddButton = AccessTools.Method(typeof(ZInput), "AddButton", new Type[] { typeof(string), typeof(string), typeof(bool), typeof(bool), typeof(bool), typeof(float), typeof(float) });
 
             using (var enumerator = customControls.GetEnumerator())
             {
@@ -402,7 +403,7 @@ namespace CustomControls
                 return true;
             }
         }
-        [HarmonyPatch(typeof(ZInput), "AddButton")]
+        [HarmonyPatch(typeof(ZInput), "AddButton", new Type[] { typeof(string), typeof(string), typeof(bool), typeof(bool), typeof(bool), typeof(float), typeof(float) })]
         public static class ZInput_AddButton_Patch
         {
             public static void Postfix(string name, string path, bool altKey, bool showHints, bool rebindable, float repeatDelay, float repeatInterval)
@@ -422,8 +423,8 @@ namespace CustomControls
                 }
             }
         }
-        [HarmonyPatch(typeof(ZInput), nameof(ZInput.ChangeLayout))]
-        public static class ZInput_ChangeLayout_Patch
+        [HarmonyPatch(typeof(ZInput), nameof(ZInput.ChangeInputLayout))]
+        public static class ZInput_ChangeInputLayout_Patch
         {
             public static void Postfix(ZInput __instance)
             {

@@ -75,7 +75,7 @@ namespace CustomItemInfoDisplay
             return true;
         }
 
-        [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[]{typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int) })]
+        [HarmonyPatch(typeof(ItemDrop.ItemData), "GetTooltip", new Type[]{typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int), typeof(bool) })]
         public static class GetTooltip_Patch
         {
             public static bool Prefix(ItemDrop.ItemData item, int qualityLevel, float worldLevel, bool crafting, ref string __result)

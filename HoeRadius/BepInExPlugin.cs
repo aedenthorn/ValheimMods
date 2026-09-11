@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HoeRadius
 {
-    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.4.2")]
+    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.5.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -142,34 +142,44 @@ namespace HoeRadius
             }
         }
 
-        [HarmonyPatch(typeof(TerrainOp), "Awake")]
-        public static class TerrainOp_Patch
+        [HarmonyPatch(typeof(TerrainComp), "InternalDoOperation")]
+        public static class TerrainComp_InternalDoOperation_Patch
         {
-            public static void Prefix(TerrainOp __instance)
+            public static void Prefix(ref TerrainOp.Settings modifier)
             {
                 if (!modEnabled.Value)
                     return;
-
-                if (__instance.m_settings.m_level)
+                TerrainOp.Settings settings = new TerrainOp.Settings();
+                if (modifier.m_level)
                 {
-                    __instance.m_settings.m_levelRadius += lastTotalDelta;
-                    Dbgl($"Applying level radius {__instance.m_settings.m_levelRadius}");
+                    settings.m_level = true;
+                    settings.m_levelRadius = modifier.m_levelRadius + lastTotalDelta;
+                    Dbgl($"Applying level radius {settings.m_levelRadius}");
                 }
-                if (__instance.m_settings.m_raise)
+                else if (modifier.m_raise)
                 {
-                    __instance.m_settings.m_raiseRadius += lastTotalDelta;
-                    Dbgl($"Applying raise radius {__instance.m_settings.m_raiseRadius}");
+                    settings.m_raise = true;
+                    settings.m_raiseRadius = modifier.m_raiseRadius + lastTotalDelta;
+                    Dbgl($"Applying raise radius {settings.m_raiseRadius}");
                 }
-                if (__instance.m_settings.m_smooth)
+                else if (modifier.m_smooth)
                 {
-                    __instance.m_settings.m_smoothRadius += lastTotalDelta;
-                    Dbgl($"Applying smooth radius {__instance.m_settings.m_smoothRadius}");
+                    settings.m_smooth = true;
+                    settings.m_smoothRadius = modifier.m_smoothRadius + lastTotalDelta;
+                    Dbgl($"Applying smooth radius {settings.m_smoothRadius}");
                 }
-                if (__instance.m_settings.m_paintCleared)
+                else if (modifier.m_paintCleared)
                 {
-                    __instance.m_settings.m_paintRadius += lastTotalDelta;
-                    Dbgl($"Applying paint radius {__instance.m_settings.m_paintRadius}");
+                    settings.m_paintCleared = true;
+                    settings.m_paintRadius = modifier.m_paintRadius + lastTotalDelta;
+                    Dbgl($"Applying paint radius {settings.m_paintRadius}");
                 }
+                else
+                {
+                    Dbgl($"No radius change applied");
+                    return;
+                }
+                modifier = settings;
             }
         }
     }
