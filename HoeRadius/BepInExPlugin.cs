@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HoeRadius
 {
-    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.5.0")]
+    [BepInPlugin("aedenthorn.HoeRadius", "Hoe Radius", "0.5.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
 
@@ -142,44 +142,35 @@ namespace HoeRadius
             }
         }
 
-        [HarmonyPatch(typeof(TerrainComp), "InternalDoOperation")]
-        public static class TerrainComp_InternalDoOperation_Patch
+        [HarmonyPatch(typeof(TerrainComp), "LevelTerrain")]
+        public static class TerrainComp_LevelTerrain_Patch
         {
-            public static void Prefix(ref TerrainOp.Settings modifier)
+            public static void Prefix(ref float radius)
             {
                 if (!modEnabled.Value)
                     return;
-                TerrainOp.Settings settings = new TerrainOp.Settings();
-                if (modifier.m_level)
-                {
-                    settings.m_level = true;
-                    settings.m_levelRadius = modifier.m_levelRadius + lastTotalDelta;
-                    Dbgl($"Applying level radius {settings.m_levelRadius}");
-                }
-                else if (modifier.m_raise)
-                {
-                    settings.m_raise = true;
-                    settings.m_raiseRadius = modifier.m_raiseRadius + lastTotalDelta;
-                    Dbgl($"Applying raise radius {settings.m_raiseRadius}");
-                }
-                else if (modifier.m_smooth)
-                {
-                    settings.m_smooth = true;
-                    settings.m_smoothRadius = modifier.m_smoothRadius + lastTotalDelta;
-                    Dbgl($"Applying smooth radius {settings.m_smoothRadius}");
-                }
-                else if (modifier.m_paintCleared)
-                {
-                    settings.m_paintCleared = true;
-                    settings.m_paintRadius = modifier.m_paintRadius + lastTotalDelta;
-                    Dbgl($"Applying paint radius {settings.m_paintRadius}");
-                }
-                else
-                {
-                    Dbgl($"No radius change applied");
+                radius += lastTotalDelta;
+            }
+        }
+
+        [HarmonyPatch(typeof(TerrainComp), "RaiseTerrain")]
+        public static class TerrainComp_RaiseTerrain_Patch
+        {
+            public static void Prefix(ref float radius)
+            {
+                if (!modEnabled.Value)
                     return;
-                }
-                modifier = settings;
+                radius += lastTotalDelta;
+            }
+        }
+        [HarmonyPatch(typeof(TerrainComp), "SmoothTerrain")]
+        public static class TerrainComp_SmoothTerrain_Patch
+        {
+            public static void Prefix(ref float radius)
+            {
+                if (!modEnabled.Value)
+                    return;
+                radius += lastTotalDelta;
             }
         }
     }

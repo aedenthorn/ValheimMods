@@ -7,7 +7,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CookingStationTweaks
 {
-    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.7.1")]
+    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.7.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -215,7 +215,7 @@ namespace CookingStationTweaks
                             if (autoPop.Value)
                             {
                                 Dbgl($"Popping {__instance.name} slot {i} {itemName}");
-                                Traverse.Create(__instance).Method("SpawnItem", new object[] { itemName, i, __instance.m_slots[i].position }).GetValue();
+                                AccessTools.Method(typeof(CookingStation), "SpawnItem").Invoke(__instance, new object[] { itemName, i, __instance.m_slots[i].position, false });
                                 ___m_nview.GetZDO().Set("slot" + i, "");
                                 ___m_nview.GetZDO().Set("slot" + i, 0f);
                                 ___m_nview.InvokeRPC(ZNetView.Everybody, "RPC_SetSlotVisual", new object[] { i, "" });

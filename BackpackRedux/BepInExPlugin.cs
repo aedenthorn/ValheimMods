@@ -13,7 +13,7 @@ using Debug = UnityEngine.Debug;
 
 namespace BackpackRedux
 {
-    [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.8.1")]
+    [BepInPlugin("aedenthorn.BackpackRedux", "Backpack Redux", "0.8.2")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
@@ -176,7 +176,7 @@ namespace BackpackRedux
                 if (!modEnabled.Value || !__result || __instance != Player.m_localPlayer || backpackInventory == null)
                     return;
 
-                if (!backpackInventory.IsTeleportable())
+                if (!backpackInventory.IsTeleportable(false))
                     __result = allowTeleportingMetal.Value;
             }
         }

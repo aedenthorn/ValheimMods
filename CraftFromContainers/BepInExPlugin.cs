@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "4.0.1")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "4.0.2")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static bool wasAllowed;
@@ -498,7 +498,7 @@ namespace CraftFromContainers
                         //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { });
 
                         for (int i = 0; i < amount; i++)
-                            ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name });
+                            ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name, item.m_cheated });
 
                         user.Message(MessageHud.MessageType.TopLeft, $"$msg_added {amount} {name}", 0, null);
                         if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre)
@@ -533,7 +533,7 @@ namespace CraftFromContainers
                             //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
 
                             for (int i = 0; i < amount; i++)
-                                ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name });
+                                ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name, item.m_cheated });
 
                             user.Message(MessageHud.MessageType.TopLeft, $"$msg_added {amount} {name}", 0, null);
 
@@ -620,7 +620,7 @@ namespace CraftFromContainers
 
                         c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
                         typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
-                        //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
+                        typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { false, false});
 
                         for (int i = 0; i < amount; i++)
                             ___m_nview.InvokeRPC("RPC_AddFuel", new object[] { });
