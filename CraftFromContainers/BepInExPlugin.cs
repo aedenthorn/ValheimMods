@@ -498,7 +498,7 @@ namespace CraftFromContainers
                         //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { });
 
                         for (int i = 0; i < amount; i++)
-                            ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name, item.m_cheated });
+                            ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name, newItem.m_cheated });
 
                         user.Message(MessageHud.MessageType.TopLeft, $"$msg_added {amount} {name}", 0, null);
                         if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre)
@@ -533,7 +533,7 @@ namespace CraftFromContainers
                             //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
 
                             for (int i = 0; i < amount; i++)
-                                ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name, item.m_cheated });
+                                ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name, newItem.m_cheated });
 
                             user.Message(MessageHud.MessageType.TopLeft, $"$msg_added {amount} {name}", 0, null);
 
