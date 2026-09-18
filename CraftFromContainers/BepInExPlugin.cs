@@ -837,17 +837,29 @@ namespace CraftFromContainers
         [HarmonyPatch(typeof(Player), "ConsumeResources")]
         public static class ConsumeResources_Patch
         {
-            public static bool Prefix(Player __instance, Piece.Requirement[] requirements, int qualityLevel, int multiplier)
+            public static bool Prefix(Player __instance, Piece.Requirement[] requirements, int qualityLevel, int itemQuality, int multiplier)
             {
                 if (!modEnabled.Value || !AllowByKey())
                     return true;
 
                 Inventory pInventory = __instance.GetInventory();
+                CraftingStation currentCraftingStation = __instance.GetCurrentCraftingStation();
                 List<Container> nearbyContainers = GetNearbyContainers(__instance.transform.position);
                 foreach (Piece.Requirement requirement in requirements)
                 {
                     if (requirement.m_resItem)
                     {
+                        // Valheim 1.0 added 'upgrader resources' (the Idols used by the Forge of
+                        // Potential). Player.ConsumeResources only consumes them when the current
+                        // crafting station is the upgrader; this replacement must skip them in every
+                        // other context too, otherwise ordinary crafting/upgrading at a workbench or
+                        // forge silently eats Idols (including from nearby containers).
+                        if (requirement.m_upgraderResource && (currentCraftingStation == null || !currentCraftingStation.m_upgrader))
+                        {
+                            Dbgl($"skipping upgrader resource {requirement.m_resItem.m_itemData.m_shared.m_name}");
+                            continue;
+                        }
+
                         int totalRequirement = requirement.GetAmount(qualityLevel) * multiplier;
                         if (totalRequirement <= 0)
                             continue;
@@ -855,7 +867,7 @@ namespace CraftFromContainers
                         string reqName = requirement.m_resItem.m_itemData.m_shared.m_name;
                         int totalAmount = pInventory.CountItems(reqName);
                         Dbgl($"have {totalAmount}/{totalRequirement} {reqName} in player inventory");
-                        pInventory.RemoveItem(reqName, Math.Min(totalAmount, totalRequirement));
+                        pInventory.RemoveItem(reqName, Math.Min(totalAmount, totalRequirement), itemQuality);
 
                         if (totalAmount < totalRequirement)
                         {
@@ -1138,6 +1150,16 @@ namespace CraftFromContainers
             {
                 if (requirement.m_resItem)
                 {
+                    // Same 1.0 rule as in ConsumeResources_Patch: never pull upgrader resources
+                    // (Idols) out of containers unless the player is actually at the upgrader.
+                    if (requirement.m_upgraderResource
+                        && (Player.m_localPlayer.GetCurrentCraftingStation() == null
+                            || !Player.m_localPlayer.GetCurrentCraftingStation().m_upgrader))
+                    {
+                        Dbgl($"skipping upgrader resource {requirement.m_resItem.m_itemData.m_shared.m_name}");
+                        continue;
+                    }
+
                     int totalRequirement = requirement.GetAmount(qualityLevel) * multiple;
                     if (totalRequirement <= 0)
                         continue;
