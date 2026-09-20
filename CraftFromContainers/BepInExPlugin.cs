@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "4.0.2")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "4.0.4")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static bool wasAllowed;
@@ -49,6 +49,9 @@ namespace CraftFromContainers
         public static ConfigEntry<bool> ignoreReinforcedChests;
 
         public static ConfigEntry<bool> modEnabled;
+        public static ConfigEntry<bool> pullFuel;
+        public static ConfigEntry<bool> pullOre;
+        public static ConfigEntry<bool> pullCooking;
         public static ConfigEntry<bool> isDebug;
         public static ConfigEntry<int> nexusID;
 
@@ -108,6 +111,9 @@ namespace CraftFromContainers
             pullItemsKey = Config.Bind<string>("Hot Keys", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             fillAllModKey = Config.Bind<string>("Hot Keys", "FillAllModKey", "left shift", "Modifier key to pull all available fuel or ore when down. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
 
+            pullFuel = Config.Bind<bool>("Container Types", "PullFuel", false, "If true, will pull fuel from containers.");
+            pullOre = Config.Bind<bool>("Container Types", "PullOre", false, "If true, will pull ore from containers.");
+            pullCooking = Config.Bind<bool>("Container Types", "PullCooking", false, "If true, will pull cooking ingredients from containers.");
             ignoreShipContainers = Config.Bind<bool>("Container Types", "IgnoreShipContainers", false, "If true, will ignore this type of container.");
             ignoreWagonContainers = Config.Bind<bool>("Container Types", "IgnoreWagonContainers", false, "If true, will ignore this type of container.");
             ignoreWoodChests = Config.Bind<bool>("Container Types", "IgnoreWoodChests", false, "If true, will ignore this type of container.");
@@ -271,7 +277,7 @@ namespace CraftFromContainers
                 __result = true;
                 bool pullAll = CheckKeyHeld(fillAllModKey.Value);
                 Inventory inventory = user.GetInventory();
-                if (!AllowByKey() || hold || inventory == null || (inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && !pullAll))
+                if (!AllowByKey() || !pullFuel.Value || hold || inventory == null || (inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && !pullAll))
                     return true;
 
                 if (!___m_nview.HasOwner())
@@ -346,7 +352,7 @@ namespace CraftFromContainers
             {
                 Dbgl($"looking for fuel");
 
-                if (!modEnabled.Value || !AllowByKey() || item != null || (float)__instance.GetType().GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { }) > (float)(__instance.m_maxFuel - 1) || user.GetInventory().HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name))
+                if (!modEnabled.Value || !pullFuel.Value || !AllowByKey() || item != null || (float)__instance.GetType().GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { }) > (float)(__instance.m_maxFuel - 1) || user.GetInventory().HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name))
                     return true;
 
                 Dbgl($"missing fuel in player inventory");
@@ -386,7 +392,7 @@ namespace CraftFromContainers
             {
                 Dbgl($"looking for cookable");
 
-                if (!modEnabled.Value || !AllowByKey() || __result != null || (__instance.m_requireFire && !(bool)typeof(CookingStation).GetMethod("IsFireLit", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) || ((int)typeof(CookingStation).GetMethod("GetFreeSlot", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) == -1)
+                if (!modEnabled.Value || !pullCooking.Value || !AllowByKey() || __result != null || (__instance.m_requireFire && !(bool)typeof(CookingStation).GetMethod("IsFireLit", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) || ((int)typeof(CookingStation).GetMethod("GetFreeSlot", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })) == -1)
                     return;
 
                 Dbgl($"missing cookable in player inventory");
@@ -424,7 +430,7 @@ namespace CraftFromContainers
         {
             public static void Postfix(Smelter __instance, ref string __result)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || !pullFuel.Value)
                     return;
 
                 if(fillAllModKey.Value?.Length > 0)
@@ -439,7 +445,7 @@ namespace CraftFromContainers
         {
             public static void Postfix(Smelter __instance, ref string __result)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || !pullOre.Value)
                     return;
 
                 if(fillAllModKey.Value?.Length > 0)
@@ -456,7 +462,7 @@ namespace CraftFromContainers
             public static bool Prefix(Smelter __instance, Humanoid user, ItemDrop.ItemData item, ZNetView ___m_nview)
             {
                 bool pullAll = CheckKeyHeld(fillAllModKey.Value);
-                if (!modEnabled.Value || (!AllowByKey() && !pullAll) || item != null || Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre)
+                if (!modEnabled.Value || !pullOre.Value || (!AllowByKey() && !pullAll) || item != null || (int)AccessTools.Method(typeof(Smelter), "GetQueueSize").Invoke(__instance, Array.Empty<object>()) >= __instance.m_maxOre)
                     return true;
 
                 Inventory inventory = user.GetInventory();
@@ -464,8 +470,14 @@ namespace CraftFromContainers
 
                 foreach (Smelter.ItemConversion itemConversion in __instance.m_conversion)
                 {
-                    if (inventory.HaveItem(itemConversion.m_from.m_itemData.m_shared.m_name) && !pullAll)
-                        return true;
+                    if (!(itemConversion.m_from == null))
+                    {
+                        ItemDrop.ItemData item2 = inventory.GetItem(itemConversion.m_from.m_itemData.m_shared.m_name, -1, false);
+                        if (item2 != null)
+                        {
+                            return true;
+                        }
+                    }
                 }
 
                 Dictionary<string, int> added = new Dictionary<string, int>();
@@ -474,7 +486,7 @@ namespace CraftFromContainers
                 
                 foreach (Smelter.ItemConversion itemConversion in __instance.m_conversion)
                 {
-                    if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre || (added.Any() && !pullAll))
+                    if ((int)AccessTools.Method(typeof(Smelter), "GetQueueSize").Invoke(__instance, Array.Empty<object>()) >= __instance.m_maxOre || (added.Any() && !pullAll))
                         break;
 
                     string name = itemConversion.m_from.m_itemData.m_shared.m_name;
@@ -488,7 +500,7 @@ namespace CraftFromContainers
                             continue;
                         }
 
-                        int amount = pullAll ? Mathf.Min(__instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>(), inventory.CountItems(name)) : 1;
+                        int amount = pullAll ? Mathf.Min(__instance.m_maxOre - (int)AccessTools.Method(typeof(Smelter), "GetQueueSize").Invoke(__instance, Array.Empty<object>()), inventory.CountItems(name)) : 1;
 
                         if (!added.ContainsKey(name))
                             added[name] = 0;
@@ -498,10 +510,10 @@ namespace CraftFromContainers
                         //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { });
 
                         for (int i = 0; i < amount; i++)
-                            ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name, item.m_cheated });
+                            ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name, newItem.m_cheated });
 
                         user.Message(MessageHud.MessageType.TopLeft, $"$msg_added {amount} {name}", 0, null);
-                        if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre)
+                        if ((int)AccessTools.Method(typeof(Smelter), "GetQueueSize").Invoke(__instance, Array.Empty<object>()) >= __instance.m_maxOre)
                             break;
                     }
 
@@ -515,7 +527,7 @@ namespace CraftFromContainers
                                 Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name} but it's forbidden by config");
                                 continue;
                             }
-                            int amount = pullAll ? (int)Mathf.Min(__instance.m_maxOre - Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>(), c.GetInventory().CountItems(name)) : 1;
+                            int amount = pullAll ? (int)Mathf.Min(__instance.m_maxOre - (int)AccessTools.Method(typeof(Smelter), "GetQueueSize").Invoke(__instance, Array.Empty<object>()), c.GetInventory().CountItems(name)) : 1;
 
                             if (amount > 0)
                                 amount -= leaveOne.Value ? 1 : 0;
@@ -533,18 +545,18 @@ namespace CraftFromContainers
                             //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
 
                             for (int i = 0; i < amount; i++)
-                                ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name, item.m_cheated });
+                                ___m_nview.InvokeRPC("RPC_AddOre", new object[] { newItem.m_dropPrefab.name, newItem.m_cheated });
 
                             user.Message(MessageHud.MessageType.TopLeft, $"$msg_added {amount} {name}", 0, null);
 
-                            if (Traverse.Create(__instance).Method("GetQueueSize").GetValue<int>() >= __instance.m_maxOre || !pullAll)
+                            if ((int)AccessTools.Method(typeof(Smelter), "GetQueueSize").Invoke(__instance, Array.Empty<object>()) >= __instance.m_maxOre || !pullAll)
                                 break; 
                         }
                     }
                 }
 
                 if (!added.Any())
-                    user.Message(MessageHud.MessageType.Center, "$msg_noprocessableitems", 0, null);
+                    user.Message(MessageHud.MessageType.Center, "$msg_noprocessableitems");
                 else
                 {
                     List<string> outAdded = new List<string>();
@@ -552,7 +564,7 @@ namespace CraftFromContainers
                     {
                         outAdded.Add($"$msg_added {kvp.Value} {kvp.Key}");
                     }
-                    user.Message(MessageHud.MessageType.Center, string.Join("\n", outAdded), 0, null);
+                    user.Message(MessageHud.MessageType.Center, string.Join("\n", outAdded));
                 }
 
                 return false;
@@ -567,7 +579,7 @@ namespace CraftFromContainers
             {
                 bool pullAll = CheckKeyHeld(fillAllModKey.Value);
                 Inventory inventory = user.GetInventory();
-                if (!modEnabled.Value || (!AllowByKey() && !pullAll)|| item != null || inventory == null || (inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && !pullAll))
+                if (!modEnabled.Value || !pullFuel.Value || (!AllowByKey() && !pullAll)|| item != null || inventory == null || (inventory.HaveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name) && !pullAll))
                     return true;
 
                 __result = true;
