@@ -244,6 +244,11 @@ namespace TorchMod
                         light.color = torchColor.Value;
                     light.range = torchRange.Value;
                     light.intensity = torchIntensity.Value;
+                    LightFlicker lf = __result.GetComponentInChildren<LightFlicker>();
+                    if(lf != null) {
+                        FieldInfo lfi = typeof(LightFlicker).GetField("m_baseIntensity", BindingFlags.NonPublic | BindingFlags.Instance);
+                        lfi.SetValue(lf, torchIntensity.Value);
+                    }
                     light.bounceIntensity = torchBounceIntensity.Value;
                     light.shadowStrength = torchShadowStrength.Value;
                     light.useColorTemperature = torchUseColorTemperature.Value;
@@ -274,6 +279,11 @@ namespace TorchMod
                     light.color = wispColor.Value;
                     light.range = wispRange.Value;
                     light.intensity = wispIntensity.Value;
+                    LightFlicker lfWisp = __instance.transform.parent?.GetComponentInChildren<LightFlicker>();
+                    if(lfWisp != null) {
+                        FieldInfo lfiWisp = typeof(LightFlicker).GetField("m_baseIntensity", BindingFlags.NonPublic | BindingFlags.Instance);
+                        lfiWisp.SetValue(lfWisp, wispIntensity.Value);
+                    }
                     light.bounceIntensity = wispBounceIntensity.Value;
                     light.shadowStrength = wispShadowStrength.Value;
                     light.useColorTemperature = wispUseColorTemperature.Value;
@@ -306,6 +316,11 @@ namespace TorchMod
                     light.color = helmetColor.Value;
                     light.range = helmetRange.Value;
                     light.intensity = helmetIntensity.Value;
+                    LightFlicker lfHelmet = ___m_helmetItemInstance?.GetComponentInChildren<LightFlicker>();
+                    if(lfHelmet != null) {
+                        FieldInfo lfiHelmet = typeof(LightFlicker).GetField("m_baseIntensity", BindingFlags.NonPublic | BindingFlags.Instance);
+                        lfiHelmet.SetValue(lfHelmet, helmetIntensity.Value);
+                    }
                     light.bounceIntensity = helmetBounceIntensity.Value;
                     light.shadowStrength = helmetShadowStrength.Value;
                     light.useColorTemperature = helmetUseColorTemperature.Value;
