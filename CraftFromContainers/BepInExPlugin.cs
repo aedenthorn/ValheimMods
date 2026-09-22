@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "4.0.5")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "4.0.6")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static bool wasAllowed;
@@ -111,9 +111,9 @@ namespace CraftFromContainers
             pullItemsKey = Config.Bind<string>("Hot Keys", "PullItemsKey", "left ctrl", "Holding down this key while crafting or building will pull resources into your inventory instead of building. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
             fillAllModKey = Config.Bind<string>("Hot Keys", "FillAllModKey", "left shift", "Modifier key to pull all available fuel or ore when down. Use https://docs.unity3d.com/Manual/ConventionalGameInput.html");
 
-            pullFuel = Config.Bind<bool>("Container Types", "PullFuel", false, "If true, will pull fuel from containers.");
-            pullOre = Config.Bind<bool>("Container Types", "PullOre", false, "If true, will pull ore from containers.");
-            pullCooking = Config.Bind<bool>("Container Types", "PullCooking", false, "If true, will pull cooking ingredients from containers.");
+            pullFuel = Config.Bind<bool>("Container Types", "EnablePullFuel", true, "If true, will pull fuel from containers.");
+            pullOre = Config.Bind<bool>("Container Types", "EnablePullOre", true, "If true, will pull ore from containers.");
+            pullCooking = Config.Bind<bool>("Container Types", "EnablePullCooking", true, "If true, will pull cooking ingredients from containers.");
             ignoreShipContainers = Config.Bind<bool>("Container Types", "IgnoreShipContainers", false, "If true, will ignore this type of container.");
             ignoreWagonContainers = Config.Bind<bool>("Container Types", "IgnoreWagonContainers", false, "If true, will ignore this type of container.");
             ignoreWoodChests = Config.Bind<bool>("Container Types", "IgnoreWoodChests", false, "If true, will ignore this type of container.");
