@@ -59,12 +59,12 @@ namespace BuildingRepair
         {
             if (!AedenthornUtils.IgnoreKeyPresses(true) && AedenthornUtils.CheckKeyDown(hotKey.Value)) 
             {
-                int count = repairPieces(repairRadius.Value);
+                int count = RepairPieces(repairRadius.Value);
                 Dbgl($"Repaired {count} pieces.");
             }
         }
 
-        public static int repairPieces(float radius)
+        public static int RepairPieces(float radius)
         {
             Player player = Player.m_localPlayer;
             if (!player)
@@ -80,7 +80,7 @@ namespace BuildingRepair
                     {
                         continue;
                     }
-                    if (requireCraftingStation.Value && !Traverse.Create(player).Method("CheckCanRemovePiece", new object[] { piece }).GetValue<bool>())
+                    if (requireCraftingStation.Value && !(bool)AccessTools.Method(typeof(Player), "CheckCanRemovePiece").Invoke(Player.m_localPlayer, new object[] { piece }))
                     {
                         continue;
                     }
@@ -117,7 +117,7 @@ namespace BuildingRepair
                 if (text.ToLower().Equals($"{typeof(BepInExPlugin).Namespace.ToLower()} repair"))
                 {
                     __instance.AddString(text);
-                    int count = repairPieces(repairRadius.Value);
+                    int count = RepairPieces(repairRadius.Value);
                     __instance.AddString($"{context.Info.Metadata.Name} repaired {count} pieces");
                     return false;
                 }
@@ -126,7 +126,7 @@ namespace BuildingRepair
                     __instance.AddString(text);
                     if (int.TryParse(text.Split(' ')[2], out int radius))
                     {
-                        int count = repairPieces(radius);
+                        int count = RepairPieces(radius);
                         __instance.AddString($"{context.Info.Metadata.Name} repaired {count} pieces");
                     }
                     else
