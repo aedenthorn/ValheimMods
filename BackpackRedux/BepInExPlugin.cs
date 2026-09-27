@@ -132,6 +132,9 @@ namespace BackpackRedux
             //AccessTools.FieldRefAccess<Inventory, Sprite>(backpackInventory, "m_bkg") = c.m_bkg;
             AccessTools.FieldRefAccess<Container, Inventory>(backpackContainer, "m_inventory") = backpackInventory;
             InventoryGui.instance.Show(backpackContainer);
+            // Show() does not mark a new container; when switching from an open chest the game would keep
+            // the chest's scroll layout (centered). Mark it like the game does after closing a container.
+            AccessTools.FieldRefAccess<InventoryGui, bool>(InventoryGui.instance, "m_firstContainerUpdate") = true;
 
         }
         public static void LoadBackpackInventory()
