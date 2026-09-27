@@ -32,6 +32,7 @@ namespace BackpackRedux
         public static ConfigEntry<bool> dropInventoryOnDeath;
         public static ConfigEntry<bool> createTombStone;
         public static ConfigEntry<bool> allowTeleportingMetal;
+        public static ConfigEntry<Vector2> backpackWindowSize;
 
         //public static GameObject backpack;
         public static Container backpackContainer;
@@ -61,6 +62,7 @@ namespace BackpackRedux
             backpackWeightMult = Config.Bind<float>("General", "BackpackWeightMult", 0.5f, "Multiplier for weight of items in backpack (set to 0 to disable backpack weight).");
             dropInventoryOnDeath = Config.Bind<bool>("General", "DropInventoryOnDeath", true, "Drop backpack inventory on death");
             createTombStone = Config.Bind<bool>("General", "CreateTombStone", true, "If DropInventoryOnDeath then create tombstone rather than just dropping inventory.");
+            backpackWindowSize = Config.Bind<Vector2>("UI", "BackpackWindowSize", new Vector2(0, 0), "Visible size of backpack window in slots (w,h). 0 = keep game default for that axis. Clamped to BackpackSize.");
 
             if (!modEnabled.Value)
                 return;
@@ -218,6 +220,120 @@ namespace BackpackRedux
                 }
             }
         }   
+
+        [HarmonyPatch(typeof(InventoryGui), "Update")]
+        public static class InventoryGui_Update_WindowSize_Patch
+        {
+            static bool resized;
+            static RectTransform resizedPanel;
+            static Vector2 origSize;
+            static Vector2 origPos;
+            static int origCols;
+            static int origRows;
+            static RectTransform scrollbar;
+            static Vector2 origBarSize;
+            static Vector2 origBarPos;
+            static Vector2 origBarOffset;
+            static float origBarHeight;
+
+            [HarmonyPriority(Priority.Last)]
+            public static void Postfix(InventoryGui __instance, Container ___m_currentContainer)
+            {
+                RectTransform panel = __instance.m_container;
+                InventoryGrid grid = __instance.ContainerGrid;
+                if (panel == null || grid == null)
+                    return;
+                if (panel != resizedPanel)
+                    resized = false; // new InventoryGui instance (e.g. after relog), stored layout is stale
+
+                Vector2 window = backpackWindowSize.Value;
+                bool apply = modEnabled.Value && backpackContainer != null && ___m_currentContainer == backpackContainer
+                    && backpackInventory != null && panel.gameObject.activeSelf && (window.x > 0 || window.y > 0);
+                if (!apply)
+                {
+                    Restore(panel, grid);
+                    return;
+                }
+
+                float space = grid.m_elementSpace;
+                RectTransform gridRect = grid.transform as RectTransform;
+                bool first = !resized;
+                if (first)
+                {
+                    // Game layout before any change: panel size/position and how many slots the grid view shows.
+                    origSize = panel.sizeDelta;
+                    origPos = panel.anchoredPosition;
+                    origCols = Mathf.RoundToInt(gridRect.rect.width / space);
+                    origRows = Mathf.RoundToInt(gridRect.rect.height / space);
+                    scrollbar = grid.m_scrollbar != null ? grid.m_scrollbar.transform as RectTransform : null;
+                    if (scrollbar != null)
+                    {
+                        origBarSize = scrollbar.sizeDelta;
+                        origBarPos = scrollbar.anchoredPosition;
+                        Rect bar = RectIn(scrollbar, scrollbar.parent);
+                        origBarOffset = TopLeft(bar) - TopLeft(RectIn(panel, scrollbar.parent));
+                        origBarHeight = bar.height;
+                    }
+                }
+
+                int cols = window.x > 0 ? Mathf.Min((int)window.x, backpackInventory.GetWidth()) : origCols;
+                int rows = window.y > 0 ? Mathf.Min((int)window.y, backpackInventory.GetHeight()) : origRows;
+                Vector2 delta = new Vector2((cols - origCols) * space, (rows - origRows) * space);
+
+                // Grow right and down: keep top-left corner where the game (or ExtraSlots via pivot) placed it.
+                Vector2 pivot = panel.pivot;
+                panel.sizeDelta = origSize + delta;
+                panel.anchoredPosition = origPos + new Vector2(pivot.x * delta.x, -(1f - pivot.y) * delta.y);
+                resized = true;
+                resizedPanel = panel;
+                FitScrollbar(panel, delta);
+
+                if (first)
+                    grid.ResetView();
+            }
+
+            static void Restore(RectTransform panel, InventoryGrid grid)
+            {
+                if (!resized)
+                    return;
+                panel.sizeDelta = origSize;
+                panel.anchoredPosition = origPos;
+                if (scrollbar != null)
+                {
+                    scrollbar.sizeDelta = origBarSize;
+                    scrollbar.anchoredPosition = origBarPos;
+                }
+                resized = false;
+                if (panel.gameObject.activeSelf)
+                    grid.ResetView();
+            }
+
+            // The scrollbar does not stretch with the window: grow it by the window height delta,
+            // keep its top edge and follow the right side when the window gets wider.
+            static void FitScrollbar(RectTransform panel, Vector2 delta)
+            {
+                if (scrollbar == null)
+                    return;
+                scrollbar.sizeDelta = origBarSize;
+                scrollbar.anchoredPosition = origBarPos;
+                float missing = origBarHeight + delta.y - RectIn(scrollbar, scrollbar.parent).height;
+                scrollbar.sizeDelta = origBarSize + new Vector2(0f, missing);
+                Vector2 wanted = origBarOffset + new Vector2(delta.x, 0f);
+                Vector2 current = TopLeft(RectIn(scrollbar, scrollbar.parent)) - TopLeft(RectIn(panel, scrollbar.parent));
+                scrollbar.anchoredPosition = origBarPos + (wanted - current);
+            }
+
+            static Rect RectIn(RectTransform rt, Transform space)
+            {
+                Vector3[] corners = new Vector3[4];
+                rt.GetWorldCorners(corners);
+                Vector2 min = space.InverseTransformPoint(corners[0]);
+                Vector2 max = space.InverseTransformPoint(corners[2]);
+                return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+            }
+
+            static Vector2 TopLeft(Rect r) => new Vector2(r.xMin, r.yMax);
+        }
 
         [HarmonyPatch(typeof(Inventory), "GetTotalWeight")]
         [HarmonyPriority(Priority.Last)]
