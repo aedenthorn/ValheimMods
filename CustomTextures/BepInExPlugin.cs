@@ -2,10 +2,12 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -20,6 +22,9 @@ namespace CustomTextures
         public static ConfigEntry<bool> reloadLocationTextures;
         public static ConfigEntry<string> hotKey;
         public static ConfigEntry<int> nexusID;
+        public static ConfigEntry<float> emissionIntensity;
+
+        public static readonly Regex CreatureLevelSuffixRegex = new Regex(@"^_creaturelevel\d+$", RegexOptions.Compiled);
 
         public static readonly bool isDebug = true;
         public static BepInExPlugin context;
@@ -47,6 +52,7 @@ namespace CustomTextures
             replaceLocationTextures = Config.Bind<bool>("General", "ReplaceLocationTextures", true, "Replace textures for special locations (can take a long time)");
             reloadLocationTextures = Config.Bind<bool>("General", "ReloadLocationTextures", false, "Reload textures for special locations on manual reload (can take a long time)");
             dumpSceneTextures = Config.Bind<bool>("General", "DumpSceneTextures", false, "Dump scene textures to BepInEx/plugins/CustomTextures/scene_dump.txt");
+            emissionIntensity = Config.Bind<float>("General", "EmissionIntensity", 1f, "Multiplier for _EmissionColor when a custom emission map is applied");
             nexusID = Config.Bind<int>("General", "NexusID", 2796, "Nexus mod ID for updates");
 
             if (!modEnabled.Value)
@@ -94,11 +100,96 @@ namespace CustomTextures
 
         public static bool HasCustomTexture(string id)
         {
-            return customTextures.ContainsKey(id) || customTextures.Keys.ToList().Exists(p => p.StartsWith(id));
+            if (string.IsNullOrEmpty(id))
+                return false;
+            if (customTextures.ContainsKey(id))
+                return true;
+            string prefix = id + "_";
+            return customTextures.Keys.Any(p => p.StartsWith(prefix));
         }
         public static bool ShouldLoadCustomTexture(string id)
         {
-            return texturesToLoad.Contains(id) || layersToLoad.Contains(id);
+            return HasCustomTexture(id) || texturesToLoad.Contains(id) || layersToLoad.Contains(id);
+        }
+        public static bool IsCreatureLevelVariantKey(string key, string id)
+        {
+            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(id) || key.Length <= id.Length || !key.StartsWith(id))
+                return false;
+            return CreatureLevelSuffixRegex.IsMatch(key.Substring(id.Length));
+        }
+        public static bool HasLoadableCustomTexture(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                return false;
+            if (customTextures.ContainsKey(id))
+                return true;
+            string prefix = id + "_";
+            return customTextures.Keys.Any(p => p.StartsWith(prefix) && !IsCreatureLevelVariantKey(p, id));
+        }
+        public static bool ShouldApplyCustomTexture(string id, int? creatureLevel)
+        {
+            if (HasLoadableCustomTexture(id))
+                return true;
+            if (creatureLevel.HasValue && creatureLevel.Value > 0 && customTextures.ContainsKey(id + "_creaturelevel" + creatureLevel.Value))
+                return true;
+            return false;
+        }
+        public static string ResolveTextureId(string id, int? creatureLevel)
+        {
+            if (creatureLevel.HasValue && creatureLevel.Value > 0)
+            {
+                string leveled = id + "_creaturelevel" + creatureLevel.Value;
+                if (customTextures.ContainsKey(leveled))
+                    return leveled;
+            }
+            return id;
+        }
+        public static int? GetLiveCreatureLevel(GameObject go)
+        {
+            if (go == null)
+                return null;
+            Character character = go.GetComponent<Character>();
+            if (character == null)
+                character = go.GetComponentInParent<Character>();
+            if (character == null || character is Player)
+                return null;
+            ZNetView nview = character.GetComponent<ZNetView>();
+            if (nview == null || !nview.IsValid())
+                return null;
+            return character.GetLevel();
+        }
+        public static void ApplyCharacterTextures(Character character)
+        {
+            ApplyCharacterTextures(character, false);
+        }
+        public static void ApplyCharacterTextures(Character character, bool delayed)
+        {
+            if (!modEnabled.Value || character == null || character is Player)
+                return;
+            ZNetView nview = character.GetComponent<ZNetView>();
+            if (nview == null || !nview.IsValid())
+            {
+                if (!delayed && character.isActiveAndEnabled)
+                    character.StartCoroutine(ApplyCharacterTexturesDelayed(character));
+                return;
+            }
+            ReplaceOneGameObjectTextures(character.gameObject, character.gameObject.name, "object", character.GetLevel(), true);
+        }
+        public static IEnumerator ApplyCharacterTexturesDelayed(Character character)
+        {
+            yield return null;
+            ApplyCharacterTextures(character, true);
+        }
+        public static void TryReloadStage(string name, Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                Dbgl($"Error during {name}: {ex}");
+            }
         }
 
         [HarmonyPatch(typeof(Terminal), "InputText")]

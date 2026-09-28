@@ -3,18 +3,28 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
 
 namespace CustomTextures
 {
     public partial class BepInExPlugin : BaseUnityPlugin
     {
-        public static void ReplaceOneGameObjectTextures(GameObject gameObject, string thingName, string prefix)
+        public static void ReplaceOneGameObjectTextures(GameObject gameObject, string thingName, string prefix, int? creatureLevel = null, bool force = false)
         {
-            if (reloadedObjects.Contains(gameObject.GetInstanceID()))
+            if (gameObject == null)
                 return;
 
-            reloadedObjects.Add(gameObject.GetInstanceID());
+            int instanceId = gameObject.GetInstanceID();
+            if (!force && reloadedObjects.Contains(instanceId))
+                return;
+
+            if (!reloadedObjects.Contains(instanceId))
+                reloadedObjects.Add(instanceId);
+
+            if (!creatureLevel.HasValue)
+                creatureLevel = GetLiveCreatureLevel(gameObject);
             if (thingName.Contains("_frac"))
             {
                 if(dumpSceneTextures.Value)
@@ -70,7 +80,7 @@ namespace CustomTextures
                             if (dump)
                                 outputDump.Add($"\t\t\t{m.name}:");
 
-                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "MeshRenderer", r.name, dump);
+                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "MeshRenderer", r.name, dump, creatureLevel);
                         }
                         catch (Exception ex)
                         {
@@ -114,7 +124,7 @@ namespace CustomTextures
                             if (dump)
                                 outputDump.Add($"\t\t\t{m.name}:");
 
-                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "SkinnedMeshRenderer", r.name, dump);
+                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "SkinnedMeshRenderer", r.name, dump, creatureLevel);
                         }
                         catch (Exception ex)
                         {
@@ -151,7 +161,7 @@ namespace CustomTextures
                         if (dump)
                             outputDump.Add($"\t\t\t{r.m_material.name}:");
 
-                        ReplaceMaterialTextures(gameObject.name, r.m_material, thingName, prefix, "InstanceRenderer", r.name, dump);
+                        ReplaceMaterialTextures(gameObject.name, r.m_material, thingName, prefix, "InstanceRenderer", r.name, dump, creatureLevel);
                     }
                     catch (Exception ex)
                     {
@@ -184,7 +194,7 @@ namespace CustomTextures
                             if (dump)
                                 outputDump.Add($"\t\t\t{m.name}:");
 
-                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "ParticleSystemRenderer", r.name, dump);
+                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "ParticleSystemRenderer", r.name, dump, creatureLevel);
                         }
                         catch (Exception ex)
                         {
@@ -218,7 +228,7 @@ namespace CustomTextures
                             if (dump)
                                 outputDump.Add($"\t\t\t{m.name}:");
 
-                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "LineRenderer", r.name, dump);
+                            ReplaceMaterialTextures(gameObject.name, m, thingName, prefix, "LineRenderer", r.name, dump, creatureLevel);
                         }
                         catch (Exception ex)
                         {
@@ -239,13 +249,13 @@ namespace CustomTextures
                     if (dump)
                         outputDump.Add($"\tArmor name: {m.name}");
 
-                    ReplaceMaterialTextures(gameObject.name, m, thingName, "armor", "Armor", gameObject.name, dump);
+                    ReplaceMaterialTextures(gameObject.name, m, thingName, "armor", "Armor", gameObject.name, dump, creatureLevel);
                 }
             }
             //LogStopwatch("OneObject");
         }
 
-        public static void ReplaceMaterialTextures(string goName, Material m, string thingName, string prefix, string rendererType, string rendererName, bool dump)
+        public static void ReplaceMaterialTextures(string goName, Material m, string thingName, string prefix, string rendererType, string rendererName, bool dump, int? creatureLevel = null)
         {
             if (m == null)
                 return;
@@ -255,6 +265,10 @@ namespace CustomTextures
 
             if (prefix == "item")
                 prefix = "object";
+
+            string mainTexName = null;
+            if (m.HasProperty("_MainTex"))
+                mainTexName = m.GetTexture("_MainTex")?.name;
 
             foreach (string property in m.GetTexturePropertyNames())
             {
@@ -268,38 +282,40 @@ namespace CustomTextures
                 if (name == null)
                     name = thingName;
 
-                CheckSetMatTextures(goName, m, prefix, thingName, rendererType, rendererName, name, property);
+                CheckSetMatTextures(goName, m, prefix, thingName, rendererType, rendererName, name, property, creatureLevel, mainTexName);
 
             }
         }
 
-        public static void CheckSetMatTextures(string goName, Material m, string prefix, string thingName, string rendererType, string rendererName, string name, string property)
+        public static void CheckSetMatTextures(string goName, Material m, string prefix, string thingName, string rendererType, string rendererName, string name, string property, int? creatureLevel = null, string mainTexName = null)
         {
-            foreach (string str in MakePrefixStrings(prefix, thingName, rendererName, m.name, name))
+            foreach (string str in MakePrefixStrings(prefix, thingName, rendererName, m.name, name, mainTexName))
             {
-                if (!ShouldLoadCustomTexture(str + property))
+                string texId = str + property;
+                string legacyId = null;
+                if (property == "_MainTex")
+                    legacyId = str + "_texture";
+                else if (property == "_BumpMap")
+                    legacyId = str + "_bump";
+                else if (property == "_StyleTex")
+                    legacyId = str + "_style";
+
+                bool match = ShouldApplyCustomTexture(texId, creatureLevel);
+                bool legacy = legacyId != null && ShouldApplyCustomTexture(legacyId, creatureLevel);
+                if (!match && !legacy)
                     continue;
 
                 int propHash = Shader.PropertyToID(property);
                 if (m.HasProperty(propHash))
                 {
-                    Dbgl($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {str}{property} for {property}.");
+                    string usedId = match ? texId : legacyId;
+                    Dbgl($"{prefix} {thingName}, {rendererType} {rendererName}, material {m.name}, texture {name}, using {usedId} for {property}.");
 
                     Texture vanilla = m.GetTexture(propHash);
 
-                    Texture2D result = null;
-
                     bool isBump = property.Contains("Bump") || property.Contains("Normal");
 
-
-                    if (ShouldLoadCustomTexture(str + property))
-                        result = LoadTexture(str+property, vanilla, isBump);
-                    else if (property == "_MainTex" && ShouldLoadCustomTexture(str + "_texture"))
-                        result = LoadTexture(str + "_texture", vanilla, isBump);
-                    else if (property == "_BumpMap" && ShouldLoadCustomTexture(str + "_bump"))
-                        result = LoadTexture(str + "_bump", vanilla, isBump);
-                    else if (property == "_StyleTex" && ShouldLoadCustomTexture(str + "_style"))
-                        result = LoadTexture(str + "_style", vanilla, isBump);
+                    Texture2D result = LoadTexture(usedId, vanilla, isBump, true, true, false, creatureLevel);
 
                     if (result == null)
                         continue;
@@ -307,16 +323,48 @@ namespace CustomTextures
                     result.name = name;
 
                     m.SetTexture(propHash, result);
-                    if (result != null && property == "_MainTex")
-                        m.SetColor(propHash, Color.white);
+                    if (property == "_MainTex" && m.HasProperty("_Color"))
+                        m.SetColor("_Color", Color.white);
+                    if (property == "_EmissionMap" || property == "_EmissiveTex")
+                        ApplyEmission(m);
                     break;
                 }
             }
         }
 
-        public static string[] MakePrefixStrings(string prefix, string thingName, string rendererName, string matName, string name)
+        public static void ApplyEmission(Material m)
         {
-            var outstrings = new string[]
+            if (m == null)
+                return;
+            if (m.HasProperty("_EmissionColor"))
+                m.SetColor("_EmissionColor", Color.white * emissionIntensity.Value);
+            m.EnableKeyword("_EMISSION");
+        }
+
+        public static string[] MakePrefixStrings(string prefix, string thingName, string rendererName, string matName, string name, string mainTexName = null)
+        {
+            List<string> names = new List<string>();
+            if (!string.IsNullOrEmpty(name))
+                names.Add(name);
+            if (!string.IsNullOrEmpty(mainTexName) && mainTexName != name)
+                names.Add(mainTexName);
+
+            List<string> prefixes = new List<string>();
+            foreach (string n in names)
+            {
+                prefixes.AddRange(MakePrefixStringsForName(prefix, thingName, rendererName, matName, n));
+                if (thingName.EndsWith("(Clone)"))
+                {
+                    string trimmed = thingName.Substring(0, thingName.Length - "(Clone)".Length);
+                    prefixes.AddRange(MakePrefixStringsForName(prefix, trimmed, rendererName, matName, n));
+                }
+            }
+            return prefixes.Distinct().ToArray();
+        }
+
+        public static string[] MakePrefixStringsForName(string prefix, string thingName, string rendererName, string matName, string name)
+        {
+            return new string[]
             {
                 prefix+"_"+thingName,
                 prefix+"mesh_"+thingName+"_"+rendererName,
@@ -329,31 +377,65 @@ namespace CustomTextures
                 "mat_"+matName,
                 "texture_"+name
             };
-            if (!thingName.EndsWith("(Clone)"))
-                return outstrings;
-            
-            List<string> strings = new List<string>(outstrings);
-            thingName = thingName.Substring(0, thingName.Length - "(Clone)".Length);
-            strings.AddRange(new string[]
+        }
+
+        public static Action<Texture2D, byte[]> loadPng;
+
+        public static void LoadPng(Texture2D texture, byte[] data)
+        {
+            if (loadPng == null)
+                loadPng = CreateLoadPng();
+            loadPng(texture, data);
+        }
+
+        public static Action<Texture2D, byte[]> CreateLoadPng()
+        {
+            MethodInfo byteArrayMethod = null;
+            MethodInfo spanMethod = null;
+            Type spanParam = null;
+            foreach (MethodInfo method in typeof(ImageConversion).GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
-                prefix+"_"+thingName,
-                prefix+"mesh_"+thingName+"_"+rendererName,
-                prefix+"renderer_"+thingName+"_"+rendererName,
-                prefix+"mat_"+thingName+"_"+matName,
-                prefix+"renderermat_"+thingName+"_"+rendererName+"_"+matName,
-                prefix+"texture_"+thingName+"_"+name,
-                "mesh_"+rendererName,
-                "renderer_"+rendererName,
-                "mat_"+matName,
-                "texture_"+name
-            });
-            return strings.ToArray();
+                if (method.Name != "LoadImage")
+                    continue;
+                ParameterInfo[] parameters = method.GetParameters();
+                if (parameters.Length != 3 || parameters[0].ParameterType != typeof(Texture2D) || parameters[2].ParameterType != typeof(bool))
+                    continue;
+                if (parameters[1].ParameterType == typeof(byte[]))
+                    byteArrayMethod = method;
+                else
+                {
+                    spanMethod = method;
+                    spanParam = parameters[1].ParameterType;
+                }
+            }
+            if (byteArrayMethod != null)
+            {
+                return (tex, bytes) => byteArrayMethod.Invoke(null, new object[] { tex, bytes, false });
+            }
+            if (spanMethod == null || spanParam == null)
+                throw new MissingMethodException("ImageConversion.LoadImage");
+
+            MethodInfo implicitConv = spanParam.GetMethod("op_Implicit", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]) }, null);
+            if (implicitConv == null)
+                throw new MissingMethodException("ReadOnlySpan<byte>.op_Implicit");
+
+            DynamicMethod dynamicMethod = new DynamicMethod("LoadPng", typeof(void), new[] { typeof(Texture2D), typeof(byte[]) }, typeof(BepInExPlugin).Module, true);
+            ILGenerator il = dynamicMethod.GetILGenerator();
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldarg_1);
+            il.Emit(OpCodes.Call, implicitConv);
+            il.Emit(OpCodes.Ldc_I4_0);
+            il.Emit(OpCodes.Call, spanMethod);
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Ret);
+            return (Action<Texture2D, byte[]>)dynamicMethod.CreateDelegate(typeof(Action<Texture2D, byte[]>));
         }
 
 
-        public static Texture2D LoadTexture(string id, Texture vanilla, bool isBump, bool point = true, bool needCustom = false, bool isSprite = false)
+        public static Texture2D LoadTexture(string id, Texture vanilla, bool isBump, bool point = true, bool needCustom = false, bool isSprite = false, int? creatureLevel = null)
         {
             Texture2D texture;
+            id = ResolveTextureId(id, creatureLevel);
             if (cachedTextures.ContainsKey(id))
             {
                 logDump.Add($"loading cached texture for {id}");
@@ -378,7 +460,7 @@ namespace CustomTextures
                 return texture;
             }
 
-            var layers = customTextures.Where(p => p.Key.StartsWith(id+"_"));
+            var layers = customTextures.Where(p => p.Key.StartsWith(id+"_") && !IsCreatureLevelVariantKey(p.Key, id));
 
             if (!customTextures.ContainsKey(id) && layers.Count() == 0)
             {
@@ -396,7 +478,7 @@ namespace CustomTextures
                 if (!customTextures.ContainsKey(id))
                 {
                     byte[] layerData = File.ReadAllBytes(layers.First().Value);
-                    texture.LoadImage(layerData);
+                    LoadPng(texture, layerData);
                 }
             }
             else
@@ -426,7 +508,7 @@ namespace CustomTextures
             {
                 logDump.Add($"loading custom texture file for {id}");
                 byte[] imageData = File.ReadAllBytes(customTextures[id]);
-                texture.LoadImage(imageData);
+                LoadPng(texture, imageData);
             }
             else if (vanilla != null)
             {
@@ -478,7 +560,7 @@ namespace CustomTextures
                     Texture2D layerTex = new Texture2D(2, 2, TextureFormat.RGBA32, true, isBump);
                     layerTex.filterMode = isSprite ? FilterMode.Bilinear : FilterMode.Point;
                     byte[] layerData = File.ReadAllBytes(layer.Value);
-                    layerTex.LoadImage(layerData);
+                    LoadPng(layerTex, layerData);
 
                     int layerx = 0;
                     int layery = 0;
