@@ -2,8 +2,6 @@
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Security.Policy;
 using UnityEngine;
 
 namespace CustomTextures
@@ -15,6 +13,8 @@ namespace CustomTextures
         {
             logDump.Clear();
             ObjectDB objectDB = ObjectDB.instance;
+            if (objectDB == null || objectDB.m_items == null)
+                return;
 
             Texture2D vanilla = null;
             foreach(var go in objectDB.m_items)
@@ -61,19 +61,31 @@ namespace CustomTextures
         {
             logDump.Clear();
 
+            if (ZNetScene.instance == null)
+                return;
+
             List<GameObject> gos = new List<GameObject>();
 
-            foreach (ClutterSystem.Clutter clutter in ClutterSystem.instance.m_clutter)
+            if (ClutterSystem.instance != null && ClutterSystem.instance.m_clutter != null)
             {
-                if (!gos.Contains(clutter.m_prefab))
-                    gos.Add(clutter.m_prefab);
+                foreach (ClutterSystem.Clutter clutter in ClutterSystem.instance.m_clutter)
+                {
+                    if (clutter?.m_prefab != null && !gos.Contains(clutter.m_prefab))
+                        gos.Add(clutter.m_prefab);
+                }
             }
 
-            var namedPrefabs = ((Dictionary<int, GameObject>)AccessTools.Field(typeof(ZNetScene), "m_namedPrefabs").GetValue(ZNetScene.instance)).Values;
-            foreach (GameObject go in namedPrefabs)
+            var namedPrefabsField = AccessTools.Field(typeof(ZNetScene), "m_namedPrefabs");
+            var namedPrefabs = namedPrefabsField != null
+                ? ((Dictionary<int, GameObject>)namedPrefabsField.GetValue(ZNetScene.instance))?.Values
+                : null;
+            if (namedPrefabs != null)
             {
-                if (go != null && !gos.Contains(go))
-                    gos.Add(go);
+                foreach (GameObject go in namedPrefabs)
+                {
+                    if (go != null && !gos.Contains(go))
+                        gos.Add(go);
+                }
             }
 
             Dbgl($"Checking {gos.Count} prefabs");
@@ -113,6 +125,8 @@ namespace CustomTextures
             objects.AddRange(ids);
             foreach (var r in objects)
             {
+                if (r == null)
+                    continue;
                 var t = r.transform;
                 var go = r.gameObject;
                 while (t.parent != null)
@@ -168,6 +182,8 @@ namespace CustomTextures
         }
         public static void ReplaceZoneSystemTextures(ZoneSystem __instance)
         {
+            if (__instance == null || __instance.m_zonePrefab == null)
+                return;
 
             Dbgl($"Reloading ZoneSystem textures {__instance.name} {__instance.m_zonePrefab.name}");
 
@@ -176,6 +192,9 @@ namespace CustomTextures
 
         public static void ReplaceOneZoneTextures(string zoneSystem, GameObject prefab)
         {
+            if (prefab == null)
+                return;
+
             ReplaceOneGameObjectTextures(prefab, zoneSystem, "zone");
 
             Heightmap hm = prefab.transform.Find("Terrain")?.GetComponent<Heightmap>();
@@ -234,11 +253,19 @@ namespace CustomTextures
 
             Dbgl($"Reloading Heightmap textures for {Heightmap.GetAllHeightmaps().Count} heightmaps");
 
-            ZoneSystem zoneSystem = (ZoneSystem)typeof(ZoneSystem).GetField("m_instance", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+            ZoneSystem zoneSystem = ZoneSystem.instance;
+            if (zoneSystem == null)
+                return;
 
             logDump.Clear();
 
-            Heightmap hm = (Heightmap)typeof(EnvMan).GetField("m_cachedHeightmap", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(EnvMan.instance);
+            Heightmap hm = null;
+            if (EnvMan.instance != null)
+            {
+                var cachedField = AccessTools.Field(typeof(EnvMan), "m_cachedHeightmap");
+                if (cachedField != null)
+                    hm = cachedField.GetValue(EnvMan.instance) as Heightmap;
+            }
             if(hm != null)
             {
                 Material mat = hm.m_material;
@@ -290,6 +317,8 @@ namespace CustomTextures
 
         public static void SetEquipmentTexture(int hash, GameObject item)
         {
+            if (ObjectDB.instance == null)
+                return;
             string itemName = ObjectDB.instance.GetItemPrefab(hash)?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_name;
             if (item != null && !string.IsNullOrEmpty(itemName))
             {
@@ -314,6 +343,8 @@ namespace CustomTextures
 
         public static void SetBodyEquipmentTexture(VisEquipment instance, int hash, SkinnedMeshRenderer smr, List<GameObject> itemInstances)
         {
+            if (ObjectDB.instance == null)
+                return;
             string itemName = ObjectDB.instance.GetItemPrefab(hash)?.GetComponent<ItemDrop>()?.m_itemData?.m_shared?.m_name;
             if (string.IsNullOrEmpty(itemName))
                 return;

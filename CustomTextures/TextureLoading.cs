@@ -52,45 +52,53 @@ namespace CustomTextures
             outputDump.Clear();
             logDump.Clear();
 
-            LoadCustomTextures();
-
-            //Dbgl($"textures to load \n\n{string.Join("\n", texturesToLoad)}");
-
-            ReplaceObjectDBTextures();
-            ReplaceSceneObjects();
+            TryReloadStage("LoadCustomTextures", LoadCustomTextures);
+            TryReloadStage("ReplaceObjectDBTextures", ReplaceObjectDBTextures);
+            TryReloadStage("ReplaceSceneObjects", ReplaceSceneObjects);
 
             Dbgl($"Replaced textures for {reloadedObjects.Count()} found unique objects");
 
-            var zones = SceneManager.GetActiveScene().GetRootGameObjects().Where(go => go.name.StartsWith("_Zone"));
-
-            Dbgl($"Replacing textures for {zones.Count()} zones");
-            foreach (var go in zones)
+            TryReloadStage("ReplaceZoneObjects", () =>
             {
-                ReplaceOneZoneTextures("_GameMain", go);
-            }
+                var zones = SceneManager.GetActiveScene().GetRootGameObjects().Where(go => go != null && go.name.StartsWith("_Zone"));
 
-            ReplaceZoneSystemTextures((ZoneSystem)typeof(ZoneSystem).GetField("m_instance", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null));
+                Dbgl($"Replacing textures for {zones.Count()} zones");
+                foreach (var go in zones)
+                {
+                    ReplaceOneZoneTextures("_GameMain", go);
+                }
+            });
 
-            ReplaceHeightmapTextures();
+            TryReloadStage("ReplaceZoneSystemTextures", () =>
+            {
+                if (ZoneSystem.instance != null)
+                    ReplaceZoneSystemTextures(ZoneSystem.instance);
+            });
 
-            ReplaceEnvironmentTextures();
-
-            ReplaceZNetSceneTextures();
+            TryReloadStage("ReplaceHeightmapTextures", ReplaceHeightmapTextures);
+            TryReloadStage("ReplaceEnvironmentTextures", ReplaceEnvironmentTextures);
+            TryReloadStage("ReplaceZNetSceneTextures", ReplaceZNetSceneTextures);
 
             if (locations)
             {
-                Dbgl($"Starting ZoneSystem Location prefab replacement");
-                stopwatch.Restart();
+                TryReloadStage("ReplaceLocationTextures", () =>
+                {
+                    Dbgl($"Starting ZoneSystem Location prefab replacement");
+                    stopwatch.Restart();
 
-                ReplaceLocationTextures();
+                    ReplaceLocationTextures();
 
-                LogStopwatch("ZoneSystem Locations");
+                    LogStopwatch("ZoneSystem Locations");
+                });
             }
 
-            foreach (Player player in Player.GetAllPlayers())
+            TryReloadStage("SetupVisEquipment", () =>
             {
-                SetupVisEquipment(player);
-            }
+                foreach (Player player in Player.GetAllPlayers())
+                {
+                    SetupVisEquipment(player);
+                }
+            });
 
             if (logDump.Any())
                 Dbgl("\n" + string.Join("\n", logDump));
@@ -100,27 +108,35 @@ namespace CustomTextures
             reloadedObjects.Clear();
             if (dumpSceneTextures.Value)
             {
-                string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
-                Dbgl($"Writing {path}");
-                File.WriteAllLines(path, outputDump);
-                dumpSceneTextures.Value = false;
+                TryReloadStage("DumpSceneTextures", () =>
+                {
+                    string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "CustomTextures", "scene_dump.txt");
+                    Dbgl($"Writing {path}");
+                    File.WriteAllLines(path, outputDump);
+                    dumpSceneTextures.Value = false;
+                });
             }
         }
 
         public static void SetupVisEquipment(Humanoid humanoid)
         {
-            VisEquipment ve = (VisEquipment)typeof(Humanoid).GetField("m_visEquipment", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(humanoid);
+            if (humanoid == null)
+                return;
+            VisEquipment ve = humanoid.GetComponent<VisEquipment>();
+            if (ve == null)
+                ve = humanoid.GetComponentInChildren<VisEquipment>(true);
             if (ve != null)
             {
-                SetEquipmentTexture((int)AccessTools.Field(typeof(VisEquipment), "m_leftItem").GetValue(ve), Traverse.Create(ve).Field("m_leftItemInstance").GetValue<GameObject>());
-                SetEquipmentTexture((int)AccessTools.Field(typeof(VisEquipment), "m_rightItem").GetValue(ve), Traverse.Create(ve).Field("m_rightItemInstance").GetValue<GameObject>());
-                SetEquipmentTexture((int)AccessTools.Field(typeof(VisEquipment), "m_helmetItem").GetValue(ve), Traverse.Create(ve).Field("m_helmetItemInstance").GetValue<GameObject>());
-                SetEquipmentTexture((int)AccessTools.Field(typeof(VisEquipment), "m_leftBackItem").GetValue(ve), Traverse.Create(ve).Field("m_leftBackItemInstance").GetValue<GameObject>());
-                SetEquipmentTexture((int)AccessTools.Field(typeof(VisEquipment), "m_rightBackItem").GetValue(ve), Traverse.Create(ve).Field("m_rightBackItemInstance").GetValue<GameObject>());
-                SetEquipmentListTexture((int)AccessTools.Field(typeof(VisEquipment), "m_shoulderItem").GetValue(ve), Traverse.Create(ve).Field("m_shoulderItemInstances").GetValue<List<GameObject>>());
-                SetEquipmentListTexture((int)AccessTools.Field(typeof(VisEquipment), "m_utilityItem").GetValue(ve), Traverse.Create(ve).Field("m_utilityItemInstances").GetValue<List<GameObject>>());
-                SetBodyEquipmentTexture(ve, (int)AccessTools.Field(typeof(VisEquipment), "m_legItem").GetValue(ve), ve.m_bodyModel, Traverse.Create(ve).Field("m_legItemInstances").GetValue<List<GameObject>>());
-                SetBodyEquipmentTexture(ve, (int)AccessTools.Field(typeof(VisEquipment), "m_chestItem").GetValue(ve), ve.m_bodyModel, Traverse.Create(ve).Field("m_chestItemInstances").GetValue<List<GameObject>>());
+                var veTraverse = Traverse.Create(ve);
+                SetEquipmentTexture(veTraverse.Field("m_leftItem").GetValue<int>(), veTraverse.Field("m_leftItemInstance").GetValue<GameObject>());
+                SetEquipmentTexture(veTraverse.Field("m_rightItem").GetValue<int>(), veTraverse.Field("m_rightItemInstance").GetValue<GameObject>());
+                SetEquipmentTexture(veTraverse.Field("m_helmetItem").GetValue<int>(), veTraverse.Field("m_helmetItemInstance").GetValue<GameObject>());
+                SetEquipmentTexture(veTraverse.Field("m_leftBackItem").GetValue<int>(), veTraverse.Field("m_leftBackItemInstance").GetValue<GameObject>());
+                SetEquipmentTexture(veTraverse.Field("m_rightBackItem").GetValue<int>(), veTraverse.Field("m_rightBackItemInstance").GetValue<GameObject>());
+                SetEquipmentListTexture(veTraverse.Field("m_shoulderItem").GetValue<int>(), veTraverse.Field("m_shoulderItemInstances").GetValue<List<GameObject>>());
+                SetEquipmentListTexture(veTraverse.Field("m_utilityItem").GetValue<int>(), veTraverse.Field("m_utilityItemInstances").GetValue<List<GameObject>>());
+                SetBodyEquipmentTexture(ve, veTraverse.Field("m_legItem").GetValue<int>(), ve.m_bodyModel, veTraverse.Field("m_legItemInstances").GetValue<List<GameObject>>());
+                SetBodyEquipmentTexture(ve, veTraverse.Field("m_chestItem").GetValue<int>(), ve.m_bodyModel, veTraverse.Field("m_chestItemInstances").GetValue<List<GameObject>>());
             }
         }
     }

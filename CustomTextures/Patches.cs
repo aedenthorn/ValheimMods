@@ -61,15 +61,21 @@ namespace CustomTextures
         }
 
         
-        //[HarmonyPatch(typeof(Player), "Start")]
-        public static class Player_Start_Patch
+        [HarmonyPatch(typeof(Character), "Awake")]
+        public static class Character_Awake_Patch
         {
-            public static void Prefix(Player __instance)
+            public static void Postfix(Character __instance)
             {
-                if (!modEnabled.Value || Player.m_localPlayer != __instance)
-                    return;
-                Dbgl($"Player Awake");
-                ReloadTextures(replaceLocationTextures.Value);
+                ApplyCharacterTextures(__instance);
+            }
+        }
+
+        [HarmonyPatch(typeof(Character), nameof(Character.SetLevel))]
+        public static class Character_SetLevel_Patch
+        {
+            public static void Postfix(Character __instance)
+            {
+                ApplyCharacterTextures(__instance);
             }
         }
 
@@ -87,9 +93,13 @@ namespace CustomTextures
 
                 logDump.Clear();
 
+                if (__instance.m_clutter == null)
+                    return;
                 Dbgl($"Checking {__instance.m_clutter.Count} clutters");
                 foreach (ClutterSystem.Clutter clutter in __instance.m_clutter)
                 {
+                    if (clutter?.m_prefab == null)
+                        continue;
                     ReplaceOneGameObjectTextures(clutter.m_prefab, clutter.m_prefab.name, "object");
                 }
 
@@ -131,6 +141,8 @@ namespace CustomTextures
                         if (ShouldLoadCustomTexture($"player_model_{i}{property}"))
                         {
                             __instance.m_models[i].m_baseMaterial.SetTexture(property, LoadTexture($"player_model_{i}{property}", __instance.m_models[i].m_baseMaterial.GetTexture(property), false));
+                            if (property == "_EmissionMap" || property == "_EmissiveTex")
+                                ApplyEmission(__instance.m_models[i].m_baseMaterial);
                             Dbgl($"set player_model_{i}_texture custom texture.");
                         }
                         else if (property == "_MainTex" && ShouldLoadCustomTexture($"player_model_{i}_texture")) // legacy
