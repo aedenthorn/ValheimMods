@@ -130,7 +130,24 @@ namespace ExtendedPlayerInventory
                 __instance.m_tombstone.GetComponent<Container>().m_height = height;
             }
         }
-          
+
+        // Vanilla Player.OnSpawned calls SetInventorySize, which resets m_height to the "invrows" key (4) and then
+        // drops everything outside that height, i.e. the equipment row and extra rows. Restore our height first.
+        [HarmonyPatch(typeof(Humanoid), "DropInvalidItems")]
+        public static class Humanoid_DropInvalidItems_Patch
+        {
+            public static void Prefix(Humanoid __instance)
+            {
+                if (!modEnabled.Value || !(__instance is Player))
+                    return;
+                Dbgl("DropInvalidItems");
+
+                int height = extraRows.Value + (addEquipmentRow.Value ? 5 : 4);
+
+                AccessTools.FieldRefAccess<Inventory, int>(__instance.GetInventory(), "m_height") = height;
+            }
+        }
+
         [HarmonyPatch(typeof(TombStone), "Awake")]
         public static class TombStone_Awake_Patch
         {
