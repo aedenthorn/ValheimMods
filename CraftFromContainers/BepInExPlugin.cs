@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace CraftFromContainers
 {
-    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "4.0.6")]
+    [BepInPlugin("aedenthorn.CraftFromContainers", "Craft From Containers", "4.0.7")]
     public class BepInExPlugin: BaseUnityPlugin
     {
         public static bool wasAllowed;
@@ -851,7 +851,7 @@ namespace CraftFromContainers
         {
             public static bool Prefix(Player __instance, Piece.Requirement[] requirements, int qualityLevel, int itemQuality, int multiplier)
             {
-                if (!modEnabled.Value || !AllowByKey())
+                if (!modEnabled.Value || !AllowByKey() || __instance.transform is null)
                     return true;
 
                 Inventory pInventory = __instance.GetInventory();
@@ -886,7 +886,7 @@ namespace CraftFromContainers
                             foreach (Container c in nearbyContainers)
                             {
                                 Inventory cInventory = c?.GetInventory();
-                                if (cInventory is null)
+                                if (cInventory is null || c.transform is null)
                                     continue;
 
                                 int thisAmount = Mathf.Min(cInventory.CountItems(reqName), totalRequirement - totalAmount);
