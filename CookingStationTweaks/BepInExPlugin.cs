@@ -1,13 +1,15 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 namespace CookingStationTweaks
 {
-    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.7.2")]
+    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.8.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -64,7 +66,7 @@ namespace CookingStationTweaks
         {
             public static void Prefix(CookingStation __instance, ref ParticleSystem[] ___m_burntPS, ref ParticleSystem[] ___m_donePS, ref ParticleSystem[] ___m_ps, ref AudioSource[] ___m_as)
             {
-                if (!modEnabled.Value)
+                if (!modEnabled.Value || __instance.m_slots?.Length < 2)
                     return;
 
                 if(cookTimeMultiplier.Value != 1f)
@@ -76,59 +78,35 @@ namespace CookingStationTweaks
                 }
 
                 int count = __instance.m_slots.Length;
-                List<Transform> newSlots = new List<Transform>(__instance.m_slots);
-
+                int target = Mathf.RoundToInt(count * slotMultiplier.Value);
+                
                 Transform burnt = null;
                 Transform done = null;
 
-                float target = Mathf.RoundToInt(count * slotMultiplier.Value);
                 Dbgl($"Cooking station {__instance.name} awake. Slots {count}, target {target}");
-                while(count < target)
+
+                var start = __instance.m_slots.First().position;
+                var end = __instance.m_slots.Last().position;
+                var distance = end - start;
+                start -= distance * 0.5f;
+                end += distance * 0.5f; 
+
+                Transform[] newSlots = new Transform[target];
+                var temp = __instance.m_slots[0];
+                for(int i = 0; i < target; i++)
                 {
-                    bool neg = true;
-                    List<Transform> currentSlots = new List<Transform>(newSlots);
-                    int off = 0;
-                    for (int i = 0; i <= currentSlots.Count; i++)
-                    {
-                        int idx = currentSlots.Count / 2 - 1 + (neg ? -off : off);
-                        Transform a = null;
-                        Transform b = null;
-                        if (idx >=0)
-                            a = currentSlots[idx]; // 0, 1, -1, 2
-                        if (idx < currentSlots.Count - 1)
-                            b = currentSlots[idx+1]; // 1, 2, 0, 3
-
-                        Transform c;
-                        if (a == null)
-                        {
-                            c = Instantiate(b, b.parent);
-                            c.position = b.position * 2 - Vector3.Lerp(b.position, currentSlots[idx + 2].position, 0.5f);
-                            newSlots.Insert(0, c);
-                        }
-                        else if(b == null)
-                        {
-                            c = Instantiate(a, a.parent);
-                            c.position = a.position * 2 - Vector3.Lerp(a.position, currentSlots[idx - 1].position, 0.5f);
-                            newSlots.Add(c);
-                        }
-                        else
-                        {
-                            c = Instantiate(a, a.parent);
-                            c.position = Vector3.Lerp(a.position, b.position, 0.5f);
-                            newSlots.Insert(idx+1, c);
-                        }
-
-                        count++;
-                        if (count >= target)
-                            break;
-                        neg = !neg;
-                        if (i % 2 == 0)
-                            off++;
-                    }
+                    var slot = Instantiate(temp, temp.parent);
+                    slot.position = start + (end - start) * (float)i / (target - 1);
+                    newSlots[i] = slot;
                 }
-                Dbgl($"New number of slots {newSlots.Count}");
-                for (int i = 0; i < newSlots.Count; i++)
+                Dbgl($"New number of slots {newSlots.Length}");
+                for (int i = 0; i < newSlots.Length; i++)
                     newSlots[i].name = "slot" + i;
+
+                foreach(var slot in __instance.m_slots)
+                {
+                    Destroy(slot.gameObject);
+                }
                 __instance.m_slots = newSlots.ToArray();
 
                 ___m_ps = new ParticleSystem[__instance.m_slots.Length];
@@ -172,6 +150,10 @@ namespace CookingStationTweaks
                         ParticleSystem.EmissionModule emissionModule = ___m_donePS[i].emission;
                         emissionModule.enabled = false;
                     }
+                }
+                foreach(var ps in oldBurnt)
+                {
+                    Destroy(ps.gameObject);
                 }
                 foreach(var ps in oldBurnt)
                 {
