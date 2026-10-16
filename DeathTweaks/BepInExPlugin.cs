@@ -296,7 +296,7 @@ namespace DeathTweaks
                                 keepItems.RemoveAt(j);
                             }
                         }
-                        Traverse.Create(inv).Method("Changed").GetValue();
+                        Traverse.Create(inv).Method("Changed", new[] {typeof(bool), typeof(bool)}).GetValue(false, false);
                     }
                 }
 
@@ -361,7 +361,7 @@ namespace DeathTweaks
                         }
 
                         Traverse.Create(gameObject.GetComponent<Container>().GetInventory()).Field("m_inventory").SetValue(dropItems);
-                        Traverse.Create(gameObject.GetComponent<Container>().GetInventory()).Method("Changed").GetValue();
+                        Traverse.Create(gameObject.GetComponent<Container>().GetInventory()).Method("Changed", new[] {typeof(bool), typeof(bool)}).GetValue(false, false);
 
 
                     }
