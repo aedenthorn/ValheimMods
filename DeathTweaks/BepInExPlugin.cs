@@ -121,64 +121,103 @@ namespace DeathTweaks
                 ___m_nview.GetZDO().Set("dead", true);
                 ___m_nview.InvokeRPC(ZNetView.Everybody, "OnDeath", new object[] { });
                 Game.instance.IncrementPlayerStat(PlayerStatType.Deaths, 1f);
+                Game.instance.GetPlayerProfile().SetStat(PlayerStatType.ConsecutiveDaysSurvived, 0.0f);
                 switch (___m_lastHit.m_hitType)
                 {
                     case HitData.HitType.Undefined:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByUndefined, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByUndefined);
                         break;
                     case HitData.HitType.EnemyHit:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByEnemyHit, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByEnemyHit);
                         break;
                     case HitData.HitType.PlayerHit:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByPlayerHit, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByPlayerHit);
                         break;
                     case HitData.HitType.Fall:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByFall, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByFall);
                         break;
                     case HitData.HitType.Drowning:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByDrowning, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByDrowning);
                         break;
                     case HitData.HitType.Burning:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByBurning, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByBurning);
                         break;
                     case HitData.HitType.Freezing:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByFreezing, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByFreezing);
                         break;
                     case HitData.HitType.Poisoned:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByPoisoned, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByPoisoned);
                         break;
                     case HitData.HitType.Water:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByWater, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByWater);
                         break;
                     case HitData.HitType.Smoke:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathBySmoke, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathBySmoke);
                         break;
                     case HitData.HitType.EdgeOfWorld:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByEdgeOfWorld, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByEdgeOfWorld);
                         break;
                     case HitData.HitType.Impact:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByImpact, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByImpact);
                         break;
                     case HitData.HitType.Cart:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByCart, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByCart);
                         break;
                     case HitData.HitType.Tree:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByTree, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByTree);
+                        if (___m_lastHit.m_toolTier <= 5)
+                          Game.instance.IncrementPlayerStat((PlayerStatType) (152 + ___m_lastHit.m_toolTier));
+                        else
+                          ZLog.LogError($"Invalid tool tier {___m_lastHit.m_toolTier} for death by tree player stat.");
+                        PlayerStatType variant = (PlayerStatType) ___m_lastHit.m_variant;
+                        switch (variant)
+                        {
+                          case PlayerStatType.TreeFir:
+                          case PlayerStatType.TreeOak:
+                          case PlayerStatType.TreePine:
+                          case PlayerStatType.TreeAshlands:
+                          case PlayerStatType.TreeYggdrasilShoot:
+                          case PlayerStatType.TreeSwamp:
+                          case PlayerStatType.TreeBeech:
+                          case PlayerStatType.TreeBirch:
+                          case PlayerStatType.TreeSnowFir:
+                          case PlayerStatType.TreeSnowPine:
+                            Game.instance.IncrementPlayerStat(variant);
+                            break;
+                        }
                         break;
                     case HitData.HitType.Self:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathBySelf, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathBySelf);
                         break;
                     case HitData.HitType.Structural:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByStructural, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByStructural);
                         break;
                     case HitData.HitType.Turret:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByTurret, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByTurret);
                         break;
                     case HitData.HitType.Boat:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByBoat, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByBoat);
                         break;
                     case HitData.HitType.Stalagtite:
-                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByStalagtite, 1f);
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByStalagtite);
+                        break;
+                    case HitData.HitType.Catapult:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByCatapult);
+                        break;
+                    case HitData.HitType.CinderFire:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByCinderFire);
+                        break;
+                    case HitData.HitType.AshlandsOcean:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByAshlandsOcean);
+                        break;
+                    case HitData.HitType.AshlandsLava:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByAshlandsLava);
+                        break;
+                    case HitData.HitType.Incinerator:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByIncinerator);
+                        break;
+                    case HitData.HitType.DrawBridge:
+                        Game.instance.IncrementPlayerStat(PlayerStatType.DeathByDrawBridge);
                         break;
                     default:
                         ZLog.LogWarning("Not implemented death type " + ___m_lastHit.m_hitType.ToString());
