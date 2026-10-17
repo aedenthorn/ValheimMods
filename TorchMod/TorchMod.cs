@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace TorchMod
 {
-    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "1.0.1")]
+    [BepInPlugin("aedenthorn.TorchMod", "Torch Light Mod", "1.0.2")]
 
     public class BepInExPlugin : BaseUnityPlugin
     {
@@ -345,6 +345,8 @@ namespace TorchMod
                 FieldInfo lfi = typeof(LightFlicker).GetField("m_baseIntensity", BindingFlags.NonPublic | BindingFlags.Instance);
                 if (name.Contains("groundtorch"))
                 {
+                    if (__instance.m_enabledObject == null)
+                        return;
                     LightFlicker lf = __instance.m_enabledObject.GetComponentInChildren<LightFlicker>();
                     Light light = lf.GetComponent<Light>();
 
@@ -367,6 +369,8 @@ namespace TorchMod
                 }
                 else if (name.Contains("walltorch"))
                 {
+                    if (__instance.m_enabledObject == null)
+                        return;
 
                     LightFlicker lf = __instance.m_enabledObject.GetComponentInChildren<LightFlicker>();
                     Light light = lf.GetComponent<Light>();
@@ -383,42 +387,53 @@ namespace TorchMod
                 }
                 else if (name.Contains("fire_pit"))
                 {
-                    LightFlicker lf = __instance.m_enabledObjectLow.GetComponentInChildren<LightFlicker>();
-                    Light light = lf.GetComponent<Light>();
+                    if (__instance.m_enabledObjectLow != null)
+                    {
+                        LightFlicker lf = __instance.m_enabledObjectLow.GetComponentInChildren<LightFlicker>();
+                        Light light = lf.GetComponent<Light>();
 
 
 
-                    light.color = firePitColorLow.Value;
-                    light.range = firePitRangeLow.Value;
-                    light.bounceIntensity = firePitBounceIntensityLow.Value;
-                    light.useColorTemperature = firePitUseColorTemperatureLow.Value;
-                    light.colorTemperature = firePitColorTemperatureLow.Value;
-                    light.shadowStrength = firePitShadowStrengthLow.Value;
-                    lfi.SetValue(lf, firePitIntensityLow.Value);
+                        light.color = firePitColorLow.Value;
+                        light.range = firePitRangeLow.Value;
+                        light.bounceIntensity = firePitBounceIntensityLow.Value;
+                        light.useColorTemperature = firePitUseColorTemperatureLow.Value;
+                        light.colorTemperature = firePitColorTemperatureLow.Value;
+                        light.shadowStrength = firePitShadowStrengthLow.Value;
+                        lfi.SetValue(lf, firePitIntensityLow.Value);
+                    }
 
-                    LightFlicker lf2 = __instance.m_enabledObjectHigh.GetComponentInChildren<LightFlicker>();
-                    Light light2 = lf2.GetComponent<Light>();
+                    if (__instance.m_enabledObjectHigh != null)
+                    {
 
-                    light2.color = firePitColorHigh.Value;
-                    light2.range = firePitRangeHigh.Value;
-                    light2.bounceIntensity = firePitBounceIntensityHigh.Value;
-                    light2.useColorTemperature = firePitUseColorTemperatureHigh.Value;
-                    light2.colorTemperature = firePitColorTemperatureHigh.Value;
-                    light2.shadowStrength = firePitShadowStrengthHigh.Value;
-                    lfi.SetValue(lf2, firePitIntensityHigh.Value);
+                        LightFlicker lf2 = __instance.m_enabledObjectHigh.GetComponentInChildren<LightFlicker>();
+                        Light light2 = lf2.GetComponent<Light>();
+
+                        light2.color = firePitColorHigh.Value;
+                        light2.range = firePitRangeHigh.Value;
+                        light2.bounceIntensity = firePitBounceIntensityHigh.Value;
+                        light2.useColorTemperature = firePitUseColorTemperatureHigh.Value;
+                        light2.colorTemperature = firePitColorTemperatureHigh.Value;
+                        light2.shadowStrength = firePitShadowStrengthHigh.Value;
+                        lfi.SetValue(lf2, firePitIntensityHigh.Value);
+                    }
                 }
                 else if (name.Contains("bonfire"))
                 {
-                    LightFlicker lf = __instance.m_enabledObjectLow.GetComponentInChildren<LightFlicker>();
-                    Light light = lf.GetComponent<Light>();
+                    if (__instance.m_enabledObjectLow != null)
+                    {
+                        LightFlicker lf = __instance.m_enabledObjectLow.GetComponentInChildren<LightFlicker>();
+                        Light light = lf.GetComponent<Light>();
 
-                    light.color = bonfireColorLow.Value;
-                    light.range = bonfireRangeLow.Value;
-                    light.bounceIntensity = bonfireBounceIntensityLow.Value;
-                    light.useColorTemperature = bonfireUseColorTemperatureLow.Value;
-                    light.colorTemperature = bonfireColorTemperatureLow.Value;
-                    light.shadowStrength = bonfireShadowStrengthLow.Value;
-                    lfi.SetValue(lf, bonfireIntensityLow.Value);
+                        light.color = bonfireColorLow.Value;
+                        light.range = bonfireRangeLow.Value;
+                        light.bounceIntensity = bonfireBounceIntensityLow.Value;
+                        light.useColorTemperature = bonfireUseColorTemperatureLow.Value;
+                        light.colorTemperature = bonfireColorTemperatureLow.Value;
+                        light.shadowStrength = bonfireShadowStrengthLow.Value;
+                        lfi.SetValue(lf, bonfireIntensityLow.Value);
+                    }
+
 
                     LightFlicker lf2 = __instance.m_enabledObjectHigh.GetComponentInChildren<LightFlicker>();
                     Light light2 = lf2.GetComponent<Light>();
@@ -443,17 +458,19 @@ namespace TorchMod
                     light.colorTemperature = hearthColorTemperatureLow.Value;
                     light.shadowStrength = hearthShadowStrengthLow.Value;
                     lfi.SetValue(lf, hearthIntensityLow.Value);
+                    if (__instance.m_enabledObjectHigh != null)
+                    {
+                        LightFlicker lf2 = __instance.m_enabledObjectHigh.GetComponentInChildren<LightFlicker>();
+                        Light light2 = lf2.GetComponent<Light>();
 
-                    LightFlicker lf2 = __instance.m_enabledObjectHigh.GetComponentInChildren<LightFlicker>();
-                    Light light2 = lf2.GetComponent<Light>();
-
-                    light2.color = hearthColorHigh.Value;
-                    light2.range = hearthRangeHigh.Value;
-                    light2.bounceIntensity = hearthBounceIntensityHigh.Value;
-                    light2.useColorTemperature = hearthUseColorTemperatureHigh.Value;
-                    light2.colorTemperature = hearthColorTemperatureHigh.Value;
-                    light2.shadowStrength = hearthShadowStrengthHigh.Value;
-                    lfi.SetValue(lf2, hearthIntensityHigh.Value);
+                        light2.color = hearthColorHigh.Value;
+                        light2.range = hearthRangeHigh.Value;
+                        light2.bounceIntensity = hearthBounceIntensityHigh.Value;
+                        light2.useColorTemperature = hearthUseColorTemperatureHigh.Value;
+                        light2.colorTemperature = hearthColorTemperatureHigh.Value;
+                        light2.shadowStrength = hearthShadowStrengthHigh.Value;
+                        lfi.SetValue(lf2, hearthIntensityHigh.Value);
+                    }
                 }
             }
         }

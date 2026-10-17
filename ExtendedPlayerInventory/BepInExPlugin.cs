@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "1.0.4")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "1.0.5")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -115,19 +115,23 @@ namespace ExtendedPlayerInventory
             harmony.PatchAll();
         }
 
-        [HarmonyPatch(typeof(Player), "Awake")]
-        public static class Player_Awake_Patch
+        [HarmonyPatch(typeof(Player), "SetInventorySize")]
+        public static class Player_SetInventorySize_Patch
         {
-            public static void Prefix(Player __instance, Inventory ___m_inventory)
+            public static bool Prefix(Player __instance, int rows, Inventory ___m_inventory)
             {
                 if (!modEnabled.Value)
-                    return;
-                Dbgl("Player_Awake");
+                    return true;
+                Dbgl("Player_SetInventorySize");
 
-                int height = extraRows.Value + (addEquipmentRow.Value ? 5 : 4);
+                int height = rows + extraRows.Value + (addEquipmentRow.Value ? 1 : 0);
 
-                AccessTools.FieldRefAccess<Inventory, int>(___m_inventory, "m_height") = height;
-                __instance.m_tombstone.GetComponent<Container>().m_height = height;
+                ___m_inventory.SetHeight(height);
+                __instance.AddUniqueKeyValue("invrows", height.ToString());
+                InventoryGui.instance.SetInventorySize(height);
+                __instance.DropInvalidItems();
+
+                return false;
             }
         }
 
