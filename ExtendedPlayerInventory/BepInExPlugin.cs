@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "1.0.5")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "1.0.6")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -135,80 +135,7 @@ namespace ExtendedPlayerInventory
             }
         }
 
-        // Vanilla Player.OnSpawned calls SetInventorySize, which resets m_height to the "invrows" key (4) and then
-        // drops everything outside that height, i.e. the equipment row and extra rows. Restore our height first.
-        [HarmonyPatch(typeof(Humanoid), "DropInvalidItems")]
-        public static class Humanoid_DropInvalidItems_Patch
-        {
-            public static void Prefix(Humanoid __instance)
-            {
-                if (!modEnabled.Value || !(__instance is Player))
-                    return;
-                Dbgl("DropInvalidItems");
-
-                int height = extraRows.Value + (addEquipmentRow.Value ? 5 : 4);
-
-                AccessTools.FieldRefAccess<Inventory, int>(__instance.GetInventory(), "m_height") = height;
-            }
-        }
-
-        [HarmonyPatch(typeof(TombStone), "Awake")]
-        public static class TombStone_Awake_Patch
-        {
-            public static void Prefix(TombStone __instance)
-            {
-                if (!modEnabled.Value)
-                    return;
-                Dbgl("TombStone_Awake");
-
-                int height = extraRows.Value + (addEquipmentRow.Value ? 5 : 4);
-
-                __instance.GetComponent<Container>().m_height = height;
-                //AccessTools.FieldRefAccess<Inventory, int>(AccessTools.FieldRefAccess<Container, Inventory>(__instance.GetComponent<Container>(), "m_inventory"), "m_height") = height;
-                //Dbgl($"tombstone Awake {__instance.GetComponent<Container>().GetInventory()?.GetHeight()}");
-            }
-        }
-                     
-        [HarmonyPatch(typeof(TombStone), "Interact")]
-        public static class TombStone_Interact_Patch
-        {
-            public static void Prefix(TombStone __instance, Container ___m_container)
-            {
-                if (!modEnabled.Value)
-                    return;
-                Dbgl("TombStone_Interact");
-
-                int height = extraRows.Value + (addEquipmentRow.Value ? 5 : 4);
-
-                __instance.GetComponent<Container>().m_height = height;
-
-                Traverse t = Traverse.Create(___m_container);
-                string dataString = t.Field("m_nview").GetValue<ZNetView>().GetZDO().GetString("items", "");
-                if (string.IsNullOrEmpty(dataString))
-                {
-                    return;
-                }
-                ZPackage pkg = new ZPackage(dataString);
-                t.Field("m_loading").SetValue(true);
-                t.Field("m_inventory").GetValue<Inventory>().Load(pkg);
-                t.Field("m_loading").SetValue(false);
-                t.Field("m_lastDataString").SetValue(dataString);
-            }
-        }
-                
-        [HarmonyPatch(typeof(Inventory), "MoveInventoryToGrave")]
-        public static class MoveInventoryToGrave_Patch
-        {
-            public static void Postfix(Inventory __instance, Inventory original)
-            {
-                if (!modEnabled.Value)
-                    return;
-                Dbgl("MoveInventoryToGrave");
-
-                Dbgl($"inv: {__instance.GetHeight()} orig: {original.GetHeight()}");
-            }
-        }
-
+      
         [HarmonyPatch(typeof(InventoryGui), "Show")]
         public static class InventoryGui_Show_Patch
         {
@@ -244,8 +171,6 @@ namespace ExtendedPlayerInventory
                 if (!modEnabled.Value || !addEquipmentRow.Value || !Player.m_localPlayer || __instance != Player.m_localPlayer.GetInventory())
                     return;
 
-                int height = extraRows.Value + (addEquipmentRow.Value ? 5 : 4);
-                AccessTools.FieldRefAccess<Inventory, int>(__instance, "m_height") = height;
                 //Dbgl("Changed: "+Environment.StackTrace);
                 ArrangeEquipment(Player.m_localPlayer);
             }
@@ -265,15 +190,6 @@ namespace ExtendedPlayerInventory
 
         }
         
-        [HarmonyPatch(typeof(Humanoid), "UnequipItem")]
-        public static class Humanoid_UnequipItem_Patch
-        {
-            public static void Postfix(Humanoid __instance, ItemDrop.ItemData item)
-            {
-                //Dbgl($"Unequip {item?.m_shared.m_name}: " + Environment.StackTrace);
-            }
-
-        }
 
         [HarmonyPatch(typeof(Player), "EquipInventoryItems")]
         public static class Humanoid_EquipItem_Patch
@@ -372,11 +288,6 @@ namespace ExtendedPlayerInventory
                 if (!modEnabled.Value)
                     return;
 
-                int height = extraRows.Value + (addEquipmentRow.Value ? 5 : 4);
-
-                AccessTools.FieldRefAccess<Inventory, int>(___m_inventory, "m_height") = height;
-                __instance.m_tombstone.GetComponent<Container>().m_height = height;
-
 
                 if (AedenthornUtils.IgnoreKeyPresses(true) || !addEquipmentRow.Value)
                     return;
@@ -434,7 +345,7 @@ namespace ExtendedPlayerInventory
 
                 if (___m_animator.GetBool("visible"))
                 {
-                    __instance.m_player.Find("Bkg").GetComponent<RectTransform>().anchorMin = new Vector2(0, (extraRows.Value + (addEquipmentRow.Value && !displayEquipmentRowSeparate.Value ? 1 : 0)) * -0.25f);
+                    //__instance.m_player.Find("Bkg").GetComponent<RectTransform>().anchorMin = new Vector2(0, (extraRows.Value + (addEquipmentRow.Value && !displayEquipmentRowSeparate.Value ? 1 : 0)) * -0.25f);
 
                     if (addEquipmentRow.Value)
                     {

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BuildingDemolish
 {
-    [BepInPlugin("aedenthorn.BuildingDemolish", "Building Demolish", "0.7.0")]
+    [BepInPlugin("aedenthorn.BuildingDemolish", "Building Demolish", "0.7.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static readonly bool isDebug = true;
