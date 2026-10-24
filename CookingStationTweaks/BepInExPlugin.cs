@@ -9,7 +9,7 @@ using Debug = UnityEngine.Debug;
 
 namespace CookingStationTweaks
 {
-    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.8.0")]
+    [BepInPlugin("aedenthorn.CookingStationTweaks", "CookingStationTweaks", "0.8.1")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
@@ -78,28 +78,31 @@ namespace CookingStationTweaks
                 }
 
                 int count = __instance.m_slots.Length;
-                int target = Mathf.RoundToInt(count * slotMultiplier.Value);
+                int target = Mathf.Max(1, Mathf.RoundToInt(count * slotMultiplier.Value));
                 
                 Transform burnt = null;
                 Transform done = null;
 
                 Dbgl($"Cooking station {__instance.name} awake. Slots {count}, target {target}");
 
-                var start = __instance.m_slots.First().position;
-                var end = __instance.m_slots.Last().position;
+                var slotList = __instance.m_slots.ToList();
+                slotList.Sort((a, b) => a.localPosition.x.CompareTo(b.localPosition.x));
+
+                var start = slotList.First().localPosition;
+                var end = slotList.Last().localPosition;
                 var distance = end - start;
-                start -= distance * 0.5f;
-                end += distance * 0.5f; 
+                var diff = (target / (float)count - 1) / 4f;
+                start -= distance * diff;
+                end += distance * diff;
 
                 Transform[] newSlots = new Transform[target];
                 var temp = __instance.m_slots[0];
                 for(int i = 0; i < target; i++)
                 {
                     var slot = Instantiate(temp, temp.parent);
-                    slot.position = start + (end - start) * (float)i / (target - 1);
+                    slot.localPosition = start + (end - start) * (float)i / (target - 1);
                     newSlots[i] = slot;
                 }
-                Dbgl($"New number of slots {newSlots.Length}");
                 for (int i = 0; i < newSlots.Length; i++)
                     newSlots[i].name = "slot" + i;
 
