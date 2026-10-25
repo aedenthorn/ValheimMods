@@ -127,7 +127,8 @@ namespace ExtendedPlayerInventory
                 int height = rows + extraRows.Value + (addEquipmentRow.Value ? 1 : 0);
 
                 ___m_inventory.SetHeight(height);
-                __instance.AddUniqueKeyValue("invrows", height.ToString());
+                // OnSpawned and capacity upgrades reuse this value as the vanilla base size.
+                __instance.AddUniqueKeyValue("invrows", rows.ToString());
                 InventoryGui.instance.SetInventorySize(height);
                 __instance.DropInvalidItems();
 
@@ -502,7 +503,9 @@ namespace ExtendedPlayerInventory
         {
             public static void Prefix(Inventory __instance, ref int ___m_width, ref int ___m_height, int x, int y)
             {
-                if (!modEnabled.Value)
+                // Let vanilla reject old grave coordinates and retry in an available slot.
+                // Accepting them by resizing the player inventory bypasses the configured capacity.
+                if (!modEnabled.Value || __instance == Player.m_localPlayer?.GetInventory())
                     return;
 
                 if (x >= ___m_width)
