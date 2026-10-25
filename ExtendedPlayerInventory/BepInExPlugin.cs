@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
@@ -203,82 +203,7 @@ namespace ExtendedPlayerInventory
 
         public static void ArrangeEquipment(Player __instance)
         {
-            if (!modEnabled.Value || !addEquipmentRow.Value)
-                return;
-            Inventory inv = __instance.GetInventory();
-
-
-            var items = inv.GetAllItems();
-
-            ItemDrop.ItemData[] equipment = new ItemDrop.ItemData[]
-            {
-                AccessTools.FieldRefAccess<Humanoid, ItemDrop.ItemData>(__instance, "m_helmetItem"),
-                AccessTools.FieldRefAccess<Humanoid, ItemDrop.ItemData>(__instance, "m_chestItem"),
-                AccessTools.FieldRefAccess<Humanoid, ItemDrop.ItemData>(__instance, "m_legItem"),
-                AccessTools.FieldRefAccess<Humanoid, ItemDrop.ItemData>(__instance, "m_shoulderItem"),
-                AccessTools.FieldRefAccess<Humanoid, ItemDrop.ItemData>(__instance, "m_utilityItem")
-            };
-
-
-            int width = inv.GetWidth();
-            int offset = width * (inv.GetHeight() - 1);
-
-            if (equipment[0] != null)
-                equipment[0].m_gridPos = new Vector2i(offset % width, offset / width);
-            offset++;
-
-            if (equipment[1] != null)
-                equipment[1].m_gridPos = new Vector2i(offset % width, offset / width);
-            offset++;
-
-            if (equipment[2] != null)
-                equipment[2].m_gridPos = new Vector2i(offset % width, offset / width);
-            offset++;
-
-            if (equipment[3] != null)
-                equipment[3].m_gridPos = new Vector2i(offset % width, offset / width);
-            offset++;
-
-            if (equipment[4] != null)
-                equipment[4].m_gridPos = new Vector2i(offset % width, offset / width);
-
-
-            for (int i = 0; i < items.Count; i++)
-            {
-                if (IsAtEquipmentSlot(inv, items[i], out int which))
-                {
-                    //Dbgl($"{items[i].m_shared.m_itemType} {typeEnums[which]} {items[i].m_shared.m_name} {items[i].m_equiped}");
-
-                    if (items[i] == equipment[which])
-                    {
-                        //Dbgl($"already equipped: {items[i].m_equiped}");
-                        items[i].m_equipped = true;
-                        continue;
-                    }
-
-                    if (items[i].m_shared.m_itemType == typeEnums[which] && equipItems[which] != items[i]) // in right slot and new
-                    {
-                        //Dbgl($"equipping: {__instance.EquipItem(items[i])}");
-                        __instance.EquipItem(items[i]);
-                        equipment[which] = items[i];
-                        items[i].m_equipped = true;
-                        continue;
-                    }
-
-                    // in wrong slot or unequipped in slot or can't equip
-                    Vector2i newPos = (Vector2i)typeof(Inventory).GetMethod("FindEmptySlot", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inv, new object[] { true });
-                    if (newPos.x < 0 || newPos.y < 0 || newPos.y == inv.GetHeight() - 1)
-                    {
-                        __instance.DropItem(inv, items[i], items[i].m_stack);
-                    }
-                    else
-                    {
-                        items[i].m_gridPos = newPos;
-                    }
-                }
-            }
-            equipItems = equipment;
-
+            EquipmentSlots.Arrange(__instance);
         }
         [HarmonyPatch(typeof(Player), "Update")]
         public static class Player_Update_Patch
