@@ -96,13 +96,38 @@ namespace ExtendedPlayerInventory {
     }
     public static class EquipmentRegression {
         static void Check(bool value, string message) { if (!value) throw new Exception(message); }
-        static Player NewPlayer() { var p = new Player(); Player.m_localPlayer = p; return p; }
+        static Player NewPlayer() { var p = new Player(); Player.m_localPlayer = p; EquipmentSlots.SizingPatch.Postfix(p); return p; }
         static ItemDrop.ItemData Item(Player p, int slot, ItemDrop.ItemData.ItemType? type = null) {
             var item = new ItemDrop.ItemData { m_gridPos = new Vector2i(slot, p.Inventory.Height - 1) };
             item.m_shared.m_itemType = type ?? BepInExPlugin.typeEnums[slot];
             p.Inventory.Items.Add(item); return item;
         }
         public static void Run() {
+            var fresh = new Player(); Player.m_localPlayer = fresh;
+            var freshHelmet = Item(fresh, 0);
+            EquipmentSlots.Arrange(fresh);
+            Check(fresh.m_helmetItem == freshHelmet, "new players that do not load a save remained blocked");
+            var loading = new Player(); Player.m_localPlayer = loading; loading.Inventory.Height = 4;
+            var loadingHammer = Item(loading, 3, ItemDrop.ItemData.ItemType.Tool);
+            var loadingHelmet = Item(loading, 0); loadingHelmet.m_gridPos = new Vector2i(0,8); loading.m_helmetItem = loadingHelmet;
+            EquipmentSlots.LoadingPatch.Prefix(loading);
+            EquipmentSlots.Arrange(loading);
+            Check(loadingHammer.m_gridPos.y == 3 && loadingHelmet.m_gridPos.y == 8 && loading.EquipCalls == 0 && loading.Dropped.Count == 0, "load callbacks rearranged items before sizing");
+            EquipmentSlots.LoadingPatch.Postfix(loading);
+            EquipmentSlots.Arrange(loading);
+            Check(loadingHelmet.m_gridPos.y == 8 && loading.Dropped.Count == 0, "completed load arranged against temporary size");
+            loading.Inventory.Height = 9;
+            EquipmentSlots.SizingPatch.Postfix(loading);
+            Check(loadingHammer.m_gridPos.y == 3 && loadingHelmet.m_gridPos.y == 8 && loading.Dropped.Count == 0, "final sizing treated an ordinary hammer as Back equipment");
+            Player.m_localPlayer = null;
+            var menu = new Player(); menu.Inventory.Height = 4;
+            var menuHammer = Item(menu, 3, ItemDrop.ItemData.ItemType.Tool);
+            EquipmentSlots.LoadingPatch.Prefix(menu);
+            EquipmentSlots.Arrange(menu);
+            Check(menuHammer.m_gridPos.y == 3 && menu.Dropped.Count == 0, "menu load callbacks treated ordinary slots as equipment");
+            menu.Inventory.Height = 9;
+            EquipmentSlots.LoadingPatch.Postfix(menu);
+            Check(menuHammer.m_gridPos.y == 3, "menu load completion moved an ordinary item");
             var p = NewPlayer();
             for (int slot = 0; slot < 5; slot++) Item(p, slot);
             EquipmentSlots.Arrange(p);
@@ -200,4 +225,4 @@ try {
     Remove-Item -LiteralPath $fixturePath -ErrorAction SilentlyContinue
 }
 [ExtendedPlayerInventory.EquipmentRegression]::Run()
-Write-Output 'PASS: all equipment types, reentry, equip failures/retries, manual unequip, hammer in Back, full inventory, death, player isolation, exceptions, old graves, quick slots, occupied slots, denied/nested transfers, disabled mod'
+Write-Output 'PASS: load-before-sizing and menu loading, all equipment types, reentry, equip failures/retries, manual unequip, hammer in Back, full inventory, death, player isolation, exceptions, old graves, quick slots, occupied slots, denied/nested transfers, disabled mod'
