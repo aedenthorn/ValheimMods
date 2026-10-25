@@ -25,8 +25,8 @@ namespace RowSizingRegression {
     public class Inventory {
         public int Width = 8, Height = 4;
         public void SetHeight(int value) { Height = value; }
-        public bool Insert(int x, int y) {
-            Plugin.Inventory_AddItem_Patch2.Prefix(this, ref Width, ref Height, x, y);
+        public bool Insert(int x, int y, bool loading = false) {
+            Plugin.Inventory_AddItem_Patch2.Prefix(this, ref Width, ref Height, x, y, loading);
             return x >= 0 && y >= 0 && x < Width && y < Height;
         }
     }
@@ -76,6 +76,9 @@ namespace RowSizingRegression {
                 Check(!player.Inventory.Insert(width, height + 3), "out-of-bounds grave insertion should fail for fallback");
                 Check(player.Inventory.Width == width && player.Inventory.Height == height, "grave coordinates changed player capacity");
                 Check(player.Inventory.Insert(0, 0), "valid insertion was rejected");
+                Check(player.Inventory.Insert(7, 60, true) && player.Inventory.Height == 61, "saved positions were rejected before final sizing");
+                Plugin.Player_SetInventorySize_Patch.Prefix(player, int.Parse(player.SavedRows), player.Inventory);
+                Check(player.Inventory.Height == upgradedHeight && player.SavedRows == "5", "temporary load height leaked into final sizing");
             }
             var container = new Inventory();
             Check(container.Insert(9, 12), "existing non-player compatibility changed");

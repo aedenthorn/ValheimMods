@@ -111,6 +111,7 @@ namespace ExtendedPlayerInventory
                 hotKey3,
             };
 
+            InventoryRepair.Initialize(Config);
             harmony = new Harmony(Info.Metadata.GUID);
             harmony.PatchAll();
         }
@@ -501,11 +502,12 @@ namespace ExtendedPlayerInventory
         [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(int), typeof(int), typeof(bool) })]
         public static class Inventory_AddItem_Patch2
         {
-            public static void Prefix(Inventory __instance, ref int ___m_width, ref int ___m_height, int x, int y)
+            public static void Prefix(Inventory __instance, ref int ___m_width, ref int ___m_height, int x, int y, bool skipValidPositionCheck)
             {
                 // Let vanilla reject old grave coordinates and retry in an available slot.
                 // Accepting them by resizing the player inventory bypasses the configured capacity.
-                if (!modEnabled.Value || __instance == Player.m_localPlayer?.GetInventory())
+                // Loading restores saved coordinates before the player's final size is applied.
+                if (!modEnabled.Value || (__instance == Player.m_localPlayer?.GetInventory() && !skipValidPositionCheck))
                     return;
 
                 if (x >= ___m_width)
