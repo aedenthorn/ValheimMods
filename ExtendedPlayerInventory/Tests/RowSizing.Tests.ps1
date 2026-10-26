@@ -47,6 +47,7 @@ namespace RowSizingRegression {
     public class Plugin {
         public static Setting<bool> modEnabled = new Setting<bool> { Value = true };
         public static Setting<bool> addEquipmentRow = new Setting<bool>();
+        public static Setting<bool> displayEquipmentRowSeparate = new Setting<bool>();
         public static Setting<int> extraRows = new Setting<int>();
         public static void Dbgl(string value) { }
         $sizing
@@ -55,15 +56,16 @@ namespace RowSizingRegression {
     public static class Tests {
         static void Check(bool value, string message) { if (!value) throw new Exception(message); }
         public static void Run() {
-            foreach (int extras in new[] { 0, 3 }) foreach (bool equipment in new[] { false, true }) {
+            foreach (int extras in new[] { 0, 3 }) foreach (bool equipment in new[] { false, true }) foreach (bool separate in new[] { false, true }) {
                 var player = new Player(); Player.m_localPlayer = player;
                 Plugin.extraRows.Value = extras; Plugin.addEquipmentRow.Value = equipment;
+                Plugin.displayEquipmentRowSeparate.Value = separate;
                 int baseRows = 4;
                 for (int spawn = 0; spawn < 100; spawn++) {
                     Check(!Plugin.Player_SetInventorySize_Patch.Prefix(player, baseRows, player.Inventory), "vanilla sizing must be replaced");
                     Check(player.Inventory.Height == 4 + extras + (equipment ? 1 : 0), "height grew across repeated spawns");
                     Check(player.SavedRows == "4", "mod rows leaked into vanilla persistence");
-                    Check(InventoryGui.instance.Height == player.Inventory.Height, "GUI and inventory disagree");
+                    Check(InventoryGui.instance.Height == player.Inventory.Height - (equipment && separate ? 1 : 0), "panel includes a row whose slots are displayed separately");
                     baseRows = int.Parse(player.SavedRows);
                 }
                 // A purchased row must survive subsequent respawns without being counted twice.
@@ -72,6 +74,7 @@ namespace RowSizingRegression {
                 int upgradedHeight = player.Inventory.Height;
                 Plugin.Player_SetInventorySize_Patch.Prefix(player, int.Parse(player.SavedRows), player.Inventory);
                 Check(player.Inventory.Height == upgradedHeight, "upgraded inventory grew on respawn");
+                Check(InventoryGui.instance.Height == upgradedHeight - (equipment && separate ? 1 : 0), "purchased row or separate equipment panel sized incorrectly");
                 int width = player.Inventory.Width, height = player.Inventory.Height;
                 Check(!player.Inventory.Insert(width, height + 3), "out-of-bounds grave insertion should fail for fallback");
                 Check(player.Inventory.Width == width && player.Inventory.Height == height, "grave coordinates changed player capacity");

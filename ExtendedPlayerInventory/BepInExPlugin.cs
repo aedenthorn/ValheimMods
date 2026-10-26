@@ -130,7 +130,9 @@ namespace ExtendedPlayerInventory
                 ___m_inventory.SetHeight(height);
                 // OnSpawned and capacity upgrades reuse this value as the vanilla base size.
                 __instance.AddUniqueKeyValue("invrows", rows.ToString());
-                InventoryGui.instance.SetInventorySize(height);
+                // The separate equipment panel reuses the last row's slots, but should
+                // not reserve an empty row in the ordinary inventory background.
+                InventoryGui.instance.SetInventorySize(height - (addEquipmentRow.Value && displayEquipmentRowSeparate.Value ? 1 : 0));
                 __instance.DropInvalidItems();
 
                 return false;

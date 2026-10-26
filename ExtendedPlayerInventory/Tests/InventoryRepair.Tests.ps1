@@ -76,6 +76,7 @@ namespace ExtendedPlayerInventory {
     public static class BepInExPlugin {
         public static BepInEx.Configuration.ConfigEntry<bool> modEnabled = new BepInEx.Configuration.ConfigEntry<bool> { Value = true };
         public static BepInEx.Configuration.ConfigEntry<bool> addEquipmentRow = new BepInEx.Configuration.ConfigEntry<bool> { Value = true };
+        public static BepInEx.Configuration.ConfigEntry<bool> displayEquipmentRowSeparate = new BepInEx.Configuration.ConfigEntry<bool> { Value = true };
         public static BepInEx.Configuration.ConfigEntry<int> extraRows = new BepInEx.Configuration.ConfigEntry<int> { Value = 3 };
         public static ItemDrop.ItemData.ItemType[] typeEnums = { ItemDrop.ItemData.ItemType.Helmet, ItemDrop.ItemData.ItemType.Chest, ItemDrop.ItemData.ItemType.Legs, ItemDrop.ItemData.ItemType.Shoulder, ItemDrop.ItemData.ItemType.Utility };
         public static FieldInfo[] fields = { typeof(Player).GetField("Head"), typeof(Player).GetField("Chest"), typeof(Player).GetField("Legs"), typeof(Player).GetField("Back"), typeof(Player).GetField("Utility") };
@@ -119,7 +120,7 @@ namespace ExtendedPlayerInventory {
             Check(InventoryRepair.RepairSizingPatch.Prefix(player, ref rows, out state) && rows == 5, "requested base not passed to production sizing");
             Check(!BepInExPlugin.Player_SetInventorySize_Patch.Prefix(player, rows, player.Inventory), "production sizing should replace vanilla");
             InventoryRepair.RepairSizingPatch.Postfix(player, state);
-            Check(player.SavedRows == "5" && player.Inventory.Height == 9 && InventoryGui.instance.Height == 9 && player.InvalidItems == 0, "repaired size or validation incorrect");
+            Check(player.SavedRows == "5" && player.Inventory.Height == 9 && InventoryGui.instance.Height == 8 && player.InvalidItems == 0, "repaired capacity, separate panel height or validation incorrect");
             Check(player.Inventory.Items.Count == original.Count && InventoryRepair.requestedBaseRows.Value == 0 && config.Saves == 1, "one-time request not completed safely");
             foreach (var item in player.Inventory.Items) Check(item.m_stack == 17 && item.Custom["sentinel"] == "keep", "item data was changed");
             for (int spawn = 0; spawn < 100; spawn++) {

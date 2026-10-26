@@ -2,6 +2,8 @@
 
 The vanilla character key `invrows` is the base row count. The effective inventory height is that base plus `ExtraRows` and, when enabled, one equipment/quick-slot row. Saving the expanded height as the base caused repeated growth on respawn. This fix saves only the base.
 
+When equipment is displayed in its separate panel, the ordinary inventory background excludes that row's height. The underlying inventory still retains the equipment/quick-slot row. Inline equipment and disabled-equipment layouts use their full visible height.
+
 ## Automatic repair
 
 `Maintenance.AutoRepairSavedRows` defaults to `true`. On a local character's spawn, the mod derives the vanilla base from character purchase flags:
@@ -35,4 +37,4 @@ Back up character saves before migrating. The mod changes live character data; V
 
 ## Validation
 
-Run `Tests/Run.Tests.ps1` from PowerShell. The checks execute production sizing/repair code with isolated game stand-ins and cover repeated spawns, purchase combinations, live purchases, full-inventory abort/retry, item preservation, overrides, opt-out, character isolation, and spawn-context cleanup. The plugin also compiles against Valheim 1.0.20/BepInEx assemblies. In-game and multiplayer verification remain pending.
+Run `Tests/Run.Tests.ps1` from PowerShell. The checks execute production sizing/repair code with isolated game stand-ins and cover repeated spawns, purchase combinations, live purchases, full-inventory abort/retry, item preservation, overrides, opt-out, character isolation, spawn-context cleanup, and separate/inline/disabled equipment panel heights. The plugin also compiles against Valheim 1.0.20/BepInEx assemblies. A local in-game repair restored a saved base of 57 to 5 (total height 9), with the repair log confirming 35 item stacks preserved. Visual confirmation of the panel-height correction, death/recovery checks, and multiplayer verification remain pending.
