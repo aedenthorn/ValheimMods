@@ -54,6 +54,7 @@ public class Inventory {
 public class Player {
     public static Player m_localPlayer;
     public string Name = "RepairTest", SavedRows = "57";
+    public HashSet<string> Keys = new HashSet<string>();
     public int InvalidItems;
     public Inventory Inventory = new Inventory();
     public ItemDrop.ItemData Head, Chest, Legs, Back, Utility;
@@ -62,6 +63,8 @@ public class Player {
     public string GetPlayerName() { return Name; }
     public void AddUniqueKeyValue(string key, string value) { SavedRows = value; }
     public bool TryGetUniqueKeyValue(string key, out string value) { value = SavedRows; return value != null; }
+    public bool HaveUniqueKey(string key) { return Keys.Contains(key); }
+    public void AddUniqueKey(string key) { Keys.Add(key); }
     public void DropInvalidItems() { InvalidItems = Inventory.Items.FindAll(i => i.m_gridPos.x < 0 || i.m_gridPos.x >= Inventory.Width || i.m_gridPos.y < 0 || i.m_gridPos.y >= Inventory.Height).Count; }
 }
 public class InventoryGui {
@@ -112,7 +115,7 @@ namespace ExtendedPlayerInventory {
             Check(plan[hammer].y < 8, "hammer was reserved as Back equipment");
             for (int i = 0; i < 5; i++) Check(plan[equipped[i]].Equals(new Vector2i(i,8)), "actual equipment was not preserved");
 
-            var config = Request(); int rows = 57, state;
+            var config = Request(); int rows = 57; InventoryRepair.RepairState state;
             Check(InventoryRepair.RepairSizingPatch.Prefix(player, ref rows, out state) && rows == 5, "requested base not passed to production sizing");
             Check(!BepInExPlugin.Player_SetInventorySize_Patch.Prefix(player, rows, player.Inventory), "production sizing should replace vanilla");
             InventoryRepair.RepairSizingPatch.Postfix(player, state);
@@ -132,11 +135,11 @@ namespace ExtendedPlayerInventory {
             original.Clear(); foreach (var item in player.Inventory.Items) original[item] = item.m_gridPos;
             config = Request(); rows = 57;
             Check(!InventoryRepair.RepairSizingPatch.Prefix(player, ref rows, out state), "over-capacity repair should abort sizing");
-            Check(state == 0 && rows == 57 && player.Inventory.Height == 61 && player.SavedRows == "57", "aborted repair changed dimensions or persistence");
+            Check(state.BaseRows == 0 && rows == 57 && player.Inventory.Height == 61 && player.SavedRows == "57", "aborted repair changed dimensions or persistence");
             foreach (var pair in original) Check(pair.Key.m_gridPos.Equals(pair.Value), "aborted repair moved items");
             Check(InventoryRepair.requestedBaseRows.Value == 5 && config.Saves == 0, "failed repair consumed request");
             player.Name = "Different character";
-            Check(InventoryRepair.RepairSizingPatch.Prefix(player, ref rows, out state) && state == 0 && rows == 57, "repair affected another character");
+            Check(InventoryRepair.RepairSizingPatch.Prefix(player, ref rows, out state) && state.BaseRows == 0 && rows == 57, "repair affected another character");
             player.Name = "RepairTest"; InventoryRepair.requestedBaseRows.Value = 3;
             Check(!InventoryRepair.RepairSizingPatch.Prefix(player, ref rows, out state) && rows == 57, "invalid base was accepted");
 
@@ -149,7 +152,117 @@ namespace ExtendedPlayerInventory {
             player.Inventory.Items.RemoveAt(player.Inventory.Items.Count-1);
             Check(InventoryRepair.TryPlan(player.Inventory, new ItemDrop.ItemData[5], 8, false, out plan, out error) && plan[duplicate].y < 8, "ordinary layout without equipment failed");
             BepInExPlugin.modEnabled.Value = false; rows = 57;
-            Check(InventoryRepair.RepairSizingPatch.Prefix(player, ref rows, out state) && state == 0 && rows == 57, "disabled mod applied repair");
+            Check(InventoryRepair.RepairSizingPatch.Prefix(player, ref rows, out state) && state.BaseRows == 0 && rows == 57, "disabled mod applied repair");
+            BepInExPlugin.modEnabled.Value = true;
+            AutomaticRepair();
+        }
+
+        static bool Size(Player player, ref int rows, out InventoryRepair.RepairState state) {
+            bool proceed = InventoryRepair.RepairSizingPatch.Prefix(player, ref rows, out state);
+            if (proceed) BepInExPlugin.Player_SetInventorySize_Patch.Prefix(player, rows, player.Inventory);
+            InventoryRepair.RepairSizingPatch.Postfix(player, state);
+            return proceed;
+        }
+
+        static void AutomaticRepair() {
+            // Purchase flags are independent: neither, either one, and both.
+            for (int purchases = 0; purchases < 4; purchases++) {
+                var player = new Player(); Player.m_localPlayer = player;
+                if ((purchases & 1) != 0) player.Keys.Add("invslot1");
+                if ((purchases & 2) != 0) player.Keys.Add("invslot2");
+                int expected = 4 + ((purchases & 1) != 0 ? 1 : 0) + ((purchases & 2) != 0 ? 1 : 0);
+                Check(InventoryRepair.PurchasedBaseRows(player) == expected, "purchase flags decoded incorrectly");
+                var overflow = Item(player, 0, 60, ItemDrop.ItemData.ItemType.Tool);
+                var config = new BepInEx.Configuration.ConfigFile(); InventoryRepair.Initialize(config);
+                Check(InventoryRepair.automaticRepair.Value && InventoryRepair.requestedBaseRows.Value == 0, "automatic repair should be enabled without manual configuration");
+                int rows = 57; InventoryRepair.RepairState state; bool entered;
+                InventoryRepair.SpawnPatch.Prefix(player, out entered);
+                try { Check(Size(player, ref rows, out state), "automatic repair was rejected"); }
+                finally { InventoryRepair.SpawnPatch.Finalizer(player, entered); }
+                Check(rows == expected && player.SavedRows == expected.ToString() && player.Inventory.Height == expected + 4, "automatic size ignored purchased capacity");
+                Check(overflow.m_gridPos.y < expected + 3 && player.InvalidItems == 0 && player.Inventory.Items.Count == 1 && overflow.Custom["sentinel"] == "keep", "automatic repair damaged an overflow item");
+                Check(player.HaveUniqueKey(InventoryRepair.CheckedKey) && config.Saves == 0, "automatic completion should be stored per character without consuming a global request");
+
+                // Migration is not reapplied after success, even if another mod later adds rows.
+                rows = expected + 2;
+                InventoryRepair.SpawnPatch.Prefix(player, out entered);
+                Check(!entered, "completed character entered automatic migration again");
+                try { Size(player, ref rows, out state); }
+                finally { InventoryRepair.SpawnPatch.Finalizer(player, entered); }
+                Check(rows == expected + 2 && state.BaseRows == 0, "completed migration overrode later capacity");
+            }
+
+            var healthy = new Player { SavedRows = "5" }; healthy.Keys.Add("invslot1");
+            Player.m_localPlayer = healthy; InventoryRepair.Initialize(new BepInEx.Configuration.ConfigFile());
+            int healthyRows = 5; bool healthyScope; InventoryRepair.RepairState healthyState;
+            InventoryRepair.SpawnPatch.Prefix(healthy, out healthyScope);
+            try { Size(healthy, ref healthyRows, out healthyState); }
+            finally { InventoryRepair.SpawnPatch.Finalizer(healthy, healthyScope); }
+            Check(healthy.HaveUniqueKey(InventoryRepair.CheckedKey) && !healthyState.Changed && healthyRows == 5, "healthy save was not recognized");
+
+            // A trader can size the inventory before writing its purchase flag.
+            var playerBeforePurchase = new Player { SavedRows = "4" }; Player.m_localPlayer = playerBeforePurchase;
+            int purchaseRows = 5; InventoryRepair.RepairState purchaseState;
+            Size(playerBeforePurchase, ref purchaseRows, out purchaseState);
+            Check(purchaseRows == 5 && playerBeforePurchase.SavedRows == "5" && purchaseState.BaseRows == 0, "live purchase was mistaken for saved inflation");
+            playerBeforePurchase.Keys.Add("invslot1");
+            InventoryRepair.SpawnPatch.Prefix(playerBeforePurchase, out healthyScope);
+            try { Size(playerBeforePurchase, ref purchaseRows, out purchaseState); }
+            finally { InventoryRepair.SpawnPatch.Finalizer(playerBeforePurchase, healthyScope); }
+            Check(purchaseRows == 5 && playerBeforePurchase.HaveUniqueKey(InventoryRepair.CheckedKey), "purchase did not survive the next spawn");
+
+            var full = new Player(); Player.m_localPlayer = full;
+            for (int i = 0; i < 57; i++) Item(full, i%8, i/8, ItemDrop.ItemData.ItemType.Tool);
+            var positions = new Dictionary<ItemDrop.ItemData,Vector2i>();
+            foreach (var item in full.Inventory.Items) positions[item] = item.m_gridPos;
+            int fullRows = 57; InventoryRepair.RepairState fullState; bool fullScope;
+            InventoryRepair.SpawnPatch.Prefix(full, out fullScope);
+            try { Check(!Size(full, ref fullRows, out fullState), "automatic over-capacity migration should abort"); }
+            finally { InventoryRepair.SpawnPatch.Finalizer(full, fullScope); }
+            Check(fullRows == 57 && full.SavedRows == "57" && full.Inventory.Height == 61 && !full.HaveUniqueKey(InventoryRepair.CheckedKey), "automatic abort changed capacity or marked completion");
+            foreach (var pair in positions) Check(pair.Key.m_gridPos.Equals(pair.Value), "automatic abort moved an item");
+            full.Inventory.Items.RemoveAt(full.Inventory.Items.Count - 1);
+            InventoryRepair.SpawnPatch.Prefix(full, out fullScope);
+            try { Check(Size(full, ref fullRows, out fullState), "automatic repair should retry after freeing space"); }
+            finally { InventoryRepair.SpawnPatch.Finalizer(full, fullScope); }
+            Check(fullRows == 4 && full.HaveUniqueKey(InventoryRepair.CheckedKey), "automatic retry did not complete");
+
+            // Disable automatic migration for externally provided base capacity.
+            var custom = new Player(); Player.m_localPlayer = custom;
+            InventoryRepair.Initialize(new BepInEx.Configuration.ConfigFile());
+            InventoryRepair.automaticRepair.Value = false;
+            int customRows = 57; InventoryRepair.RepairState customState; bool customScope;
+            InventoryRepair.SpawnPatch.Prefix(custom, out customScope);
+            Check(!customScope, "disabled automatic repair entered spawn scope");
+            Size(custom, ref customRows, out customState);
+            InventoryRepair.SpawnPatch.Finalizer(custom, customScope);
+            Check(customRows == 57 && customState.BaseRows == 0 && !custom.HaveUniqueKey(InventoryRepair.CheckedKey), "automatic opt-out was ignored");
+
+            // Manual requests still work with automatic mode disabled and take precedence.
+            InventoryRepair.requestedBaseRows.Value = 9; InventoryRepair.characterName.Value = custom.Name;
+            Check(Size(custom, ref customRows, out customState) && customRows == 9 && custom.HaveUniqueKey(InventoryRepair.CheckedKey), "manual capacity override did not take precedence");
+
+            var interrupted = new Player(); Player.m_localPlayer = interrupted;
+            InventoryRepair.Initialize(new BepInEx.Configuration.ConfigFile());
+            bool outer, inner;
+            InventoryRepair.SpawnPatch.Prefix(interrupted, out outer);
+            InventoryRepair.SpawnPatch.Prefix(interrupted, out inner);
+            InventoryRepair.SpawnPatch.Finalizer(interrupted, inner);
+            int interruptedRows = 57; InventoryRepair.RepairState interruptedState;
+            Check(InventoryRepair.RepairSizingPatch.Prefix(interrupted, ref interruptedRows, out interruptedState) && interruptedRows == 4, "nested scope lost its outer context");
+            InventoryRepair.SpawnPatch.Finalizer(interrupted, outer); // also runs if OnSpawned throws
+            interruptedRows = 57;
+            Check(InventoryRepair.RepairSizingPatch.Prefix(interrupted, ref interruptedRows, out interruptedState) && interruptedState.BaseRows == 0 && interruptedRows == 57, "exception cleanup leaked spawn scope");
+            Check(!interrupted.HaveUniqueKey(InventoryRepair.CheckedKey), "unconfirmed sizing marked automatic completion");
+
+            var remote = new Player(); bool remoteScope;
+            InventoryRepair.SpawnPatch.Prefix(remote, out remoteScope);
+            int remoteRows = 57; InventoryRepair.RepairState remoteState;
+            Check(!remoteScope && InventoryRepair.RepairSizingPatch.Prefix(remote, ref remoteRows, out remoteState) && remoteRows == 57, "automatic repair affected another player");
+            BepInExPlugin.modEnabled.Value = false;
+            InventoryRepair.SpawnPatch.Prefix(interrupted, out outer);
+            Check(!outer, "disabled mod entered automatic repair");
+            BepInExPlugin.modEnabled.Value = true;
         }
     }
 }
@@ -162,3 +275,4 @@ try {
 } finally { Remove-Item -LiteralPath $fixturePath -ErrorAction SilentlyContinue }
 [ExtendedPlayerInventory.RepairRegression]::Run()
 Write-Output 'PASS: 61-to-9 repair, all equipment and quick slots, overflow/collisions, hammer, item data preserved, no invalid drops, 100 reloads, full-inventory abort, character scope, invalid inputs, persistence verification, disabled mod'
+Write-Output 'PASS: automatic purchase-flag detection (0/1/2 upgrades), healthy saves, per-character completion, future purchases, manual override, opt-out, capacity abort/retry, nested/exception scope cleanup, player isolation'
