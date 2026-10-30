@@ -111,6 +111,7 @@ namespace ExtendedPlayerInventory
                 hotKey3,
             };
 
+            InventoryRepair.Initialize(Config);
             harmony = new Harmony(Info.Metadata.GUID);
             harmony.PatchAll();
         }
@@ -127,8 +128,11 @@ namespace ExtendedPlayerInventory
                 int height = rows + extraRows.Value + (addEquipmentRow.Value ? 1 : 0);
 
                 ___m_inventory.SetHeight(height);
-                __instance.AddUniqueKeyValue("invrows", height.ToString());
-                InventoryGui.instance.SetInventorySize(height);
+                // OnSpawned and capacity upgrades reuse this value as the vanilla base size.
+                __instance.AddUniqueKeyValue("invrows", rows.ToString());
+                // The separate equipment panel reuses the last row's slots, but should
+                // not reserve an empty row in the ordinary inventory background.
+                InventoryGui.instance.SetInventorySize(height - (addEquipmentRow.Value && displayEquipmentRowSeparate.Value ? 1 : 0));
                 __instance.DropInvalidItems();
 
                 return false;
@@ -500,9 +504,12 @@ namespace ExtendedPlayerInventory
         [HarmonyPatch(typeof(Inventory), "AddItem", new Type[] { typeof(ItemDrop.ItemData), typeof(int), typeof(int), typeof(int), typeof(bool) })]
         public static class Inventory_AddItem_Patch2
         {
-            public static void Prefix(Inventory __instance, ref int ___m_width, ref int ___m_height, int x, int y)
+            public static void Prefix(Inventory __instance, ref int ___m_width, ref int ___m_height, int x, int y, bool skipValidPositionCheck)
             {
-                if (!modEnabled.Value)
+                // Let vanilla reject old grave coordinates and retry in an available slot.
+                // Accepting them by resizing the player inventory bypasses the configured capacity.
+                // Loading restores saved coordinates before the player's final size is applied.
+                if (!modEnabled.Value || (__instance == Player.m_localPlayer?.GetInventory() && !skipValidPositionCheck))
                     return;
 
                 if (x >= ___m_width)
