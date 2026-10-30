@@ -206,6 +206,21 @@ namespace CraftFromContainers
             return (!ignoreShipContainers.Value || ship is null) && (!ignoreWagonContainers.Value || __instance.m_wagon is null) && (!ignoreWoodChests.Value || !__instance.name.StartsWith("piece_chest_wood(")) && (!ignorePrivateChests.Value || !__instance.name.StartsWith("piece_chest_private(")) && (!ignoreBlackMetalChests.Value || !__instance.name.StartsWith("piece_chest_blackmetal(")) && (!ignoreReinforcedChests.Value || !__instance.name.StartsWith("piece_chest("));
         }
 
+        // How many of an item to take from a container, up to wanted, keeping the last one if LeaveOne is set.
+        public static int GetPullAmount(Inventory inventory, string name, int wanted)
+        {
+            int available = inventory.CountItems(name) - (leaveOne.Value ? 1 : 0);
+            return Mathf.Max(0, Mathf.Min(wanted, available));
+        }
+
+        // Take ownership of a container before changing its contents, otherwise the current owner's copy overwrites the change (e.g. with MultiUserChest).
+        public static void ClaimContainer(Container container)
+        {
+            ZNetView nview = (ZNetView)AccessTools.Field(typeof(Container), "m_nview").GetValue(container);
+            if (nview != null && nview.IsValid() && !nview.IsOwner())
+                nview.ClaimOwnership();
+        }
+
         [HarmonyPatch(typeof(FejdStartup), "Awake")]
         public static class FejdStartup_Awake_Patch
         {
@@ -314,15 +329,13 @@ namespace CraftFromContainers
                                 continue;
                             }
 
-                            int amount = pullAll ? (int)Mathf.Min(__instance.m_maxFuel - Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f)), item.m_stack) : 1;
-
-                            if(amount > 0)
-                                amount -= leaveOne.Value ? 1 : 0;
+                            int amount = GetPullAmount(c.GetInventory(), __instance.m_fuelItem.m_itemData.m_shared.m_name, pullAll ? (int)(__instance.m_maxFuel - Mathf.CeilToInt(___m_nview.GetZDO().GetFloat("fuel", 0f))) : 1);
                             if (amount == 0)
                                 continue;
 
                             Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking {amount}");
 
+                            ClaimContainer(c);
                             c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
                             typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                             //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
@@ -372,6 +385,7 @@ namespace CraftFromContainers
                         }
 
                         Dbgl($"container at {c.transform.position} has {fuelItem.m_stack} {fuelItem.m_dropPrefab.name}, taking one");
+                        ClaimContainer(c);
                         c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, 1);
                         typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                         //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
@@ -415,6 +429,7 @@ namespace CraftFromContainers
 
                             Dbgl($"container at {c.transform.position} has {item.m_stack} {item.m_dropPrefab.name}, taking one");
                             __result = item;
+                            ClaimContainer(c);
                             c.GetInventory().RemoveItem(itemConversion.m_from.m_itemData.m_shared.m_name, 1);
                             typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                             //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
@@ -527,10 +542,7 @@ namespace CraftFromContainers
                                 Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name} but it's forbidden by config");
                                 continue;
                             }
-                            int amount = pullAll ? (int)Mathf.Min(__instance.m_maxOre - (int)AccessTools.Method(typeof(Smelter), "GetQueueSize").Invoke(__instance, Array.Empty<object>()), c.GetInventory().CountItems(name)) : 1;
-
-                            if (amount > 0)
-                                amount -= leaveOne.Value ? 1 : 0;
+                            int amount = GetPullAmount(c.GetInventory(), name, pullAll ? __instance.m_maxOre - (int)AccessTools.Method(typeof(Smelter), "GetQueueSize").Invoke(__instance, Array.Empty<object>()) : 1);
                             if (amount == 0)
                                 continue;
 
@@ -540,6 +552,7 @@ namespace CraftFromContainers
 
                             Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name}, taking {amount}");
 
+                            ClaimContainer(c);
                             c.GetInventory().RemoveItem(name, amount);
                             typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                             //typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { });
@@ -621,15 +634,13 @@ namespace CraftFromContainers
                             Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name} but it's forbidden by config");
                             continue;
                         }
-                        int amount = pullAll ? (int)Mathf.Min(__instance.m_maxFuel - ((float)typeof(Smelter).GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { })), newItem.m_stack) : 1;
-
-                        if (amount > 0)
-                            amount -= leaveOne.Value ? 1 : 0;
+                        int amount = GetPullAmount(c.GetInventory(), __instance.m_fuelItem.m_itemData.m_shared.m_name, pullAll ? (int)(__instance.m_maxFuel - ((float)typeof(Smelter).GetMethod("GetFuel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { }))) : 1);
                         if (amount == 0)
                             continue;
 
                         Dbgl($"container at {c.transform.position} has {newItem.m_stack} {newItem.m_dropPrefab.name}, taking {amount}");
 
+                        ClaimContainer(c);
                         c.GetInventory().RemoveItem(__instance.m_fuelItem.m_itemData.m_shared.m_name, amount);
                         typeof(Container).GetMethod("Save", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c, new object[] { });
                         typeof(Inventory).GetMethod("Changed", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(c.GetInventory(), new object[] { false, false});
