@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ExtendedPlayerInventory
 {
-    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "1.0.6")]
+    [BepInPlugin("aedenthorn.ExtendedPlayerInventory", "Extended Player Inventory", "1.1.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;

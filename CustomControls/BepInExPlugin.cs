@@ -13,7 +13,7 @@ using UnityEngine.UIElements;
 
 namespace CustomControls
 {
-    [BepInPlugin("aedenthorn.CustomControls", "Custom Controls", "0.2.0")]
+    [BepInPlugin("aedenthorn.CustomControls", "Custom Controls", "0.3.0")]
     public class BepInExPlugin : BaseUnityPlugin
     {
         public static BepInExPlugin context;
